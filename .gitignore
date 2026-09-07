@@ -1,0 +1,46 @@
+# Unity generated folders
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Bb]uild/
+/[Bb]uilds/
+/MemoryCaptures/
+/Recordings/
+
+# IDE and generated project files
+/.vs/
+/.idea/
+/.vscode/
+*.csproj
+*.sln
+*.slnx
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.log
+
+# Third-party assets: install separately
+/Assets/KINEMATION/
+/Assets/KINEMATION.meta
+/Assets/TextMesh Pro/
+/Assets/TextMesh Pro.meta
+/Assets/TutorialInfo/
+/Assets/TutorialInfo.meta
+/Assets/Readme.asset
+/Assets/Readme.asset.meta
+
+# Local backups and credentials
+*.blend[0-9]*
+*.blend[0-9]*.meta
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.keystore
+.DS_Store
+Thumbs.db
