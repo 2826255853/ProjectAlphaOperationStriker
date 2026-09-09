@@ -231,6 +231,258 @@
           1.2
         ]
       }
+    },
+    {
+      "id": "Platform_Central_West_North",
+      "type": "cube",
+      "transform": {
+        "position": [
+          -6,
+          1,
+          14
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          4,
+          2,
+          52
+        ]
+      }
+    },
+    {
+      "id": "Platform_Central_East_North",
+      "type": "cube",
+      "transform": {
+        "position": [
+          6,
+          1,
+          14
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          4,
+          2,
+          52
+        ]
+      }
+    },
+    {
+      "id": "Platform_Central_West_South",
+      "type": "cube",
+      "transform": {
+        "position": [
+          -6,
+          1,
+          -30
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          4,
+          2,
+          20
+        ]
+      }
+    },
+    {
+      "id": "Platform_Central_East_South",
+      "type": "cube",
+      "transform": {
+        "position": [
+          6,
+          1,
+          -30
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          4,
+          2,
+          20
+        ]
+      }
+    },
+    {
+      "id": "Platform_Left_Outer",
+      "type": "cube",
+      "transform": {
+        "position": [
+          -22,
+          1,
+          -24
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          4,
+          2,
+          32
+        ]
+      }
+    },
+    {
+      "id": "Platform_Left_Inner_South",
+      "type": "cube",
+      "transform": {
+        "position": [
+          -10,
+          1,
+          -30
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          4,
+          2,
+          20
+        ]
+      }
+    },
+    {
+      "id": "Platform_Right_Inner_South",
+      "type": "cube",
+      "transform": {
+        "position": [
+          10,
+          1,
+          -30
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          4,
+          2,
+          20
+        ]
+      }
+    },
+    {
+      "id": "Platform_Right_Outer",
+      "type": "cube",
+      "transform": {
+        "position": [
+          22,
+          1,
+          -24
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          4,
+          2,
+          32
+        ]
+      }
+    },
+    {
+      "id": "Platform_Turn_Left_South",
+      "type": "cube",
+      "transform": {
+        "position": [
+          -8,
+          1,
+          -22
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          8,
+          2,
+          4
+        ]
+      }
+    },
+    {
+      "id": "Platform_Turn_Left_North",
+      "type": "cube",
+      "transform": {
+        "position": [
+          -12,
+          1,
+          -10
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          16,
+          2,
+          4
+        ]
+      }
+    },
+    {
+      "id": "Platform_Turn_Right_South",
+      "type": "cube",
+      "transform": {
+        "position": [
+          8,
+          1,
+          -22
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          8,
+          2,
+          4
+        ]
+      }
+    },
+    {
+      "id": "Platform_Turn_Right_North",
+      "type": "cube",
+      "transform": {
+        "position": [
+          12,
+          1,
+          -10
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          16,
+          2,
+          4
+        ]
+      }
     }
   ],
   "gameplay": {

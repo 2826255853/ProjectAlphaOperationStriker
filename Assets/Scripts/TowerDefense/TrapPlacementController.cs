@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>Runtime trap placement (4), placement confirmation (left click), and dismantling (E).</summary>
 public sealed class TrapPlacementController : MonoBehaviour
@@ -21,11 +22,23 @@ public sealed class TrapPlacementController : MonoBehaviour
     private Vector2Int lastPlacedCell;
     private bool hasLastPlacedCell;
     private readonly List<GameObject> gridMarkers = new List<GameObject>();
+    private readonly List<InputAction> suppressedWeaponActions = new List<InputAction>();
     private Material openMaterial, blockedMaterial, footprintMaterial, invalidFootprintMaterial;
+    private Material hoveredMaterial;
 
     public TrapDefinition SelectedTrap { get => selectedTrap; set { selectedTrap = value; RebuildPreview(); } }
     public bool PlacementMode => placementMode;
     public bool HasValidPreview => placementMode && hasHoveredCell && selectedTrap != null && CanPlace(hoveredCell);
+    public static bool IsPlacementModeActive { get; private set; }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void EnsureRuntimeController()
+    {
+        if (FindFirstObjectByType<TrapPlacementController>() != null) return;
+        GameObject host = new GameObject("Trap Placement Controller");
+        DontDestroyOnLoad(host);
+        host.AddComponent<TrapPlacementController>();
+    }
 
     private void Awake()
     {
@@ -37,32 +50,66 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     private void Update()
     {
+        // The project uses the new Input System, so read the number key from
+        // Keyboard.current instead of relying only on the legacy Input API.
+        if (WasTogglePlacementKeyPressed()) SetPlacementMode(!placementMode);
+        if (placementMode) SetWeaponInputSuppressed(true);
+        if (placementCamera == null) placementCamera = Camera.main;
+        if (grid == null) grid = FindFirstObjectByType<TrapPlacementGrid>();
         if (grid == null || placementCamera == null) return;
-        if (Input.GetKeyDown(togglePlacementKey)) SetPlacementMode(!placementMode);
         UpdateHover();
-        if (Input.GetKeyDown(dismantleKey))
+        if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
         {
             if (hoveredTrap == null)
                 hoveredTrap = FindTrapFromRay(placementCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f)));
             DismantleHoveredTrap();
         }
         if (!placementMode) return;
-        if (Input.GetMouseButtonDown(0) && HasValidPreview)
+        if (WasMouseButtonPressed(0) && HasValidPreview)
         {
             PlaceAt(hoveredCell);
             dragPlacement = allowDragPlacement;
             lastPlacedCell = hoveredCell;
             hasLastPlacedCell = true;
         }
-        if (allowDragPlacement && dragPlacement && Input.GetMouseButton(0) && hasHoveredCell && hasLastPlacedCell)
+        if (allowDragPlacement && dragPlacement && IsMouseButtonHeld(0) && hasHoveredCell && hasLastPlacedCell)
             PlaceAlongLine(lastPlacedCell, hoveredCell);
-        if (Input.GetMouseButtonUp(0)) { dragPlacement = false; hasLastPlacedCell = false; }
-        if (allowRemoveWithRightClick && Input.GetMouseButtonDown(1)) DismantleHoveredTrap();
+        if (WasMouseButtonReleased(0)) { dragPlacement = false; hasLastPlacedCell = false; }
+        if (allowRemoveWithRightClick && WasMouseButtonPressed(1)) DismantleHoveredTrap();
+    }
+
+    private bool WasTogglePlacementKeyPressed()
+    {
+        if (Keyboard.current == null) return false;
+        if (togglePlacementKey == KeyCode.Keypad4)
+            return Keyboard.current[Key.Numpad4].wasPressedThisFrame;
+        if (togglePlacementKey == KeyCode.Alpha4)
+            return Keyboard.current[Key.Digit4].wasPressedThisFrame;
+        return false;
+    }
+
+    private static bool WasMouseButtonPressed(int button)
+    {
+        if (Mouse.current == null) return false;
+        return button == 0 ? Mouse.current.leftButton.wasPressedThisFrame : Mouse.current.rightButton.wasPressedThisFrame;
+    }
+
+    private static bool IsMouseButtonHeld(int button)
+    {
+        if (Mouse.current == null) return false;
+        return button == 0 ? Mouse.current.leftButton.isPressed : Mouse.current.rightButton.isPressed;
+    }
+
+    private static bool WasMouseButtonReleased(int button)
+    {
+        if (Mouse.current == null) return false;
+        return button == 0 ? Mouse.current.leftButton.wasReleasedThisFrame : Mouse.current.rightButton.wasReleasedThisFrame;
     }
 
     private void UpdateHover()
     {
-        Ray ray = placementCamera.ScreenPointToRay(Input.mousePosition);
+        Vector2 mousePosition = Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
+        Ray ray = placementCamera.ScreenPointToRay(mousePosition);
         Plane plane = new Plane(grid.transform.up, grid.CellToWorld(Vector2Int.zero));
         bool previousHover = hasHoveredCell;
         Vector2Int previousCell = hoveredCell;
@@ -146,11 +193,44 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     private void SetPlacementMode(bool enabled)
     {
+        bool wasPlacementMode = placementMode;
         placementMode = enabled;
+        IsPlacementModeActive = enabled;
         dragPlacement = false;
         hasLastPlacedCell = false;
+        if (enabled && !wasPlacementMode)
+            Debug.Log("进入陷阱放置状态");
+        SetWeaponInputSuppressed(enabled);
         if (!enabled) { SetPreviewVisible(false); ClearGridMarkers(); }
         else { EnsureMaterials(); RefreshGridMarkers(); }
+    }
+
+    private void SetWeaponInputSuppressed(bool suppressed)
+    {
+        if (!suppressed)
+        {
+            for (int i = 0; i < suppressedWeaponActions.Count; i++)
+                suppressedWeaponActions[i]?.Enable();
+            suppressedWeaponActions.Clear();
+            return;
+        }
+
+        foreach (PlayerInput input in FindObjectsByType<PlayerInput>(FindObjectsSortMode.None))
+        {
+            if (input.actions == null) continue;
+            foreach (InputAction action in input.actions)
+            {
+                string actionName = action.name.ToLowerInvariant();
+                if (!actionName.Contains("attack") && !actionName.Contains("fire") &&
+                    !actionName.Contains("shoot") && !actionName.Contains("aim") &&
+                    !actionName.Contains("reload")) continue;
+                if (action.enabled)
+                {
+                    action.Disable();
+                    suppressedWeaponActions.Add(action);
+                }
+            }
+        }
     }
 
     private void EnsurePreview()
@@ -182,6 +262,7 @@ public sealed class TrapPlacementController : MonoBehaviour
         blockedMaterial = CreateOverlayMaterial(new Color(1f, 0.15f, 0.1f, 0.12f));
         footprintMaterial = CreateOverlayMaterial(new Color(1f, 0.85f, 0.1f, 0.45f));
         invalidFootprintMaterial = CreateOverlayMaterial(new Color(1f, 0.05f, 0.05f, 0.5f));
+        hoveredMaterial = CreateOverlayMaterial(new Color(0.15f, 0.9f, 1f, 0.75f));
     }
 
     private void RefreshGridMarkers()
@@ -195,6 +276,8 @@ public sealed class TrapPlacementController : MonoBehaviour
             Material material = grid.IsOpen(cell) && !grid.IsOccupied(cell) ? openMaterial : blockedMaterial;
             if (hasHoveredCell && selectedTrap != null && IsFootprintCell(hoveredCell, cell))
                 material = CanPlace(hoveredCell) ? footprintMaterial : invalidFootprintMaterial;
+            if (hasHoveredCell && cell == hoveredCell)
+                material = CanPlace(hoveredCell) ? hoveredMaterial : invalidFootprintMaterial;
             GameObject marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
             marker.name = "Trap Grid Marker";
             marker.transform.SetParent(transform, true);
@@ -239,6 +322,8 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     private void OnDisable()
     {
+        IsPlacementModeActive = false;
+        SetWeaponInputSuppressed(false);
         if (preview != null) Destroy(preview);
         preview = null;
         ClearGridMarkers();

@@ -390,12 +390,22 @@ public sealed class FPSHitscanShooter : MonoBehaviour
 
     private void Awake()
     {
-        player = GetComponent<FPSPlayer>();
+        // The bootstrap adds this bridge to the prefab root, while the package
+        // player lives on its character child (alongside the weapon animator).
+        player = GetComponentInChildren<FPSPlayer>(true);
         playerCamera = GetComponentInChildren<Camera>(true);
     }
 
     private void Update()
     {
+        if (TrapPlacementController.IsPlacementModeActive)
+        {
+            // Trap placement owns the mouse while active; discard any weapon
+            // state changes so a shot cannot damage gameplay targets.
+            previousAmmo = -1;
+            observedWeapon = null;
+            return;
+        }
         if (player == null || playerCamera == null)
         {
             return;
@@ -431,26 +441,45 @@ public sealed class FPSHitscanShooter : MonoBehaviour
     private void FireHitscan()
     {
         Ray ray = playerCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-        if (!Physics.Raycast(ray, out RaycastHit hit, range, hitMask,
-                QueryTriggerInteraction.Ignore))
+        if (damage <= 0f)
         {
             return;
         }
 
-        if (hit.transform == transform || hit.transform.IsChildOf(transform))
+        // A model can contain several colliders, and the collider that gets
+        // hit is often a child of the object that owns EnemyHealth.  Resolve
+        // the complete hit list so a self-collider does not consume the shot
+        // and so damage is applied to the first damageable object in the line
+        // of fire.  Once a solid non-target collider is reached it still
+        // blocks the shot like a normal hitscan weapon.
+        RaycastHit[] hits = Physics.RaycastAll(ray, range, hitMask,
+            QueryTriggerInteraction.Ignore);
+        if (hits.Length == 0)
         {
             return;
         }
 
-        EnemyHealth enemyHealth = hit.collider.GetComponentInParent<EnemyHealth>();
-        if (enemyHealth != null)
+        System.Array.Sort(hits, (left, right) => left.distance.CompareTo(right.distance));
+        foreach (RaycastHit hit in hits)
         {
-            enemyHealth.TakeDamage(damage);
+            Transform hitTransform = hit.transform;
+            if (hitTransform == transform || hitTransform.IsChildOf(transform))
+            {
+                continue;
+            }
+
+            EnemyHealth enemyHealth = hit.collider.GetComponentInParent<EnemyHealth>();
+            if (enemyHealth != null)
+            {
+                enemyHealth.TakeDamage(damage);
+                return;
+            }
+
+            // Preserve compatibility with other gameplay targets that expose
+            // TakeDamage(float), including receivers on a parent object.
+            hitTransform.SendMessageUpwards("TakeDamage", damage,
+                SendMessageOptions.DontRequireReceiver);
             return;
         }
-
-        // Preserve compatibility with other gameplay targets that expose a
-        // TakeDamage(float) receiver without using EnemyHealth.
-        hit.transform.SendMessage("TakeDamage", damage, SendMessageOptions.DontRequireReceiver);
     }
 }

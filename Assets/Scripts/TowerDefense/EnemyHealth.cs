@@ -29,6 +29,7 @@ public sealed class EnemyHealth : MonoBehaviour
         }
 
         CurrentHealth = Mathf.Max(0f, CurrentHealth - amount);
+        Debug.Log($"[EnemyHealth] {gameObject.name} 受到伤害: {amount:0.##}，剩余血量: {CurrentHealth:0.##}/{MaxHealth:0.##}", this);
         Damaged?.Invoke(this);
 
         if (CurrentHealth > 0f)

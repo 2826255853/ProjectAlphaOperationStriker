@@ -18,6 +18,10 @@ public static class MapForgeWorldImporter
     private static void AutoImportIfNeeded()
     {
         EditorApplication.delayCall -= AutoImportIfNeeded;
+        // delayCall can run after the editor has entered Play Mode (for
+        // example when a domain reload completes while Play is starting).
+        // Scene creation through EditorSceneManager is editor-only.
+        if (EditorApplication.isPlayingOrWillChangePlaymode) return;
         var source = Path.Combine(Application.dataPath, "mapforge-world.json");
         if (File.Exists(source) && !File.Exists(Path.Combine(Application.dataPath, "Scenes", "UNTITLED_WORLD.unity")))
             Import(source);
@@ -98,6 +102,14 @@ public static class MapForgeWorldImporter
 
     public static void Import(string jsonPath)
     {
+        // This importer creates and saves an editor scene. Unity rejects
+        // EditorSceneManager.NewScene while Play Mode is active, so fail
+        // cleanly instead of throwing from the delayed callback.
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+        {
+            Debug.LogWarning("MapForge import skipped because Unity is in or entering Play Mode. Stop Play Mode and run the import again.");
+            return;
+        }
         if (!File.Exists(jsonPath)) { Debug.LogError("MapForge file not found: " + jsonPath); return; }
         World world;
         try { world = JsonUtility.FromJson<World>(File.ReadAllText(jsonPath)); }
