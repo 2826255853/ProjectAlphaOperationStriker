@@ -146,6 +146,17 @@ public sealed class AutoSentryTurret : MonoBehaviour
     private void BuildFallbackVisuals()
     {
         if (visualsBuilt) return;
+        GameObject art = Resources.Load<GameObject>("SentryMachineGun");
+        if (art != null)
+        {
+            GameObject instance = Instantiate(art, transform);
+            instance.name = "Sentry Machine Gun Art";
+            aimPivot = FindDeepChild(instance.transform, "Aim Pivot");
+            muzzle = FindDeepChild(instance.transform, "Muzzle");
+            if (aimPivot != null && muzzle != null)
+            { visualsBuilt = true; return; }
+            DestroyImmediate(instance);
+        }
         Transform existingPivot = transform.Find("Aim Pivot");
         if (existingPivot != null)
         {
@@ -181,6 +192,17 @@ public sealed class AutoSentryTurret : MonoBehaviour
         }
     }
 
+    private static Transform FindDeepChild(Transform parent, string childName)
+    {
+        if (parent.name == childName) return parent;
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            Transform result = FindDeepChild(parent.GetChild(i), childName);
+            if (result != null) return result;
+        }
+        return null;
+    }
+
     private static GameObject CreatePrimitive(PrimitiveType type, string name, Transform parent,
         Vector3 localPosition, Vector3 localScale, Material material)
     {
@@ -209,3 +231,5 @@ public sealed class AutoSentryTurret : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, detectionRange);
     }
 }
+
+

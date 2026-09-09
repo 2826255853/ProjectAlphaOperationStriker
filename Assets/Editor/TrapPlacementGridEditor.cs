@@ -97,6 +97,52 @@ public sealed class TrapPlacementGridEditor : Editor
         if (scenePaintMode || trapPaintMode) SceneView.RepaintAll();
     }
 
+    [MenuItem("Tools/Tower Defense/Create Trap Grid From Monster Grid")]
+    private static void CreateFromMonsterGrid()
+    {
+        MonsterPathGrid monsterGrid = Object.FindAnyObjectByType<MonsterPathGrid>();
+        if (monsterGrid == null)
+        {
+            EditorUtility.DisplayDialog("创建陷阱网格", "当前场景没有 MonsterPathGrid。", "确定");
+            return;
+        }
+
+        TrapPlacementGrid trapGrid = Object.FindAnyObjectByType<TrapPlacementGrid>();
+        if (trapGrid == null)
+        {
+            GameObject go = new GameObject("TrapPlacementGrid");
+            Undo.RegisterCreatedObjectUndo(go, "Create trap placement grid");
+            trapGrid = go.AddComponent<TrapPlacementGrid>();
+        }
+
+        Undo.RecordObject(trapGrid, "Configure trap placement grid");
+        trapGrid.transform.SetPositionAndRotation(monsterGrid.transform.position, monsterGrid.transform.rotation);
+        trapGrid.ConfigureLayout(monsterGrid.Columns, monsterGrid.Rows, monsterGrid.CellSize,
+            monsterGrid.PathHeight + 0.02f, monsterGrid.CreateOpenCellSnapshot());
+        EditorUtility.SetDirty(trapGrid);
+        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(trapGrid.gameObject.scene);
+        Selection.activeGameObject = trapGrid.gameObject;
+        SceneView.RepaintAll();
+    }
+
+    [MenuItem("Tools/Tower Defense/Validate Trap Grid Overlap")]
+    private static void ValidateOverlap()
+    {
+        MonsterPathGrid monsterGrid = Object.FindAnyObjectByType<MonsterPathGrid>();
+        TrapPlacementGrid trapGrid = Object.FindAnyObjectByType<TrapPlacementGrid>();
+        if (monsterGrid == null || trapGrid == null)
+        {
+            Debug.LogWarning("Trap grid overlap: MonsterPathGrid 或 TrapPlacementGrid 不存在。", trapGrid);
+            return;
+        }
+        bool geometry = trapGrid.Columns == monsterGrid.Columns && trapGrid.Rows == monsterGrid.Rows &&
+            Mathf.Abs(trapGrid.CellSize - monsterGrid.CellSize) < 0.0001f &&
+            Vector3.Distance(trapGrid.transform.position, monsterGrid.transform.position) < 0.0001f &&
+            Quaternion.Angle(trapGrid.transform.rotation, monsterGrid.transform.rotation) < 0.001f;
+        bool mask = trapGrid.HasSameOpenCells(monsterGrid.CreateOpenCellSnapshot());
+        Debug.Log($"Trap grid overlap: geometry={geometry}, openCells={mask}.", trapGrid);
+    }
+
     private void OnSceneGUI()
     {
         if (!scenePaintMode && !trapPaintMode) return;

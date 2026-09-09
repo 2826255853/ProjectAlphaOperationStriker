@@ -17,6 +17,14 @@ public sealed class MonsterPathGrid : MonoBehaviour
     public int Columns => columns;
     public int Rows => rows;
     public float CellSize => cellSize;
+    public float PathHeight => pathHeight;
+
+    /// <summary>Copies the authored walkable mask without exposing its backing array.</summary>
+    public bool[] CreateOpenCellSnapshot()
+    {
+        EnsureCellData();
+        return (bool[])openCells.Clone();
+    }
 
     private void Awake() => EnsureCellData();
 

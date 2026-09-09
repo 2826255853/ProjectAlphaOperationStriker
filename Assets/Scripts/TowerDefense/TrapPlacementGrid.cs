@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 /// <summary>
 /// Developer-authored grid for trap placement. The local X/Z plane is the grid.
@@ -26,6 +29,31 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     public int Rows => rows;
     public float CellSize => cellSize;
     public IReadOnlyCollection<TrapInstance> PlacedTraps => placedTraps;
+
+    /// <summary>
+    /// Initializes an independent placement mask. The caller supplies a snapshot,
+    /// so this grid never needs to reference the monster path grid at runtime.
+    /// </summary>
+    public void ConfigureLayout(int newColumns, int newRows, float newCellSize, float newHeight, bool[] openCellSnapshot)
+    {
+        columns = Mathf.Max(1, newColumns);
+        rows = Mathf.Max(1, newRows);
+        cellSize = Mathf.Max(0.01f, newCellSize);
+        placementHeight = newHeight;
+        openCells = new bool[columns * rows];
+        if (openCellSnapshot != null)
+            System.Array.Copy(openCellSnapshot, openCells, Mathf.Min(openCellSnapshot.Length, openCells.Length));
+        EnsureCellData();
+        RebuildOccupancy();
+    }
+
+    public bool HasSameOpenCells(bool[] other)
+    {
+        EnsureCellData();
+        if (other == null || other.Length != openCells.Length) return false;
+        for (int i = 0; i < openCells.Length; i++) if (openCells[i] != other[i]) return false;
+        return true;
+    }
 
     private void Awake()
     {
@@ -73,6 +101,10 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         foreach (var trap in traps)
         {
             if (trap == null || trap.Definition == null || !IsInside(trap.OriginCell)) continue;
+            // Scene-authored traps may have been saved with the old cell-center
+            // placement. Re-align their root so the model and every collider
+            // follow the grid intersection coordinate after loading.
+            trap.transform.SetPositionAndRotation(TrapWorldPosition(trap.OriginCell, trap.Definition.Footprint), trap.Definition.LocalRotation);
             Vector2Int footprint = trap.Definition.Footprint;
             bool valid = true;
             for (int y = 0; y < footprint.y && valid; y++)
@@ -113,7 +145,10 @@ public sealed class TrapPlacementGrid : MonoBehaviour
 
     public Vector3 CellToWorld(Vector2Int cell)
     {
-        Vector3 local = new Vector3((cell.x + 0.5f) * cellSize, placementHeight, (cell.y + 0.5f) * cellSize);
+        // Trap positions are anchored to grid-line intersections (as in Go),
+        // rather than the visual center of a cell. Cell indices still describe
+        // the same area for availability and occupancy checks.
+        Vector3 local = new Vector3(cell.x * cellSize, placementHeight, cell.y * cellSize);
         return transform.TransformPoint(local);
     }
 
@@ -141,15 +176,45 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             cells.Add(cell);
         }
 
-        GameObject root = definition.Prefab != null
-            ? Instantiate(definition.Prefab, CellToWorld(origin), definition.LocalRotation)
-            : CreateFallbackTrap(definition, origin, footprint);
+        GameObject root = CreateTrapObject(definition, origin, footprint);
         root.transform.SetParent(trapParent != null ? trapParent : transform, true);
         instance = root.GetComponent<TrapInstance>() ?? root.AddComponent<TrapInstance>();
         instance.Initialize(definition, origin);
+        // Keep the root authoritative for both visuals and colliders. This is
+        // also applied after parenting because trapParent may have a transform.
+        root.transform.SetPositionAndRotation(TrapWorldPosition(origin, definition.Footprint), definition.LocalRotation);
+#if UNITY_EDITOR
+        // Objects created by the editor painting tool must be scene objects,
+        // otherwise they can be discarded during a domain reload/reopen.
+        if (!Application.isPlaying)
+        {
+            EditorUtility.SetDirty(root);
+            EditorUtility.SetDirty(instance);
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(root.scene);
+        }
+#endif
         placedTraps.Add(instance);
         foreach (var cell in cells) occupiedCells[cell] = instance;
         return true;
+    }
+
+    private GameObject CreateTrapObject(TrapDefinition definition, Vector2Int origin, Vector2Int footprint)
+    {
+        if (definition.Prefab != null)
+        {
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                // PrefabUtility preserves a proper prefab instance in the
+                // scene, including added/generated child meshes.
+                GameObject editorInstance = (GameObject)PrefabUtility.InstantiatePrefab(definition.Prefab, gameObject.scene);
+                editorInstance.transform.SetPositionAndRotation(TrapWorldPosition(origin, footprint), definition.LocalRotation);
+                return editorInstance;
+            }
+#endif
+            return Instantiate(definition.Prefab, TrapWorldPosition(origin, footprint), definition.LocalRotation);
+        }
+        return CreateFallbackTrap(definition, origin, footprint);
     }
 
     /// <summary>
@@ -240,10 +305,34 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     private GameObject CreateFallbackTrap(TrapDefinition definition, Vector2Int origin, Vector2Int footprint)
     {
         var root = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        root.transform.position = CellToWorld(origin);
+        root.transform.position = TrapWorldPosition(origin, footprint);
         root.transform.rotation = definition.LocalRotation;
         root.transform.localScale = new Vector3(footprint.x * cellSize * 0.8f, 0.25f, footprint.y * cellSize * 0.8f);
+        // Keep the fallback usable when a definition's prefab reference is
+        // unavailable at runtime. AutoSentryTurret builds its machine-gun
+        // visuals in Awake, replacing the otherwise bare gray cube.
+        if (definition.TrapId == "auto_sentry_turret")
+        {
+            root.AddComponent<AutoSentryTurret>();
+            // The cube is only the generic fallback footprint; hide it once
+            // the turret component has generated its visible machine gun.
+            Renderer renderer = root.GetComponent<Renderer>();
+            if (renderer != null) renderer.enabled = false;
+            Collider collider = root.GetComponent<Collider>();
+            if (collider != null) Destroy(collider);
+        }
         return root;
+    }
+
+    private Vector3 TrapWorldPosition(Vector2Int origin, Vector2Int footprint)
+    {
+        Vector3 intersection = CellToWorld(origin);
+        // The imported turret mesh has its visual/pickup origin half a cell
+        // toward the left/rear of its prefab root. Compensate that authored
+        // pivot offset so the model and colliders sit on the intended crossing.
+        Vector3 localOffset = new Vector3((footprint.x * 0.5f - 0.5f) * cellSize, 0f,
+            (footprint.y * 0.5f - 0.5f) * cellSize);
+        return intersection + transform.TransformVector(localOffset);
     }
 
     private void OnDrawGizmos()

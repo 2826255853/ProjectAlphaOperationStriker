@@ -16,6 +16,6 @@ MonoBehaviour:
   displayName: 自动哨岗机枪
   prefab: {fileID: 100100000, guid: 8c6db5b3e6c7470ca27c3b9d5a46f102, type: 3}
   cost: 0
-  footprintWidth: 1
-  footprintHeight: 1
+  footprintWidth: 2
+  footprintHeight: 2
   localRotation: {x: 0, y: 0, z: 0}
