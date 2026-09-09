@@ -152,6 +152,12 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         return transform.TransformPoint(local);
     }
 
+    /// <summary>Returns the same footprint anchor used by real trap instances.</summary>
+    public Vector3 GetTrapWorldPosition(Vector2Int origin, Vector2Int footprint)
+    {
+        return TrapWorldPosition(origin, footprint);
+    }
+
     public bool TryWorldToCell(Vector3 worldPosition, out Vector2Int cell)
     {
         Vector3 local = transform.InverseTransformPoint(worldPosition);

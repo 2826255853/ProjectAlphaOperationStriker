@@ -4,6 +4,10 @@ using UnityEngine;
 [CustomEditor(typeof(TrapPlacementGrid))]
 public sealed class TrapPlacementGridEditor : Editor
 {
+    // Correct the generated trap grid by half a metre toward negative world X
+    // so it lines up with the monster traversable area.
+    private const float MonsterGridToTrapGridXOffset = 0.5f;
+
     private SerializedProperty columns;
     private SerializedProperty rows;
     private SerializedProperty cellSize;
@@ -116,7 +120,8 @@ public sealed class TrapPlacementGridEditor : Editor
         }
 
         Undo.RecordObject(trapGrid, "Configure trap placement grid");
-        trapGrid.transform.SetPositionAndRotation(monsterGrid.transform.position, monsterGrid.transform.rotation);
+        Vector3 trapGridPosition = monsterGrid.transform.position + Vector3.right * MonsterGridToTrapGridXOffset;
+        trapGrid.transform.SetPositionAndRotation(trapGridPosition, monsterGrid.transform.rotation);
         trapGrid.ConfigureLayout(monsterGrid.Columns, monsterGrid.Rows, monsterGrid.CellSize,
             monsterGrid.PathHeight + 0.02f, monsterGrid.CreateOpenCellSnapshot());
         EditorUtility.SetDirty(trapGrid);
@@ -135,9 +140,10 @@ public sealed class TrapPlacementGridEditor : Editor
             Debug.LogWarning("Trap grid overlap: MonsterPathGrid 或 TrapPlacementGrid 不存在。", trapGrid);
             return;
         }
+        Vector3 expectedTrapGridPosition = monsterGrid.transform.position + Vector3.right * MonsterGridToTrapGridXOffset;
         bool geometry = trapGrid.Columns == monsterGrid.Columns && trapGrid.Rows == monsterGrid.Rows &&
             Mathf.Abs(trapGrid.CellSize - monsterGrid.CellSize) < 0.0001f &&
-            Vector3.Distance(trapGrid.transform.position, monsterGrid.transform.position) < 0.0001f &&
+            Vector3.Distance(trapGrid.transform.position, expectedTrapGridPosition) < 0.0001f &&
             Quaternion.Angle(trapGrid.transform.rotation, monsterGrid.transform.rotation) < 0.001f;
         bool mask = trapGrid.HasSameOpenCells(monsterGrid.CreateOpenCellSnapshot());
         Debug.Log($"Trap grid overlap: geometry={geometry}, openCells={mask}.", trapGrid);

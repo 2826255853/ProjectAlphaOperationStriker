@@ -15,6 +15,7 @@ public sealed class TrapPlacementController : MonoBehaviour
     [SerializeField] private bool placementMode;
 
     private GameObject preview;
+    private Vector3 previewBaseScale = Vector3.one;
     private TrapInstance hoveredTrap;
     private Vector2Int hoveredCell;
     private bool hasHoveredCell;
@@ -121,7 +122,13 @@ public sealed class TrapPlacementController : MonoBehaviour
             return;
         }
         EnsurePreview();
-        preview.transform.SetPositionAndRotation(grid.CellToWorld(hoveredCell), selectedTrap.LocalRotation);
+        // Keep the ghost anchored and sized exactly like the instance that
+        // TrapPlacementGrid will create (including multi-cell footprints).
+        preview.transform.SetPositionAndRotation(
+            grid.GetTrapWorldPosition(hoveredCell, selectedTrap.Footprint),
+            selectedTrap.LocalRotation);
+        Vector2Int footprint = selectedTrap.Footprint;
+        preview.transform.localScale = new Vector3(previewBaseScale.x * footprint.x, previewBaseScale.y, previewBaseScale.z * footprint.y);
         SetPreviewVisible(true);
         if (!previousHover || !hasHoveredCell || previousCell != hoveredCell) RefreshGridMarkers();
     }
@@ -246,6 +253,7 @@ public sealed class TrapPlacementController : MonoBehaviour
         if (!placementMode || selectedTrap == null) return;
         preview = selectedTrap.Prefab != null ? Instantiate(selectedTrap.Prefab) : GameObject.CreatePrimitive(PrimitiveType.Cube);
         preview.name = "Trap Preview";
+        previewBaseScale = preview.transform.localScale;
         AutoSentryTurret turret = preview.GetComponent<AutoSentryTurret>();
         if (turret != null) turret.enabled = false;
         foreach (Collider collider in preview.GetComponentsInChildren<Collider>()) collider.enabled = false;
@@ -258,7 +266,7 @@ public sealed class TrapPlacementController : MonoBehaviour
     private void EnsureMaterials()
     {
         if (openMaterial != null) return;
-        openMaterial = CreateOverlayMaterial(new Color(0.1f, 1f, 0.25f, 0.22f));
+        openMaterial = CreateOverlayMaterial(new Color(0.1f, 1f, 0.25f, 0.75f));
         blockedMaterial = CreateOverlayMaterial(new Color(1f, 0.15f, 0.1f, 0.12f));
         footprintMaterial = CreateOverlayMaterial(new Color(1f, 0.85f, 0.1f, 0.45f));
         invalidFootprintMaterial = CreateOverlayMaterial(new Color(1f, 0.05f, 0.05f, 0.5f));
