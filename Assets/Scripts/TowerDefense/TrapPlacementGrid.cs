@@ -28,7 +28,11 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     public int Columns => columns;
     public int Rows => rows;
     public float CellSize => cellSize;
+    public float PlacementHeight => placementHeight;
     public IReadOnlyCollection<TrapInstance> PlacedTraps => placedTraps;
+
+    /// <summary>True when this grid created/manages the given trap instance.</summary>
+    public bool OwnsTrap(TrapInstance trap) => trap != null && placedTraps.Contains(trap);
 
     /// <summary>
     /// Initializes an independent placement mask. The caller supplies a snapshot,
@@ -156,6 +160,24 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     public Vector3 GetTrapWorldPosition(Vector2Int origin, Vector2Int footprint)
     {
         return TrapWorldPosition(origin, footprint);
+    }
+
+    /// <summary>
+    /// Intersects a world ray with this grid's placement plane. Used by the
+    /// runtime controller to decide whether the cursor is over the ground grid,
+    /// the platform grid, or neither.
+    /// </summary>
+    public bool TryRaycastPlane(Ray ray, out Vector3 point, out float distance)
+    {
+        Plane plane = new Plane(transform.up, CellToWorld(Vector2Int.zero));
+        if (plane.Raycast(ray, out distance))
+        {
+            point = ray.GetPoint(distance);
+            return true;
+        }
+        point = Vector3.zero;
+        distance = 0f;
+        return false;
     }
 
     public bool TryWorldToCell(Vector3 worldPosition, out Vector2Int cell)

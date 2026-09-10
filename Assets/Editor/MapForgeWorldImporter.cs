@@ -271,6 +271,10 @@ public static class MapForgeWorldImporter
             coreSerialized.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        // Trap placement travels with the map: every imported scene gets one
+        // grid for the ground level and one for the raised platform level.
+        CreateTrapPlacementGrids(pathGrid, parent);
+
         if (data.spawns == null) return;
         var enemyPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/TestMonster.prefab");
         for (int i = 0; i < data.spawns.Length; i++)
@@ -300,6 +304,50 @@ public static class MapForgeWorldImporter
             serialized.FindProperty("moveSpeed").floatValue = Mathf.Max(0f, spawn.moveSpeed);
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
+    }
+
+    /// <summary>
+    /// Creates the trap placement grids for a freshly imported map. Both grids
+    /// share the monster grid's lattice, so a trap always lands on the exact
+    /// centre of the cell it covers, and the platform grid never opens a cell
+    /// that belongs to the monster lane.
+    /// </summary>
+    private static void CreateTrapPlacementGrids(MonsterPathGrid pathGrid, Transform parent)
+    {
+        if (pathGrid == null) return;
+        Vector3 anchor = TrapGridAuthoring.GroundAnchor(pathGrid);
+        Quaternion rotation = pathGrid.transform.rotation;
+
+        var platforms = TrapGridAuthoring.CollectPlatformColliders();
+        var surfaces = TrapGridAuthoring.CollectSurfaceColliders();
+
+        CreateTrapPlacementGrid("TrapPlacementGrid_Road", parent, pathGrid, anchor, rotation,
+            pathGrid.CreateOpenCellSnapshot(), pathGrid.PathHeight + TrapGridAuthoring.SurfaceOffset);
+
+        bool[] groundCells = TrapGridAuthoring.BuildGroundMask(pathGrid, anchor, rotation, platforms, out _);
+        float groundTop = TrapGridAuthoring.DominantSurfaceTop(pathGrid, anchor, rotation, surfaces, groundCells, 0f);
+        CreateTrapPlacementGrid("TrapPlacementGrid_Ground", parent, pathGrid, anchor, rotation,
+            groundCells, groundTop + TrapGridAuthoring.SurfaceOffset);
+
+        if (platforms.Count == 0) return;
+        bool[] platformCells = TrapGridAuthoring.BuildPlatformMask(pathGrid, anchor, rotation, platforms,
+            out float platformTop, out int skippedCells);
+        if (skippedCells > 0)
+            Debug.LogWarning($"Trap grid: skipped {skippedCells} platform cells that are not at {platformTop:0.##}m, " +
+                "because a single grid can only describe one height.");
+        if (platformCells == null) return;
+        CreateTrapPlacementGrid("TrapPlacementGrid_Platform", parent, pathGrid, anchor, rotation,
+            platformCells, platformTop + TrapGridAuthoring.SurfaceOffset);
+    }
+
+    private static void CreateTrapPlacementGrid(string name, Transform parent, MonsterPathGrid pathGrid,
+        Vector3 anchor, Quaternion rotation, bool[] openCells, float placementHeight)
+    {
+        var gridObject = new GameObject(name);
+        gridObject.transform.SetParent(parent, true);
+        gridObject.transform.SetPositionAndRotation(anchor, rotation);
+        TrapPlacementGrid grid = gridObject.AddComponent<TrapPlacementGrid>();
+        grid.ConfigureLayout(pathGrid.Columns, pathGrid.Rows, pathGrid.CellSize, placementHeight, openCells);
     }
 
     private static void OpenSegment(MonsterPathGrid grid, PathSegmentData segment)

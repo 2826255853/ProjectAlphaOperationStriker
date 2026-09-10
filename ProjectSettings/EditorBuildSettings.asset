@@ -9,7 +9,7 @@ EditorBuildSettings:
     path: Assets/Scenes/UNTITLED_WORLD.unity
     guid: 2e152de99e145b44d90af7cae383d30e
   - enabled: 1
-    path: Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity
+    path: Assets/Scenes/Map_1.unity
     guid: 2e9c58975ce371a4a8d7ec17c50ba976
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

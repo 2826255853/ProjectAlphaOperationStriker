@@ -1,12 +1,18 @@
+using System.Collections.Generic;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 
 [CustomEditor(typeof(TrapPlacementGrid))]
 public sealed class TrapPlacementGridEditor : Editor
 {
-    // Correct the generated trap grid by half a metre toward negative world X
-    // so it lines up with the monster traversable area.
-    private const float MonsterGridToTrapGridXOffset = 0.5f;
+    // The trap grid anchors traps to grid-line intersections while the monster
+    // grid describes cell centres, so the generated grid is shifted half a cell
+    // toward positive X and Z. A full metre on Z is required to cover the
+    // authored monster corridor, otherwise traps sit half a cell short of the
+    // line monsters actually walk along.
+    // Expressed in the monster grid's local space so a rotated grid stays aligned.
+    private static readonly Vector3 MonsterGridToTrapGridOffset = new Vector3(0.5f, 0f, 0.5f);
 
     private SerializedProperty columns;
     private SerializedProperty rows;
@@ -120,7 +126,8 @@ public sealed class TrapPlacementGridEditor : Editor
         }
 
         Undo.RecordObject(trapGrid, "Configure trap placement grid");
-        Vector3 trapGridPosition = monsterGrid.transform.position + Vector3.right * MonsterGridToTrapGridXOffset;
+        Vector3 trapGridPosition = monsterGrid.transform.position +
+            monsterGrid.transform.TransformVector(MonsterGridToTrapGridOffset);
         trapGrid.transform.SetPositionAndRotation(trapGridPosition, monsterGrid.transform.rotation);
         trapGrid.ConfigureLayout(monsterGrid.Columns, monsterGrid.Rows, monsterGrid.CellSize,
             monsterGrid.PathHeight + 0.02f, monsterGrid.CreateOpenCellSnapshot());
@@ -140,13 +147,241 @@ public sealed class TrapPlacementGridEditor : Editor
             Debug.LogWarning("Trap grid overlap: MonsterPathGrid 或 TrapPlacementGrid 不存在。", trapGrid);
             return;
         }
-        Vector3 expectedTrapGridPosition = monsterGrid.transform.position + Vector3.right * MonsterGridToTrapGridXOffset;
+        Vector3 expectedTrapGridPosition = monsterGrid.transform.position +
+            monsterGrid.transform.TransformVector(MonsterGridToTrapGridOffset);
         bool geometry = trapGrid.Columns == monsterGrid.Columns && trapGrid.Rows == monsterGrid.Rows &&
             Mathf.Abs(trapGrid.CellSize - monsterGrid.CellSize) < 0.0001f &&
             Vector3.Distance(trapGrid.transform.position, expectedTrapGridPosition) < 0.0001f &&
             Quaternion.Angle(trapGrid.transform.rotation, monsterGrid.transform.rotation) < 0.001f;
         bool mask = trapGrid.HasSameOpenCells(monsterGrid.CreateOpenCellSnapshot());
         Debug.Log($"Trap grid overlap: geometry={geometry}, openCells={mask}.", trapGrid);
+    }
+
+    // ---------------------------------------------------------------------
+    // Ground + platform authoring
+    // ---------------------------------------------------------------------
+
+    private const float TrapBaseTolerance = 0.35f;
+    private const float LatticeTolerance = 0.001f;
+
+    /// <summary>
+    /// Creates (or refreshes) one trap grid per walkable surface: the ground
+    /// level that monsters walk on, and the raised platform tops beside it.
+    /// Both grids share the walkable grid's lattice, and no platform cell is
+    /// ever placed on the monster lane.
+    /// </summary>
+    [MenuItem("Tools/Tower Defense/Create Ground And Platform Trap Grids")]
+    private static void CreateGroundAndPlatformGrids()
+    {
+        MonsterPathGrid monsterGrid = Object.FindAnyObjectByType<MonsterPathGrid>();
+        if (monsterGrid == null)
+        {
+            EditorUtility.DisplayDialog("创建陷阱网格", "当前场景没有 MonsterPathGrid。", "确定");
+            return;
+        }
+
+        int undoGroup = Undo.GetCurrentGroup();
+        Undo.SetCurrentGroupName("Create ground and platform trap grids");
+
+        Vector3 anchorPosition = TrapGridAuthoring.GroundAnchor(monsterGrid);
+        Quaternion anchorRotation = monsterGrid.transform.rotation;
+        List<Collider> platformColliders = TrapGridAuthoring.CollectPlatformColliders();
+        List<Collider> surfaceColliders = TrapGridAuthoring.CollectSurfaceColliders();
+
+        // The walkway keeps the authored monster-plane height, open ground sits
+        // on the terrain surface, and the platform level sits on the platform
+        // tops. Three surfaces, three grids, every cell on exactly one level.
+        TrapPlacementGrid roadGrid = FindOrCreateGrid("TrapPlacementGrid_Road",
+            "TrapPlacementGrid_Ground", "TrapPlacementGrid");
+        ConfigureGrid(roadGrid, monsterGrid, anchorPosition, anchorRotation,
+            monsterGrid.CreateOpenCellSnapshot(), monsterGrid.PathHeight + TrapGridAuthoring.SurfaceOffset);
+
+        int reservedCells;
+        bool[] groundCells = TrapGridAuthoring.BuildGroundMask(monsterGrid, anchorPosition, anchorRotation,
+            platformColliders, out reservedCells);
+        if (groundCells == null) groundCells = monsterGrid.CreateOpenCellSnapshot();
+        float groundTop = TrapGridAuthoring.DominantSurfaceTop(monsterGrid, anchorPosition, anchorRotation,
+            surfaceColliders, groundCells, 0f);
+        TrapPlacementGrid groundGrid = FindOrCreateGrid("TrapPlacementGrid_Ground");
+        ConfigureGrid(groundGrid, monsterGrid, anchorPosition, anchorRotation,
+            groundCells, groundTop + TrapGridAuthoring.SurfaceOffset);
+
+        bool[] platformCells = TrapGridAuthoring.BuildPlatformMask(monsterGrid, anchorPosition, anchorRotation,
+            platformColliders, out float platformTop, out int skippedHeights);
+        if (skippedHeights > 0)
+            Debug.LogWarning($"高台陷阱网格：有 {skippedHeights} 格位于 {platformTop:0.##} 米以外的高台高度，已跳过（单一网格只能使用一个高度）。");
+        TrapPlacementGrid platformGrid = null;
+        if (platformCells != null)
+        {
+            platformGrid = FindOrCreateGrid("TrapPlacementGrid_Platform");
+            ConfigureGrid(platformGrid, monsterGrid, anchorPosition, anchorRotation,
+                platformCells, platformTop + TrapGridAuthoring.SurfaceOffset);
+        }
+
+        Undo.CollapseUndoOperations(undoGroup);
+        Selection.activeGameObject = (platformGrid != null ? platformGrid : groundGrid).gameObject;
+        SceneView.RepaintAll();
+
+        string message = $"陷阱网格已生成：走道 {CountOpen(roadGrid)} 格（高度 {roadGrid.PlacementHeight:0.##} 米）" +
+            $"，走道以外地面 {CountOpen(groundGrid)} 格（高度 {groundGrid.PlacementHeight:0.##} 米，" +
+            $"另有 {reservedCells} 格由走道/高台网格负责）";
+        message += platformGrid != null
+            ? $"，高台 {CountOpen(platformGrid)} 格（高度 {platformGrid.PlacementHeight:0.##} 米）。"
+            : "，场景中没有找到高台（Platform_*）。";
+        Debug.Log(message, platformGrid != null ? platformGrid : groundGrid);
+        ValidateTrapGrids();
+    }
+
+    private static TrapPlacementGrid FindOrCreateGrid(string preferredName, params string[] legacyNames)
+    {
+        TrapPlacementGrid[] existing = Object.FindObjectsByType<TrapPlacementGrid>(FindObjectsSortMode.None);
+        for (int i = 0; i < existing.Length; i++)
+            if (existing[i] != null && existing[i].gameObject.name == preferredName) return existing[i];
+        for (int i = 0; i < existing.Length; i++)
+        {
+            if (existing[i] == null) continue;
+            for (int n = 0; n < legacyNames.Length; n++)
+                if (existing[i].gameObject.name == legacyNames[n])
+                {
+                    Undo.RecordObject(existing[i].gameObject, "Rename trap placement grid");
+                    existing[i].gameObject.name = preferredName;
+                    return existing[i];
+                }
+        }
+        GameObject created = new GameObject(preferredName);
+        Undo.RegisterCreatedObjectUndo(created, "Create trap placement grid");
+        return created.AddComponent<TrapPlacementGrid>();
+    }
+
+    private static TrapPlacementGrid ConfigureGrid(TrapPlacementGrid grid, MonsterPathGrid monsterGrid,
+        Vector3 anchorPosition, Quaternion anchorRotation, bool[] openCells, float placementHeight)
+    {
+        Undo.RecordObject(grid, "Configure trap placement grid");
+        grid.transform.SetPositionAndRotation(anchorPosition, anchorRotation);
+        grid.ConfigureLayout(monsterGrid.Columns, monsterGrid.Rows, monsterGrid.CellSize, placementHeight, openCells);
+        EditorUtility.SetDirty(grid);
+        UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(grid.gameObject.scene);
+        return grid;
+    }
+
+    private static int CountOpen(TrapPlacementGrid grid)
+    {
+        int count = 0;
+        for (int y = 0; y < grid.Rows; y++)
+        for (int x = 0; x < grid.Columns; x++)
+            if (grid.IsOpen(new Vector2Int(x, y))) count++;
+        return count;
+    }
+
+    /// <summary>
+    /// Builds the cell mask for the raised platform level. A cell is usable when
+    /// a platform top exists underneath it and the cell is not part of the
+    /// monster lane, so platform traps can never block the enemy route.
+    /// </summary>
+    /// <summary>
+    /// Reports whether every authored trap grid really lines up with the monster
+    /// grid and with the surface it claims to sit on. This is the "没有错位"
+    /// check to run after editing a map.
+    /// </summary>
+    [MenuItem("Tools/Tower Defense/Validate Trap Grids")]
+    private static void ValidateTrapGrids()
+    {
+        MonsterPathGrid monsterGrid = Object.FindAnyObjectByType<MonsterPathGrid>();
+        TrapPlacementGrid[] gridList = Object.FindObjectsByType<TrapPlacementGrid>(FindObjectsSortMode.None);
+        if (gridList.Length == 0)
+        {
+            Debug.LogWarning("陷阱网格校验：场景中没有 TrapPlacementGrid。");
+            return;
+        }
+
+        var report = new StringBuilder();
+        report.AppendLine($"陷阱网格校验：{gridList.Length} 套陷阱网格" +
+            (monsterGrid != null ? $"，怪物网格 {monsterGrid.Columns}x{monsterGrid.Rows}。" : "，场景缺少 MonsterPathGrid。"));
+        var holes = new List<string>();
+        for (int i = 0; i < gridList.Length; i++)
+        {
+            TrapPlacementGrid grid = gridList[i];
+            int open = 0, occupied = 0, laneOverlap = 0, tooHigh = 0, tooLow = 0, noSurface = 0;
+            for (int y = 0; y < grid.Rows; y++)
+            for (int x = 0; x < grid.Columns; x++)
+            {
+                var cell = new Vector2Int(x, y);
+                bool isOpen = grid.IsOpen(cell);
+                if (grid.IsOccupied(cell)) occupied++;
+                if (!isOpen) continue;
+                open++;
+                if (monsterGrid != null && monsterGrid.IsOpen(cell) && grid != null && !IsGroundGrid(grid, monsterGrid))
+                    laneOverlap++;
+                Vector3 center = grid.CellToWorld(cell);
+                if (!Physics.Raycast(center + grid.transform.up * 2f, -grid.transform.up, out RaycastHit hit, 8f))
+                {
+                    noSurface++;
+                    if (holes.Count < 6) holes.Add($"{grid.name} 格{cell} 下方没有地面");
+                    continue;
+                }
+                float delta = Vector3.Dot(hit.point - center, grid.transform.up);
+                if (delta > 0.05f)
+                {
+                    tooHigh++;
+                    if (holes.Count < 6) holes.Add($"{grid.name} 格{cell} 被地形埋住（高出 {delta:0.00} 米）");
+                }
+                else if (delta < -TrapBaseTolerance)
+                {
+                    tooLow++;
+                    if (holes.Count < 6) holes.Add($"{grid.name} 格{cell} 悬空（低 {delta:0.00} 米）");
+                }
+            }
+
+            bool aligned = true;
+            if (monsterGrid != null)
+            {
+                if (grid.Columns != monsterGrid.Columns || grid.Rows != monsterGrid.Rows ||
+                    Mathf.Abs(grid.CellSize - monsterGrid.CellSize) > LatticeTolerance)
+                    aligned = false;
+                else
+                    for (int y = 0; y < grid.Rows && aligned; y++)
+                    for (int x = 0; x < grid.Columns; x++)
+                    {
+                        Vector3 expected = monsterGrid.CellToWorld(new Vector2Int(x, y));
+                        Vector3 actual = grid.CellToWorld(new Vector2Int(x, y));
+                        if (Vector3.Distance(new Vector3(expected.x, 0f, expected.z), new Vector3(actual.x, 0f, actual.z)) > 0.02f)
+                        {
+                            aligned = false;
+                            if (holes.Count < 6) holes.Add($"{grid.name} 格({x},{y}) 与怪物网格错位 " +
+                                $"{Vector3.Distance(expected, actual):0.00} 米");
+                            break;
+                        }
+                    }
+            }
+
+            report.AppendLine($"- {grid.name}：高度 {grid.PlacementHeight:0.##} 米，开格 {open}，已放置 {occupied}，" +
+                $"与怪物网格对齐 {(aligned ? "是" : "否")}" +
+                (monsterGrid != null && !IsGroundGrid(grid, monsterGrid) ? $"，占用怪物走道 {laneOverlap} 格" : string.Empty) +
+                $"，埋入地形 {tooHigh}，悬空 {tooLow}，无地面 {noSurface}。");
+        }
+        for (int i = 0; i < holes.Count; i++) report.AppendLine("  · " + holes[i]);
+        if (monsterGrid != null)
+        {
+            int totalCells = monsterGrid.Columns * monsterGrid.Rows;
+            int covered = 0, doubled = 0;
+            for (int y = 0; y < monsterGrid.Rows; y++)
+            for (int x = 0; x < monsterGrid.Columns; x++)
+            {
+                var cell = new Vector2Int(x, y);
+                int levels = 0;
+                for (int i = 0; i < gridList.Length; i++)
+                    if (gridList[i].IsInside(cell) && gridList[i].IsOpen(cell)) levels++;
+                if (levels > 0) covered++;
+                if (levels > 1) doubled++;
+            }
+            report.AppendLine($"覆盖：{covered}/{totalCells} 格可放陷阱，重叠 {doubled} 格。");
+        }
+        Debug.Log(report.ToString(), gridList[0]);
+    }
+
+    private static bool IsGroundGrid(TrapPlacementGrid grid, MonsterPathGrid monsterGrid)
+    {
+        return Mathf.Abs(grid.PlacementHeight - (monsterGrid.PathHeight + TrapGridAuthoring.SurfaceOffset)) <= 0.05f;
     }
 
     private void OnSceneGUI()
