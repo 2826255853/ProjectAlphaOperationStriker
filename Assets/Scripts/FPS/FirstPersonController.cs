@@ -264,6 +264,14 @@ public sealed class FirstPersonController : MonoBehaviour
 
     private static void UpdateCursor()
     {
+        // While the trap menu owns the cursor, a click (or the Escape that
+        // closes the menu) must not re-lock the view; the menu restores the
+        // lock itself once it closes.
+        if (TrapSelectionMenu.CursorOwned)
+        {
+            return;
+        }
+
         if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             Cursor.lockState = CursorLockMode.None;
@@ -348,6 +356,14 @@ public sealed class FPSPackagePlayerMotion : MonoBehaviour
 
     private static void UpdateCursor()
     {
+        // While the trap menu owns the cursor, a click (or the Escape that
+        // closes the menu) must not re-lock the view; the menu restores the
+        // lock itself once it closes.
+        if (TrapSelectionMenu.CursorOwned)
+        {
+            return;
+        }
+
         if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             Cursor.lockState = CursorLockMode.None;
