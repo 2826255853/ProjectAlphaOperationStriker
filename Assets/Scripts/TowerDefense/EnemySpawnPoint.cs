@@ -19,6 +19,9 @@ public sealed class EnemySpawnPoint : MonoBehaviour
 
         [Tooltip("这一波使用的怪物预制体。留空则使用出怪口的默认预制体。")]
         public GameObject enemyPrefab;
+
+        public MonsterType monsterType = MonsterType.Ground;
+        [Min(0f)] public float flightHeight = 3f;
     }
 
     [Header("Spawn Settings")]
@@ -78,6 +81,24 @@ public sealed class EnemySpawnPoint : MonoBehaviour
     [SerializeField, Min(0f), Tooltip("Monster movement speed in world units per second.")]
     private float moveSpeed = 2f;
 
+    [SerializeField, Tooltip("Default movement type for spawned monsters.")]
+    private MonsterType monsterType = MonsterType.Ground;
+
+    [SerializeField, Min(0f), Tooltip("Height above the target's Y position used by flying monsters.")]
+    private float flightHeight = 3f;
+
+    [Header("Flying Entrance")]
+    [SerializeField, Tooltip("开启后本出怪口只生成飞行怪物，并把它自己放在空中。")]
+    private bool flyingEntrance;
+
+    [SerializeField, Min(0f), Tooltip("飞行出怪口所在的空中高度（世界 Y）。运行时进入场景会把出怪口抬到此高度。")]
+    private float entranceAltitude = 12f;
+
+    [SerializeField, Min(0f), Tooltip("飞行怪物生成时在水平方向的随机散布半径，避免全部叠在同一个点。")]
+    private float flyingSpawnSpread = 2f;
+
+    private const string FlyingMonsterResourcePath = "FlyingMonster";
+    private static GameObject cachedFlyingMonsterPrefab;
     private float timeUntilNextSpawn;
     private int spawnSequence;
     private int currentWave;
@@ -119,6 +140,12 @@ public sealed class EnemySpawnPoint : MonoBehaviour
     public Vector3 TargetPosition { get => targetPosition; set => targetPosition = value; }
     public Vector3 TravelDirection { get => travelDirection; set => travelDirection = value; }
     public float MoveSpeed { get => moveSpeed; set => moveSpeed = Mathf.Max(0f, value); }
+    public MonsterType MonsterType { get => monsterType; set => monsterType = value; }
+    public float FlightHeight { get => flightHeight; set => flightHeight = Mathf.Max(0f, value); }
+    /// <summary>True when this entrance only produces airborne monsters.</summary>
+    public bool IsFlyingEntrance { get => flyingEntrance; set => flyingEntrance = value; }
+    public float EntranceAltitude { get => entranceAltitude; set => entranceAltitude = Mathf.Max(0f, value); }
+    public float FlyingSpawnSpread { get => flyingSpawnSpread; set => flyingSpawnSpread = Mathf.Max(0f, value); }
     /// <summary>Total wave count shared by every spawn point in the scene.</summary>
     public int TotalWaves => waveManager != null ? waveManager.TotalWaves : Mathf.Max(1, totalWaves);
     public int EnemiesPerWave => GetEnemiesPerWave(currentWave);
@@ -162,6 +189,7 @@ public sealed class EnemySpawnPoint : MonoBehaviour
         waveManager = WaveManager.GetOrCreate();
         waveManager.RegisterLegacyTotalWaves(totalWaves);
         waveManager.TotalWavesChanged += HandleTotalWavesChanged;
+        if (flyingEntrance) LiftEntranceIntoAir();
         if (core == null) core = FindAnyObjectByType<EnemyCore>();
         if (pathGrid == null && core != null) pathGrid = core.PathGrid;
         if (pathGrid == null) pathGrid = FindAnyObjectByType<MonsterPathGrid>();
@@ -193,6 +221,9 @@ public sealed class EnemySpawnPoint : MonoBehaviour
         enemiesPerWave = Mathf.Max(1, enemiesPerWave);
         initialWaveDelay = Mathf.Max(0f, initialWaveDelay);
         moveSpeed = Mathf.Max(0f, moveSpeed);
+        flightHeight = Mathf.Max(0f, flightHeight);
+        entranceAltitude = Mathf.Max(0f, entranceAltitude);
+        flyingSpawnSpread = Mathf.Max(0f, flyingSpawnSpread);
         EnsureWaveTransitionData();
         EnsureWaveSpawnData();
     }
@@ -272,25 +303,38 @@ public sealed class EnemySpawnPoint : MonoBehaviour
         spawnSequence++;
         GameObject selectedPrefab = GetWaveSettings(waveNumber)?.enemyPrefab;
         if (selectedPrefab == null) selectedPrefab = enemyPrefab;
+        if (selectedPrefab == null && flyingEntrance) selectedPrefab = GetFlyingMonsterPrefab();
+        Vector3 spawnPosition = GetSpawnPosition();
         GameObject enemy = selectedPrefab != null
-            ? Instantiate(selectedPrefab, transform.position, transform.rotation, enemyParent)
-            : CreatePlaceholderEnemy();
+            ? Instantiate(selectedPrefab, spawnPosition, transform.rotation, enemyParent)
+            : CreatePlaceholderEnemy(spawnPosition);
 
         EnemyInstance instance = enemy.GetComponent<EnemyInstance>() ?? enemy.AddComponent<EnemyInstance>();
         instance.Initialize(this, spawnSequence, waveNumber, indexInWave);
         MonsterPathFollower follower = enemy.GetComponent<MonsterPathFollower>() ?? enemy.AddComponent<MonsterPathFollower>();
+        MonsterType selectedType = flyingEntrance
+            ? MonsterType.Flying
+            : (GetWaveSettings(waveNumber)?.monsterType ?? monsterType);
+        instance.MonsterType = selectedType;
+        float selectedHeight = GetWaveSettings(waveNumber)?.flightHeight ?? flightHeight;
         Vector3 direction = travelDirection.sqrMagnitude > 0.001f ? travelDirection : transform.forward;
-        if (core != null && useTargetWaypoint)
+        Transform destinationPoint = core != null ? core.transform : targetPoint;
+        Vector3 destination = destinationPoint != null ? destinationPoint.position : targetPosition;
+        if (selectedType == MonsterType.Flying)
+        {
+            follower.InitializeFlying(destinationPoint, destination, moveSpeed, selectedHeight, core);
+        }
+        else if (core != null && useTargetWaypoint)
         {
             follower.InitializeViaWaypoint(pathGrid, targetPoint, targetPosition, direction, moveSpeed, core);
         }
         else
         {
-            Transform destinationPoint = core != null ? core.transform : targetPoint;
-            Vector3 destination = destinationPoint != null ? destinationPoint.position : targetPosition;
             follower.Initialize(pathGrid, destinationPoint, destination, direction, moveSpeed, core);
         }
         instance.PathFollower = follower;
+        if (selectedType == MonsterType.Ground && enemy.GetComponent<GroundEnemyCombat>() == null)
+            enemy.AddComponent<GroundEnemyCombat>();
         return instance;
     }
 
@@ -330,6 +374,7 @@ public sealed class EnemySpawnPoint : MonoBehaviour
         {
             if (waveSpawnSettings[i] == null) waveSpawnSettings[i] = new WaveSpawnSettings();
             waveSpawnSettings[i].enemyCount = Mathf.Max(0, waveSpawnSettings[i].enemyCount);
+            waveSpawnSettings[i].flightHeight = Mathf.Max(0f, waveSpawnSettings[i].flightHeight);
         }
     }
 
@@ -378,19 +423,57 @@ public sealed class EnemySpawnPoint : MonoBehaviour
             Array.Copy(previous, waveTransitionDelays, Mathf.Min(previous.Length, waveTransitionDelays.Length));
     }
 
-    private GameObject CreatePlaceholderEnemy()
+    /// <summary>
+    /// Airborne monster model used when no prefab is assigned. Loaded once from
+    /// Resources so scenes do not need a hard reference to the flying model.
+    /// </summary>
+    public static GameObject GetFlyingMonsterPrefab()
+    {
+        if (cachedFlyingMonsterPrefab == null)
+            cachedFlyingMonsterPrefab = Resources.Load<GameObject>(FlyingMonsterResourcePath);
+        return cachedFlyingMonsterPrefab;
+    }
+
+    /// <summary>Origin used for one enemy. Flying entrances scatter monsters in the air.</summary>
+    private Vector3 GetSpawnPosition()
+    {
+        Vector3 origin = transform.position;
+        if (!flyingEntrance) return origin;
+
+        origin.y = Mathf.Max(origin.y, entranceAltitude);
+        if (flyingSpawnSpread > 0f)
+        {
+            Vector2 offset = UnityEngine.Random.insideUnitCircle * flyingSpawnSpread;
+            origin.x += offset.x;
+            origin.z += offset.y;
+        }
+
+        return origin;
+    }
+
+    /// <summary>Keeps an airborne entrance above the ground even if it was authored at Y = 0.</summary>
+    private void LiftEntranceIntoAir()
+    {
+        Vector3 position = transform.position;
+        if (position.y >= entranceAltitude) return;
+        // TODO(确认): 是否需要让飞行出怪口在编辑器中就实时抬升（目前只在运行时生效）。
+        position.y = entranceAltitude;
+        transform.position = position;
+    }
+
+    private GameObject CreatePlaceholderEnemy(Vector3 spawnPosition)
     {
         var placeholder = new GameObject($"Enemy Placeholder {spawnSequence:000}");
-        placeholder.transform.SetPositionAndRotation(transform.position, transform.rotation);
+        placeholder.transform.SetPositionAndRotation(spawnPosition, transform.rotation);
         if (enemyParent != null) placeholder.transform.SetParent(enemyParent, true);
         return placeholder;
     }
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = spawningEnabled
-            ? new Color(1f, 0.2f, 0.1f, 0.9f)
-            : new Color(0.45f, 0.45f, 0.45f, 0.8f);
+        Gizmos.color = !spawningEnabled
+            ? new Color(0.45f, 0.45f, 0.45f, 0.8f)
+            : (flyingEntrance ? new Color(0.15f, 0.55f, 1f, 0.9f) : new Color(1f, 0.2f, 0.1f, 0.9f));
         Gizmos.DrawWireSphere(transform.position, 0.5f);
         Gizmos.DrawRay(transform.position, transform.forward);
         Vector3 direction = travelDirection.sqrMagnitude > 0.001f ? travelDirection.normalized : transform.forward;
@@ -408,6 +491,14 @@ public sealed class EnemySpawnPoint : MonoBehaviour
         else
         {
             Gizmos.DrawLine(transform.position, corePosition);
+        }
+
+        if (flyingEntrance)
+        {
+            Vector3 ground = new Vector3(transform.position.x, 0f, transform.position.z);
+            Gizmos.color = new Color(0.15f, 0.55f, 1f, 0.5f);
+            Gizmos.DrawLine(ground, transform.position);
+            Gizmos.DrawWireCube(transform.position, new Vector3(flyingSpawnSpread * 2f, 0.1f, flyingSpawnSpread * 2f));
         }
     }
 }

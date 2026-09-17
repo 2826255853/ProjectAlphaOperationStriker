@@ -93,7 +93,7 @@ public sealed class AutoSentryTurret : MonoBehaviour
 
         target = null;
         float bestSqrDistance = detectionRange * detectionRange;
-        EnemyInstance[] enemies = FindObjectsByType<EnemyInstance>(FindObjectsSortMode.None);
+        EnemyInstance[] enemies = FindObjectsByType<EnemyInstance>();
         for (int i = 0; i < enemies.Length; i++)
         {
             EnemyInstance candidate = enemies[i];

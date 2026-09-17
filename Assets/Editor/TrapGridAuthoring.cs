@@ -40,7 +40,7 @@ public static class TrapGridAuthoring
     public static List<Collider> CollectPlatformColliders()
     {
         var platforms = new List<Collider>();
-        Collider[] all = Object.FindObjectsByType<Collider>(FindObjectsSortMode.None);
+        Collider[] all = Object.FindObjectsByType<Collider>();
         for (int i = 0; i < all.Length; i++)
             if (IsPlatformCollider(all[i])) platforms.Add(all[i]);
         return platforms;
@@ -53,7 +53,7 @@ public static class TrapGridAuthoring
     public static List<Collider> CollectSurfaceColliders()
     {
         var surfaces = new List<Collider>();
-        Collider[] all = Object.FindObjectsByType<Collider>(FindObjectsSortMode.None);
+        Collider[] all = Object.FindObjectsByType<Collider>();
         for (int i = 0; i < all.Length; i++)
         {
             Collider collider = all[i];

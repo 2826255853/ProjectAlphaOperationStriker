@@ -5,7 +5,12 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-/// <summary>Imports MapForge world JSON files as Unity scenes.</summary>
+/// <summary>
+/// Imports MapForge world JSON files as Unity scenes.
+/// The automatic import runs after every domain reload, but only rewrites a
+/// scene when mapforge-world.json changed or that scene is missing, so routine
+/// script recompiles no longer replace the scene or leave numbered copies.
+/// </summary>
 [InitializeOnLoad]
 public static class MapForgeWorldImporter
 {
@@ -23,10 +28,56 @@ public static class MapForgeWorldImporter
         // Scene creation through EditorSceneManager is editor-only.
         if (EditorApplication.isPlayingOrWillChangePlaymode) return;
         var source = Path.Combine(Application.dataPath, "mapforge-world.json");
-        if (File.Exists(source) && !File.Exists(Path.Combine(Application.dataPath, "Scenes", "UNTITLED_WORLD.unity")))
-            Import(source);
+        if (!File.Exists(source)) return;
+
+        // The imported scene is named after world.name, so the "already
+        // imported" check has to resolve that name. The previous check looked
+        // for a fixed UNTITLED_WORLD.unity file that the importer never wrote,
+        // so the guard was always true and every domain reload imported again.
+        World world;
+        try { world = JsonUtility.FromJson<World>(File.ReadAllText(source)); }
+        catch (Exception ex) { Debug.LogWarning("MapForge auto import skipped: " + ex.Message); return; }
+        if (world == null) { Debug.LogWarning("MapForge auto import skipped: the world JSON is empty or invalid."); return; }
+        var sceneName = ResolveSceneName(world, source);
+
+        // Import only when the world JSON changed since the last import, or
+        // when its scene is missing. Unchanged JSON leaves the existing scene
+        // alone, so scene edits and play-mode tuning survive script recompiles.
+        bool sceneMissing = !File.Exists(ScenePath(sceneName));
+        if (!sceneMissing && EditorPrefs.GetString(StampKey(sceneName), string.Empty) == ContentStamp(source)) return;
+        Import(source);
     }
-    [Serializable] private class World { public string name; public MapObject[] objects; public RoadsideStepData[] roadsideSteps; public GameplayData gameplay; }
+
+    /// <summary>Absolute path of the scene asset a world is imported into.</summary>
+    private static string ScenePath(string sceneName) =>
+        Path.Combine(Application.dataPath, "Scenes", sceneName + ".unity");
+
+    /// <summary>
+    /// Machine-local record of the world file that produced a scene. EditorPrefs
+    /// keeps it out of version control; the project path keeps projects apart.
+    /// </summary>
+    private static string StampKey(string sceneName) =>
+        "MapForgeWorldImporter.LastImportStamp:" + Application.dataPath.Replace('\\', '/') + ":" + sceneName;
+
+    private static string ContentStamp(string jsonPath)
+    {
+        using (var sha = System.Security.Cryptography.SHA256.Create())
+            return BitConverter.ToString(sha.ComputeHash(File.ReadAllBytes(jsonPath))).Replace("-", string.Empty);
+    }
+
+    /// <summary>Scene name for a world, matching what Import writes to disk.</summary>
+    private static string ResolveSceneName(World world, string jsonPath)
+    {
+        var sceneName = world != null && !string.IsNullOrWhiteSpace(world.name)
+            ? world.name
+            : Path.GetFileNameWithoutExtension(jsonPath);
+        foreach (var c in Path.GetInvalidFileNameChars()) sceneName = sceneName.Replace(c, '_');
+        return sceneName;
+    }
+
+    [Serializable] private class World { public int version; public string name; public SettingsData settings; public MapObject[] objects; public GroupData[] groups; public RoadsideStepData[] roadsideSteps; public GameplayData gameplay; }
+    [Serializable] private class SettingsData { public float gridSize = 1f; public string unit = "meter"; }
+    [Serializable] private class GroupData { public string id, name, parentId; }
     [Serializable] private class RoadsideStepData
     {
         public string platformId;
@@ -110,14 +161,27 @@ public static class MapForgeWorldImporter
             Debug.LogWarning("MapForge import skipped because Unity is in or entering Play Mode. Stop Play Mode and run the import again.");
             return;
         }
+        // Importing opens a generated scene, which throws away whatever is
+        // currently open. Let an interactive user save first; batch mode has
+        // nobody to answer the dialog.
+        if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+        {
+            Debug.LogWarning("MapForge import cancelled because the current scene was not saved.");
+            return;
+        }
         if (!File.Exists(jsonPath)) { Debug.LogError("MapForge file not found: " + jsonPath); return; }
         World world;
         try { world = JsonUtility.FromJson<World>(File.ReadAllText(jsonPath)); }
         catch (Exception ex) { Debug.LogError("Could not parse MapForge JSON: " + ex.Message); return; }
         if (world == null) { Debug.LogError("MapForge JSON is empty or invalid."); return; }
 
-        var sceneName = string.IsNullOrWhiteSpace(world.name) ? Path.GetFileNameWithoutExtension(jsonPath) : world.name;
-        foreach (var c in Path.GetInvalidFileNameChars()) sceneName = sceneName.Replace(c, '_');
+        MapForgeSceneOrganization.Document organized = null;
+        if (world.version >= 2)
+        {
+            try { organized = MapForgeSceneOrganization.Parse(File.ReadAllText(jsonPath)); }
+            catch (Exception ex) { Debug.LogError("Invalid MapForge hierarchy: " + ex.Message); return; }
+        }
+        var sceneName = ResolveSceneName(world, jsonPath);
         var sceneDir = Path.Combine(Application.dataPath, "Scenes");
         Directory.CreateDirectory(sceneDir);
         var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
@@ -135,7 +199,11 @@ public static class MapForgeWorldImporter
                     globalTotalWaves = Mathf.Max(globalTotalWaves, world.gameplay.spawns[i].totalWaves);
         }
         waveManager.TotalWaves = Mathf.Max(1, globalTotalWaves);
-        if (world.objects != null)
+        if (organized != null)
+        {
+            MapForgeSceneOrganization.Create(organized, root.transform, sceneName);
+        }
+        else if (world.objects != null)
         {
             foreach (var item in world.objects)
             {
@@ -160,11 +228,20 @@ public static class MapForgeWorldImporter
         }
         ApplyRoadsideSteps(world.roadsideSteps, root.transform);
         CreateGameplayObjects(world.gameplay, root.transform, globalTotalWaves);
+        // Overwrite the canonical scene for this world instead of asking Unity
+        // for a unique path. A unique path turns every import into a numbered
+        // copy ("Map 1", "Map 2", ...); saving over the same path keeps one
+        // scene asset and preserves its GUID, so existing references to it
+        // (build settings, other scenes) stay valid.
         var outPath = "Assets/Scenes/" + sceneName + ".unity";
-        outPath = AssetDatabase.GenerateUniqueAssetPath(outPath);
+        bool replacingExisting = File.Exists(ScenePath(sceneName));
         EditorSceneManager.SaveScene(scene, outPath);
         AssetDatabase.Refresh();
-        Debug.Log($"Imported MapForge world '{sceneName}' with {root.transform.childCount} objects into {outPath}");
+        // Remember which world revision produced this scene, so the auto import
+        // can tell an unchanged JSON from a new map export.
+        EditorPrefs.SetString(StampKey(sceneName), ContentStamp(jsonPath));
+        Debug.Log($"Imported MapForge world '{sceneName}' with {root.transform.childCount} objects into {outPath}" +
+            (replacingExisting ? " (replaced the existing scene)" : " (created a new scene)"));
     }
 
     private static void ApplyRoadsideSteps(RoadsideStepData[] steps, Transform parent)
@@ -174,8 +251,25 @@ public static class MapForgeWorldImporter
         {
             if (step == null || string.IsNullOrWhiteSpace(step.platformId)) continue;
             var platform = parent.Find(step.platformId);
+            Transform authoredParent = null;
+            foreach (var metadata in parent.GetComponentsInChildren<MapForgeObjectProperties>(true))
+            {
+                if (metadata.objectId != step.platformId) continue;
+                authoredParent = metadata.transform;
+                platform = authoredParent.Find(step.platformId);
+                break;
+            }
             if (platform == null) { Debug.LogWarning("Roadside step platform not found: " + step.platformId); continue; }
-
+            // Legacy roadside step coordinates are world-aligned. Stage only the
+            // geometry under the scene root, leaving the authored hierarchy intact.
+            if (authoredParent != null && Quaternion.Angle(platform.rotation, Quaternion.identity) > .01f)
+            {
+                Debug.LogWarning("Roadside steps require an unrotated platform: " + step.platformId);
+                continue;
+            }
+            if (authoredParent != null) platform.SetParent(parent, true);
+            try
+            {
             bool alongZ = !string.Equals(step.axis, "x", StringComparison.OrdinalIgnoreCase);
             float travelSize = alongZ ? platform.localScale.z : platform.localScale.x;
             float sideSize = alongZ ? platform.localScale.x : platform.localScale.z;
@@ -204,13 +298,15 @@ public static class MapForgeWorldImporter
             else nearPos.z += sign * (sideSize - stepWidth) * 0.5f;
             float beforeLength = stepMin - travelMin;
             float afterLength = travelMax - stepMax;
-            if (beforeLength > 0.01f) CreateStepCube(platform, platform.name + "_HighBefore", nearPos, alongZ, stepWidth, beforeLength, stepMin - beforeLength * 0.5f, 1f, sourceMaterials);
-            if (afterLength > 0.01f) CreateStepCube(platform, platform.name + "_HighAfter", nearPos, alongZ, stepWidth, afterLength, stepMax + afterLength * 0.5f, 1f, sourceMaterials);
-            CreateStepCube(platform, platform.name + "_Step_0.5m", nearPos, alongZ, stepWidth, stepLength, alongZ ? step.position.z : step.position.x, Mathf.Max(0.01f, step.height), sourceMaterials);
+            if (beforeLength > 0.01f) CreateStepCube(platform, platform.name + "_HighBefore", nearPos, alongZ, stepWidth, beforeLength, stepMin - beforeLength * 0.5f, 1f, sourceMaterials, authoredParent);
+            if (afterLength > 0.01f) CreateStepCube(platform, platform.name + "_HighAfter", nearPos, alongZ, stepWidth, afterLength, stepMax + afterLength * 0.5f, 1f, sourceMaterials, authoredParent);
+            CreateStepCube(platform, platform.name + "_Step_0.5m", nearPos, alongZ, stepWidth, stepLength, alongZ ? step.position.z : step.position.x, Mathf.Max(0.01f, step.height), sourceMaterials, authoredParent);
+            }
+            finally { if (authoredParent != null) platform.SetParent(authoredParent, true); }
         }
     }
 
-    private static void CreateStepCube(Transform source, string name, Vector3 localPosition, bool alongZ, float sideWidth, float travelLength, float travelCenter, float height, Material[] materials)
+    private static void CreateStepCube(Transform source, string name, Vector3 localPosition, bool alongZ, float sideWidth, float travelLength, float travelCenter, float height, Material[] materials, Transform authoredParent = null)
     {
         var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
         go.name = name;
@@ -224,6 +320,15 @@ public static class MapForgeWorldImporter
             : new Vector3(travelLength, height, sideWidth);
         var renderer = go.GetComponent<MeshRenderer>();
         if (renderer != null && materials != null) renderer.sharedMaterials = materials;
+        if (authoredParent != null)
+        {
+            go.transform.SetParent(authoredParent, true);
+            go.layer = source.gameObject.layer; go.isStatic = source.gameObject.isStatic;
+            var sourceCollider = source.GetComponent<Collider>();
+            if (sourceCollider != null) go.GetComponent<Collider>().enabled = sourceCollider.enabled;
+            var sourceRenderer = source.GetComponent<Renderer>();
+            if (sourceRenderer != null) renderer.enabled = sourceRenderer.enabled;
+        }
     }
 
     private static void CreateGameplayObjects(GameplayData data, Transform parent, int globalTotalWaves)

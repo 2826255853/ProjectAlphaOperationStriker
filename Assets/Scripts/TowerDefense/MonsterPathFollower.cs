@@ -8,6 +8,8 @@ public sealed class MonsterPathFollower : MonoBehaviour
     [SerializeField, Min(0f)] private float moveSpeed = 2f;
     [SerializeField, Min(0f)] private float turnSpeed = 720f;
     [SerializeField, Min(0.01f)] private float stoppingDistance = 0.05f;
+    [SerializeField] private bool flying;
+    [SerializeField, Min(0f)] private float flightHeight = 3f;
 
     private readonly List<Vector3> waypoints = new List<Vector3>();
     private MonsterPathGrid pathGrid;
@@ -21,6 +23,7 @@ public sealed class MonsterPathFollower : MonoBehaviour
     private bool initialized;
     private bool travellingToRequiredWaypoint;
     private bool currentPathReachesDestination;
+    private bool followingCombatPath;
 
     public bool IsInitialized => initialized;
     public bool HasArrived { get; private set; }
@@ -29,7 +32,47 @@ public sealed class MonsterPathFollower : MonoBehaviour
     public event Action<MonsterPathFollower> Arrived;
     public IReadOnlyList<Vector3> Waypoints => waypoints;
     public float MoveSpeed { get => moveSpeed; set => moveSpeed = Mathf.Max(0f, value); }
+    public bool IsFlying => flying;
+    public MonsterPathGrid PathGrid => pathGrid;
+    public bool IsFollowingCombatPath => followingCombatPath;
+    public bool CombatMovementPaused { get; set; }
+    public float RemainingPathDistance
+    {
+        get
+        {
+            float distance = 0f;
+            Vector3 previous = transform.position;
+            for (int i = waypointIndex; i < waypoints.Count; i++)
+            {
+                Vector3 delta = waypoints[i] - previous;
+                if (!flying) delta.y = 0f;
+                distance += delta.magnitude;
+                previous = waypoints[i];
+            }
+            return distance;
+        }
+    }
+    public float FlightHeight { get => flightHeight; set => flightHeight = Mathf.Max(0f, value); }
     public Vector3 DestinationPosition => destination != null ? destination.position : destinationPoint;
+
+    /// <summary>Temporarily follows a validated combat route without replacing the mission destination.</summary>
+    public void FollowCombatPath(IReadOnlyList<Vector3> path)
+    {
+        if (!initialized || flying || HasArrived) return;
+        followingCombatPath = true;
+        CombatMovementPaused = false;
+        waypoints.Clear();
+        for (int i = 0; i < path.Count; i++) waypoints.Add(path[i]);
+        waypointIndex = 0;
+    }
+
+    public void ResumeMissionPath()
+    {
+        if (!followingCombatPath) return;
+        followingCombatPath = false;
+        CombatMovementPaused = false;
+        RebuildPath();
+    }
 
     public void SetDestination(Vector3 worldPosition)
     {
@@ -37,6 +80,7 @@ public sealed class MonsterPathFollower : MonoBehaviour
         finalCore = null;
         travellingToRequiredWaypoint = false;
         destination = null;
+        flying = false;
         destinationPoint = worldPosition;
         HasArrived = false;
         RebuildPath();
@@ -48,6 +92,7 @@ public sealed class MonsterPathFollower : MonoBehaviour
         finalCore = null;
         travellingToRequiredWaypoint = false;
         destination = target;
+        flying = false;
         HasArrived = false;
         RebuildPath();
     }
@@ -57,6 +102,7 @@ public sealed class MonsterPathFollower : MonoBehaviour
         moveSpeed = Mathf.Max(0f, moveSpeed);
         turnSpeed = Mathf.Max(0f, turnSpeed);
         stoppingDistance = Mathf.Max(0.01f, stoppingDistance);
+        flightHeight = Mathf.Max(0f, flightHeight);
     }
 
     /// <summary>Called by EnemySpawnPoint immediately after an enemy is created.</summary>
@@ -72,6 +118,26 @@ public sealed class MonsterPathFollower : MonoBehaviour
         destinationPoint = fallbackTarget;
         travelDirection = direction;
         moveSpeed = Mathf.Max(0f, speed);
+        flying = false;
+        targetCore = core;
+        finalCore = core;
+        travellingToRequiredWaypoint = false;
+        waypointIndex = 0;
+        HasArrived = false;
+        initialized = true;
+        RebuildPath();
+    }
+
+    /// <summary>Initializes a flying monster. Flying movement ignores the ground grid.</summary>
+    public void InitializeFlying(Transform target, Vector3 fallbackTarget, float speed, float height, EnemyCore core)
+    {
+        pathGrid = null;
+        destination = target;
+        destinationPoint = fallbackTarget;
+        travelDirection = Vector3.forward;
+        moveSpeed = Mathf.Max(0f, speed);
+        flightHeight = Mathf.Max(0f, height);
+        flying = true;
         targetCore = core;
         finalCore = core;
         travellingToRequiredWaypoint = false;
@@ -99,6 +165,7 @@ public sealed class MonsterPathFollower : MonoBehaviour
         travelDirection = direction;
         moveSpeed = Mathf.Max(0f, speed);
         targetCore = null;
+        flying = false;
         finalCore = core;
         travellingToRequiredWaypoint = true;
         waypointIndex = 0;
@@ -109,8 +176,12 @@ public sealed class MonsterPathFollower : MonoBehaviour
 
     public void RebuildPath()
     {
+        followingCombatPath = false;
+        CombatMovementPaused = false;
+        waypointIndex = 0;
         waypoints.Clear();
         Vector3 target = destination != null ? destination.position : destinationPoint;
+        if (flying) target.y += flightHeight;
         lastPathTarget = target;
         if (targetCore != null && targetCore.IsWithinArrivalRange(transform.position))
         {
@@ -136,12 +207,13 @@ public sealed class MonsterPathFollower : MonoBehaviour
     private void Update()
     {
         if (!initialized || HasArrived) return;
-        if (targetCore != null && targetCore.IsWithinArrivalRange(transform.position))
+        if (followingCombatPath && CombatMovementPaused) return;
+        if (!followingCombatPath && targetCore != null && targetCore.IsWithinArrivalRange(transform.position))
         {
             CompleteArrival();
             return;
         }
-        if (destination != null && pathGrid != null && (destination.position - lastPathTarget).sqrMagnitude > pathGrid.CellSize * pathGrid.CellSize)
+        if (!followingCombatPath && destination != null && pathGrid != null && (destination.position - lastPathTarget).sqrMagnitude > pathGrid.CellSize * pathGrid.CellSize)
             RebuildPath();
         if (waypointIndex >= waypoints.Count)
         {
@@ -150,7 +222,7 @@ public sealed class MonsterPathFollower : MonoBehaviour
         }
 
         Vector3 target = waypoints[waypointIndex];
-        target.y = transform.position.y;
+        if (!flying) target.y = transform.position.y;
         Vector3 toTarget = target - transform.position;
         if (toTarget.sqrMagnitude <= stoppingDistance * stoppingDistance)
         {
@@ -170,6 +242,8 @@ public sealed class MonsterPathFollower : MonoBehaviour
 
     private void HandleCurrentDestinationReached()
     {
+        // Reaching a player/trap must never complete a required waypoint or damage the core.
+        if (followingCombatPath) return;
         if (!currentPathReachesDestination) return;
 
         if (travellingToRequiredWaypoint)

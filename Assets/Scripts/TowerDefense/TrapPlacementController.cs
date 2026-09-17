@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// Runtime trap placement (4), placement confirmation (left click), and
+/// Runtime trap placement, placement confirmation (left click), and
 /// dismantling. Outside placement mode the E key dismantles whatever trap the
 /// player is aiming at; inside placement mode that key is ignored and the right
 /// mouse button removes the hovered trap instead.
@@ -17,7 +17,8 @@ public sealed class TrapPlacementController : MonoBehaviour
     [SerializeField] private bool autoDiscoverGrids = true;
     [SerializeField] private Camera placementCamera;
     [SerializeField] private TrapDefinition selectedTrap;
-    [SerializeField] private KeyCode togglePlacementKey = KeyCode.Alpha4;
+    [SerializeField] private TrapDefinition[] trapSlots = new TrapDefinition[4];
+    [SerializeField, Range(0, 3)] private int selectedSlot;
     [SerializeField] private KeyCode dismantleKey = KeyCode.E;
     [SerializeField] private bool allowRemoveWithRightClick = true;
     [SerializeField] private bool allowDragPlacement = true;
@@ -39,17 +40,88 @@ public sealed class TrapPlacementController : MonoBehaviour
     private Material openMaterial, blockedMaterial, footprintMaterial, invalidFootprintMaterial;
     private Material hoveredMaterial;
 
-    public TrapDefinition SelectedTrap { get => selectedTrap; set { selectedTrap = value; RebuildPreview(); } }
+    public TrapDefinition SelectedTrap
+    {
+        get => selectedTrap;
+        set
+        {
+            selectedTrap = value;
+            if (trapSlots != null && selectedSlot >= 0 && selectedSlot < trapSlots.Length) trapSlots[selectedSlot] = value;
+            RebuildPreview();
+        }
+    }
+    public int SelectedSlot => selectedSlot;
+    public int TrapSlotCount => trapSlots != null ? trapSlots.Length : 0;
     public bool PlacementMode => placementMode;
     public bool HasValidPreview => placementMode && hasHoveredCell && activeGrid != null &&
         selectedTrap != null && CanPlace(activeGrid, hoveredCell);
     public TrapPlacementGrid ActiveGrid => activeGrid;
     public static bool IsPlacementModeActive { get; private set; }
 
+    public TrapDefinition GetTrapSlot(int slot)
+    {
+        return trapSlots != null && slot >= 0 && slot < trapSlots.Length ? trapSlots[slot] : null;
+    }
+
+    /// <summary>Selects one of the four hotbar slots without changing placement mode.</summary>
+    public bool SelectTrapSlot(int slot)
+    {
+        if (trapSlots == null || slot < 0 || slot >= trapSlots.Length) return false;
+        selectedSlot = slot;
+        selectedTrap = trapSlots[slot];
+        RebuildPreview();
+        if (placementMode) RefreshGridMarkers();
+        return selectedTrap != null;
+    }
+
+    /// <summary>Assigns a definition to a hotbar slot and refreshes the active preview.</summary>
+    public bool AssignTrapToSlot(int slot, TrapDefinition definition)
+    {
+        if (trapSlots == null || slot < 0 || slot >= trapSlots.Length) return false;
+        trapSlots[slot] = definition;
+        if (selectedSlot == slot) SelectTrapSlot(slot);
+        return true;
+    }
+
+    private void InitializeTrapSlots()
+    {
+        if (trapSlots == null || trapSlots.Length != 4)
+        {
+            TrapDefinition[] previous = trapSlots;
+            trapSlots = new TrapDefinition[4];
+            if (previous != null)
+                for (int i = 0; i < Mathf.Min(previous.Length, trapSlots.Length); i++) trapSlots[i] = previous[i];
+        }
+
+        bool hasAssignedSlot = false;
+        for (int i = 0; i < trapSlots.Length; i++) hasAssignedSlot |= trapSlots[i] != null;
+        if (!hasAssignedSlot && selectedTrap != null) trapSlots[0] = selectedTrap;
+        if (!hasAssignedSlot && selectedTrap == null) trapSlots[0] = Resources.Load<TrapDefinition>("AutoSentryTurret");
+
+        // Fill only empty slots so Inspector assignments remain authoritative.
+        TrapDefinition[] available = Resources.LoadAll<TrapDefinition>("");
+        System.Array.Sort(available, (a, b) => string.Compare(a.DisplayName, b.DisplayName, System.StringComparison.Ordinal));
+        for (int i = 0; i < trapSlots.Length; i++)
+        {
+            if (trapSlots[i] != null) continue;
+            for (int j = 0; j < available.Length; j++)
+            {
+                if (available[j] == null) continue;
+                bool alreadyUsed = false;
+                for (int k = 0; k < i; k++) alreadyUsed |= trapSlots[k] == available[j];
+                if (!alreadyUsed) { trapSlots[i] = available[j]; break; }
+            }
+        }
+        selectedSlot = Mathf.Clamp(selectedSlot, 0, trapSlots.Length - 1);
+        if (trapSlots[selectedSlot] == null)
+            for (int i = 0; i < trapSlots.Length; i++)
+                if (trapSlots[i] != null) { selectedSlot = i; break; }
+    }
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void EnsureRuntimeController()
     {
-        if (FindFirstObjectByType<TrapPlacementController>() != null) return;
+        if (FindAnyObjectByType<TrapPlacementController>() != null) return;
         GameObject host = new GameObject("Trap Placement Controller");
         DontDestroyOnLoad(host);
         host.AddComponent<TrapPlacementController>();
@@ -58,16 +130,23 @@ public sealed class TrapPlacementController : MonoBehaviour
     private void Awake()
     {
         if (placementCamera == null) placementCamera = Camera.main;
+        InitializeTrapSlots();
         RefreshGrids();
-        if (selectedTrap == null) selectedTrap = Resources.Load<TrapDefinition>("AutoSentryTurret");
+        SelectTrapSlot(selectedSlot);
         SetPlacementMode(placementMode);
     }
 
     private void Update()
     {
-        // The project uses the new Input System, so read the number key from
+        if (TrapSelectionMenu.IsOpen) return;
+        // The project uses the new Input System, so read the number keys from
         // Keyboard.current instead of relying only on the legacy Input API.
-        if (WasTogglePlacementKeyPressed()) SetPlacementMode(!placementMode);
+        if (TryGetTrapSlotPressed(out int slot))
+        {
+            SelectTrapSlot(slot);
+            if (!placementMode) SetPlacementMode(true);
+        }
+        if (WasEscapePressed()) SetPlacementMode(false);
         if (placementMode) SetWeaponInputSuppressed(true);
         if (placementCamera == null) placementCamera = Camera.main;
         if (grids.Count == 0) RefreshGrids();
@@ -105,7 +184,7 @@ public sealed class TrapPlacementController : MonoBehaviour
         if (grid != null) grids.Add(grid);
         if (autoDiscoverGrids || grids.Count == 0)
         {
-            TrapPlacementGrid[] found = FindObjectsByType<TrapPlacementGrid>(FindObjectsSortMode.None);
+            TrapPlacementGrid[] found = FindObjectsByType<TrapPlacementGrid>();
             for (int i = 0; i < found.Length; i++)
                 if (found[i] != null && !grids.Contains(found[i])) grids.Add(found[i]);
         }
@@ -152,14 +231,21 @@ public sealed class TrapPlacementController : MonoBehaviour
         return bestAny;
     }
 
-    private bool WasTogglePlacementKeyPressed()
+    private bool TryGetTrapSlotPressed(out int slot)
     {
-        if (Keyboard.current == null) return false;
-        if (togglePlacementKey == KeyCode.Keypad4)
-            return Keyboard.current[Key.Numpad4].wasPressedThisFrame;
-        if (togglePlacementKey == KeyCode.Alpha4)
-            return Keyboard.current[Key.Digit4].wasPressedThisFrame;
-        return false;
+        slot = -1;
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard == null) return false;
+        if (keyboard.digit4Key.wasPressedThisFrame || keyboard.numpad4Key.wasPressedThisFrame) slot = 0;
+        else if (keyboard.digit5Key.wasPressedThisFrame || keyboard.numpad5Key.wasPressedThisFrame) slot = 1;
+        else if (keyboard.digit6Key.wasPressedThisFrame || keyboard.numpad6Key.wasPressedThisFrame) slot = 2;
+        else if (keyboard.digit7Key.wasPressedThisFrame || keyboard.numpad7Key.wasPressedThisFrame) slot = 3;
+        return slot >= 0;
+    }
+
+    private static bool WasEscapePressed()
+    {
+        return Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
     }
 
     /// <summary>
@@ -352,7 +438,7 @@ public sealed class TrapPlacementController : MonoBehaviour
             return;
         }
 
-        foreach (PlayerInput input in FindObjectsByType<PlayerInput>(FindObjectsSortMode.None))
+        foreach (PlayerInput input in FindObjectsByType<PlayerInput>())
         {
             if (input.actions == null) continue;
             foreach (InputAction action in input.actions)
@@ -386,6 +472,7 @@ public sealed class TrapPlacementController : MonoBehaviour
         previewBaseScale = preview.transform.localScale;
         AutoSentryTurret turret = preview.GetComponent<AutoSentryTurret>();
         if (turret != null) turret.enabled = false;
+        foreach (TrapInstance trap in preview.GetComponentsInChildren<TrapInstance>(true)) trap.enabled = false;
         foreach (Collider collider in preview.GetComponentsInChildren<Collider>()) collider.enabled = false;
         foreach (Renderer renderer in preview.GetComponentsInChildren<Renderer>()) renderer.material.color = new Color(0.2f, 1f, 0.3f, 0.45f);
         SetPreviewVisible(false);
@@ -492,9 +579,17 @@ public sealed class TrapPlacementController : MonoBehaviour
                 GUI.Label(new Rect(16f, 16f, 460f, 24f), $"按 E 拆除：{DescribeTrap(aimedTrap)}");
             return;
         }
-        GUI.Label(new Rect(16f, 16f, 460f, 24f), "陷阱放置模式：左键放置　右键拆除　4 关闭");
-        if (selectedTrap == null) GUI.Label(new Rect(16f, 40f, 420f, 24f), "请在 TrapPlacementController 中选择陷阱类型");
-        if (activeGrid != null) GUI.Label(new Rect(16f, 64f, 420f, 24f), $"当前网格：{activeGrid.name}（高度 {activeGrid.PlacementHeight:0.##}）");
+        GUI.Label(new Rect(16f, 16f, 620f, 24f), "陷阱放置模式：左键放置　右键拆除　Esc 退出");
+        string slotText = "槽位 ";
+        for (int i = 0; i < 4; i++)
+        {
+            TrapDefinition definition = GetTrapSlot(i);
+            string name = definition != null ? definition.DisplayName : "空";
+            slotText += $"{i + 4}:{name}" + (i == selectedSlot ? " [当前]" : "") + (i < 3 ? "   " : "");
+        }
+        GUI.Label(new Rect(16f, 40f, 900f, 24f), slotText);
+        if (selectedTrap == null) GUI.Label(new Rect(16f, 64f, 420f, 24f), "当前槽位未配置陷阱，可按 N 分配");
+        if (activeGrid != null) GUI.Label(new Rect(16f, 88f, 420f, 24f), $"当前网格：{activeGrid.name}（高度 {activeGrid.PlacementHeight:0.##}）");
     }
 
     private static string DescribeTrap(TrapInstance trap)

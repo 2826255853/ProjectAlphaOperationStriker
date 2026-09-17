@@ -8,6 +8,7 @@ public sealed class EnemyInstance : MonoBehaviour
     public float SpawnTime { get; private set; }
     public int WaveNumber { get; private set; }
     public int SpawnIndexInWave { get; private set; }
+    public MonsterType MonsterType { get; internal set; }
     private MonsterPathFollower pathFollower;
 
     public MonsterPathFollower PathFollower
@@ -78,7 +79,12 @@ public sealed class EnemyInstance : MonoBehaviour
 
     private void HandleArrived(MonsterPathFollower follower)
     {
-        if (follower.HasCoreTarget) Destroy(gameObject);
+        if (follower.HasCoreTarget)
+        {
+            if (SpawnPoint != null && SpawnPoint.Core != null)
+                SpawnPoint.Core.TakeDamage(MonsterType);
+            Destroy(gameObject);
+        }
     }
 
     private void OnDestroy()

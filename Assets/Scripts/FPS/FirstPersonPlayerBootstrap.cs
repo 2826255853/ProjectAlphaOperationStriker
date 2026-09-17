@@ -18,8 +18,12 @@ public static class FirstPersonPlayerBootstrap
             return;
         }
 
-        if (Object.FindAnyObjectByType<FirstPersonController>() != null)
+        FirstPersonController legacyPlayer = Object.FindAnyObjectByType<FirstPersonController>();
+        if (legacyPlayer != null)
         {
+            if (legacyPlayer.GetComponent<PlayerHealth>() == null)
+                legacyPlayer.gameObject.AddComponent<PlayerHealth>();
+            EnsureLadderClimbStateLogger(legacyPlayer.gameObject);
             return;
         }
 
@@ -78,10 +82,18 @@ public static class FirstPersonPlayerBootstrap
 
     private static void EnsureBridgeComponents(GameObject player)
     {
+        if (player.GetComponent<PlayerHealth>() == null)
+            player.AddComponent<PlayerHealth>();
+
         if (player.GetComponent<FPSPackagePlayerMotion>() == null)
         {
             player.AddComponent<FPSPackagePlayerMotion>();
         }
+        if (player.GetComponent<LadderClimbing>() == null)
+        {
+            player.AddComponent<LadderClimbing>();
+        }
+        EnsureLadderClimbStateLogger(player);
 
         if (player.GetComponent<FPSHitscanShooter>() == null)
         {
@@ -91,6 +103,14 @@ public static class FirstPersonPlayerBootstrap
         if (player.GetComponent<AmmoDisplayUI>() == null)
         {
             player.AddComponent<AmmoDisplayUI>();
+        }
+    }
+
+    private static void EnsureLadderClimbStateLogger(GameObject player)
+    {
+        if (player.GetComponent<LadderClimbStateLogger>() == null)
+        {
+            player.AddComponent<LadderClimbStateLogger>();
         }
     }
 

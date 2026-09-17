@@ -119,6 +119,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             }
             if (!valid) continue;
             placedTraps.Add(trap);
+            trap.OwnerGrid = this;
             for (int y = 0; y < footprint.y; y++)
             for (int x = 0; x < footprint.x; x++)
                 occupiedCells[trap.OriginCell + new Vector2Int(x, y)] = trap;
@@ -205,6 +206,16 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         }
 
         GameObject root = CreateTrapObject(definition, origin, footprint);
+        // Imported art assets do not necessarily carry colliders. Keep every
+        // placed trap selectable/targetable by providing a footprint collider
+        // when the authored prefab has none (the launcher FBX is visual-only).
+        if (root.GetComponentInChildren<Collider>() == null)
+        {
+            BoxCollider collider = root.AddComponent<BoxCollider>();
+            collider.center = new Vector3(0f, 0.65f, 0f);
+            collider.size = new Vector3(Mathf.Max(0.5f, footprint.x * cellSize * 0.8f), 1.3f,
+                Mathf.Max(0.5f, footprint.y * cellSize * 0.8f));
+        }
         root.transform.SetParent(trapParent != null ? trapParent : transform, true);
         instance = root.GetComponent<TrapInstance>() ?? root.AddComponent<TrapInstance>();
         instance.Initialize(definition, origin);
@@ -222,6 +233,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         }
 #endif
         placedTraps.Add(instance);
+        instance.OwnerGrid = this;
         foreach (var cell in cells) occupiedCells[cell] = instance;
         return true;
     }
@@ -322,11 +334,18 @@ public sealed class TrapPlacementGrid : MonoBehaviour
 
     public bool RemoveTrap(TrapInstance instance)
     {
+        if (!ForgetTrap(instance)) return false;
+        if (Application.isPlaying) Destroy(instance.gameObject); else DestroyImmediate(instance.gameObject);
+        return true;
+    }
+
+    internal bool ForgetTrap(TrapInstance instance)
+    {
         if (instance == null || !placedTraps.Remove(instance)) return false;
         var toRemove = new List<Vector2Int>();
         foreach (var pair in occupiedCells) if (pair.Value == instance) toRemove.Add(pair.Key);
         foreach (var cell in toRemove) occupiedCells.Remove(cell);
-        if (Application.isPlaying) Destroy(instance.gameObject); else DestroyImmediate(instance.gameObject);
+        instance.OwnerGrid = null;
         return true;
     }
 

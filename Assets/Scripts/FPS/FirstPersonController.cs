@@ -334,6 +334,13 @@ public sealed class FPSPackagePlayerMotion : MonoBehaviour
             return;
         }
 
+        LadderClimbing ladderClimbing = GetComponent<LadderClimbing>();
+        if (ladderClimbing != null && ladderClimbing.IsClimbing)
+        {
+            verticalVelocity = 0f;
+            return;
+        }
+
         // FPSPlayer also moves this CharacterController in Update(). Applying
         // vertical motion in LateUpdate guarantees that the package movement
         // pass cannot overwrite the jump displacement in the same frame.
@@ -487,7 +494,15 @@ public sealed class FPSHitscanShooter : MonoBehaviour
             EnemyHealth enemyHealth = hit.collider.GetComponentInParent<EnemyHealth>();
             if (enemyHealth != null)
             {
-                enemyHealth.TakeDamage(damage);
+                EnemyWeakPoint weakPoint = hit.collider.GetComponent<EnemyWeakPoint>();
+                float appliedDamage = damage;
+                if (weakPoint != null)
+                {
+                    appliedDamage *= weakPoint.DamageMultiplier;
+                    Debug.Log($"[FPSHitscanShooter] 命中弱点，伤害提升至: {appliedDamage:0.##}", weakPoint);
+                }
+
+                enemyHealth.TakeDamage(appliedDamage);
                 return;
             }
 

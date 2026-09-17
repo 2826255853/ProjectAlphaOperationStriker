@@ -234,7 +234,7 @@ public sealed class TrapPlacementGridEditor : Editor
 
     private static TrapPlacementGrid FindOrCreateGrid(string preferredName, params string[] legacyNames)
     {
-        TrapPlacementGrid[] existing = Object.FindObjectsByType<TrapPlacementGrid>(FindObjectsSortMode.None);
+        TrapPlacementGrid[] existing = Object.FindObjectsByType<TrapPlacementGrid>();
         for (int i = 0; i < existing.Length; i++)
             if (existing[i] != null && existing[i].gameObject.name == preferredName) return existing[i];
         for (int i = 0; i < existing.Length; i++)
@@ -274,11 +274,6 @@ public sealed class TrapPlacementGridEditor : Editor
     }
 
     /// <summary>
-    /// Builds the cell mask for the raised platform level. A cell is usable when
-    /// a platform top exists underneath it and the cell is not part of the
-    /// monster lane, so platform traps can never block the enemy route.
-    /// </summary>
-    /// <summary>
     /// Reports whether every authored trap grid really lines up with the monster
     /// grid and with the surface it claims to sit on. This is the "没有错位"
     /// check to run after editing a map.
@@ -287,7 +282,7 @@ public sealed class TrapPlacementGridEditor : Editor
     private static void ValidateTrapGrids()
     {
         MonsterPathGrid monsterGrid = Object.FindAnyObjectByType<MonsterPathGrid>();
-        TrapPlacementGrid[] gridList = Object.FindObjectsByType<TrapPlacementGrid>(FindObjectsSortMode.None);
+        TrapPlacementGrid[] gridList = Object.FindObjectsByType<TrapPlacementGrid>();
         if (gridList.Length == 0)
         {
             Debug.LogWarning("陷阱网格校验：场景中没有 TrapPlacementGrid。");
@@ -310,7 +305,7 @@ public sealed class TrapPlacementGridEditor : Editor
                 if (grid.IsOccupied(cell)) occupied++;
                 if (!isOpen) continue;
                 open++;
-                if (monsterGrid != null && monsterGrid.IsOpen(cell) && grid != null && !IsGroundGrid(grid, monsterGrid))
+                if (monsterGrid != null && monsterGrid.IsOpen(cell) && !IsGroundGrid(grid, monsterGrid))
                     laneOverlap++;
                 Vector3 center = grid.CellToWorld(cell);
                 if (!Physics.Raycast(center + grid.transform.up * 2f, -grid.transform.up, out RaycastHit hit, 8f))

@@ -95,9 +95,8 @@ public sealed class MonsterPathGrid : MonoBehaviour
         Vector2Int requestedTarget = WorldToCellUnclamped(targetWorld);
         if (start == target)
         {
-            result.Add(CellToWorld(target));
             reachedTarget = requestedTarget == target && IsOpen(requestedTarget);
-            if (reachedTarget) result.Add(targetWorld);
+            result.Add(reachedTarget ? targetWorld : CellToWorld(target));
             return true;
         }
 

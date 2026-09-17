@@ -14,6 +14,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
     private CursorLockMode previousLock;
     private bool previousVisible;
     private readonly List<InputAction> suppressedWeaponActions = new List<InputAction>();
+    private bool restoreWeaponInputPending;
     private static int cursorReleasedFrame = -1;
 
     public static bool IsOpen { get; private set; }
@@ -36,6 +37,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
 
     private void Update()
     {
+        UpdatePendingWeaponInputRestore();
         if (Keyboard.current == null) return;
         if (toggleKey == KeyCode.N && Keyboard.current.nKey.wasPressedThisFrame) SetOpen(!open);
         if (open && Keyboard.current.escapeKey.wasPressedThisFrame) SetOpen(false);
@@ -62,15 +64,30 @@ public sealed class TrapSelectionMenu : MonoBehaviour
             previousVisible = Cursor.visible;
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
+            restoreWeaponInputPending = false;
             SetWeaponInputSuppressed(true);
         }
         else
         {
-            SetWeaponInputSuppressed(false);
+            // A click that picks a trap is still held down on this frame. Re-enabling
+            // the weapon actions right now makes the input system treat that held
+            // click as a fresh trigger, so the player fires the instant the menu
+            // closes. Defer the restore until the button is actually released.
+            restoreWeaponInputPending = true;
+            UpdatePendingWeaponInputRestore();
             cursorReleasedFrame = Time.frameCount;
             Cursor.lockState = previousLock;
             Cursor.visible = previousVisible;
         }
+    }
+
+    /// <summary>Re-enables the weapon actions once the pick-up click has been released.</summary>
+    private void UpdatePendingWeaponInputRestore()
+    {
+        if (!restoreWeaponInputPending) return;
+        if (Mouse.current != null && Mouse.current.leftButton.isPressed) return;
+        restoreWeaponInputPending = false;
+        SetWeaponInputSuppressed(false);
     }
 
     private void SetWeaponInputSuppressed(bool suppressed)
@@ -103,6 +120,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
 
     private void OnDisable()
     {
+        restoreWeaponInputPending = false;
         SetWeaponInputSuppressed(false);
         IsOpen = false;
     }

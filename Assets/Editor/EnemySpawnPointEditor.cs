@@ -20,6 +20,11 @@ public sealed class EnemySpawnPointEditor : Editor
     private SerializedProperty targetPosition;
     private SerializedProperty travelDirection;
     private SerializedProperty moveSpeed;
+    private SerializedProperty monsterType;
+    private SerializedProperty flightHeight;
+    private SerializedProperty flyingEntrance;
+    private SerializedProperty entranceAltitude;
+    private SerializedProperty flyingSpawnSpread;
 
     private void OnEnable()
     {
@@ -39,6 +44,11 @@ public sealed class EnemySpawnPointEditor : Editor
         targetPosition = serializedObject.FindProperty("targetPosition");
         travelDirection = serializedObject.FindProperty("travelDirection");
         moveSpeed = serializedObject.FindProperty("moveSpeed");
+        monsterType = serializedObject.FindProperty("monsterType");
+        flightHeight = serializedObject.FindProperty("flightHeight");
+        flyingEntrance = serializedObject.FindProperty("flyingEntrance");
+        entranceAltitude = serializedObject.FindProperty("entranceAltitude");
+        flyingSpawnSpread = serializedObject.FindProperty("flyingSpawnSpread");
     }
 
     public override void OnInspectorGUI()
@@ -109,6 +119,32 @@ public sealed class EnemySpawnPointEditor : Editor
         }
         EditorGUILayout.PropertyField(travelDirection, new GUIContent("行进方向"));
         EditorGUILayout.PropertyField(moveSpeed, new GUIContent("移动速度"));
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("飞行出怪口", EditorStyles.boldLabel);
+        EditorGUILayout.PropertyField(flyingEntrance, new GUIContent("仅生成飞行怪物"));
+        if (flyingEntrance.boolValue)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(entranceAltitude, new GUIContent("出怪口空中高度（世界 Y）"));
+            EditorGUILayout.PropertyField(flyingSpawnSpread, new GUIContent("空中生成散布半径"));
+            if (enemyPrefab.objectReferenceValue == null)
+            {
+                GameObject flyingPrefab = EnemySpawnPoint.GetFlyingMonsterPrefab();
+                EditorGUILayout.HelpBox(
+                    flyingPrefab != null
+                        ? "未指定预制体：将使用 Assets/Resources/FlyingMonster.prefab。"
+                        : "未指定预制体，且未找到 Assets/Resources/FlyingMonster.prefab：请先执行 菜单 Tools/塔防/生成飞行怪物预制体。",
+                    flyingPrefab != null ? MessageType.Info : MessageType.Warning);
+            }
+            EditorGUI.indentLevel--;
+        }
+        else
+        {
+            EditorGUILayout.PropertyField(monsterType, new GUIContent("怪物移动类型"));
+            if (monsterType.enumValueIndex == (int)MonsterType.Flying)
+                EditorGUILayout.PropertyField(flightHeight, new GUIContent("飞行高度（相对核心）"));
+        }
 
         serializedObject.ApplyModifiedProperties();
 

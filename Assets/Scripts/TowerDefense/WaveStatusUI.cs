@@ -16,6 +16,7 @@ public sealed class WaveStatusUI : MonoBehaviour
     private GUIStyle panelStyle;
     private GUIStyle labelStyle;
     private GUIStyle accentStyle;
+    private GUIStyle resultStyle;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void CreateForScene()
@@ -30,7 +31,7 @@ public sealed class WaveStatusUI : MonoBehaviour
     {
         if (Time.unscaledTime >= nextRefreshTime)
         {
-            spawnPoints = FindObjectsByType<EnemySpawnPoint>(FindObjectsSortMode.None);
+            spawnPoints = FindObjectsByType<EnemySpawnPoint>();
             nextRefreshTime = Time.unscaledTime + 0.5f;
         }
 
@@ -43,6 +44,14 @@ public sealed class WaveStatusUI : MonoBehaviour
 
     private void OnGUI()
     {
+        GameFlowManager flow = GameFlowManager.Instance;
+        EnemyCore core = FindAnyObjectByType<EnemyCore>();
+        if (flow != null && flow.CurrentResult != GameFlowManager.Result.Playing)
+        {
+            EnsureStyles();
+            string message = flow.CurrentResult == GameFlowManager.Result.Victory ? "游戏胜利" : "游戏失败";
+            GUI.Label(new Rect(Screen.width * 0.5f - 180f, Screen.height * 0.5f - 40f, 360f, 80f), message, resultStyle);
+        }
         if (spawnPoints.Length == 0) return;
         EnsureStyles();
 
@@ -65,7 +74,7 @@ public sealed class WaveStatusUI : MonoBehaviour
 
         if (totalWaves <= 0) return;
         const float width = 260f;
-        const float height = 88f;
+        const float height = 138f;
         Rect panel = new Rect(18f, 18f, width, height);
         GUI.Box(panel, GUIContent.none, panelStyle);
         GUI.Label(new Rect(panel.x + 14f, panel.y + 9f, width - 28f, 28f),
@@ -83,6 +92,13 @@ public sealed class WaveStatusUI : MonoBehaviour
             GUI.Label(new Rect(panel.x + 14f, panel.y + 42f, width - 28f, 22f),
                 currentWave >= totalWaves ? "全部波次完成" : "本波进行中", labelStyle);
         }
+        if (core != null)
+            GUI.Label(new Rect(panel.x + 14f, panel.y + 86f, width - 28f, 22f),
+                $"核心  {core.CurrentHealth:0.#} / {core.MaxHealth:0.#}", accentStyle);
+        PlayerHealth player = PlayerHealth.Instance;
+        if (player != null)
+            GUI.Label(new Rect(panel.x + 14f, panel.y + 110f, width - 28f, 22f),
+                $"玩家  {player.CurrentHealth:0.#} / {player.MaxHealth:0.#}", accentStyle);
     }
 
     private void EnsureStyles()
@@ -103,6 +119,13 @@ public sealed class WaveStatusUI : MonoBehaviour
         {
             fontSize = 15,
             normal = { textColor = AccentColor }
+        };
+        resultStyle = new GUIStyle(GUI.skin.label)
+        {
+            alignment = TextAnchor.MiddleCenter,
+            fontSize = 42,
+            fontStyle = FontStyle.Bold,
+            normal = { textColor = Color.white }
         };
     }
 

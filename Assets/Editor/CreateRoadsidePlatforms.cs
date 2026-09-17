@@ -7,7 +7,9 @@ public static class CreateRoadsidePlatforms
     [MenuItem("Tools/Map/Create Roadside Platforms")]
     public static void Create()
     {
-        var scene = EditorSceneManager.OpenScene("Assets/Scenes/THREE_ROUTE_MERGE_MAP 4.unity", OpenSceneMode.Single);
+        // Always target the canonical scene the MapForge importer writes;
+        // numbered copies (" 4") are no longer produced and were removed.
+        var scene = EditorSceneManager.OpenScene("Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity", OpenSceneMode.Single);
         var old = GameObject.Find("RoadsidePlatforms");
         if (old) Object.DestroyImmediate(old);
         foreach (var name in new[]
