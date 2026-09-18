@@ -305,7 +305,11 @@ public sealed class TrapPlacementController : MonoBehaviour
             activeGrid.GetTrapWorldPosition(hoveredCell, selectedTrap.Footprint),
             selectedTrap.LocalRotation);
         Vector2Int footprint = selectedTrap.Footprint;
-        preview.transform.localScale = new Vector3(previewBaseScale.x * footprint.x, previewBaseScale.y, previewBaseScale.z * footprint.y);
+        // Authored prefabs (including the 2x2m missile launcher) already carry
+        // their world scale. Only the primitive fallback needs footprint scaling.
+        preview.transform.localScale = selectedTrap.Prefab != null
+            ? previewBaseScale
+            : new Vector3(previewBaseScale.x * footprint.x, previewBaseScale.y, previewBaseScale.z * footprint.y);
         SetPreviewVisible(true);
         if (!previousHover || !hasHoveredCell || previousCell != hoveredCell || previousGrid != activeGrid)
             RefreshGridMarkers();
@@ -472,6 +476,12 @@ public sealed class TrapPlacementController : MonoBehaviour
         previewBaseScale = preview.transform.localScale;
         AutoSentryTurret turret = preview.GetComponent<AutoSentryTurret>();
         if (turret != null) turret.enabled = false;
+        // The launcher mount would otherwise swivel the ghost toward enemies.
+        MissileLauncherTurret launcher = preview.GetComponent<MissileLauncherTurret>();
+        if (launcher != null) launcher.enabled = false;
+        // And the firing half would otherwise launch real missiles from a ghost.
+        MissileLauncherWeapon launcherWeapon = preview.GetComponent<MissileLauncherWeapon>();
+        if (launcherWeapon != null) launcherWeapon.enabled = false;
         foreach (TrapInstance trap in preview.GetComponentsInChildren<TrapInstance>(true)) trap.enabled = false;
         foreach (Collider collider in preview.GetComponentsInChildren<Collider>()) collider.enabled = false;
         foreach (Renderer renderer in preview.GetComponentsInChildren<Renderer>()) renderer.material.color = new Color(0.2f, 1f, 0.3f, 0.45f);
