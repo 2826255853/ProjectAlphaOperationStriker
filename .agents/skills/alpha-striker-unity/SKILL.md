@@ -62,6 +62,15 @@ description: 在 ProjectAlphaOperationStriker（Unity FPS + 塔防）及配套 M
 - `FirstPersonController.UpdateCursor()` 与 `FPSPackagePlayerMotion.UpdateCursor()` 都要在开头判断 `TrapSelectionMenu.CursorOwned` 并**直接返回**，不再抢回鼠标锁。有**两份** `UpdateCursor`（两个控制器副本），改一份要改两份。
 - `TrapSelectionMenu` 自己开菜单时记下 `previousLock` / `previousVisible`，关闭时还原。
 
+### 瞄准陷阱时显示陷阱血条（2026-09 新增）
+
+准星对准某个已放置的陷阱时，屏幕会叠一条血条（陷阱名 + 当前/最大血量 + 血量条）。实现集中在 `Assets/Scripts/TowerDefense/TrapHealthBarUI.cs`：
+
+- 血量数据源是 `TrapInstance.CurrentHealth` / `MaxHealth`（和 `GroundEnemyCombat` 打陷阱用的是同一个字段），血条不自己存血量。
+- 选靶有两条路：先用 `Physics.Raycast` 从准星打出去（`FirstPersonController` 的射击也用同一套射线），命中解得 `TrapInstance` 就直接用；打空了就用 `TrapHealthBarUI.FindTrapNearRay` 在 `TrapInstance.ActiveTraps` 里挑离射线最近的（阈值 `AimConeRadius = 0.35`），因为生成的炮塔模型**没有 Collider**，只靠射线检测不到。障碍物会把射线距离截断，被挡住的陷阱不会显示。
+- 组件用 `[RuntimeInitializeOnLoadMethod(AfterSceneLoad)]` 自建 HUD 对象（和 `WaveStatusUI`、`TrapSelectionMenu` 同一模式），用 IMGUI 画在陷阱世界坐标上方，所以**不需要**改场景、预制体或 Canvas。
+- 面板在 `TrapSelectionMenu.CursorOwned` 为真时隐藏（菜单开着不选靶）。`lingerAfterAimLost` 控制视线移开后的粘滞时间，防止准星抖动闪烁。
+- 回归测试：`Assets/Editor/TrapHealthBarUITests.cs`（选靶、身后/被遮挡过滤、低血比例），跑法 `-runTests -testPlatform EditMode -testFilter TrapHealthBarUITests`。注意本工程 `Assets/Editor` 的测试类都用 `#if UNITY_INCLUDE_TESTS` 包住，直接 `-executeMethod` 不会执行。
 所以新增任何「打开 UI 就该放鼠标」的功能时：**不要**再写一套 `Cursor.lockState = None` 的临时逻辑，也不要让控制器去猜菜单状态；而是让菜单复用 `CursorOwned`（或按同样模式扩展），并在两个 `UpdateCursor` 里一起尊重它。注意关闭那一帧仍要为真，否则点击关闭菜单的同帧视角会被重新锁回。
 
 ## 路由
@@ -70,6 +79,7 @@ description: 在 ProjectAlphaOperationStriker（Unity FPS + 塔防）及配套 M
 - 要改地图、改 MapForge 导出格式、或调整格子/路径联动，读 [references/mapforge-pipeline.md](references/mapforge-pipeline.md)。
 - 两边都要动的地图改动，顺序是：MapForge 改 → 导出 JSON → Unity 导入 → Unity 校验。
 - 改空中出怪口、飞行怪物移动、或陷阱菜单的视角/准星锁定，读上面的[近期改动的约定](#近期改动的约定2026-09-新增)；这两处都各有一份以上的复制实现，别只改一处。
+- 改陷阱血条显示（准星选靶、遮挡判定、HUD 样式），读上面的[瞄准陷阱时显示陷阱血条](#瞄准陷阱时显示陷阱血条2026-09-新增)。
 
 ## 已知会造成误判的情况
 
