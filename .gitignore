@@ -44,3 +44,14 @@
 *.keystore
 .DS_Store
 Thumbs.db
+
+# 陷阱制作中间态文件：放桌面「陷阱素材文件夹」，不要落在仓库根目录
+/*.py
+/*.blend
+/*.blend1
+/*.blend2
+/*.png
+/*.fbx
+
+# MapForge 实时同步的运行时状态（每次同步都会改写，不入库）
+/MapForgeSync/

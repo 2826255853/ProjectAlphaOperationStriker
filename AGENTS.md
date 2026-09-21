@@ -33,7 +33,20 @@
 - 主要场景：`Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity`。
 - 代码目录：`Assets/Scripts/FPS`、`Assets/Scripts/TowerDefense`、`Assets/Editor`。
 - 近期新增能力（2026-09）：**空中出怪口**（场景对象名 `Enemy Spawn Flying`，预制体 `Assets/Resources/FlyingMonster.prefab`，由 `Assets/Editor/FlyingSpawnPointAuthoring.cs` 生成/放置；飞行移动走 `MonsterPathFollower.InitializeFlying`，不走怪物路径网格）与**打开陷阱菜单时锁定玩家视角**（判据 `TrapSelectionMenu.CursorOwned`，`FirstPersonController` / `FPSPackagePlayerMotion` 两份 `UpdateCursor` 都尊重它）。细节见 `.agents/skills/alpha-striker-unity/SKILL.md`。
-- 根目录下的 `*.py` 为 Blender 生成/导出脚本，与 Unity 运行时代码无关。
+- Blender 生成/导出脚本（`*.py`）与 Unity 运行时代码无关；按下面的文件放置规范，它们应放在桌面「陷阱素材文件夹」而不是仓库根目录。
+
+### 文件放置规范：陷阱制作的中间态文件
+
+制作与迭代陷阱时产生的**一切中间态文件**，统一放到桌面素材文件夹，**不要**落在仓库里：
+
+`C:\Users\Origami\Desktop\陷阱素材文件夹`
+
+- 中间态包含：Blender 源文件与自动备份（`*.blend` / `*.blend1` / `*.blend2`）、临时导出的模型（`*.fbx` / `*.obj` / `*.glb` / `*.stl`）、贴图与烘焙产物（`*.png` / `*.tga` / `*.exr`）、预览图与试渲染（`*.png` / `*.mp4`）、一次性数据与日志（`*.json` / `*.txt` / `*.log`）。
+- 只为这次陷阱制作服务的一次性脚本（含 Blender 的 `*.py`）也写进该文件夹，**不要**再放到仓库根目录。
+- 该文件夹内按陷阱名建子目录（如 `陷阱素材文件夹\Flamethrower\`），产物写在子目录里，便于回溯与清理；目录不存在就直接创建。
+- 只有**最终定稿**的资源才允许进仓库：模型放 `Assets/Models/<TrapName>/*.fbx`（含贴图），预制体放 `Assets/Resources/*.prefab`。
+- 已有代码用 `const string` 引用的路径不要为了「归位」而搬家（例如 `FlyingSpawnPointAuthoring.FlyingModelPath = "Assets/FlyingMonsterPlane.fbx"`）；搬路径要连常量与 `.meta` 一起改，这属于独立任务。
+- 汇报时给出该文件夹下的完整绝对路径，方便用户直接打开查看；不要用相对路径或仓库内路径代替。
 
 ### 中断与升级
 

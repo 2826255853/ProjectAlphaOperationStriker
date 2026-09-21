@@ -15,7 +15,7 @@ description: 在 ProjectAlphaOperationStriker（Unity FPS + 塔防）及配套 M
 
 1. **只用新版输入系统。** 新增输入代码写 `using UnityEngine.InputSystem`，不要用 `Input.GetKey` / `Input.GetAxis`。工程启用了 `ENABLE_INPUT_SYSTEM`，`Packages/manifest.json` 已带 `com.unity.inputsystem`。
 2. **图形类编辑必须能预览、能撤回。** 三类改动各自的撤回手段不同：
-   - Blender 建模：脚本常直接 `save_as_mainfile` 覆盖同一个 `.blend`。改之前先把 `.blend` 复制一份到临时路径，结束时用 `bpy.ops.render.render(write_still=True)` 出 PNG 预览（见 `create_flying_monster_plane.py`）。
+   - Blender 建模：脚本常直接 `save_as_mainfile` 覆盖同一个 `.blend`。改之前先把 `.blend` 复制一份到 `C:\Users\Origami\Desktop\陷阱素材文件夹\<陷阱名>\` 下的备份副本，结束时用 `bpy.ops.render.render(write_still=True)` 出 PNG 预览（示例脚本 `C:\Users\Origami\Desktop\陷阱素材文件夹\FlyingMonster\create_flying_monster_plane.py`）。
    - MapForge 改地图：编辑器有 80 步内存内撤销，但**关闭页面即丢失**。改前把 `Assets/mapforge-world.json` 备份或提交，改后重新导出。
    - Unity 改场景：`MapForge` 导入会**覆盖**目标场景文件，所以导入前先 `git stash` 或提交，之后用 `git diff` 回滚。
 3. **地图不能遮挡怪物前进道路。** 平台/陷阱网格的可放置格必须排除怪物通道格，这条由 `TrapGridAuthoring` 的掩码函数保证——不要手写一套新的格子逻辑，见 [references/mapforge-pipeline.md](references/mapforge-pipeline.md)。
@@ -32,6 +32,18 @@ description: 在 ProjectAlphaOperationStriker（Unity FPS + 塔防）及配套 M
 - `MonsterPathGrid.CellToWorld` / `TryWorldToCell` —— 怪物侧换算。
 
 `TrapPlacementGridEditor.MonsterGridToTrapGridOffset` 是同一常量的另一份定义，改偏移要两处一起改。
+
+## 文件放置：陷阱制作的中间态文件
+
+陷阱（建模 / 贴图 / 导出 / 预览）过程中的**一切中间态文件**都写在桌面素材文件夹，**不进仓库**：
+
+`C:\Users\Origami\Desktop\陷阱素材文件夹`
+
+- 写什么：Blender 源文件与自动备份（`*.blend` / `*.blend1` / `*.blend2`）、临时导出的 `*.fbx` / `*.obj` / `*.glb`、贴图与烘焙结果、预览图与试渲染、一次性清单/日志，以及只为这次陷阱写的一次性脚本（含 Blender 的 `*.py`）。
+- 怎么放：按陷阱名建子目录（如 `陷阱素材文件夹\Flamethrower\`），同一陷阱的源文件、导出件、预览图都放这个子目录里；目录不存在就直接创建，**不要**退而写到仓库根目录或 `Temp`。
+- 什么才进仓库：只有**定稿**资源，即模型 `Assets/Models/<TrapName>/*.fbx`（含贴图）与最终预制体 `Assets/Resources/*.prefab`。已有 `const string` 引用的路径（如 `FlyingSpawnPointAuthoring.FlyingModelPath`）不要顺手搬家。
+- 汇报时给出该文件夹下的完整绝对路径，用户要能直接点开看预览图。
+- 与第 2 条规范的配合：修改共用 `.blend` 前先把副本备份到该文件夹的对应子目录，再用 `bpy.ops.render.render(write_still=True)` 把预览图输出到同一子目录。
 
 ## 近期改动的约定（2026-09 新增）
 
@@ -85,5 +97,7 @@ description: 在 ProjectAlphaOperationStriker（Unity FPS + 塔防）及配套 M
 
 - `Assets/KINEMATION`、`Assets/TextMesh Pro` 被 `.gitignore` 排除。缺失时 C# 会报缺类型，属于预期，不要为此反复排查。
 - 根目录的 `*.log`、`*.blend1`、`*.csproj` 都被忽略；`Assets/Models/*.blend` 和 `.fbx` 是被跟踪的。
+- 仓库根目录的中间态文件（`/*.py`、`/*.blend`、`/*.blend1`、`/*.blend2`、`/*.png`、`/*.fbx`）已被 `.gitignore` 忽略：陷阱中间态按规范放在桌面「陷阱素材文件夹」，在仓库根目录找不到它们是**预期**，不要用 `git add -f` 硬塞回去。
+- `Assets/FlyingMonsterPlane_preview.png` 这类预览图已迁出仓库（GUID 无任何引用）；要预览图去桌面「陷阱素材文件夹」对应子目录拿。
 - 同一时刻只允许一个 Unity 实例持有 `Library/`。开编辑器时批处理会卡住或失败，先确认没有 Unity 在跑。
 - 场景与预制体是体量很大的 YAML，用 `Select-String` 定位行号后只读局部片段。

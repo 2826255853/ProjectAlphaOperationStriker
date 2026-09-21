@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using Unity.AI.Navigation;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -12,7 +14,7 @@ using UnityEngine.SceneManagement;
 /// script recompiles no longer replace the scene or leave numbered copies.
 /// </summary>
 [InitializeOnLoad]
-public static class MapForgeWorldImporter
+public static partial class MapForgeWorldImporter
 {
     static MapForgeWorldImporter()
     {
@@ -75,10 +77,13 @@ public static class MapForgeWorldImporter
         return sceneName;
     }
 
-    [Serializable] private class World { public int version; public string name; public SettingsData settings; public MapObject[] objects; public GroupData[] groups; public RoadsideStepData[] roadsideSteps; public GameplayData gameplay; }
-    [Serializable] private class SettingsData { public float gridSize = 1f; public string unit = "meter"; }
-    [Serializable] private class GroupData { public string id, name, parentId; }
-    [Serializable] private class RoadsideStepData
+    // Reuses the scene-organization DTOs so the importer and the live sync always read
+    // the same "unity" shape: prefab library, wave configuration and bake options. The
+    // object hierarchy itself is parsed by MapForgeSceneOrganization, which insists on the
+    // current format version, so this envelope carries only what that parser does not.
+    /// <summary>Envelope shared with the live sync, which reuses Import(jsonPath).</summary>
+    [Serializable] public class World { public int version; public string name; public RoadsideStepData[] roadsideSteps; public GameplayData gameplay; public MapForgeSceneOrganization.UnitySceneData unity; }
+    [Serializable] public class RoadsideStepData
     {
         public string platformId;
         public Vector3 position;
@@ -88,14 +93,14 @@ public static class MapForgeWorldImporter
         public float width = 0.5f;
         public float height = 0.5f;
     }
-    [Serializable] private class GameplayData
+    [Serializable] public class GameplayData
     {
         public PathGridData pathGrid;
         public CoreData core;
         public int totalWaves;
         public SpawnData[] spawns;
     }
-    [Serializable] private class PathGridData
+    [Serializable] public class PathGridData
     {
         public Vector3 origin;
         public int columns = 1;
@@ -105,32 +110,20 @@ public static class MapForgeWorldImporter
         public bool[] openCells;
         public PathSegmentData[] segments;
     }
-    [Serializable] private class PathSegmentData { public Vector3 start; public Vector3 end; }
-    [Serializable] private class CoreData { public Vector3 position; public float arrivalRadius = 0.35f; }
-    [Serializable] private class SpawnData
+    [Serializable] public class PathSegmentData { public Vector3 start; public Vector3 end; }
+    [Serializable] public class CoreData { public Vector3 position; public float arrivalRadius = 0.35f; }
+    [Serializable] public class SpawnData
     {
         public string id;
         public Vector3 position;
         public Vector3 travelDirection = Vector3.forward;
         public float moveSpeed = 2f;
-        // Retained for backwards compatibility with older map files. The
-        // value is migrated to the scene-level WaveManager during import.
+        // Kept on the gameplay spawn so an older world file still yields the
+        // right scene-level wave count; migrated to the WaveManager during import.
         public int totalWaves = 3;
         public int enemiesPerWave = 10;
         public float initialWaveDelay = 2f;
         public float[] waveTransitionDelays = { 5f, 5f };
-    }
-    [Serializable] private class MapObject
-    {
-        public string id;
-        public string type;
-        public TransformData transform;
-    }
-    [Serializable] private class TransformData
-    {
-        public float[] position;
-        public float[] rotation;
-        public float[] scale;
     }
 
     [MenuItem("MapForge/Import mapforge-world.json", priority = 0)]
@@ -175,59 +168,24 @@ public static class MapForgeWorldImporter
         catch (Exception ex) { Debug.LogError("Could not parse MapForge JSON: " + ex.Message); return; }
         if (world == null) { Debug.LogError("MapForge JSON is empty or invalid."); return; }
 
-        MapForgeSceneOrganization.Document organized = null;
-        if (world.version >= 2)
+        // Only the current format is importable. An older export is refused here
+        // instead of migrated on load, so everything below has one hierarchy path.
+        if (world.version != 2)
         {
-            try { organized = MapForgeSceneOrganization.Parse(File.ReadAllText(jsonPath)); }
-            catch (Exception ex) { Debug.LogError("Invalid MapForge hierarchy: " + ex.Message); return; }
+            Debug.LogError("MapForge world '" + jsonPath + "' has format version " + world.version +
+                "; only version 2 is supported. Re-export it from MapForge.");
+            return;
         }
+        MapForgeSceneOrganization.Document organized;
+        try { organized = MapForgeSceneOrganization.Parse(File.ReadAllText(jsonPath)); }
+        catch (Exception ex) { Debug.LogError("Invalid MapForge hierarchy: " + ex.Message); return; }
         var sceneName = ResolveSceneName(world, jsonPath);
         var sceneDir = Path.Combine(Application.dataPath, "Scenes");
         Directory.CreateDirectory(sceneDir);
         var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
         scene.name = sceneName;
-        var root = new GameObject("MapForgeWorld");
-        SceneManager.MoveGameObjectToScene(root, scene);
-        var waveManagerObject = new GameObject("Wave Manager");
-        waveManagerObject.transform.SetParent(root.transform, false);
-        var waveManager = waveManagerObject.AddComponent<WaveManager>();
-        int globalTotalWaves = world.gameplay != null ? world.gameplay.totalWaves : 0;
-        if (globalTotalWaves <= 0 && world.gameplay != null && world.gameplay.spawns != null)
-        {
-            for (int i = 0; i < world.gameplay.spawns.Length; i++)
-                if (world.gameplay.spawns[i] != null)
-                    globalTotalWaves = Mathf.Max(globalTotalWaves, world.gameplay.spawns[i].totalWaves);
-        }
-        waveManager.TotalWaves = Mathf.Max(1, globalTotalWaves);
-        if (organized != null)
-        {
-            MapForgeSceneOrganization.Create(organized, root.transform, sceneName);
-        }
-        else if (world.objects != null)
-        {
-            foreach (var item in world.objects)
-            {
-                if (item == null) continue;
-                var primitive = PrimitiveType.Cube;
-                if (!string.IsNullOrEmpty(item.type) && item.type.Equals("sphere", StringComparison.OrdinalIgnoreCase)) primitive = PrimitiveType.Sphere;
-                else if (!string.IsNullOrEmpty(item.type) && item.type.Equals("capsule", StringComparison.OrdinalIgnoreCase)) primitive = PrimitiveType.Capsule;
-                else if (!string.IsNullOrEmpty(item.type) && item.type.Equals("cylinder", StringComparison.OrdinalIgnoreCase)) primitive = PrimitiveType.Cylinder;
-                var go = GameObject.CreatePrimitive(primitive);
-                go.name = string.IsNullOrEmpty(item.id) ? item.type : item.id;
-                go.transform.SetParent(root.transform);
-                ApplyTransform(go.transform, item.type, item.transform);
-                // Keep the junction marker as a visual landmark only. Its
-                // footprint is inside the road crossing and must not block
-                // enemy movement or player placement.
-                if (string.Equals(item.id, "Junction_Marker", StringComparison.OrdinalIgnoreCase))
-                {
-                    var collider = go.GetComponent<Collider>();
-                    if (collider != null) collider.enabled = false;
-                }
-            }
-        }
-        ApplyRoadsideSteps(world.roadsideSteps, root.transform);
-        CreateGameplayObjects(world.gameplay, root.transform, globalTotalWaves);
+        int globalTotalWaves = ResolveTotalWaves(world);
+        var root = Build(world, organized, sceneName, globalTotalWaves);
         // Overwrite the canonical scene for this world instead of asking Unity
         // for a unique path. A unique path turns every import into a numbered
         // copy ("Map 1", "Map 2", ...); saving over the same path keeps one
@@ -242,6 +200,228 @@ public static class MapForgeWorldImporter
         EditorPrefs.SetString(StampKey(sceneName), ContentStamp(jsonPath));
         Debug.Log($"Imported MapForge world '{sceneName}' with {root.transform.childCount} objects into {outPath}" +
             (replacingExisting ? " (replaced the existing scene)" : " (created a new scene)"));
+    }
+
+    /// <summary>
+    /// Rebuilds the map inside its existing scene asset instead of creating a new scene.
+    /// The live sync uses this for the cases that cannot be patched object by object
+    /// (renamed map, gameplay or roadside changes): the scene keeps its path and GUID,
+    /// and anything the project added to the scene next to the map stays untouched.
+    /// </summary>
+    public static void RebuildInPlace(string jsonPath)
+    {
+        var world = ReadWorld(jsonPath);
+        if (world == null) return;
+        // Only the current format is importable. An older export is refused here
+        // instead of migrated on load, so everything below has one hierarchy path.
+        if (world.version != 2)
+        {
+            Debug.LogError("MapForge world '" + jsonPath + "' has format version " + world.version +
+                "; only version 2 is supported. Re-export it from MapForge.");
+            return;
+        }
+        MapForgeSceneOrganization.Document organized;
+        try { organized = MapForgeSceneOrganization.Parse(File.ReadAllText(jsonPath)); }
+        catch (Exception ex) { Debug.LogError("Invalid MapForge hierarchy: " + ex.Message); return; }
+        var sceneName = ResolveSceneName(world, jsonPath);
+        var scene = OpenTargetScene(sceneName);
+        if (!scene.IsValid()) return;
+        // Objects the project authored under the generated root are lifted out first, so
+        // rebuilding the map does not delete them, and are put back afterwards when the new
+        // hierarchy does not have an object of that name.
+        var authored = DetachAuthoredChildren(FindRoot(scene)?.transform, world, organized, sceneName);
+        ClearGeneratedRoot(scene);
+        int globalTotalWaves = ResolveTotalWaves(world);
+        var root = Build(world, organized, sceneName, globalTotalWaves);
+        int restored = RestoreAuthoredChildren(authored, root.transform);
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        if (restored > 0) Debug.Log($"MapForge: kept {restored} project-authored object(s) under {RootName}.");
+        EditorPrefs.SetString(StampKey(sceneName), ContentStamp(jsonPath));
+        Debug.Log($"Rebuilt MapForge world '{sceneName}' in place with {root.transform.childCount} objects.");
+    }
+
+    /// <summary>Parses a world file, reporting the same way the menu import does.</summary>
+    public static World ReadWorld(string jsonPath)
+    {
+        if (!File.Exists(jsonPath)) { Debug.LogError("MapForge file not found: " + jsonPath); return null; }
+        try
+        {
+            var world = JsonUtility.FromJson<World>(File.ReadAllText(jsonPath));
+            if (world == null) Debug.LogError("MapForge JSON is empty or invalid.");
+            return world;
+        }
+        catch (Exception ex) { Debug.LogError("Could not parse MapForge JSON: " + ex.Message); return null; }
+    }
+
+    /// <summary>
+    /// Scene this map belongs to: the loaded one when it is already open, otherwise the
+    /// file on disk. Returns an invalid scene when neither exists, so the caller can fall
+    /// back to a fresh import.
+    /// </summary>
+    public static Scene OpenTargetScene(string sceneName)
+    {
+        var path = "Assets/Scenes/" + sceneName + ".unity";
+        var loaded = SceneManager.GetSceneByPath(path);
+        if (loaded.IsValid() && loaded.isLoaded) return loaded;
+        if (!File.Exists(ScenePath(sceneName))) return default;
+        try { return EditorSceneManager.OpenScene(path, OpenSceneMode.Single); }
+        catch (Exception ex) { Debug.LogError("MapForge could not open " + path + ": " + ex.Message); return default; }
+    }
+
+    /// <summary>Removes everything the previous import put into a scene.</summary>
+    public static void ClearGeneratedRoot(Scene scene)
+    {
+        foreach (var rootObject in scene.GetRootGameObjects())
+        {
+            if (!string.Equals(rootObject.name, RootName, StringComparison.Ordinal)) continue;
+            UnityEngine.Object.DestroyImmediate(rootObject);
+            return;
+        }
+    }
+
+    /// <summary>Name of the generated root object; the live sync patches this object's children.</summary>
+    public const string RootName = "MapForgeWorld";
+
+    /// <summary>
+    /// Rebuilds only the generated hierarchy for an already-parsed world and returns its
+    /// root. The live sync calls this after destroying the old root, so a full rebuild
+    /// keeps the scene asset, its GUID and everything the project authored beside the map.
+    /// </summary>
+    public static GameObject BuildRoot(World world, MapForgeSceneOrganization.Document organized, string sceneName) =>
+        Build(world, organized, sceneName, ResolveTotalWaves(world));
+
+    /// <summary>The generated root of an open scene, or null when the map was never imported.</summary>
+    public static GameObject FindRoot(Scene scene)
+    {
+        if (!scene.IsValid()) return null;
+        foreach (var rootObject in scene.GetRootGameObjects())
+            if (string.Equals(rootObject.name, RootName, StringComparison.Ordinal)) return rootObject;
+        return null;
+    }
+
+    /// <summary>
+    /// Authored object IDs currently present under a generated root, so the live sync can
+    /// report what a full rebuild created and deleted instead of guessing.
+    /// </summary>
+    public static Dictionary<string, MapForgeObjectProperties> IndexObjects(GameObject root)
+    {
+        var index = new Dictionary<string, MapForgeObjectProperties>(StringComparer.Ordinal);
+        if (root == null) return index;
+        foreach (var metadata in root.GetComponentsInChildren<MapForgeObjectProperties>(true))
+            if (metadata != null && !string.IsNullOrEmpty(metadata.objectId)) index[metadata.objectId] = metadata;
+        return index;
+    }
+
+    /// <summary>Builds the generated hierarchy for a parsed world and returns its root.</summary>
+    private static GameObject Build(World world, MapForgeSceneOrganization.Document organized, string sceneName, int globalTotalWaves)
+    {
+        var root = new GameObject(RootName);
+        var waveManagerObject = new GameObject("Wave Manager");
+        waveManagerObject.transform.SetParent(root.transform, false);
+        var waveManager = waveManagerObject.AddComponent<WaveManager>();
+        waveManager.TotalWaves = Mathf.Max(1, globalTotalWaves);
+        MapForgeSceneOrganization.Create(organized, root.transform, sceneName);
+        ApplyRoadsideSteps(world.roadsideSteps, root.transform);
+        CreateGameplayObjects(world.gameplay, root.transform, globalTotalWaves);
+        // The Unity mapping creates its own spawn points and cores, so the shared
+        // path grid and core references are filled once both passes have finished.
+        MapForgeSceneOrganization.LinkGameplayReferences(root.transform);
+        if (world.unity != null && world.unity.settings != null && world.unity.settings.buildNavMeshOnImport)
+            BakeNavMesh(root.transform, world.unity, sceneName);
+        LogUnitySummary(root.transform, globalTotalWaves, world.unity);
+        RecordGeneratedChildren(root.transform, sceneName);
+        return root;
+    }
+
+    /// <summary>
+    /// Rebuilds the authoring trap grids from the scene's monster grid. The live sync
+    /// calls this after geometry changed, because the masks are derived from the
+    /// platform and ground colliders that the sync just rewrote.
+    /// </summary>
+    public static int RebuildTrapPlacementGrids(Transform parent)
+    {
+        if (parent == null) return 0;
+        var pathGrid = parent.GetComponentInChildren<MonsterPathGrid>(true);
+        if (pathGrid == null)
+        {
+            Debug.LogWarning("MapForge: no MonsterPathGrid found, so the trap grids were not rebuilt.");
+            return 0;
+        }
+        foreach (var grid in parent.GetComponentsInChildren<TrapPlacementGrid>(true))
+            UnityEngine.Object.DestroyImmediate(grid.gameObject);
+        CreateTrapPlacementGrids(pathGrid, parent);
+        return parent.GetComponentsInChildren<TrapPlacementGrid>(true).Length;
+    }
+
+    /// <summary>
+    /// Total waves for the scene: the authored Unity wave configuration wins, then the
+    /// gameplay block, then the largest per-object value on a gameplay spawn.
+    /// </summary>
+    private static int ResolveTotalWaves(World world)
+    {
+        if (world.unity != null && world.unity.waves != null && world.unity.waves.totalWaves > 0)
+            return Mathf.Clamp(world.unity.waves.totalWaves, 1, 99);
+        int total = world.gameplay != null ? world.gameplay.totalWaves : 0;
+        if (total <= 0 && world.gameplay != null && world.gameplay.spawns != null)
+        {
+            for (int i = 0; i < world.gameplay.spawns.Length; i++)
+                if (world.gameplay.spawns[i] != null)
+                    total = Mathf.Max(total, world.gameplay.spawns[i].totalWaves);
+        }
+        return total;
+    }
+
+    /// <summary>
+    /// Bakes the NavMesh the mapping asked for and stores it as an asset, which is what
+    /// the NavMeshSurface inspector does. A failed bake only warns: the scene is still
+    /// valid and the surface can be baked by hand.
+    /// </summary>
+    private static void BakeNavMesh(Transform parent, MapForgeSceneOrganization.UnitySceneData unity, string sceneName)
+    {
+        try
+        {
+            var surface = MapForgeSceneOrganization.CreateNavMeshSurface(parent, unity);
+            surface.BuildNavMesh();
+            var data = surface.navMeshData;
+            if (data == null)
+            {
+                Debug.LogWarning("MapForge: the NavMesh bake produced no data for '" + sceneName + "'.");
+                return;
+            }
+            const string folder = "Assets/NavMesh";
+            Directory.CreateDirectory(folder);
+            var assetPath = folder + "/" + sceneName + ".asset";
+            if (File.Exists(assetPath)) AssetDatabase.DeleteAsset(assetPath);
+            AssetDatabase.CreateAsset(data, assetPath);
+            AssetDatabase.SaveAssets();
+            Debug.Log("MapForge: baked the NavMesh for '" + sceneName + "' into " + assetPath + ".");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning("MapForge: the NavMesh bake failed (" + ex.Message + "). Bake it from the NavMeshSurface inspector.");
+        }
+    }
+
+    /// <summary>Counts the generated Unity components so the import log matches the editor summary.</summary>
+    private static void LogUnitySummary(Transform parent, int totalWaves, MapForgeSceneOrganization.UnitySceneData unity)
+    {
+        int prefabs = 0, colliders = 0, navMesh = 0, spawnPoints = 0, cores = 0, pathNodes = 0, triggers = 0;
+        foreach (var metadata in parent.GetComponentsInChildren<MapForgeObjectProperties>(true))
+        {
+            if (metadata == null) continue;
+            if (!string.IsNullOrEmpty(metadata.prefabId)) prefabs++;
+            if (metadata.colliderType != "auto" || metadata.colliderIsTrigger) colliders++;
+            if (metadata.navRole != "none") navMesh++;
+            if (metadata.spawnPointEnabled) spawnPoints++;
+            if (metadata.enemyCoreEnabled) cores++;
+            if (metadata.pathNodeEnabled) pathNodes++;
+            if (metadata.triggerEnabled) triggers++;
+        }
+        int library = unity != null && unity.prefabs != null ? unity.prefabs.Length : 0;
+        Debug.Log("MapForge Unity 组件映射：Prefab 库 " + library + " / Prefab 实例 " + prefabs + " / Collider " + colliders +
+            " / NavMesh 标记 " + navMesh + " / SpawnPoint " + spawnPoints + " / EnemyCore " + cores +
+            " / 路径节点 " + pathNodes + " / 触发器 " + triggers + " / 总波次 " + Mathf.Max(1, totalWaves));
     }
 
     private static void ApplyRoadsideSteps(RoadsideStepData[] steps, Transform parent)
@@ -260,7 +440,7 @@ public static class MapForgeWorldImporter
                 break;
             }
             if (platform == null) { Debug.LogWarning("Roadside step platform not found: " + step.platformId); continue; }
-            // Legacy roadside step coordinates are world-aligned. Stage only the
+            // Roadside step coordinates are world-aligned. Stage only the
             // geometry under the scene root, leaving the authored hierarchy intact.
             if (authoredParent != null && Quaternion.Angle(platform.rotation, Quaternion.identity) > .01f)
             {
@@ -468,35 +648,5 @@ public static class MapForgeWorldImporter
             else cell.y += dy;
             grid.SetOpen(cell, true);
         }
-    }
-
-    // MapForge and Unity use the same world units, but their primitive meshes
-    // have different native dimensions.  The editor's plane is a 3 x 0.12 x 3
-    // thin box, while Unity's Cube is 1 x 1 x 1.  Convert the authored scale
-    // to preserve the actual bounds (and therefore snapped edge-to-edge tiles).
-    private static void ApplyTransform(Transform t, string type, TransformData d)
-    {
-        if (d == null) return;
-        if (d.position != null && d.position.Length >= 3) t.localPosition = new Vector3(d.position[0], d.position[1], d.position[2]);
-        if (d.rotation != null && d.rotation.Length >= 3) t.localEulerAngles = new Vector3(d.rotation[0], d.rotation[1], d.rotation[2]);
-        if (d.scale != null && d.scale.Length >= 3)
-        {
-            var authoredScale = new Vector3(d.scale[0], d.scale[1], d.scale[2]);
-            var meshSize = PrimitiveMeshSize(type);
-            t.localScale = Vector3.Scale(authoredScale, meshSize);
-        }
-    }
-
-    private static Vector3 PrimitiveMeshSize(string type)
-    {
-        if (string.Equals(type, "plane", StringComparison.OrdinalIgnoreCase))
-            return new Vector3(3f, 0.12f, 3f);
-        // Three.js SphereGeometry(.6) has a 1.2m diameter; Unity's Sphere is 1m.
-        if (string.Equals(type, "sphere", StringComparison.OrdinalIgnoreCase))
-            return new Vector3(1.2f, 1.2f, 1.2f);
-        // Three.js CylinderGeometry(..., height 1.4) versus Unity's 2m cylinder.
-        if (string.Equals(type, "cylinder", StringComparison.OrdinalIgnoreCase))
-            return new Vector3(1f, 0.7f, 1f);
-        return Vector3.one;
     }
 }

@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "name": "THREE_ROUTE_MERGE_MAP",
+  "settings": {
+    "gridSize": 1,
+    "unit": "meter"
+  },
   "objects": [
     {
       "id": "Ground_48x96m",
@@ -20,6 +25,118 @@
           0.2,
           96
         ]
+      },
+      "name": "Ground_48x96m",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -41,6 +158,118 @@
           0.1,
           24
         ]
+      },
+      "name": "Road_Left_Vertical_8m",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -62,6 +291,118 @@
           0.1,
           24
         ]
+      },
+      "name": "Road_Right_Vertical_8m",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -83,6 +424,118 @@
           0.1,
           24
         ]
+      },
+      "name": "Road_Center_Lower_8m",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -104,6 +557,118 @@
           0.1,
           8
         ]
+      },
+      "name": "Road_Left_Turn_8m",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -125,6 +690,118 @@
           0.1,
           8
         ]
+      },
+      "name": "Road_Right_Turn_8m",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -146,6 +823,118 @@
           0.1,
           56
         ]
+      },
+      "name": "Road_Merged_To_Core_8m",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -167,6 +956,118 @@
           1.2,
           2.8
         ]
+      },
+      "name": "Core_Marker",
+      "parentId": null,
+      "color": "#6ba7ff",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -188,6 +1089,118 @@
           1.2,
           1.2
         ]
+      },
+      "name": "Spawn_Left_Marker",
+      "parentId": null,
+      "color": "#ff9c63",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -209,6 +1222,118 @@
           1.2,
           1.2
         ]
+      },
+      "name": "Spawn_Center_Marker",
+      "parentId": null,
+      "color": "#ff9c63",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -230,6 +1355,118 @@
           1.2,
           1.2
         ]
+      },
+      "name": "Spawn_Right_Marker",
+      "parentId": null,
+      "color": "#ff9c63",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -251,6 +1488,118 @@
           2,
           52
         ]
+      },
+      "name": "Platform_Central_West_North",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -272,6 +1621,118 @@
           2,
           52
         ]
+      },
+      "name": "Platform_Central_East_North",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -293,6 +1754,118 @@
           2,
           20
         ]
+      },
+      "name": "Platform_Central_West_South",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -314,6 +1887,118 @@
           2,
           20
         ]
+      },
+      "name": "Platform_Central_East_South",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -335,6 +2020,118 @@
           2,
           32
         ]
+      },
+      "name": "Platform_Left_Outer",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -356,6 +2153,118 @@
           2,
           20
         ]
+      },
+      "name": "Platform_Left_Inner_South",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -377,6 +2286,118 @@
           2,
           20
         ]
+      },
+      "name": "Platform_Right_Inner_South",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -398,6 +2419,118 @@
           2,
           32
         ]
+      },
+      "name": "Platform_Right_Outer",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -419,6 +2552,118 @@
           2,
           4
         ]
+      },
+      "name": "Platform_Turn_Left_South",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -440,6 +2685,118 @@
           2,
           4
         ]
+      },
+      "name": "Platform_Turn_Left_North",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -461,6 +2818,118 @@
           2,
           4
         ]
+      },
+      "name": "Platform_Turn_Right_South",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     },
     {
@@ -482,20 +2951,133 @@
           2,
           4
         ]
+      },
+      "name": "Platform_Turn_Right_North",
+      "parentId": null,
+      "color": "#69e0bf",
+      "material": {
+        "type": "standard",
+        "roughness": 0.62,
+        "metalness": 0.08
+      },
+      "tags": [],
+      "layer": 0,
+      "collision": true,
+      "static": false,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "prefabType": "",
+      "parameters": {},
+      "parametersJson": "{}",
+      "category": "geometry",
+      "unity": {
+        "prefab": {
+          "id": "",
+          "guid": "",
+          "assetPath": ""
+        },
+        "collider": {
+          "type": "auto",
+          "isTrigger": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            1,
+            1
+          ],
+          "radius": 0.5,
+          "height": 2,
+          "direction": 1
+        },
+        "navMesh": {
+          "role": "none",
+          "area": 0,
+          "agentType": "Humanoid",
+          "ignoreFromBuild": false,
+          "applyToChildren": false,
+          "linkStart": [
+            0,
+            0,
+            0
+          ],
+          "linkEnd": [
+            0,
+            0,
+            0
+          ],
+          "linkWidth": 1,
+          "bidirectional": true
+        },
+        "spawnPoint": {
+          "enabled": false,
+          "spawnInterval": 1,
+          "initialDelay": 2,
+          "enemiesPerWave": 10,
+          "moveSpeed": 2,
+          "travelDirection": [
+            0,
+            0,
+            1
+          ],
+          "monsterType": "Ground",
+          "flightHeight": 3,
+          "flyingEntrance": false,
+          "entranceAltitude": 12,
+          "laneId": "",
+          "enemyPrefabId": "",
+          "waves": []
+        },
+        "enemyCore": {
+          "enabled": false,
+          "maxHealth": 30,
+          "groundDamage": 2,
+          "flyingDamage": 1,
+          "arrivalRadius": 0.35
+        },
+        "pathNode": {
+          "enabled": false,
+          "role": "node",
+          "waitTime": 0,
+          "links": []
+        },
+        "trigger": {
+          "enabled": false,
+          "shape": "box",
+          "isTrigger": true,
+          "once": false,
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "size": [
+            1,
+            2,
+            1
+          ],
+          "radius": 1,
+          "events": []
+        }
       }
     }
   ],
+  "groups": [],
   "gameplay": {
     "totalWaves": 3,
     "pathGrid": {
       "origin": {
-        "x": -24.0,
-        "y": 0.0,
-        "z": -48.0
+        "x": -24,
+        "y": 0,
+        "z": -48
       },
       "columns": 48,
       "rows": 96,
-      "cellSize": 1.0,
+      "cellSize": 1,
       "pathHeight": 0.18,
       "openCells": [
         false,
@@ -5110,11 +7692,11 @@
     },
     "core": {
       "position": {
-        "x": 0.0,
+        "x": 0,
         "y": 0.2,
-        "z": 40.0
+        "z": 40
       },
-      "arrivalRadius": 3.0
+      "arrivalRadius": 3
     },
     "spawns": [
       {
@@ -5122,20 +7704,20 @@
         "position": {
           "x": -16,
           "y": 0.15,
-          "z": -40.0
+          "z": -40
         },
         "travelDirection": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 1.0
+          "x": 0,
+          "y": 0,
+          "z": 1
         },
-        "moveSpeed": 2.0,
+        "moveSpeed": 2,
         "totalWaves": 3,
         "enemiesPerWave": 10,
-        "initialWaveDelay": 2.0,
+        "initialWaveDelay": 2,
         "waveTransitionDelays": [
-          5.0,
-          5.0
+          5,
+          5
         ]
       },
       {
@@ -5143,20 +7725,20 @@
         "position": {
           "x": 0,
           "y": 0.15,
-          "z": -40.0
+          "z": -40
         },
         "travelDirection": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 1.0
+          "x": 0,
+          "y": 0,
+          "z": 1
         },
-        "moveSpeed": 2.0,
+        "moveSpeed": 2,
         "totalWaves": 3,
         "enemiesPerWave": 10,
-        "initialWaveDelay": 2.0,
+        "initialWaveDelay": 2,
         "waveTransitionDelays": [
-          5.0,
-          5.0
+          5,
+          5
         ]
       },
       {
@@ -5164,22 +7746,41 @@
         "position": {
           "x": 16,
           "y": 0.15,
-          "z": -40.0
+          "z": -40
         },
         "travelDirection": {
-          "x": 0.0,
-          "y": 0.0,
-          "z": 1.0
+          "x": 0,
+          "y": 0,
+          "z": 1
         },
-        "moveSpeed": 2.0,
+        "moveSpeed": 2,
         "totalWaves": 3,
         "enemiesPerWave": 10,
-        "initialWaveDelay": 2.0,
+        "initialWaveDelay": 2,
         "waveTransitionDelays": [
-          5.0,
-          5.0
+          5,
+          5
         ]
       }
     ]
-  }
+  },
+  "unity": {
+    "prefabs": [],
+    "waves": {
+      "totalWaves": 3,
+      "initialDelay": 2,
+      "enemiesPerWave": 10,
+      "spawnInterval": 1,
+      "transitionDelays": [
+        5,
+        5
+      ]
+    },
+    "settings": {
+      "buildNavMeshOnImport": false,
+      "agentType": "Humanoid",
+      "collectObjects": "all"
+    }
+  },
+  "rotationUnit": "radians"
 }

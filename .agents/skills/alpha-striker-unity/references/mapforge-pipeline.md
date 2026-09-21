@@ -26,7 +26,7 @@ Schema 在 `C:\MapEditor\map-format.schema.json`，服务端校验在 `C:\MapEdi
 
 `version` / `name` / `settings` / `objects` / `groups` / `gameplay`
 
-- `version`：`2`。判定用例写的是 `1 or 2`，所以 v1 也能过；缺 `version` 的旧文件在加载时迁移。
+- `version`：必须恰好是 `2`。前端 `normalizeDocument` 和服务端 `MapValidation` 都会拒绝缺 `version`、写成别的版本号或非数字的文档，**不会**把旧文件迁移成 v2；Unity 侧 `MapForgeSceneOrganization.Parse` 也要求 `version == 2`。
 - `rotationUnit`：必须字面量 `"radians"`。写了别的值前后端都会直接报错（`旋转单位必须为 radians。`）。
 - `settings`：`gridSize`（> 0）、`unit` 必须为 `"meter"`。
 - `objects[]`：必需 `id`、`type`。`type` 只能是 `cube | sphere | cylinder | plane | folder | group`。`id` 非空且唯一，`parentId` 指向存在的对象且**不能成环**（前端限制层级深度 ≤ 256）。
@@ -74,13 +74,13 @@ go.transform.localRotation = Quaternion.AngleAxis(r.x, Vector3.right)
                           * Quaternion.AngleAxis(r.z, Vector3.forward);
 ```
 
-**不要**直接写 `localEulerAngles = degrees`——Unity 的欧拉顺序和这里不同，肉眼小角度可能看不出，大角度会明显错位。`MapForgeWorldImporter.ApplyTransform` 里那句 `t.localEulerAngles = ...` 是另一条路径（组织化导入走的是 `MapForgeSceneOrganization`），改旋转相关代码时注意别只改一边。
+**不要**直接写 `localEulerAngles = degrees`——Unity 的欧拉顺序和这里不同，肉眼小角度可能看不出，大角度会明显错位。层级导入只有 `MapForgeSceneOrganization` 这一条路径（旧版扁平导入已随 v1 支持一起删除），改旋转相关代码时认准它。
 
 浏览器检查器里显示和输入的都是**度**（`degToRad` / `radToDeg` 在 `app.js`），只有落盘才是弧度。
 
 ### 图元尺寸不能直接换算
 
-两边世界单位一致，但图元网格原生尺寸不同（`app.js` 的 `geometry()` vs `MapForgeWorldImporter.PrimitiveMeshSize`）：
+两边世界单位一致，但图元网格原生尺寸不同（`app.js` 的 `geometry()` vs `MapForgeSceneOrganization.MeshScale`）：
 
 | type | Three.js 网格 | Unity 里乘的系数 |
 | --- | --- | --- |
@@ -89,11 +89,11 @@ go.transform.localRotation = Quaternion.AngleAxis(r.x, Vector3.right)
 | `sphere` | `SphereGeometry(0.6)` → 直径 1.2 | `(1.2, 1.2, 1.2)` |
 | `cylinder` | `CylinderGeometry(0.5, 0.5, 1.4)` | `(1, 0.7, 1)` |
 
-导入时 `localScale = 作者缩放 × 系数`，目的是让实际包围盒跟编辑器里看到的一致（相邻地砖才能对齐）。改图元尺寸要两张表一起改。
+导入时网格子对象上 `localScale = 系数`，作者缩放留在父级，目的是让实际包围盒跟编辑器里看到的一致（相邻地砖才能对齐）。改图元尺寸要两张表一起改。
 
 ## 导入的破坏性与撤回
 
-**`MapForgeWorldImporter.Import` 会覆盖 `Assets/Scenes/<name>.unity`**，不合并、不留旧版。所以：
+**`MapForgeWorldImporter.Import` 会覆盖 `Assets/Scenes/<name>.unity`**，不合并、不给旧版留位置。所以：
 
 1. 导入前先 `git stash` 或提交场景文件。
 2. 导入后用 `git diff Assets/Scenes/<name>.unity` 看变化，不对就 `git checkout --` 回滚。

@@ -89,11 +89,11 @@ Unity.exe -batchmode -nographics -quit `
 dotnet build "C:\MapEditor\.validation-build\UnityCompile.csproj"
 ```
 
-它引用 `Unity 6000.6.0f1` 的 UnityEngine DLL 和本工程的 `Library/ScriptAssemblies/Assembly-CSharp.dll`（netstandard2.1 / LangVersion 9），当前只编译这 4 个文件：
+它引用 `Unity 6000.6.0f1` 的 UnityEngine DLL 和本工程的 `Library/ScriptAssemblies/Assembly-CSharp.dll`（netstandard2.1 / LangVersion 9），当前只编译这 5 个文件：
 
 - `Assets/Scripts/MapForgeObjectProperties.cs`
 - `Assets/Editor/MapForgeSceneOrganization.cs`
-- `Assets/Editor/MapForgeWorldImporter.cs`
+- `Assets/Editor/MapForgeWorldImporter.cs` + `Assets/Editor/MapForgeWorldImporter.Authored.cs`（同一个 partial class，两个都要在）
 - `Assets/Editor/TrapGridAuthoring.cs`
 
 改了别的文件就顺手往 csproj 的 `<Compile Include>` 里加一条，否则检查会**静默漏掉**改动。编译时的 `CS0436` 警告（UnityEngine 类型被 Assembly-CSharp 重复引入）是良性的，可以忽略。
