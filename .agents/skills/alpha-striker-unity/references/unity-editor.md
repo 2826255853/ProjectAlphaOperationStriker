@@ -72,12 +72,17 @@ Unity.exe -batchmode -nographics -quit `
 | Tools/塔防/在场景中添加飞行出怪口 | `FlyingSpawnPointAuthoring.AddFlyingSpawnPoint` | 是 |
 | （无菜单，批处理专用） | `FlyingSpawnPointAuthoring.CreateAssets` | 是 |
 | MapForge/Redesign map with ceiling trap arches | `RedesignMapWithCeilingArches.Build` | 是 |
+| MapForge/应用待同步版本 (Apply pending revision) | `MapForgeLiveSync.ApplyPendingFromMenu`（批处理直接调 `MapForgeLiveSync.ApplyPending()`） | 是 |
+| MapForge/下次发送时完整重建 (Request full rebuild) | `MapForgeLiveSync.RequestFullRebuild` | 是 |
 | MapForge/Import bundled world | `MapForgeWorldImporter.ImportDefault` | 是 |
 | MapForge/Import mapforge-world.json | `MapForgeWorldImporter.ImportFromMenu` | **否**，会弹文件面板，批处理下必挂 |
 | Tools/Tower Defense/Create Trap Grid From Monster Grid | `TrapPlacementGridEditor.CreateFromMonsterGrid` | 是 |
 | Tools/Tower Defense/Create Ground And Platform Trap Grids | `TrapPlacementGridEditor.CreateGroundAndPlatformGrids` | 是 |
 | Tools/Tower Defense/Validate Trap Grid Overlap | `TrapPlacementGridEditor.ValidateOverlap` | 是 |
 | Tools/Tower Defense/Validate Trap Grids | `TrapPlacementGridEditor.ValidateTrapGrids` | 是 |
+| Tools/塔防/生成导弹发射器预制体 | `MissileLauncherTurretAuthoring.CreateLauncherPrefab` | 是 |
+| （无菜单，批处理专用） | `MissileLauncherTurretAuthoring.CreateLauncherPrefabBatch` | 是 |
+| Tools/塔防/预览导弹发射器旋转 | `MissileLauncherTurretPreview.RenderPreview` | 是 |
 
 `TrapPlacementGridEditor` 里这四个方法都是 `private static`：**实测 `-executeMethod` 能直接调用，不用改成 public**，也不用加包装方法。跑完在日志里确认方法确实执行了（例如 `Validate Trap Grids` 会打印 `陷阱网格校验：...`），而不是只看有没有报错。
 
@@ -89,12 +94,14 @@ Unity.exe -batchmode -nographics -quit `
 dotnet build "C:\MapEditor\.validation-build\UnityCompile.csproj"
 ```
 
-它引用 `Unity 6000.6.0f1` 的 UnityEngine DLL 和本工程的 `Library/ScriptAssemblies/Assembly-CSharp.dll`（netstandard2.1 / LangVersion 9），当前只编译这 5 个文件：
+它引用 `Unity 6000.6.0f1` 的 UnityEngine DLL 和本工程的 `Library/ScriptAssemblies/Assembly-CSharp.dll`（netstandard2.1 / LangVersion 9），当前只编译这 7 个文件：
 
 - `Assets/Scripts/MapForgeObjectProperties.cs`
 - `Assets/Editor/MapForgeSceneOrganization.cs`
 - `Assets/Editor/MapForgeWorldImporter.cs` + `Assets/Editor/MapForgeWorldImporter.Authored.cs`（同一个 partial class，两个都要在）
 - `Assets/Editor/TrapGridAuthoring.cs`
+- `Assets/Scripts/MapForgePathNode.cs`
+- `Assets/Scripts/MapForgeTrigger.cs`
 
 改了别的文件就顺手往 csproj 的 `<Compile Include>` 里加一条，否则检查会**静默漏掉**改动。编译时的 `CS0436` 警告（UnityEngine 类型被 Assembly-CSharp 重复引入）是良性的，可以忽略。
 
@@ -110,11 +117,20 @@ Select-String -Path "Assets\Scenes\THREE_ROUTE_MERGE_MAP.unity" -Pattern 'Monste
 
 主要场景是 `Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity`。注意 MapForge 导入会**覆盖**它（见 [mapforge-pipeline.md](mapforge-pipeline.md)）。
 
-## 跑编辑期测试（飞行出怪口 / 地面近战）
+## 跑编辑期测试（导弹发射器 / 陷阱血条 / 飞行出怪口 / 地面近战）
 
-`Assets/Editor/FlyingSpawnPointTests.cs` 与 `Assets/Editor/GroundEnemyCombatTests.cs` 的类体用 `#if UNITY_INCLUDE_TESTS` 包住，默认编译下不进程序集，因此：
+`Assets/Editor` 下的测试类都用 `#if UNITY_INCLUDE_TESTS` 包住，默认编译下不进程序集，因此**批处理必须带 `-runTests`**（套 `run-unity-method.ps1` 的普通模板不会执行它们）：
 
-- 想要它们在**批处理里真的跑**，命令要带 `-runTests`，不要套 `run-unity-method.ps1` 的普通模板。
-- 只想确认编译是否通过（不跑断言），直接跑 [更快的编译检查](#更快的编译检查不进-unity) 那条 `dotnet build` 即可，前提是把这两个测试文件加进 csproj 的 `<Compile Include>`。
+- `FlyingSpawnPointTests.cs` / `GroundEnemyCombatTests.cs`：空中出怪口的回归网，断言飞行怪出生在 `DefaultEntranceAltitude` 高度、`IsFlying` 为真且**没有** `GroundEnemyCombat`，同时校验普通出怪口仍留在地面。
+- `TrapHealthBarUITests.cs`：陷阱血条选靶、身后/被遮挡过滤、低血比例。
+- `MissileLauncherTurretTests.cs`：两轴限位（yaw 全圈、pitch 不超过 75°）、生成预制体的 rig 接线、原始 FBX 能自建 rig、空中过滤忽略地面怪。
+- `MissileLauncherWeaponTests.cs`：选靶优先级与 tie-break、瞄准拦截点、齐射一发一管、装填阻塞、超程引爆、无 Collider 也结算伤害。
 
-这两个用例正是「空中出怪口」的回归网：断言飞行怪出生在 `DefaultEntranceAltitude`（14）高度、`IsFlying` 为真、且**没有** `GroundEnemyCombat`；同时校验普通出怪口仍留在地面。改动 `EnemySpawnPoint` 的飞行分支后跑一次。
+```powershell
+Unity.exe -batchmode -nographics -projectPath "C:\Unity Project\ProjectAlphaOperationStriker" `
+  -runTests -testPlatform EditMode -testFilter MissileLauncher `
+  -testResults "$env:TEMP\missile.xml" `
+  -logFile "C:\Users\Origami\Desktop\陷阱素材文件夹\missile-tests.log"
+```
+
+判定看日志里的 `Exiting batchmode successfully now!` 与测试汇总，**不要**看退出码（见上文实测数据）。只想确认编译通过、不跑断言，就用 [更快的编译检查](#更快的编译检查不进-unity) 的 `dotnet build`，前提是把对应测试文件加进 csproj 的 `<Compile Include>`。

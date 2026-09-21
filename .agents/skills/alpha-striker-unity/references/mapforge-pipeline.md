@@ -4,13 +4,19 @@
 
 ```
 浏览器编辑器 C:\MapEditor (ASP.NET + Three.js)
-        ↓  导出 mapforge-world.json
-C:\Unity Project\ProjectAlphaOperationStriker\Assets\mapforge-world.json
-        ↓  菜单 MapForge/Import *，或 MapForgeWorldImporter.ImportDefault
+        │
+        ├─ 「Send to Unity」增量修订（日常改动走这条）
+        │      <工程>/MapForgeSync/mail/pending.json
+        │      → MapForgeLiveSync 轮询 2 秒，就地改当前打开的场景
+        │
+        └─ 导出 mapforge-world.json（整图重排走这条）
+               C:\Unity Project\ProjectAlphaOperationStriker\Assets\mapforge-world.json
+               → 菜单 MapForge/Import *，或 MapForgeWorldImporter.ImportDefault
+                     ↓
 C:\Unity Project\ProjectAlphaOperationStriker\Assets\Scenes\<地图名>.unity
 ```
 
-`Assets/mapforge-world.json` 是**被 git 跟踪**的当前地图（约 82 KB，`name` 为 `THREE_ROUTE_MERGE_MAP`，23 个对象）。导入后的场景名取自 JSON 的 `name` 字段。
+`Assets/mapforge-world.json` 是**被 git 跟踪**的当前地图（v2，约 140 KB，`name` 为 `THREE_ROUTE_MERGE_MAP`，23 个顶层对象、`gameplay.spawns` 3 个出怪口、`totalWaves = 3`）。导入后的场景名取自 JSON 的 `name` 字段。
 
 启动编辑器：
 
@@ -19,6 +25,30 @@ C:\Unity Project\ProjectAlphaOperationStriker\Assets\Scenes\<地图名>.unity
 ```
 
 脚本会先探测 `/api/health`，已经有实例就直接开浏览器，否则 `dotnet run`。手动跑也可以：`dotnet run --project C:\MapEditor\MapEditor.csproj --no-launch-profile --urls http://localhost:5090`。测试在 `C:\MapEditor\tests\`（`node --test` 跑 `.test.js`；`tests/browser.mjs` 是浏览器端驱动）。
+
+## 「Send to Unity」实时同步（走 MapForgeSync 文件夹）
+
+除了导出/导入，MapForge 还有一条**增量同步**通道：点「Send to Unity」，Unity 编辑器自己把改动应用到**当前打开的场景**，不需要手动搬 JSON。
+
+- 协议两侧各一份常量，必须一致：MapForge `C:\MapEditor\MapForgeSync.cs`（`MapForgeSync.Protocol`，浏览器侧 `wwwroot/unity-sync.js`，配置 `C:\MapEditor\mapforge-sync.json` 记 Unity 工程路径）与 Unity `Assets/Editor/MapForgeLiveSync.cs`（`MapForgeLiveSync.Protocol`）。
+- 传输靠文件夹：写 `<工程>/MapForgeSync/mail/pending.json`；Unity 每 2 秒轮询（`PollSeconds = 2.0`，心跳 `HeartbeatSeconds = 15`），应用后回写 `mail/revision.txt`、`mail/status.json`、`mail/applied.txt` / `applied.json`，浏览器据此汇报结果。整个 `MapForgeSync/` 被 `.gitignore` 忽略。
+- 增量修订只带真正改过的对象，Unity 就地重写（新增/改写/删除）；只有 MapForge 要求时才整图重建（首次发送、地图改名、`gameplay` 或场景级映射变了、改动量过大）。整图修订的 world 先落到 `Assets/MapForgeSync/sync-world.json` 再交导入器。
+- **与全量导入的关键区别**：只动 `MapForgeWorld` 生成的层级，工程手工加的对象（如空中出怪口）不会像 `Import` 那样被删。保留机制在 `Assets/Editor/MapForgeWorldImporter.Authored.cs`（`MapForgeWorldImporter` 是 **partial**，两个文件都要在）：上次生成的直接子对象名记在 **EditorPrefs**（机器本地、不进版本库），据此把手工对象搬出去再搬回来。
+- 入口：菜单 `MapForge/应用待同步版本 (Apply pending revision)` = `MapForgeLiveSync.ApplyPendingFromMenu`；`MapForge/下次发送时完整重建 (Request full rebuild)` = `MapForgeLiveSync.RequestFullRebuild`；批处理用 `MapForgeLiveSync.ApplyPending()`（无待同步修订时返回 null，不是失败）。
+- 测试：`C:\MapEditor\tests\unity-sync.test.js`（`node --test`）。Unity 侧没有专门用例，改了先跑 [更快的编译检查](unity-editor.md#更快的编译检查不进-unity)，再点一次「Send to Unity」看 `status.json` 回执。
+
+### 导入新增的按 id 关联组件
+
+`MapForgeSceneOrganization` 把 JSON 的 `unity.pathNode` / `unity.trigger` 段建成运行时组件，并按 `id` 校验（`links` 必须指向存在的节点、`shape` 只能是 `box|sphere`、`when` 是 `enter|exit`、`action` 是 `spawn|damage|goal|message|enable|disable`）：
+
+- `Assets/Scripts/MapForgePathNode.cs`：`role`（node/waypoint/junction/end）、`waitTime`、`links`；`MapForgePathNode.All` / `Find(objectId)` 供玩法代码用（`Find` 先比 `MapForgeObjectProperties.objectId`，没有元数据时退回比对象名）。
+- `Assets/Scripts/MapForgeTrigger.cs`：`MapForgeTrigger.Fired` 事件把 `spawn` / `damage` / `goal` 交回玩法代码，`message` / `enable` / `disable` 由组件自己执行；`MapForgeTrigger.FindTarget(objectId)` 解析目标。
+
+改 JSON 键名要同时改导入器与这两个组件。注意当前 `Assets/mapforge-world.json` 里**每个对象**都带 `unity.pathNode` 与 `unity.trigger` 块，但 `enabled` 全是 `false`：没有 `enabled: true` 就不会生成组件，别把「块存在」当成「功能已启用」。增量同步重写对象前会走 `MapForgeSceneOrganization.ClearGeneratedContent`，它按名字前缀清掉 `Prefab *` / `Trigger Volume *` 子对象，以及 `EnemySpawnPoint` / `EnemyCore` / `MapForgePathNode` / `MapForgeTrigger` 等组件，保留对象本身、元数据与几何子物体——所以**别往这些名字前缀下放手工子对象**，会被误删。
+
+### 材质库产物
+
+导入/同步会为场景生成材质，落在 `Assets/MapForgeMaterials/<场景名哈希>/`（目录名由 `MapForgeSceneOrganization` 里的 `Hash(sceneName)` 决定）。这批 `.mat` 是生成物但**被 git 跟踪**，改场景后跟着提交；不要手工改名或搬目录，重导会按同一哈希复用。
 
 ## v2 信封格式
 
@@ -109,8 +139,9 @@ go.transform.localRotation = Quaternion.AngleAxis(r.x, Vector3.right)
 | --- | --- | --- |
 | 浏览器里的地图编辑 | Ctrl+Z / Ctrl+Y（上限 80 步，见 `scene-model.js` 的 `History`） | **关页面即丢** |
 | `Assets/mapforge-world.json` | git（文件被跟踪） | 永久 |
+| 实时同步改过的场景对象 | 同步只就地改写变过的对象；出错时 `git checkout -- Assets/Scenes/<name>.unity` | 永久（场景文件） |
 | 导入后的 `.unity` 场景 | git（导入会覆盖，正是靠 git 兜底） | 永久 |
-| Blender 模型 | 改前复制 `.blend` 到临时路径 | 手动 |
+| Blender 模型 | 改前把 `.blend` 备份到桌面「陷阱素材文件夹」的陷阱子目录 | 手动 |
 
 浏览器还有 `Ctrl+G` 编组、`Ctrl+A` 全选可见且未锁定的对象；锁定（`locked`，含父级继承）的对象在检查器里是只读的，`assertEditable` 会直接拒绝修改。
 
@@ -133,3 +164,5 @@ go.transform.localRotation = Quaternion.AngleAxis(r.x, Vector3.right)
 4. 跑 `Tools/Tower Defense/Validate Trap Grids`（`TrapPlacementGridEditor.ValidateTrapGrids`），看输出的数值报告而不是靠肉眼。
 5. 重跑 `FlyingSpawnPointAuthoring.CreateAssets` 把空中出怪口加回来（导入会覆盖掉它）。
 6. `git diff` 复查场景与 JSON。
+
+日常小幅改动不必走 2–5 步，直接点 MapForge 的「Send to Unity」增量同步（见上文）：它只改写变过的对象，也不会删掉空中出怪口。只有整图重排、换地图名或同步要求完整重建时才回到上面的全量导入流程。

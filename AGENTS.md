@@ -32,7 +32,7 @@
 - 未纳入仓库的第三方包：`Assets/KINEMATION`、`Assets/TextMesh Pro`。缺少它们时 C# 编译会报缺失类型，这属于预期情况，不要为此反复排查。
 - 主要场景：`Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity`。
 - 代码目录：`Assets/Scripts/FPS`、`Assets/Scripts/TowerDefense`、`Assets/Editor`。
-- 近期新增能力（2026-09）：**空中出怪口**（场景对象名 `Enemy Spawn Flying`，预制体 `Assets/Resources/FlyingMonster.prefab`，由 `Assets/Editor/FlyingSpawnPointAuthoring.cs` 生成/放置；飞行移动走 `MonsterPathFollower.InitializeFlying`，不走怪物路径网格）与**打开陷阱菜单时锁定玩家视角**（判据 `TrapSelectionMenu.CursorOwned`，`FirstPersonController` / `FPSPackagePlayerMotion` 两份 `UpdateCursor` 都尊重它）。细节见 `.agents/skills/alpha-striker-unity/SKILL.md`。
+- 近期新增能力（2026-09）：**空中出怪口**（场景对象名 `Enemy Spawn Flying`，预制体 `Assets/Resources/FlyingMonster.prefab`，由 `Assets/Editor/FlyingSpawnPointAuthoring.cs` 生成/放置；飞行移动走 `MonsterPathFollower.InitializeFlying`，不走怪物路径网格）、**打开陷阱菜单时锁定玩家视角**（判据 `TrapSelectionMenu.CursorOwned`，`FirstPersonController` / `FPSPackagePlayerMotion` 两份 `UpdateCursor` 都尊重它）、**瞄准陷阱显示血条**（`Assets/Scripts/TowerDefense/TrapHealthBarUI.cs`）、**双联导弹发射器对空陷阱**（`Assets/Scripts/TowerDefense/MissileLauncher*.cs` + `MissileProjectile` / `MissileAimSolver`，瞄准拦截点、默认只打飞行怪）与 **MapForge「Send to Unity」实时同步**（`Assets/Editor/MapForgeLiveSync.cs` ↔ `C:\MapEditor\MapForgeSync.cs`，走 `MapForgeSync/mail/pending.json`，只就地改写变过的对象，不会删掉手工加的空中出怪口）。细节见 `.agents/skills/alpha-striker-unity/SKILL.md`。
 - Blender 生成/导出脚本（`*.py`）与 Unity 运行时代码无关；按下面的文件放置规范，它们应放在桌面「陷阱素材文件夹」而不是仓库根目录。
 
 ### 文件放置规范：陷阱制作的中间态文件

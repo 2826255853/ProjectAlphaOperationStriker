@@ -1,4 +1,4 @@
 interface:
   display_name: "Alpha Striker Unity"
-  short_description: "在 Unity FPS+塔防工程与 MapForge 地图编辑器里改代码、改地图、做校验（含空中出怪口与陷阱菜单视角锁定）"
+  short_description: "在 Unity FPS+塔防工程与 MapForge 地图编辑器里改代码、改地图、做校验（含空中出怪口、双联导弹对空陷阱、陷阱血条与 MapForge 实时同步）"
   default_prompt: "用 $alpha-striker-unity 改这个工程的地图或代码：先按 skill 里的步骤跑 Unity 批处理，再按日志判定成败。"
