@@ -20,6 +20,10 @@ public sealed class TrapDefinition : ScriptableObject
     private Vector2 worldFootprint;
     [SerializeField, Tooltip("安装类别：Ground=地面/道路/高台，Wall=指定墙面网格。旧资产缺字段时默认为 Ground。")]
     private TrapMountType mountType = TrapMountType.Ground;
+    [SerializeField, Tooltip("实体安装包围盒中心（陷阱本地空间，米）。零表示以根节点为背板中心。")]
+    private Vector3 installBoundsCenter;
+    [SerializeField, Tooltip("实体安装包围盒尺寸（陷阱本地空间，米，宽×高×厚）。零表示按占格与预制体自动推导；效果范围不计入。")]
+    private Vector3 installBoundsSize;
 
     public string TrapId => trapId;
     public string DisplayName => displayName;
@@ -33,6 +37,11 @@ public sealed class TrapDefinition : ScriptableObject
     public bool AllowsPlatformPlacement => !walkableFloorTrap;
     public Vector2 WorldFootprint => worldFootprint;
     public TrapMountType MountType => mountType;
+    /// <summary>Explicit solid installation box centre in the trap's local space.</summary>
+    public Vector3 InstallBoundsCenter => installBoundsCenter;
+    /// <summary>Explicit solid installation box size in the trap's local space; zero means auto.</summary>
+    public Vector3 InstallBoundsSize => installBoundsSize;
+    public bool HasExplicitInstallBounds => installBoundsSize.x > 0f && installBoundsSize.y > 0f && installBoundsSize.z > 0f;
 
     /// <summary>True when this definition may be installed on the given surface category.</summary>
     public bool SupportsMountType(TrapMountType surfaceType) => surfaceType.SupportsDefinition(this);
@@ -45,6 +54,31 @@ public sealed class TrapDefinition : ScriptableObject
         if (mountType == TrapMountType.Wall && walkableFloorTrap)
             Debug.LogWarning($"[TrapDefinition] {name}: Wall 与 WalkableFloorTrap 不能同时开启，" +
                 "该组合无效；请关闭 WalkableFloorTrap。", this);
+    }
+
+    /// <summary>
+    /// Resolves the solid installation box used by overlap checks. Explicitly
+    /// authored sizes win; otherwise the box follows the covered footprint so a
+    /// trap without a bespoke body never reports a bogus collision volume.
+    /// Effects and attack ranges are intentionally excluded.
+    /// </summary>
+    public void ResolveInstallBounds(Vector2Int footprint, Vector2 cellWorldSize,
+        out Vector3 center, out Vector3 halfExtents)
+    {
+        if (HasExplicitInstallBounds)
+        {
+            center = installBoundsCenter;
+            halfExtents = installBoundsSize * 0.5f;
+            return;
+        }
+        // Wall-mounted traps are thin backplates (width x height x depth);
+        // ground traps keep a compact box over their cell area. Both stay well
+        // inside the authored plate so neighbouring cells never false-positive.
+        float width = Mathf.Max(0.1f, footprint.x * cellWorldSize.x) * 0.48f;
+        float height = Mathf.Max(0.1f, footprint.y * cellWorldSize.y) * 0.48f;
+        float depth = 0.12f;
+        center = installBoundsCenter + new Vector3(0f, 0f, depth * 0.5f + 0.05f);
+        halfExtents = new Vector3(width, height, depth);
     }
 
     public bool TryGetFootprint(float worldCellSize, out Vector2Int footprint)

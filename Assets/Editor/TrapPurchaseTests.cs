@@ -306,6 +306,69 @@ public sealed class TrapPurchaseTests
         AssertEmpty(60);
     }
 
+    [Test]
+    public void SellingRefundsHalfPriceAndKeepsDismantlingFree()
+    {
+        Assert.That(Buy(0, out TrapInstance instance), Is.True);
+        Assert.That(TrapSaleService.RefundFor(instance), Is.EqualTo(20), "40 的陷阱按默认 5 折回收。");
+
+        Assert.That(TrapSaleService.TrySell(grid, instance, out int refund, out string failure), Is.True, failure);
+        Assert.That(refund, Is.EqualTo(20));
+        // 100 - 40 买入 + 20 回收 = 80。
+        AssertEmpty(80);
+    }
+
+    [TestCase(0f, 0)]
+    [TestCase(0.25f, 10)]
+    [TestCase(0.5f, 20)]
+    [TestCase(1f, 40)]
+    public void SellingHonoursExplicitRatioForProgressionTiers(float ratio, int expected)
+    {
+        Assert.That(Buy(0, out TrapInstance instance), Is.True);
+        Assert.That(TrapSaleService.TrySell(grid, instance, ratio, out int refund, out string failure), Is.True, failure);
+        Assert.That(refund, Is.EqualTo(expected));
+        AssertEmpty(60 + expected);
+    }
+
+    [Test]
+    public void ProgressionOverrideRaisesSalvageWithoutTouchingTheDefault()
+    {
+        TrapSaleService.RefundRatioOverride = _ => 1f;
+        try
+        {
+            Assert.That(Buy(0, out TrapInstance instance), Is.True);
+            Assert.That(TrapSaleService.RefundFor(instance), Is.EqualTo(40), "满级养成后全额回收。");
+            Assert.That(TrapSaleService.TrySell(grid, instance, out int refund, out _), Is.True);
+            Assert.That(refund, Is.EqualTo(40));
+            AssertEmpty(100);
+        }
+        finally
+        {
+            TrapSaleService.RefundRatioOverride = null;
+        }
+        Assert.That(TrapSaleService.RefundRatio, Is.EqualTo(TrapSaleService.DefaultRefundRatio));
+    }
+
+    [Test]
+    public void SellingRejectsForeignGridsAndMissingArgumentsWithoutPaying()
+    {
+        Assert.That(Buy(0, out TrapInstance instance), Is.True);
+        TrapPlacementGrid other = Track(new GameObject("Other grid")).AddComponent<TrapPlacementGrid>();
+        other.ConfigureLayout(6, 1, 1f, 0f, new[] { true, true, true, true, true, true });
+
+        Assert.That(TrapSaleService.TrySell(other, instance, out int refund, out string failure), Is.False);
+        Assert.That(refund, Is.Zero, "跨网格出售不得付款。");
+        Assert.That(failure, Is.Not.Empty);
+        Assert.That(TrapSaleService.TrySell(grid, null, out _, out _), Is.False);
+        Assert.That(TrapSaleService.TrySell(null, instance, out _, out _), Is.False);
+
+        // 陷阱原地未动，仍然可以正常按网格出售。
+        Assert.That(grid.OwnsTrap(instance), Is.True);
+        Assert.That(TrapSaleService.TrySell(grid, instance, out int sold, out failure), Is.True, failure);
+        Assert.That(sold, Is.EqualTo(20));
+        AssertEmpty(80);
+    }
+
     private bool Buy(int x, out TrapInstance instance) =>
         TrapPurchaseService.TryPurchase(grid, new Vector2Int(x, 0), definition, out instance, out _);
 

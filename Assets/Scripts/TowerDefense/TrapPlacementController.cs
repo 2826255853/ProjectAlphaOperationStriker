@@ -171,7 +171,7 @@ public sealed class TrapPlacementController : MonoBehaviour
         // (right mouse button), so E stays reserved for the weapon layer there.
         aimedTrap = placementMode ? null : FindTrapFromRay(AimRay());
         if (!placementMode && WasDismantleKeyPressed())
-            DismantleAimedTrap();
+            DismantleAimedTrap(WasSellModifierHeld());
         if (!placementMode) return;
         // Report the actual placement failure even when the preview is red.
         if (WasMouseButtonPressed(0) && hasHoveredCell)
@@ -183,7 +183,7 @@ public sealed class TrapPlacementController : MonoBehaviour
         if (allowDragPlacement && dragPlacement && IsMouseButtonHeld(0) && hasHoveredCell && hasLastPlacedCell)
             PlaceAlongLine(lastPlacedCell, hoveredCell);
         if (WasMouseButtonReleased(0)) { dragPlacement = false; hasLastPlacedCell = false; }
-        if (allowRemoveWithRightClick && WasMouseButtonPressed(1)) DismantleHoveredTrap();
+        if (allowRemoveWithRightClick && WasMouseButtonPressed(1)) DismantleHoveredTrap(WasSellModifierHeld());
     }
 
     /// <summary>
@@ -274,6 +274,16 @@ public sealed class TrapPlacementController : MonoBehaviour
         return false;
     }
 
+    /// <summary>
+    /// Shift turns a dismantle into a sell (partial refund). Read through the
+    /// new Input System so it works regardless of the legacy input setting.
+    /// </summary>
+    private static bool WasSellModifierHeld()
+    {
+        Keyboard keyboard = Keyboard.current;
+        return keyboard != null && (keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed);
+    }
+
     private static bool WasMouseButtonPressed(int button)
     {
         if (Mouse.current == null) return false;
@@ -334,12 +344,12 @@ public sealed class TrapPlacementController : MonoBehaviour
             RefreshGridMarkers();
     }
 
-    private void DismantleHoveredTrap()
+    private void DismantleHoveredTrap(bool sell)
     {
         if (hoveredTrap == null) return;
-        TrapPlacementGrid owner = FindOwningGrid(hoveredTrap);
-        if (owner != null) owner.RemoveTrap(hoveredTrap);
+        TrapInstance target = hoveredTrap;
         hoveredTrap = null;
+        RemoveTrap(target, sell);
         RefreshGridMarkers();
     }
 
@@ -352,16 +362,38 @@ public sealed class TrapPlacementController : MonoBehaviour
     /// <summary>
     /// Removes the trap the player is aiming at. Only reachable while trap
     /// placement mode is off; placement mode dismantles with the right mouse
-    /// button so the E key stays free for gameplay input.
+    /// button so the E key stays free for gameplay input. Holding Shift sells
+    /// instead, which pays part of the purchase price back.
     /// </summary>
-    private void DismantleAimedTrap()
+    private void DismantleAimedTrap(bool sell)
     {
         TrapInstance target = aimedTrap;
         if (target == null) return;
         aimedTrap = null;
-        TrapPlacementGrid owner = FindOwningGrid(target);
-        if (owner != null) owner.RemoveTrap(target);
+        RemoveTrap(target, sell);
         if (hoveredTrap == target) hoveredTrap = null;
+    }
+
+    /// <summary>
+    /// The single removal path. sell routes through TrapSaleService (partial
+    /// refund at the configured rate); otherwise the trap is dismantled
+    /// outright, which intentionally pays nothing back.
+    /// </summary>
+    private void RemoveTrap(TrapInstance trap, bool sell)
+    {
+        if (trap == null) return;
+        TrapPlacementGrid owner = FindOwningGrid(trap);
+        if (owner == null) return;
+        if (!sell)
+        {
+            owner.RemoveTrap(trap);
+            return;
+        }
+        bool sold = TrapSaleService.TrySell(owner, trap, out int refund, out string failure);
+        LastPlacementFailure = sold
+            ? (refund > 0 ? $"已出售，回收 {refund} 金币" : "已出售，该陷阱无回收款")
+            : failure;
+        failureVisibleUntil = Time.unscaledTime + 2.5f;
     }
 
     private TrapPlacementGrid FindOwningGrid(TrapInstance trap)
@@ -523,6 +555,9 @@ public sealed class TrapPlacementController : MonoBehaviour
         if (!placementMode || selectedTrap == null) return;
         preview = selectedTrap.Prefab != null ? Instantiate(selectedTrap.Prefab) : GameObject.CreatePrimitive(PrimitiveType.Cube);
         preview.name = "Trap Preview";
+        // Ghost bodies are never solid entities, damageable targets or valid
+        // backing geometry; the marker keeps validation and support probes honest.
+        if (preview.GetComponent<TrapPlacementPreview>() == null) preview.AddComponent<TrapPlacementPreview>();
         previewBaseScale = preview.transform.localScale;
         AutoSentryTurret turret = preview.GetComponent<AutoSentryTurret>();
         if (turret != null) turret.enabled = false;
@@ -653,10 +688,11 @@ public sealed class TrapPlacementController : MonoBehaviour
         {
             // Freeroam hint: name the trap the E key would dismantle right now.
             if (aimedTrap != null)
-                GUI.Label(new Rect(18f, hintTop, 460f, 24f), $"按 E 拆除：{DescribeTrap(aimedTrap)}");
+                GUI.Label(new Rect(18f, hintTop, 620f, 24f),
+                    $"按 E 拆除：{DescribeTrap(aimedTrap)}　Shift+E 出售（回收 ~{TrapSaleService.RefundFor(aimedTrap)} 金币）");
             return;
         }
-        GUI.Label(new Rect(18f, hintTop, 620f, 24f), "陷阱放置模式：左键放置　右键拆除　Esc 退出");
+        GUI.Label(new Rect(18f, hintTop, 760f, 24f), "陷阱放置模式：左键放置　右键拆除　Shift+右键出售　Esc 退出");
         string slotText = "槽位 ";
         for (int i = 0; i < 4; i++)
         {

@@ -184,9 +184,20 @@ public sealed class EconomyAcceptanceTests
                     }
                     Assert.That(grid.RemoveTrap(trap), Is.True);
                     Assert.That(wallet.Balance, Is.Zero, "Dismantling never refunds.");
+
+                    // Selling the same shipped trap must pay back half of its price
+                    // instead of dismantling it for free.
+                    int salvage = TrapSaleService.RefundFor(actual);
+                    Assert.That(salvage, Is.EqualTo(actual.Cost / 2), name + ": half price.");
+                    wallet.BeginRun(actual.Cost);
+                    Assert.That(TrapPurchaseService.TryPurchase(grid, cell, actual, out TrapInstance resold, out failure),
+                        Is.True, name + ": " + failure);
+                    Assert.That(wallet.Balance, Is.Zero);
+                    Assert.That(TrapSaleService.TrySell(grid, resold, out int paid, out failure), Is.True, failure);
+                    Assert.That(paid, Is.EqualTo(salvage), name);
+                    Assert.That(wallet.Balance, Is.EqualTo(salvage), name + ": selling refunds half price.");
                 }
             }
-
             loading = EditorSceneManager.LoadSceneAsyncInPlayMode(ScenePath, new LoadSceneParameters(LoadSceneMode.Single));
             while (!loading.isDone) yield return null;
             foreach (EnemySpawnPoint entrance in Object.FindObjectsByType<EnemySpawnPoint>()) entrance.SpawningEnabled = false;

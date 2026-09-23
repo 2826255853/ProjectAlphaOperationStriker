@@ -39,6 +39,8 @@ public static class WallTrapGridValidation
             Cleanup();
             ValidateCategoryInterception();
             Cleanup();
+            ValidateWallSupportAndClearance();
+            Cleanup();
             Debug.Log($"WALL_TRAP_GRID_VALIDATION_PASS: {checks} assertions");
         }
         finally { Cleanup(); }
@@ -202,16 +204,145 @@ public static class WallTrapGridValidation
             "matching categories still place cleanly: " + okFailure);
     }
 
+    /// <summary>
+    /// Unit 3: support sampling, solid-entity conflicts and monster clearance.
+    /// Every case builds its own plain colliders so the checks stay deterministic
+    /// and independent of scene content.
+    /// </summary>
+    private static void ValidateWallSupportAndClearance()
+    {
+        // A wall grid whose backing wall only covers the lower-left column must
+        // reject cells that hang over a hole, even though the mask is open.
+        TrapPlacementGrid partial = CreateGridWithPartialWall("Partial wall grid", Vector3.zero, 4, 3);
+        TrapDefinition wallTrap = CreateDefinition("wall_turret", TrapMountType.Wall, 1, 1);
+        Check(partial.HasWallSupport(Vector2Int.zero, Vector2Int.one, wallTrap, out string firstFailure)
+            && firstFailure.Length == 0, "a cell over the backing wall is supported: " + firstFailure);
+        Check(!partial.HasWallSupport(new Vector2Int(3, 0), Vector2Int.one, wallTrap, out string gapFailure)
+            && gapFailure.Contains("支撑不足"), "a cell beyond the wall is rejected as unsupported: " + gapFailure);
+        Check(!partial.CanPlaceTrap(new Vector2Int(3, 0), wallTrap, out string maskedFailure)
+            && maskedFailure.Contains("支撑不足"), "placement refuses an unsupported wall cell: " + maskedFailure);
+        Check(partial.CanPlaceTrap(Vector2Int.zero, wallTrap, out string okFailure) && okFailure.Length == 0,
+            "placement accepts a supported wall cell: " + okFailure);
+        Cleanup();
+
+        // An unbound grid can never support a wall trap.
+        var unbound = new GameObject("Unbound wall grid");
+        unbound.transform.position = Vector3.zero;
+        owned.Add(unbound);
+        var unboundGrid = unbound.AddComponent<TrapPlacementGrid>();
+        unboundGrid.ConfigureLayout(2, 2, 1f, 0f, AllOpen(4), TrapPlacementGrid.SurfaceKind.Ground,
+            TrapMountType.Wall, null, 0.01f);
+        TrapDefinition unboundTrap = CreateDefinition("wall_unbound", TrapMountType.Wall, 1, 1);
+        Check(!unboundGrid.CanPlaceTrap(Vector2Int.zero, unboundTrap, out string unboundFailure)
+            && unboundFailure.Contains("支撑"), "an unbound wall grid refuses placement: " + unboundFailure);
+        Cleanup();
+
+        // Solid-entity conflicts: a protruding prop blocks the install box, a
+        // ghost preview never does, and the bound wall itself is never a conflict.
+        TrapPlacementGrid wall = CreateGrid("Wall grid", new Vector3(10f, 0f, 5f), Quaternion.identity,
+            TrapMountType.Wall, 4, 3, 1f, 0f, 0.01f);
+        TrapDefinition oneByOne = CreateDefinition("wall_solid", TrapMountType.Wall, 1, 1,
+            installBoundsSize: new Vector3(0.8f, 0.8f, 0.3f));
+        Check(wall.CanPlaceTrap(Vector2Int.zero, oneByOne, out string cleanFailure) && cleanFailure.Length == 0,
+            "an empty wall spot has no entity conflict: " + cleanFailure);
+        wall.GetPlacementPose(Vector2Int.zero, oneByOne, out Vector3 anchor, out _);
+
+        var ghost = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        ghost.name = "Trap Preview";
+        ghost.AddComponent<TrapPlacementPreview>();
+        ghost.transform.position = anchor;
+        ghost.transform.localScale = Vector3.one;
+        owned.Add(ghost);
+        Check(wall.CanPlaceTrap(Vector2Int.zero, oneByOne, out string ghostFailure) && ghostFailure.Length == 0,
+            "a ghost preview is not a solid entity conflict: " + ghostFailure);
+
+        var prop = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        prop.name = "Wall corner prop";
+        prop.transform.position = anchor;
+        prop.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
+        owned.Add(prop);
+        Check(!wall.CanPlaceTrap(Vector2Int.zero, oneByOne, out string propFailure)
+            && propFailure.Contains("实体冲突"), "a protruding prop blocks the install box: " + propFailure);
+        Object.DestroyImmediate(prop);
+        Object.DestroyImmediate(ghost);
+
+        // An existing wall trap blocks a later trap whose install box reaches into
+        // it, while the same trap still validates itself after a reload.
+        TrapDefinition plated = CreateDefinition("wall_plated", TrapMountType.Wall, 2, 2,
+            installBoundsSize: new Vector3(1.6f, 1.6f, 0.3f));
+        Check(wall.TryPlaceTrap(Vector2Int.zero, plated, out TrapInstance placed, out string placeFailure),
+            "2x2 wall trap placed for the conflict check: " + placeFailure);
+        TrapDefinition wide = CreateDefinition("wall_wide", TrapMountType.Wall, 1, 1,
+            installBoundsSize: new Vector3(3f, 1f, 0.3f));
+        Check(!wall.CanPlaceTrap(new Vector2Int(2, 0), wide, out string trapFailure)
+            && trapFailure.Contains("实体冲突"),
+            "an install box reaching an existing trap is rejected: " + trapFailure);
+        // Occupancy intentionally rejects a duplicate before entity checks, so the
+        // self-ignore path is asserted on the entity check the reload/creation flow
+        // uses: a trap validating its own install box must not conflict with itself.
+        Check(!wall.ConflictsWithSolidEntity(Vector2Int.zero, new Vector2Int(2, 2), plated, placed, null, out string selfFailure)
+            && selfFailure.Length == 0, "a trap ignores its own body during reload validation: " + selfFailure);
+        Check(wall.ConflictsWithSolidEntity(Vector2Int.zero, new Vector2Int(2, 2), plated, null, null, out string otherFailure)
+            && otherFailure.Contains("实体冲突"),
+            "the same install box does conflict with the placed trap it belongs to: " + otherFailure);
+        wall.RebuildOccupancy();
+        Check(wall.OwnsTrap(placed), "wall trap survives an occupancy rebuild with the new checks");
+        Cleanup();
+
+        // Monster clearance: the same trap is rejected when its body intrudes into
+        // the walking band of an open road cell beneath it, and accepted higher up.
+        TrapPlacementGrid clearanceGrid = CreateGrid("Clearance wall grid", Vector3.zero, Quaternion.identity,
+            TrapMountType.Wall, 2, 6, 1f, 0f, 0.01f);
+        var road = new GameObject("Clearance road");
+        owned.Add(road);
+        var pathGrid = road.AddComponent<MonsterPathGrid>();
+        for (int y = 0; y < 6; y++) for (int x = 0; x < 2; x++) pathGrid.SetOpen(new Vector2Int(x, y), true);
+        clearanceGrid.PathGridOverride = pathGrid;
+        TrapDefinition low = CreateDefinition("wall_low", TrapMountType.Wall, 1, 1);
+        Check(clearanceGrid.ConflictsWithMonsterClearance(Vector2Int.zero, Vector2Int.one, low, out string bandFailure)
+            && bandFailure.Contains("通道"), "the clearance check names the intruded corridor: " + bandFailure);
+        Check(!clearanceGrid.CanPlaceTrap(Vector2Int.zero, low, out string lowFailure),
+            "a wall body inside the walking band is rejected");
+        Check(lowFailure.Contains("通道"), "the rejection names the walking corridor: " + lowFailure);
+        Check(clearanceGrid.CanPlaceTrap(new Vector2Int(0, 3), low, out string highFailure) && highFailure.Length == 0,
+            "an equivalent trap above the walking band is accepted: " + highFailure);
+        clearanceGrid.PathGridOverride = null;
+        Cleanup();
+    }
+
     private static TrapPlacementGrid CreateGrid(string name, Vector3 position, Quaternion rotation,
         TrapMountType mountType, int columns, int rows, float cellSize, float placementHeight, float surfaceOffset)
     {
         var root = new GameObject(name);
         root.transform.SetPositionAndRotation(position, rotation);
         owned.Add(root);
+        // Support validation (unit 3) samples inward along the wall normal, so the
+        // backing wall must actually cover the authored rectangle: local X/Y span
+        // the grid, local Z sits behind the placement plane.
         var collider = root.AddComponent<BoxCollider>();
+        collider.center = new Vector3(columns * cellSize * 0.5f, rows * cellSize * 0.5f, -0.5f);
+        collider.size = new Vector3(columns * cellSize, rows * cellSize, 1f);
         var grid = root.AddComponent<TrapPlacementGrid>();
         grid.ConfigureLayout(columns, rows, cellSize, placementHeight, AllOpen(columns * rows),
             TrapPlacementGrid.SurfaceKind.Ground, mountType, collider, surfaceOffset);
+        return grid;
+    }
+
+    /// <summary>
+    /// Wall grid whose backing wall deliberately covers only the lower-left
+    /// column, so support sampling must fail for cells outside it.
+    /// </summary>
+    private static TrapPlacementGrid CreateGridWithPartialWall(string name, Vector3 position, int columns, int rows)
+    {
+        var root = new GameObject(name);
+        root.transform.position = position;
+        owned.Add(root);
+        var collider = root.AddComponent<BoxCollider>();
+        collider.center = new Vector3(0.5f, rows * 0.5f, -0.5f);
+        collider.size = new Vector3(1f, rows, 1f);
+        var grid = root.AddComponent<TrapPlacementGrid>();
+        grid.ConfigureLayout(columns, rows, 1f, 0f, AllOpen(columns * rows),
+            TrapPlacementGrid.SurfaceKind.Ground, TrapMountType.Wall, collider, 0.01f);
         return grid;
     }
 
@@ -234,7 +365,7 @@ public static class WallTrapGridValidation
     }
 
     private static TrapDefinition CreateDefinition(string id, TrapMountType mountType, int width, int height,
-        bool walkableFloorTrap = false)
+        bool walkableFloorTrap = false, Vector3 installBoundsSize = default)
     {
         var definition = ScriptableObject.CreateInstance<TrapDefinition>();
         definition.name = id;
@@ -246,6 +377,8 @@ public static class WallTrapGridValidation
         settings.FindProperty("footprintHeight").intValue = height;
         settings.FindProperty("mountType").enumValueIndex = (int)mountType;
         settings.FindProperty("walkableFloorTrap").boolValue = walkableFloorTrap;
+        if (installBoundsSize != Vector3.zero)
+            settings.FindProperty("installBoundsSize").vector3Value = installBoundsSize;
         settings.ApplyModifiedPropertiesWithoutUndo();
         return definition;
     }

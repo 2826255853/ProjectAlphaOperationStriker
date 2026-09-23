@@ -30,6 +30,16 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     [SerializeField, Min(0f), Tooltip("墙面贴合与网格绘制偏移（米）；不影响地面 placementHeight 语义。")]
     private float surfaceOffset = 0.01f;
 
+    [Header("Wall support and clearance validation")]
+    [SerializeField, Min(0.01f), Tooltip("墙面支撑检测距离（米）：自格面沿 -法线 采样，允许支撑面与网格平面有小量偏移。")]
+    private float wallSupportProbeDistance = 0.1f;
+    [SerializeField, Range(0.5f, 45f), Tooltip("支撑命中法线与网格法线的最大夹角容差（度）。")]
+    private float wallSupportNormalTolerance = 5f;
+    [SerializeField, Range(0f, 0.45f), Tooltip("支撑采样点自格边向内缩进的比例；0.15 表示缩进 15% 格宽。")]
+    private float wallSupportInsetRatio = 0.15f;
+    [SerializeField, Min(0f), Tooltip("怪物通行净空高度（米）：墙面实体侵入该高度带且与道路格重叠即判定冲突。")]
+    private float monsterClearanceHeight = 2f;
+
     [Header("Developer-authored availability")]
     [Tooltip("One entry per cell, row-major (x + y * columns). True means a trap may be placed there.")]
     [SerializeField] private bool[] openCells;
@@ -38,6 +48,11 @@ public sealed class TrapPlacementGrid : MonoBehaviour
 
     private readonly Dictionary<Vector2Int, TrapInstance> occupiedCells = new Dictionary<Vector2Int, TrapInstance>();
     private readonly HashSet<TrapInstance> placedTraps = new HashSet<TrapInstance>();
+    private readonly Collider[] overlapBuffer = new Collider[64];
+    private readonly Vector3[] installCorners = new Vector3[8];
+    private readonly Vector3[] probeBuffer = new Vector3[5];
+    private MonsterPathGrid cachedPathGrid;
+    private readonly RaycastHit[] raycastBuffer = new RaycastHit[16];
 
     public int Columns => columns;
     public int Rows => rows;
@@ -60,6 +75,17 @@ public sealed class TrapPlacementGrid : MonoBehaviour
 
     /// <summary>Unified category matching used by placement, painting and validation.</summary>
     public bool SupportsDefinition(TrapDefinition definition) => surfaceType.SupportsDefinition(definition);
+    /// <summary>Wall support sampling distance, in metres, along -SurfaceNormal.</summary>
+    public float WallSupportProbeDistance => Mathf.Max(0.01f, wallSupportProbeDistance);
+    /// <summary>Allowed angle between the support hit normal and the grid normal.</summary>
+    public float WallSupportNormalToleranceDegrees => Mathf.Clamp(wallSupportNormalTolerance, 0.5f, 45f);
+    /// <summary>Fraction of a cell trimmed from each edge before support sampling.</summary>
+    public float WallSupportInsetRatio => Mathf.Clamp(wallSupportInsetRatio, 0f, 0.45f);
+    /// <summary>Vertical band above the road surface that a wall entity must not intrude.</summary>
+    public float MonsterClearanceHeight => Mathf.Max(0f, monsterClearanceHeight);
+    /// <summary>Optional path-grid override; keeps validation testable without scene lookups.</summary>
+    public MonsterPathGrid PathGridOverride { get; set; }
+
     public IReadOnlyCollection<TrapInstance> PlacedTraps => placedTraps;
 
     /// <summary>True when this grid created/manages the given trap instance.</summary>
@@ -163,7 +189,8 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             GetPlacementPose(trap.OriginCell, trap.Definition, out Vector3 posePosition, out Quaternion poseRotation);
             trap.transform.SetPositionAndRotation(posePosition, poseRotation);
             MakeTrapPassableIfRequired(trap.gameObject, trap.Definition);
-            if (trap.Definition.WalkableFloorTrap && !CanPlaceTrap(trap.OriginCell, trap.Definition, out _)) continue;
+            if ((trap.Definition.WalkableFloorTrap || IsWallSurface)
+                && !CanPlaceTrap(trap.OriginCell, trap.Definition, trap, null, out _)) continue;
             bool valid = true;
             for (int y = 0; y < footprint.y && valid; y++)
             for (int x = 0; x < footprint.x; x++)
@@ -205,6 +232,18 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     }
 
     public bool CanPlaceTrap(Vector2Int origin, TrapDefinition definition, out string failure)
+    {
+        return CanPlaceTrap(origin, definition, null, null, out failure);
+    }
+
+    /// <summary>
+    /// Placement validation shared by editor painting, runtime placement and
+    /// atomic batch placement. <paramref name="ignoreInstance"/> and
+    /// <paramref name="ignoreRoot"/> let the creation path re-validate itself
+    /// without its own freshly built body counting as a conflicting entity.
+    /// </summary>
+    public bool CanPlaceTrap(Vector2Int origin, TrapDefinition definition, TrapInstance ignoreInstance,
+        GameObject ignoreRoot, out string failure)
     {
         failure = string.Empty;
         if (definition == null)
@@ -252,7 +291,198 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             failure = "Trap overlaps an occupied footprint on another grid.";
             return false;
         }
+        // Wall-specific checks run after the shared footprint rules so a wall
+        // trap is never rejected for a support/clearance reason when it already
+        // failed the cheaper category or occupancy test.
+        if (IsWallSurface && !HasWallSupport(origin, footprint, definition, out failure)) return false;
+        if ((IsWallSurface || definition.HasExplicitInstallBounds)
+            && ConflictsWithSolidEntity(origin, footprint, definition, ignoreInstance, ignoreRoot, out failure)) return false;
+        if (IsWallSurface && ConflictsWithMonsterClearance(origin, footprint, definition, out failure)) return false;
         return true;
+    }
+
+    /// <summary>
+    /// Wall support test. Every covered cell probes its centre plus four inset
+    /// corners inward along -SurfaceNormal; all of them must land on the bound
+    /// support collider with a matching normal. A hole, a detached grid or a
+    /// tilted backing wall therefore fails instead of silently placing a trap
+    /// that hangs in mid air.
+    /// </summary>
+    public bool HasWallSupport(Vector2Int origin, Vector2Int footprint, TrapDefinition definition, out string failure)
+    {
+        failure = string.Empty;
+        if (!IsWallSurface) return true;
+        SyncPhysicsForEditorValidation();
+        if (supportCollider == null)
+        {
+            failure = "墙面网格未绑定支撑墙体。";
+            return false;
+        }
+        SurfaceAxes(out Vector3 right, out Vector3 up);
+        Vector3 normal = SurfaceNormal;
+        float inset = cellSize * WallSupportInsetRatio;
+        float castDistance = WallSupportProbeDistance + SurfaceOffset + 0.05f;
+        float allowedCos = Mathf.Cos(WallSupportNormalToleranceDegrees * Mathf.Deg2Rad);
+        for (int y = 0; y < footprint.y; y++)
+        for (int x = 0; x < footprint.x; x++)
+        {
+            Vector2Int cell = origin + new Vector2Int(x, y);
+            // CellToWorld already includes surfaceOffset, so the probe starts
+            // just off the wall face and may use the full probe distance inward.
+            TrapPlacementGeometry.FillCellProbePattern(CellToWorld(cell), right, up, cellSize, inset, probeBuffer);
+            for (int i = 0; i < probeBuffer.Length; i++)
+            {
+                if (TryFindSupportHit(probeBuffer[i] + normal * 0.02f, -normal, castDistance + 0.02f, normal, allowedCos))
+                    continue;
+                failure = $"支撑不足：格 {cell} 的采样点未命中绑定墙体的正面。";
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// True when the nearest surface along the ray is the bound support collider
+    /// with an aligned normal. The distance tolerance exists only for the small
+    /// offset between the grid plane and the wall face; it never lets a probe
+    /// see through a different wall.
+    /// </summary>
+    private bool TryFindSupportHit(Vector3 start, Vector3 direction, float distance, Vector3 expectedNormal,
+        float allowedCos)
+    {
+        int count = Physics.RaycastNonAlloc(new Ray(start, direction), raycastBuffer, distance,
+            Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        float nearestAny = float.PositiveInfinity;
+        bool nearestIsSupport = false;
+        for (int i = 0; i < count; i++)
+        {
+            RaycastHit hit = raycastBuffer[i];
+            if (hit.collider == null) continue;
+            if (hit.distance >= nearestAny) continue;
+            // Previews and other traps are never supporting geometry.
+            if (hit.collider.GetComponentInParent<TrapPlacementPreview>() != null) continue;
+            if (hit.collider.GetComponentInParent<TrapInstance>() != null) continue;
+            nearestAny = hit.distance;
+            nearestIsSupport = IsSupportCollider(hit.collider)
+                && Vector3.Dot(hit.normal, expectedNormal) >= allowedCos;
+        }
+        return nearestIsSupport;
+    }
+
+    /// <summary>
+    /// True when the collider belongs to the bound backing wall, including
+    /// compound walls whose colliders live on child objects. Callers must rule
+    /// out real entities first, because traps are commonly parented directly to
+    /// the grid object and would otherwise be mistaken for wall geometry.
+    /// </summary>
+    public bool IsSupportCollider(Collider candidate)
+    {
+        if (candidate == null || supportCollider == null) return false;
+        if (candidate == supportCollider) return true;
+        Transform wall = supportCollider.transform;
+        Transform other = candidate.transform;
+        return other.IsChildOf(wall) || wall.IsChildOf(other);
+    }
+
+    /// <summary>
+    /// Rejects installation when the trap's solid body would overlap another
+    /// trap, a protruding wall-corner prop or the player. Ghost previews, the
+    /// trap being validated and the bound backing wall are excluded; visual
+    /// effect ranges never take part.
+    /// </summary>
+    public bool ConflictsWithSolidEntity(Vector2Int origin, Vector2Int footprint, TrapDefinition definition,
+        TrapInstance ignoreInstance, GameObject ignoreRoot, out string failure)
+    {
+        failure = string.Empty;
+        if (definition == null) return false;
+        SyncPhysicsForEditorValidation();
+        GetPlacementPose(origin, definition, out Vector3 anchor, out Quaternion rotation);
+        definition.ResolveInstallBounds(footprint, CellWorldSize, out Vector3 localCenter, out Vector3 halfExtents);
+        Vector3 boxCenter = anchor + rotation * localCenter;
+        int count = Physics.OverlapBoxNonAlloc(boxCenter, halfExtents, overlapBuffer, rotation,
+            Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < count; i++)
+        {
+            Collider other = overlapBuffer[i];
+            if (other == null || other.isTrigger) continue;
+            if (other.GetComponentInParent<TrapPlacementPreview>() != null) continue;
+            // Traps are parented to the grid by default, so the backing-wall
+            // test must run only after real entities are excluded; otherwise a
+            // placed trap's collider would look like part of the wall and every
+            // later placement would silently ignore it.
+            if (ignoreRoot != null
+                && (other.transform == ignoreRoot.transform || other.transform.IsChildOf(ignoreRoot.transform))) continue;
+            TrapInstance trap = other.GetComponentInParent<TrapInstance>();
+            if (ignoreInstance != null && trap == ignoreInstance) continue;
+            if (trap != null)
+            {
+                failure = "实体冲突：安装位置与已有陷阱重叠。";
+                return true;
+            }
+            if (IsSupportCollider(other)) continue;
+            if (other.GetComponentInParent<PlayerHealth>() != null
+                || other.GetComponentInParent<FirstPersonController>() != null)
+            {
+                failure = "实体冲突：安装位置与玩家重叠。";
+                return true;
+            }
+            // Bounds-level overlap alone is too eager (a floor slab under the
+            // wall, a neighbouring wall's AABB). Require the collider's solid
+            // surface to actually reach inside the installation box.
+            Vector3 closest = other.ClosestPoint(boxCenter);
+            if (!TrapPlacementGeometry.PointInOrientedBox(closest, boxCenter, rotation, halfExtents, 0.005f)) continue;
+            failure = $"实体冲突：安装位置被 {other.name} 占用。";
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Wall traps must not intrude into the clearance band monsters use to walk.
+    /// Only the authored road mask takes part; attack coverage may still face the
+    /// road. Ground traps keep their existing rules and are skipped.
+    /// </summary>
+    public bool ConflictsWithMonsterClearance(Vector2Int origin, Vector2Int footprint, TrapDefinition definition,
+        out string failure)
+    {
+        failure = string.Empty;
+        MonsterPathGrid pathGrid = ResolvePathGrid();
+        if (pathGrid == null || definition == null) return false;
+        GetPlacementPose(origin, definition, out Vector3 anchor, out Quaternion rotation);
+        definition.ResolveInstallBounds(footprint, CellWorldSize, out Vector3 localCenter, out Vector3 halfExtents);
+        Vector3 boxCenter = anchor + rotation * localCenter;
+        TrapPlacementGeometry.GetWorldVerticalSpan(boxCenter, rotation, halfExtents, out float bottom, out float top);
+        float bandBottom = pathGrid.PathHeight;
+        float bandTop = bandBottom + MonsterClearanceHeight;
+        // Hanging entirely above the walking band (or entirely below it) is fine.
+        if (bottom >= bandTop - 0.001f || top <= bandBottom + 0.001f) return false;
+        TrapPlacementGeometry.FillBoxCorners(boxCenter, rotation, halfExtents, installCorners);
+        for (int i = 0; i <= installCorners.Length; i++)
+        {
+            Vector3 sample = i == installCorners.Length ? boxCenter : installCorners[i];
+            if (!pathGrid.TryWorldToCell(sample, out Vector2Int cell) || !pathGrid.IsOpen(cell)) continue;
+            failure = $"占据通道：墙面实体侵入道路格 {cell} 的怪物通行净空。";
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Editor-side tools create and move objects and immediately validate them in
+    /// the same frame. Play Mode keeps its transforms synchronised automatically,
+    /// but the editor needs an explicit push before raycasts and overlap queries
+    /// see the fresh collider state.
+    /// </summary>
+    private static void SyncPhysicsForEditorValidation()
+    {
+        if (!Application.isPlaying) Physics.SyncTransforms();
+    }
+
+    private MonsterPathGrid ResolvePathGrid()
+    {
+        if (PathGridOverride != null) return PathGridOverride;
+        if (cachedPathGrid == null) cachedPathGrid = FindAnyObjectByType<MonsterPathGrid>();
+        return cachedPathGrid;
     }
 
     public Quaternion GetTrapWorldRotation(TrapDefinition definition)
@@ -476,7 +706,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             MakeTrapPassableIfRequired(root, definition);
             root.transform.SetParent(trapParent != null ? trapParent : transform, true);
             // Prefab/parent callbacks can place another trap while this object is created.
-            if (!CanPlaceTrap(origin, definition, out failure))
+            if (!CanPlaceTrap(origin, definition, null, root, out failure))
                 throw new System.InvalidOperationException(failure);
             instance = root.GetComponent<TrapInstance>() ?? root.AddComponent<TrapInstance>();
             instance.Initialize(definition, origin);
