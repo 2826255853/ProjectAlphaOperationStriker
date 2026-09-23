@@ -15,7 +15,7 @@
 
 ## 恢复开发环境
 
-1. 克隆仓库，使用 Unity Hub 添加项目，安装并使用 **Unity 6000.5.6f1**。
+1. 克隆仓库后，用 Unity **6000.6.2f1** 打开（以 `ProjectSettings/ProjectVersion.txt` 的 `m_EditorVersion` 为准；版本号随升级不定期变化）。本机该版本装在 `C:\Program Files\Unity 6000.6.2f1\Editor\Unity.exe`——**不是** Unity Hub 的 `C:\Program Files\Unity\Hub\Editor\...` 目录。
 2. 从自己的合法来源安装原项目使用的 KINEMATION 资源，原目录包含 `FPSAnimationPack`、`KAnimationCore`、`Plugins`、`ProceduralRecoilAnimationSystem` 和 `RetargetPro`。请保留原始资源 GUID。
 3. 恢复 TextMesh Pro Essentials 资源至 `Assets/TextMesh Pro`；Unity Package Manager 会按 `Packages/manifest.json` 和锁文件解析包依赖。
 4. 打开 `Assets/Scenes/THREE_ROUTE_MERGE_MAP 4.unity`，确认依赖导入完成后运行。

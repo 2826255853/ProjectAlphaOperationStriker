@@ -1,8 +1,14 @@
+using System;
 using UnityEngine;
 
 /// <summary>Runtime identity for an enemy created by an <see cref="EnemySpawnPoint"/>.</summary>
 public sealed class EnemyInstance : MonoBehaviour
 {
+    public enum ResolutionState { Alive, Killed, Leaked, Despawned }
+
+    public ResolutionState Resolution { get; private set; } = ResolutionState.Despawned;
+    public int KillReward { get; private set; }
+    public Guid RunId { get; private set; }
     public EnemySpawnPoint SpawnPoint { get; private set; }
     public int SpawnSequence { get; private set; }
     public float SpawnTime { get; private set; }
@@ -10,6 +16,8 @@ public sealed class EnemyInstance : MonoBehaviour
     public int SpawnIndexInWave { get; private set; }
     public MonsterType MonsterType { get; internal set; }
     private MonsterPathFollower pathFollower;
+    private EnemyHealth health;
+    private EconomyManager economy;
 
     public MonsterPathFollower PathFollower
     {
@@ -31,6 +39,8 @@ public sealed class EnemyInstance : MonoBehaviour
 
     internal void Initialize(EnemySpawnPoint spawnPoint, int spawnSequence, int waveNumber, int spawnIndexInWave)
     {
+        DetachCallbacks();
+        pathFollower = null;
         SpawnPoint = spawnPoint;
         SpawnSequence = spawnSequence;
         SpawnTime = Time.time;
@@ -38,6 +48,13 @@ public sealed class EnemyInstance : MonoBehaviour
         SpawnIndexInWave = spawnIndexInWave;
 
         EnsureDamageReceiver();
+        health = GetComponent<EnemyHealth>();
+        health.ResetHealth();
+        economy = EconomyManager.GetOrCreate();
+        RunId = economy.RunId;
+        KillReward = spawnPoint != null ? spawnPoint.GetKillReward(MonsterType) : 0;
+        Resolution = ResolutionState.Alive;
+        health.Died += HandleDied;
     }
 
     private void EnsureDamageReceiver()
@@ -79,16 +96,55 @@ public sealed class EnemyInstance : MonoBehaviour
 
     private void HandleArrived(MonsterPathFollower follower)
     {
-        if (follower.HasCoreTarget)
+        if (follower.HasCoreTarget && TryResolve(ResolutionState.Leaked))
         {
-            if (SpawnPoint != null && SpawnPoint.Core != null)
+            if (IsCurrentRun && SpawnPoint != null && SpawnPoint.Core != null)
                 SpawnPoint.Core.TakeDamage(MonsterType);
             Destroy(gameObject);
         }
     }
 
+    private bool IsCurrentRun => economy != null && economy == EconomyManager.Instance
+        && economy.IsInitialized && economy.RunId == RunId;
+
+    private void HandleDied(EnemyHealth sender)
+    {
+        if (!TryResolve(ResolutionState.Killed) || !IsCurrentRun) return;
+        try
+        {
+            economy.Grant(KillReward);
+        }
+        catch (OverflowException)
+        {
+            // A rejected reward must not interrupt EnemyHealth's destruction.
+            Debug.LogWarning("击杀奖励超过金币余额上限，本次奖励未发放。", this);
+        }
+    }
+
+    private bool TryResolve(ResolutionState result)
+    {
+        if (Resolution != ResolutionState.Alive) return false;
+        Resolution = result;
+        DetachCallbacks();
+        if (pathFollower != null) pathFollower.enabled = false;
+        return true;
+    }
+
+    private void DetachCallbacks()
+    {
+        if (health != null) health.Died -= HandleDied;
+        if (pathFollower != null) pathFollower.Arrived -= HandleArrived;
+    }
+
+    private void OnDisable()
+    {
+        TryResolve(ResolutionState.Despawned);
+        DetachCallbacks();
+    }
+
     private void OnDestroy()
     {
-        if (pathFollower != null) pathFollower.Arrived -= HandleArrived;
+        TryResolve(ResolutionState.Despawned);
+        DetachCallbacks();
     }
 }

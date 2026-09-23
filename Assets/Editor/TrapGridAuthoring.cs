@@ -12,6 +12,13 @@ public static class TrapGridAuthoring
     /// <summary>A trap sits this far above the surface it is placed on.</summary>
     public const float SurfaceOffset = 0.02f;
 
+    /// <summary>Trap bases follow physical road geometry, not the elevated monster travel plane.</summary>
+    public static float RoadPlacementHeight(MonsterPathGrid grid)
+    {
+        return DominantSurfaceTop(grid, GroundAnchor(grid), grid.transform.rotation,
+            CollectSurfaceColliders(), grid.CreateOpenCellSnapshot(), grid.PathHeight) + SurfaceOffset;
+    }
+
     /// <summary>
     /// The monster grid anchors cell (x, y) at its lower corner while trap grids
     /// anchor it at the cell centre, so the trap grid origin is shifted half a

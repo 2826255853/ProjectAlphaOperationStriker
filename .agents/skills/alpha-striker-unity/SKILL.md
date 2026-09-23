@@ -9,6 +9,13 @@ description: 在 ProjectAlphaOperationStriker（Unity FPS + 塔防）及配套 M
 
 工作节奏、只读范围和探索预算见工程根目录的 `AGENTS.md`，本 skill 不重复。这里只讲**这个工程特有的、容易做错的做法**。
 
+## Unity 编辑器版本
+
+- 后续尽量使用 Unity 最新正式发行版（含正式 Update / LTS 版本），不默认使用 Alpha、Beta 或其他预发布版本，也不固定在某个旧版本。
+- 每次运行 Unity 前，读取 `ProjectSettings/ProjectVersion.txt` 的 `m_EditorVersion`，再核对本机实际安装位置。本机 Unity **不在** Unity Hub 目录，而是 `C:\Program Files\Unity 6000.6.2f1\Editor\Unity.exe`（2026-09-22 核对；`C:\Program Files\Unity\Hub\Editor` 不存在）。版本号随升级不定期变化，因此**任何文档、脚本、`.csproj` 都不要写死版本号**：以项目记录的版本 + `C:\Program Files\Unity *` 下的实际目录为准，脚本会自动探测。旧文档或生成的 `.csproj` 中的历史版本不能作为当前版本依据。
+- 日常执行与校验优先使用项目记录的正式版；升级时优先选择最新正式发行版并检查包兼容性。若该版本尚未安装，说明缺失情况，不擅自降级或用预发布版替代；普通代码任务不顺带安装编辑器或迁移项目。
+- 批处理命令使用核实后的路径，不硬编码历史版本号；具体执行方式见 [references/unity-editor.md](references/unity-editor.md)。
+
 ## 四条工程规范怎么落地
 
 `Assets/代码规范.txt` 要求四件事。它们的可执行做法如下：
@@ -102,7 +109,9 @@ description: 在 ProjectAlphaOperationStriker（Unity FPS + 塔防）及配套 M
 - **仰角超限时退化瞄本体，而不是卡死**：迎面高速目标会把拦截点顶到 75° 以上，此时 `TryGetInterceptPoint` 退回瞄敌人当前位置并把 `IsUsingLead` 置 false；若连本体都在限位之上，炮塔就只继续转、**绝不在被夹住的姿态下开火**。改发射条件时别把这个分支砍掉，回归用例是 `LeadFallbackKeepsFiringWhenElevationExceedsPitchLimit`。
 - **导弹不依赖 Collider 结算伤害**：命中判定与溅射在 `MissileProjectile` 里算（用例 `ProjectileAppliesDamageWithoutACollider`）。因此生成的陷阱模型**不需要**加 Collider——这和「陷阱血条要绕射线检测」是同一个原因，不要为了统一而给陷阱模型补物理体。
 - **预制体由编辑器脚本生成，别手搓**：`MissileLauncherTurretAuthoring.CreateLauncherPrefab`（菜单 `Tools/塔防/生成导弹发射器预制体`）从 `Assets/Models/Trap_Base_Disc_Dual_Launcher_Loaded.fbx` 搭 `Yaw Pivot` → `Pitch Pivot` → 炮管层级并存成 `Assets/Prefabs/DualMissileLauncher.prefab`，最后把 `Assets/Resources/DualMissileLauncherLoaded.asset` 与 `Assets/TrapDefinitions/DualMissileLauncherLoaded.asset` 的 `prefab` 字段指过去。批处理入口是 `MissileLauncherTurretAuthoring.CreateLauncherPrefabBatch`。改模型路径或预制体路径要同时改这两个 `const string`。
-- 需要看图时跑 `MissileLauncherTurretPreview.RenderPreview`（菜单 `Tools/塔防/预览导弹发射器旋转`），它按 6 组 yaw/pitch 渲染预制体并把 PNG 写到 `%TEMP%\alpha-striker-unity\launcher-preview`（它读的是 `DualMissileLauncher.prefab`，找不到会报「请先生成」）。别靠场景视图肉眼判断；要留档的图按规范复制到桌面「陷阱素材文件夹」的对应子目录。
+- **尾焰（发射特效）**：`Assets/Models/DualMissileExhaust/DualMissileExhaust.fbx`（Blender 源在桌面「陷阱素材文件夹\DualMissileExhaust」）不要手工往预制体里拖。`MissileLauncherTurretAuthoring.CreateLauncherPrefab` 会自动把两组尾焰挂到 `Pitch Pivot` 下：每组只保留自己那根管子的火焰网格（按 `_01` / `_02` 后缀裁剪，重复名带空格序号也认），喷嘴位置用 `Missile_01/02` 的包围盒尾部反推，朝向从模型自身的 `HotGasCore → OuterFlame` 轴算出，所以 Blender 改轴不用改代码。驱动在 `Assets/Scripts/TowerDefense/MissileExhaustFx.cs`：只有 `MissileLauncherWeapon.State == Firing` 时全强度，`lingerAfterLaunchSeconds` 后淡出，`idleScale = 0` 表示平时完全不显示（`Awake` 会先压到静止态，所以预制体里看到火焰、运行时进场不喷是正常的）。FBX 自带的材质是内置 `Standard`，URP 下是品红，生成器会在 `Assets/Models/DualMissileExhaust/Materials/` 生成并指派 4 个 URP Unlit 加法混合材质，别手改回 FBX 材质。
+- 尾焰的看图入口：`MissileExhaustPreview.RenderPreview`（菜单 `Tools/塔防/预览导弹发射器尾焰`），输出到 `%TEMP%\alpha-striker-unity\exhaust-preview`，渲染静止 / 全强度 / 半强度三张；确认挂载数值用 `MissileLauncherTurretAuthoring.ProbeExhaustMount`。回归用例 `Assets/Editor/MissileExhaustFxTests.cs`（两组尾焰各对一根导轨 + 只在开火时可见），跑法 `-runTests -testPlatform EditMode -testFilter MissileExhaustFxTests`。- 需要看图时跑 `MissileLauncherTurretPreview.RenderPreview`（菜单 `Tools/塔防/预览导弹发射器旋转`），它按 6 组 yaw/pitch 渲染预制体并把 PNG 写到 `%TEMP%\alpha-striker-unity\launcher-preview`（它读的是 `DualMissileLauncher.prefab`，找不到会报「请先生成」）。别靠场景视图肉眼判断；要留档的图按规范复制到桌面「陷阱素材文件夹」的对应子目录。
+- **玩家武器伤害按武器区分**：玩家侧命中结算在 `Assets/Scripts/FPS/FirstPersonController.cs` 的 `FPSHitscanShooter`（hitscan 桥，KINEMATION 只管射速/弹药/动画）。伤害公式是 `基础伤害 x 距离衰减 x 目标种类缩放 x 弱点倍率`，全部在纯结构体 `WeaponDamageStats`（`Assets/Scripts/FPS/WeaponDamageProfile.cs`）里算，所以不依赖 KINEMATION 预制体即可单测（用例 `Assets/Editor/WeaponDamageProfileTests.cs`，跑法 `-runTests -testPlatform EditMode -testFilter WeaponDamageProfileTests`）。武器分类两条路径：预制体上有 `WeaponDamageProfile` 组件就用手填值（菜单 `Tools/塔防/给武器预制体写入伤害档案` 会把随包武器的默认档案写进 `Assets/KINEMATION/FPSAnimationPack/Prefabs/*.prefab`）；没有组件就按**预制体名字**走 `WeaponDamageStats.DefaultsFor`，先查 `TryGetKnownClass` 的精确表（AK / ASVal / G3 / MX16A4、MPS5 / PDW90、Drake-12 / Striker-V / KXG12、Kar98k / L96X / SVD / Mk14EBR、M1911 / Kolibri / X18 / Viper-357、MGX5、RPG / DGL50），再退回子串启发式。`FPSPlayer_Settings_Utlimate.asset` 里那 20 把武器全部有精确分类——**新增武器要同步补 `TryGetKnownClass`，否则会掉进 Unknown 用回退伤害（默认 25，衰减曲线取 Unknown 档）**。改公式后同步改 `AmmoDisplayUI` 的 HUD 文案（它显示基础伤害与弱点倍率）。
 - 生成的预制体落在 `Assets/Prefabs/DualMissileLauncher.prefab`（**不是** `Assets/Resources/`）：它由 `TrapDefinition` 资产直接引用，不需要 `Resources.Load` 兜底；飞行怪物那套才必须待在 `Resources/`。新增陷阱按各自的引用方式选目录，别照抄。
 - 回归测试：`Assets/Editor/MissileLauncherTurretTests.cs`（两轴限位、预制体接线的旋转台、原始 FBX 能自建 rig、空中过滤）与 `Assets/Editor/MissileLauncherWeaponTests.cs`（选靶优先级、拦截点领先、齐射两发、装填阻塞、超程引爆、无 Collider 结算）。两者都在 `#if UNITY_INCLUDE_TESTS` 里，跑法 `-runTests -testPlatform EditMode`（可加 `-testFilter MissileLauncher`）。
 

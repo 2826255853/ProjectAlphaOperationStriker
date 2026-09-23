@@ -31,6 +31,24 @@ public sealed class EnemySpawnPoint : MonoBehaviour
     [SerializeField, Min(0.01f), Tooltip("Seconds between enemy spawns.")]
     private float spawnInterval = 1f;
 
+    [Header("Kill Reward")]
+    [SerializeField, Tooltip("覆盖该出怪口生成的所有怪物的击杀奖励；关闭时地面怪 10、飞行怪 15。")]
+    private bool overrideKillReward;
+
+    [SerializeField, Min(0), Tooltip("启用覆盖时每只怪物的击杀奖励；允许 0。生成后修改不会改变已生成怪物的奖励。")]
+    private int killRewardOverride = 10;
+
+    public int GetKillReward(MonsterType type)
+    {
+        if (overrideKillReward)
+        {
+            if (killRewardOverride < 0) throw new ArgumentOutOfRangeException(nameof(killRewardOverride));
+            return killRewardOverride;
+        }
+        // TODO(确认): 暂用地面怪 10、飞行怪 15，后续按关卡平衡调整。
+        return type == MonsterType.Flying ? 15 : 10;
+    }
+
     [Header("Wave Settings")]
     // Kept hidden for migration. New scenes use WaveManager.TotalWaves globally.
     [SerializeField, HideInInspector, Min(1), Tooltip("Legacy per-entrance value; migrated to WaveManager.")]
@@ -300,6 +318,11 @@ public sealed class EnemySpawnPoint : MonoBehaviour
 
     private EnemyInstance CreateEnemy(int waveNumber, int indexInWave)
     {
+        MonsterType selectedType = flyingEntrance
+            ? MonsterType.Flying
+            : (GetWaveSettings(waveNumber)?.monsterType ?? monsterType);
+        // Reject invalid configuration before creating a partially initialized enemy.
+        GetKillReward(selectedType);
         spawnSequence++;
         GameObject selectedPrefab = GetWaveSettings(waveNumber)?.enemyPrefab;
         if (selectedPrefab == null) selectedPrefab = enemyPrefab;
@@ -310,12 +333,10 @@ public sealed class EnemySpawnPoint : MonoBehaviour
             : CreatePlaceholderEnemy(spawnPosition);
 
         EnemyInstance instance = enemy.GetComponent<EnemyInstance>() ?? enemy.AddComponent<EnemyInstance>();
-        instance.Initialize(this, spawnSequence, waveNumber, indexInWave);
         MonsterPathFollower follower = enemy.GetComponent<MonsterPathFollower>() ?? enemy.AddComponent<MonsterPathFollower>();
-        MonsterType selectedType = flyingEntrance
-            ? MonsterType.Flying
-            : (GetWaveSettings(waveNumber)?.monsterType ?? monsterType);
         instance.MonsterType = selectedType;
+        instance.Initialize(this, spawnSequence, waveNumber, indexInWave);
+        follower.enabled = true;
         float selectedHeight = GetWaveSettings(waveNumber)?.flightHeight ?? flightHeight;
         Vector3 direction = travelDirection.sqrMagnitude > 0.001f ? travelDirection : transform.forward;
         Transform destinationPoint = core != null ? core.transform : targetPoint;
@@ -333,7 +354,8 @@ public sealed class EnemySpawnPoint : MonoBehaviour
             follower.Initialize(pathGrid, destinationPoint, destination, direction, moveSpeed, core);
         }
         instance.PathFollower = follower;
-        if (selectedType == MonsterType.Ground && enemy.GetComponent<GroundEnemyCombat>() == null)
+        if (instance.Resolution == EnemyInstance.ResolutionState.Alive
+            && selectedType == MonsterType.Ground && enemy.GetComponent<GroundEnemyCombat>() == null)
             enemy.AddComponent<GroundEnemyCombat>();
         return instance;
     }

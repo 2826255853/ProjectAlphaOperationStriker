@@ -403,13 +403,27 @@ public sealed class FPSPackagePlayerMotion : MonoBehaviour
 public sealed class FPSHitscanShooter : MonoBehaviour
 {
     [SerializeField, Min(0.1f)] private float range = 250f;
+    [Tooltip("Fallback damage used only when a weapon has neither a WeaponDamageProfile nor a recognisable name.")]
     [SerializeField, Min(0f)] private float damage = 25f;
+    [Tooltip("When on, every weapon resolves its damage from its own class profile, so each gun hits differently.")]
+    [SerializeField] private bool usePerWeaponDamage = true;
     [SerializeField] private LayerMask hitMask = ~0;
 
     private FPSPlayer player;
     private FPSWeapon observedWeapon;
+    private WeaponDamageProfile observedProfile;
+    private WeaponDamageStats observedStats;
     private Camera playerCamera;
     private int previousAmmo = -1;
+
+    /// <summary>Damage stats currently in effect, exposed for tests and HUD debugging.</summary>
+    public WeaponDamageStats CurrentWeaponStats => observedStats;
+
+    /// <summary>Base damage of the active weapon before falloff / archetype / weak point modifiers.</summary>
+    public float CurrentWeaponBaseDamage => observedStats.BaseDamage;
+
+    /// <summary>Whether per-weapon damage profiles are in effect (HUD reads this to mirror the shooter).</summary>
+    public bool UsesPerWeaponDamage => usePerWeaponDamage;
 
     private void Awake()
     {
@@ -427,6 +441,8 @@ public sealed class FPSHitscanShooter : MonoBehaviour
             // state changes so a shot cannot damage gameplay targets.
             previousAmmo = -1;
             observedWeapon = null;
+            observedProfile = null;
+            observedStats = default;
             return;
         }
         if (player == null || playerCamera == null)
@@ -448,6 +464,7 @@ public sealed class FPSHitscanShooter : MonoBehaviour
         if (activeWeapon != observedWeapon)
         {
             observedWeapon = activeWeapon;
+            ResolveWeaponStats(activeWeapon);
             previousAmmo = activeWeapon.GetActiveAmmo();
             return;
         }
@@ -461,10 +478,41 @@ public sealed class FPSHitscanShooter : MonoBehaviour
         previousAmmo = ammo;
     }
 
+    /// <summary>
+    /// Picks the damage profile for the weapon that is currently equipped. A
+    /// hand-authored <see cref="WeaponDamageProfile"/> on the weapon wins;
+    /// otherwise the weapon name selects a class default so an unconfigured
+    /// prefab still deals class-appropriate damage.
+    /// </summary>
+    private void ResolveWeaponStats(FPSWeapon weapon)
+    {
+        observedStats = ResolveStatsFor(weapon, damage, usePerWeaponDamage);
+        observedProfile = usePerWeaponDamage && weapon != null
+            ? weapon.GetComponentInChildren<WeaponDamageProfile>(true)
+            : null;
+    }
+
+    /// <summary>
+    /// Single source of truth for "what damage does this weapon do". Shared by
+    /// the shooter and the ammo HUD so both always report the same numbers.
+    /// </summary>
+    public static WeaponDamageStats ResolveStatsFor(FPSWeapon weapon, float fallbackDamage, bool usePerWeaponDamage = true)
+    {
+        if (!usePerWeaponDamage || weapon == null)
+        {
+            return WeaponDamageStats.DefaultsFor(null, fallbackDamage);
+        }
+
+        WeaponDamageProfile profile = weapon.GetComponentInChildren<WeaponDamageProfile>(true);
+        return profile != null
+            ? profile.Stats
+            : WeaponDamageStats.DefaultsFor(weapon.gameObject.name, fallbackDamage);
+    }
+
     private void FireHitscan()
     {
         Ray ray = playerCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-        if (damage <= 0f)
+        if (observedStats.BaseDamage <= 0f)
         {
             return;
         }
@@ -495,22 +543,39 @@ public sealed class FPSHitscanShooter : MonoBehaviour
             if (enemyHealth != null)
             {
                 EnemyWeakPoint weakPoint = hit.collider.GetComponent<EnemyWeakPoint>();
-                float appliedDamage = damage;
+                float weakPointMultiplier = weakPoint != null ? weakPoint.DamageMultiplier : 1f;
+                MonsterType targetType = ResolveMonsterType(hit.collider, enemyHealth);
+
+                // Per-weapon damage: base x distance falloff x target archetype x weak point.
+                float appliedDamage = observedStats.Evaluate(hit.distance, weakPointMultiplier, targetType, true);
                 if (weakPoint != null)
                 {
-                    appliedDamage *= weakPoint.DamageMultiplier;
                     Debug.Log($"[FPSHitscanShooter] 命中弱点，伤害提升至: {appliedDamage:0.##}", weakPoint);
                 }
 
+                Debug.Log($"[FPSHitscanShooter] {observedStats.WeaponClass} 造成伤害: {appliedDamage:0.##}" +
+                          $"（基础 {observedStats.BaseDamage:0.##}，距离 {hit.distance:0.##}m，目标 {targetType}）", this);
                 enemyHealth.TakeDamage(appliedDamage);
                 return;
             }
 
             // Preserve compatibility with other gameplay targets that expose
             // TakeDamage(float), including receivers on a parent object.
-            hitTransform.SendMessageUpwards("TakeDamage", damage,
+            hitTransform.SendMessageUpwards("TakeDamage", observedStats.Evaluate(hit.distance, 1f, MonsterType.Ground, true),
                 SendMessageOptions.DontRequireReceiver);
             return;
         }
+    }
+
+    /// <summary>Ground / flying archetype of the target, used for weapon-specific scaling.</summary>
+    private static MonsterType ResolveMonsterType(Collider hitCollider, EnemyHealth enemyHealth)
+    {
+        EnemyInstance instance = hitCollider.GetComponentInParent<EnemyInstance>();
+        if (instance == null && enemyHealth != null)
+        {
+            instance = enemyHealth.GetComponent<EnemyInstance>();
+        }
+
+        return instance != null ? instance.MonsterType : MonsterType.Ground;
     }
 }

@@ -15,6 +15,7 @@ public sealed class TrapPlacementGridEditor : Editor
     private static readonly Vector3 MonsterGridToTrapGridOffset = new Vector3(0.5f, 0f, 0.5f);
 
     private SerializedProperty columns;
+    private SerializedProperty surfaceKind;
     private SerializedProperty rows;
     private SerializedProperty cellSize;
     private SerializedProperty placementHeight;
@@ -34,6 +35,7 @@ public sealed class TrapPlacementGridEditor : Editor
     private void OnEnable()
     {
         columns = serializedObject.FindProperty("columns");
+        surfaceKind = serializedObject.FindProperty("surfaceKind");
         rows = serializedObject.FindProperty("rows");
         cellSize = serializedObject.FindProperty("cellSize");
         placementHeight = serializedObject.FindProperty("placementHeight");
@@ -44,6 +46,8 @@ public sealed class TrapPlacementGridEditor : Editor
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
+        EditorGUILayout.PropertyField(surfaceKind, new GUIContent("放置表面"));
+        EditorGUILayout.HelpBox("普通炮塔类：地面、道路和高台均可放置。地刺等地面陷阱：只能放在地面或道路。", MessageType.Info);
         EditorGUILayout.PropertyField(columns);
         EditorGUILayout.PropertyField(rows);
         EditorGUILayout.PropertyField(cellSize);
@@ -130,7 +134,8 @@ public sealed class TrapPlacementGridEditor : Editor
             monsterGrid.transform.TransformVector(MonsterGridToTrapGridOffset);
         trapGrid.transform.SetPositionAndRotation(trapGridPosition, monsterGrid.transform.rotation);
         trapGrid.ConfigureLayout(monsterGrid.Columns, monsterGrid.Rows, monsterGrid.CellSize,
-            monsterGrid.PathHeight + 0.02f, monsterGrid.CreateOpenCellSnapshot());
+            TrapGridAuthoring.RoadPlacementHeight(monsterGrid), monsterGrid.CreateOpenCellSnapshot(),
+            TrapPlacementGrid.SurfaceKind.Road);
         EditorUtility.SetDirty(trapGrid);
         UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(trapGrid.gameObject.scene);
         Selection.activeGameObject = trapGrid.gameObject;
@@ -188,13 +193,13 @@ public sealed class TrapPlacementGridEditor : Editor
         List<Collider> platformColliders = TrapGridAuthoring.CollectPlatformColliders();
         List<Collider> surfaceColliders = TrapGridAuthoring.CollectSurfaceColliders();
 
-        // The walkway keeps the authored monster-plane height, open ground sits
+        // The walkway follows the physical road surface, open ground sits
         // on the terrain surface, and the platform level sits on the platform
         // tops. Three surfaces, three grids, every cell on exactly one level.
         TrapPlacementGrid roadGrid = FindOrCreateGrid("TrapPlacementGrid_Road",
             "TrapPlacementGrid_Ground", "TrapPlacementGrid");
         ConfigureGrid(roadGrid, monsterGrid, anchorPosition, anchorRotation,
-            monsterGrid.CreateOpenCellSnapshot(), monsterGrid.PathHeight + TrapGridAuthoring.SurfaceOffset);
+            monsterGrid.CreateOpenCellSnapshot(), TrapGridAuthoring.RoadPlacementHeight(monsterGrid), TrapPlacementGrid.SurfaceKind.Road);
 
         int reservedCells;
         bool[] groundCells = TrapGridAuthoring.BuildGroundMask(monsterGrid, anchorPosition, anchorRotation,
@@ -204,7 +209,7 @@ public sealed class TrapPlacementGridEditor : Editor
             surfaceColliders, groundCells, 0f);
         TrapPlacementGrid groundGrid = FindOrCreateGrid("TrapPlacementGrid_Ground");
         ConfigureGrid(groundGrid, monsterGrid, anchorPosition, anchorRotation,
-            groundCells, groundTop + TrapGridAuthoring.SurfaceOffset);
+            groundCells, groundTop + TrapGridAuthoring.SurfaceOffset, TrapPlacementGrid.SurfaceKind.Ground);
 
         bool[] platformCells = TrapGridAuthoring.BuildPlatformMask(monsterGrid, anchorPosition, anchorRotation,
             platformColliders, out float platformTop, out int skippedHeights);
@@ -215,7 +220,7 @@ public sealed class TrapPlacementGridEditor : Editor
         {
             platformGrid = FindOrCreateGrid("TrapPlacementGrid_Platform");
             ConfigureGrid(platformGrid, monsterGrid, anchorPosition, anchorRotation,
-                platformCells, platformTop + TrapGridAuthoring.SurfaceOffset);
+                platformCells, platformTop + TrapGridAuthoring.SurfaceOffset, TrapPlacementGrid.SurfaceKind.Platform);
         }
 
         Undo.CollapseUndoOperations(undoGroup);
@@ -254,11 +259,12 @@ public sealed class TrapPlacementGridEditor : Editor
     }
 
     private static TrapPlacementGrid ConfigureGrid(TrapPlacementGrid grid, MonsterPathGrid monsterGrid,
-        Vector3 anchorPosition, Quaternion anchorRotation, bool[] openCells, float placementHeight)
+        Vector3 anchorPosition, Quaternion anchorRotation, bool[] openCells, float placementHeight,
+        TrapPlacementGrid.SurfaceKind surface)
     {
         Undo.RecordObject(grid, "Configure trap placement grid");
         grid.transform.SetPositionAndRotation(anchorPosition, anchorRotation);
-        grid.ConfigureLayout(monsterGrid.Columns, monsterGrid.Rows, monsterGrid.CellSize, placementHeight, openCells);
+        grid.ConfigureLayout(monsterGrid.Columns, monsterGrid.Rows, monsterGrid.CellSize, placementHeight, openCells, surface);
         EditorUtility.SetDirty(grid);
         UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(grid.gameObject.scene);
         return grid;
@@ -376,7 +382,9 @@ public sealed class TrapPlacementGridEditor : Editor
 
     private static bool IsGroundGrid(TrapPlacementGrid grid, MonsterPathGrid monsterGrid)
     {
-        return Mathf.Abs(grid.PlacementHeight - (monsterGrid.PathHeight + TrapGridAuthoring.SurfaceOffset)) <= 0.05f;
+        return grid.name == "TrapPlacementGrid_Road"
+            || grid.name == "TrapPlacementGrid"
+            || Mathf.Abs(grid.PlacementHeight - (monsterGrid.PathHeight + TrapGridAuthoring.SurfaceOffset)) <= 0.05f;
     }
 
     private void OnSceneGUI()

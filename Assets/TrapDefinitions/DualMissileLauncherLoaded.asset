@@ -15,7 +15,7 @@ MonoBehaviour:
   trapId: dual_missile_launcher_loaded
   displayName: "\u53CC\u8054\u5BFC\u5F39\u53D1\u5C04\u5668\uFF08\u88C5\u586B\uFF09"
   prefab: {fileID: 715730210379081707, guid: 074e8dcb573abd946b27fcb09a54d381, type: 3}
-  cost: 0
+  cost: 40
   footprintWidth: 2
   footprintHeight: 2
   localRotation: {x: 0, y: 0, z: 0}

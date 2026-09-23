@@ -8,6 +8,10 @@ using UnityEngine;
 public sealed class FlyingSpawnPointTests
 {
     private readonly List<GameObject> objects = new List<GameObject>();
+    private EconomyManager previousWallet;
+
+    [SetUp]
+    public void SetUp() => previousWallet = EconomyManager.Instance;
 
     [TearDown]
     public void TearDown()
@@ -15,6 +19,8 @@ public sealed class FlyingSpawnPointTests
         for (int i = objects.Count - 1; i >= 0; i--)
             if (objects[i] != null) Object.DestroyImmediate(objects[i]);
         objects.Clear();
+        EconomyManager wallet = EconomyManager.Instance;
+        if (wallet != null && wallet != previousWallet) Object.DestroyImmediate(wallet.gameObject);
     }
 
     [Test]
@@ -22,6 +28,7 @@ public sealed class FlyingSpawnPointTests
     {
         EnemySpawnPoint spawnPoint = CreateSpawnPoint(flyingEntrance: true, altitude: 14f, spread: 0f);
         EnemyInstance instance = spawnPoint.SpawnEnemy();
+        objects.Add(instance.gameObject);
 
         Assert.That(instance, Is.Not.Null);
         Assert.That(instance.MonsterType, Is.EqualTo(MonsterType.Flying));
@@ -44,6 +51,7 @@ public sealed class FlyingSpawnPointTests
     {
         EnemySpawnPoint spawnPoint = CreateSpawnPoint(flyingEntrance: false, altitude: 12f, spread: 0f);
         EnemyInstance instance = spawnPoint.SpawnEnemy();
+        objects.Add(instance.gameObject);
 
         Assert.That(instance.MonsterType, Is.EqualTo(MonsterType.Ground));
         Assert.That(instance.PathFollower.IsFlying, Is.False);

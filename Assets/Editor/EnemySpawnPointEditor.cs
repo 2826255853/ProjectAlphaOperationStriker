@@ -6,6 +6,8 @@ public sealed class EnemySpawnPointEditor : Editor
 {
     private SerializedProperty spawningEnabled;
     private SerializedProperty spawnInterval;
+    private SerializedProperty overrideKillReward;
+    private SerializedProperty killRewardOverride;
     private SerializedProperty legacyTotalWaves;
     private SerializedProperty enemiesPerWave;
     private SerializedProperty waveSpawnSettings;
@@ -30,6 +32,8 @@ public sealed class EnemySpawnPointEditor : Editor
     {
         spawningEnabled = serializedObject.FindProperty("spawningEnabled");
         spawnInterval = serializedObject.FindProperty("spawnInterval");
+        overrideKillReward = serializedObject.FindProperty("overrideKillReward");
+        killRewardOverride = serializedObject.FindProperty("killRewardOverride");
         legacyTotalWaves = serializedObject.FindProperty("totalWaves");
         enemiesPerWave = serializedObject.FindProperty("enemiesPerWave");
         waveSpawnSettings = serializedObject.FindProperty("waveSpawnSettings");
@@ -58,6 +62,18 @@ public sealed class EnemySpawnPointEditor : Editor
         EditorGUILayout.LabelField("刷新设置", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(spawningEnabled, new GUIContent("是否启动"));
         EditorGUILayout.PropertyField(spawnInterval, new GUIContent("同波怪物生成间隔（秒）"));
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("击杀奖励", EditorStyles.boldLabel);
+        EditorGUILayout.PropertyField(overrideKillReward, new GUIContent("覆盖默认奖励"));
+        if (overrideKillReward.boolValue)
+        {
+            EditorGUILayout.PropertyField(killRewardOverride, new GUIContent("每只怪物奖励（金币）"));
+            if (killRewardOverride.intValue < 0)
+                EditorGUILayout.HelpBox("击杀奖励不能为负数；可设为 0。", MessageType.Error);
+        }
+        else
+            EditorGUILayout.LabelField("默认奖励", "地面怪 10 / 飞行怪 15；漏怪不奖励");
 
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("波次设置", EditorStyles.boldLabel);

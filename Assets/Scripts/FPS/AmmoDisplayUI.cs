@@ -26,10 +26,12 @@ public sealed class AmmoDisplayUI : MonoBehaviour
     [SerializeField] private Color hintColor = new Color(0.75f, 0.8f, 0.88f, 1f);
 
     private FPSPlayer player;
+    private FPSHitscanShooter shooter;
     private TMP_Text ammoText;
     private TMP_Text hintText;
     private int lastAmmo = -1;
     private int lastMaxAmmo = -1;
+    private string lastWeaponLabel;
 
     private void Start()
     {
@@ -37,6 +39,12 @@ public sealed class AmmoDisplayUI : MonoBehaviour
         if (player == null)
         {
             player = FindAnyObjectByType<FPSPlayer>();
+        }
+
+        shooter = GetComponent<FPSHitscanShooter>();
+        if (shooter == null)
+        {
+            shooter = FindAnyObjectByType<FPSHitscanShooter>();
         }
 
         CreateHud();
@@ -155,16 +163,35 @@ public sealed class AmmoDisplayUI : MonoBehaviour
 
         int ammo = activeWeapon.GetActiveAmmo();
         int maxAmmo = activeWeapon.GetMaxAmmo();
-        if (!force && ammo == lastAmmo && maxAmmo == lastMaxAmmo)
+        string weaponLabel = BuildWeaponLabel(activeWeapon);
+        if (!force && ammo == lastAmmo && maxAmmo == lastMaxAmmo && weaponLabel == lastWeaponLabel)
         {
             return;
         }
 
         lastAmmo = ammo;
         lastMaxAmmo = maxAmmo;
+        lastWeaponLabel = weaponLabel;
         ammoText.text = $"{ammo} / {InfiniteReserve}";
         ammoText.color = ammo <= Mathf.Max(1, Mathf.CeilToInt(maxAmmo * 0.2f))
             ? lowAmmoColor
             : normalAmmoColor;
+
+        // Surface the per-weapon damage so switching guns is visibly different.
+        hintText.text = weaponLabel;
+    }
+
+    private string BuildWeaponLabel(FPSWeapon weapon)
+    {
+        if (shooter == null || weapon == null)
+        {
+            return "R  RELOAD   |   RESERVE: ∞";
+        }
+
+        // Resolve through the shooter's own rule so the HUD can never disagree
+        // with the damage actually applied on hit (including the opt-out toggle).
+        WeaponDamageStats stats = FPSHitscanShooter.ResolveStatsFor(weapon, 25f, shooter.UsesPerWeaponDamage);
+
+        return $"{weapon.gameObject.name}   |   伤害 {stats.BaseDamage:0.#}   弱点 x{stats.WeakPointMultiplier:0.##}   |   R  RELOAD";
     }
 }

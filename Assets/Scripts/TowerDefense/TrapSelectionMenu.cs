@@ -16,6 +16,8 @@ public sealed class TrapSelectionMenu : MonoBehaviour
     private readonly List<InputAction> suppressedWeaponActions = new List<InputAction>();
     private bool restoreWeaponInputPending;
     private static int cursorReleasedFrame = -1;
+    private readonly EconomyUIState economy = new EconomyUIState();
+    public string BalanceText => economy.BalanceText;
 
     public static bool IsOpen { get; private set; }
 
@@ -34,9 +36,12 @@ public sealed class TrapSelectionMenu : MonoBehaviour
     }
 
     private void Awake() { Refresh(); }
+    private void OnEnable() => economy.Enable();
+    private void OnDestroy() => economy.Dispose();
 
     private void Update()
     {
+        economy.Refresh();
         UpdatePendingWeaponInputRestore();
         if (Keyboard.current == null) return;
         if (toggleKey == KeyCode.N && Keyboard.current.nKey.wasPressedThisFrame) SetOpen(!open);
@@ -120,6 +125,8 @@ public sealed class TrapSelectionMenu : MonoBehaviour
 
     private void OnDisable()
     {
+        economy.Dispose();
+        if (open) SetOpen(false);
         restoreWeaponInputPending = false;
         SetWeaponInputSuppressed(false);
         IsOpen = false;
@@ -152,7 +159,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
         {
             int charsPerLine = Mathf.Max(1, Mathf.FloorToInt(textWidth / fontSize));
             int nameLines = Mathf.CeilToInt(longestName / (float)charsPerLine);
-            float needed = (nameLines + 1) * fontSize * 1.2f;
+            float needed = (nameLines + 2) * fontSize * 1.2f;
             if (needed <= textHeight) break;
             fontSize--;
         }
@@ -172,6 +179,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
     private void OnGUI()
     {
         if (!open) return;
+        economy.Refresh();
         TrapPlacementController target = GetPlacement();
         int targetSlot = target != null ? target.SelectedSlot : 0;
         TrapDefinition currentSlotTrap = target != null ? target.GetTrapSlot(targetSlot) : null;
@@ -179,7 +187,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
         // The trap list is laid out as a fixed 6 rows x 9 columns grid whose
         // cells are always square. The cell size is derived from the screen so
         // the whole panel keeps fitting, then clamped to a readable range.
-        const float pad = 24f, gap = 8f, headerHeight = 104f, footerHeight = 88f;
+        const float pad = 24f, gap = 8f, headerHeight = 136f, footerHeight = 112f;
         float cell = Mathf.Floor(Mathf.Min(
             (Screen.width * 0.92f - pad * 2f - gap * (GridColumns - 1)) / GridColumns,
             (Screen.height * 0.9f - headerHeight - footerHeight - gap * (GridRows - 1)) / GridRows));
@@ -206,6 +214,9 @@ public sealed class TrapSelectionMenu : MonoBehaviour
         }
         GUI.backgroundColor = Color.white;
 
+        GUI.Label(new Rect(panel.x + pad, panel.y + 100f, panelWidth - pad * 2f, 26f),
+            BalanceText + "    选择不扣款，确认放置时支付");
+
         EnsureCellStyles(cell);
         float gridX = panel.x + (panelWidth - gridWidth) * .5f;
         float gridTop = panel.y + headerHeight;
@@ -229,9 +240,14 @@ public sealed class TrapSelectionMenu : MonoBehaviour
 
             TrapDefinition trap = available[i];
             bool isCurrent = currentSlotTrap == trap;
+            bool affordable = economy.CanAfford(trap);
             if (rect.Contains(mouse)) hoveredTrap = trap;
-            GUI.backgroundColor = isCurrent ? new Color(0.55f, 0.9f, 1f) : Color.white;
-            if (GUI.Button(rect, trap.DisplayName + "\n花费 " + trap.Cost, cellStyle))
+            GUI.backgroundColor = !affordable ? new Color(1f, 0.58f, 0.52f)
+                : isCurrent ? new Color(0.55f, 0.9f, 1f) : Color.white;
+            string status = affordable ? string.Empty : trap.Cost < 0 ? "价格无效"
+                : economy.IsReady ? "金币不足" : "金币暂不可用";
+            // Unaffordable traps remain selectable for inspection and later placement.
+            if (GUI.Button(rect, trap.DisplayName + "\n花费 " + trap.Cost + "\n" + status, cellStyle))
             {
                 if (target != null)
                 {
@@ -252,8 +268,10 @@ public sealed class TrapSelectionMenu : MonoBehaviour
             ? $"{described.DisplayName}   花费 {described.Cost}   占地 {described.Footprint.x}x{described.Footprint.y}"
             : "将鼠标移到陷阱上查看详情";
         GUI.Label(new Rect(panel.x + pad, panel.y + panelHeight - footerHeight + 8f, panelWidth - pad * 2f, 24f), description);
+        GUI.Label(new Rect(panel.x + pad, panel.y + panelHeight - footerHeight + 32f, panelWidth - pad * 2f, 24f),
+            economy.PurchaseHint(described));
 
-        if (GUI.Button(new Rect(panel.x + pad, panel.y + panelHeight - footerHeight + 36f, panelWidth - pad * 2f, 38f), "取消已选陷阱"))
+        if (GUI.Button(new Rect(panel.x + pad, panel.y + panelHeight - footerHeight + 60f, panelWidth - pad * 2f, 38f), "取消已选陷阱"))
         {
             if (target != null) target.AssignTrapToSlot(targetSlot, null);
             SetOpen(false);

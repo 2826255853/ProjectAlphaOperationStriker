@@ -607,12 +607,12 @@ public static partial class MapForgeWorldImporter
         var surfaces = TrapGridAuthoring.CollectSurfaceColliders();
 
         CreateTrapPlacementGrid("TrapPlacementGrid_Road", parent, pathGrid, anchor, rotation,
-            pathGrid.CreateOpenCellSnapshot(), pathGrid.PathHeight + TrapGridAuthoring.SurfaceOffset);
+            pathGrid.CreateOpenCellSnapshot(), TrapGridAuthoring.RoadPlacementHeight(pathGrid), TrapPlacementGrid.SurfaceKind.Road);
 
         bool[] groundCells = TrapGridAuthoring.BuildGroundMask(pathGrid, anchor, rotation, platforms, out _);
         float groundTop = TrapGridAuthoring.DominantSurfaceTop(pathGrid, anchor, rotation, surfaces, groundCells, 0f);
         CreateTrapPlacementGrid("TrapPlacementGrid_Ground", parent, pathGrid, anchor, rotation,
-            groundCells, groundTop + TrapGridAuthoring.SurfaceOffset);
+            groundCells, groundTop + TrapGridAuthoring.SurfaceOffset, TrapPlacementGrid.SurfaceKind.Ground);
 
         if (platforms.Count == 0) return;
         bool[] platformCells = TrapGridAuthoring.BuildPlatformMask(pathGrid, anchor, rotation, platforms,
@@ -622,17 +622,17 @@ public static partial class MapForgeWorldImporter
                 "because a single grid can only describe one height.");
         if (platformCells == null) return;
         CreateTrapPlacementGrid("TrapPlacementGrid_Platform", parent, pathGrid, anchor, rotation,
-            platformCells, platformTop + TrapGridAuthoring.SurfaceOffset);
+            platformCells, platformTop + TrapGridAuthoring.SurfaceOffset, TrapPlacementGrid.SurfaceKind.Platform);
     }
 
     private static void CreateTrapPlacementGrid(string name, Transform parent, MonsterPathGrid pathGrid,
-        Vector3 anchor, Quaternion rotation, bool[] openCells, float placementHeight)
+        Vector3 anchor, Quaternion rotation, bool[] openCells, float placementHeight, TrapPlacementGrid.SurfaceKind surface)
     {
         var gridObject = new GameObject(name);
         gridObject.transform.SetParent(parent, true);
         gridObject.transform.SetPositionAndRotation(anchor, rotation);
         TrapPlacementGrid grid = gridObject.AddComponent<TrapPlacementGrid>();
-        grid.ConfigureLayout(pathGrid.Columns, pathGrid.Rows, pathGrid.CellSize, placementHeight, openCells);
+        grid.ConfigureLayout(pathGrid.Columns, pathGrid.Rows, pathGrid.CellSize, placementHeight, openCells, surface);
     }
 
     private static void OpenSegment(MonsterPathGrid grid, PathSegmentData segment)

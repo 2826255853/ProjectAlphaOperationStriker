@@ -38,25 +38,69 @@ if (-not (Test-Path -LiteralPath $ProjectPath)) {
 }
 
 # --- Unity 可执行文件：优先用 ProjectSettings/ProjectVersion.txt 指定的版本 ---
-if (-not $UnityPath) {
+# 本机 Unity 装在 C:\Program Files\Unity <版本>\Editor\Unity.exe（非 Hub 布局），且版本号随升级不定期变化，
+# 所以这里不写死版本号：先按项目记录版本精确查找，找不到再扫描 Program Files 下所有已安装版本。
+# 两条路径都只使用已安装的编辑器，不自动切换项目版本、不触发项目迁移。
+# 从 <...>\Unity <版本>\... 或 Hub 的 <...>\<版本>\... 目录名里取版本号，做可比较的排序键。
+function Get-UnityVersionKey([string]$path) {
+    if ($path -match '(?:Unity )?(\d+)\.(\d+)\.(\d+)([fFpPbBaA])(\d+)[\\/]') {
+        return ([int]$Matches[1] * 1000000000) + ([int]$Matches[2] * 1000000) + ([int]$Matches[3] * 1000) + [int]$Matches[5]
+    }
+    return -1
+}
+
+# 是否正式发行版（f 结尾）。skill 要求优先正式版，不默认用 Alpha/Beta 等预发布版。
+function Test-UnityStableRelease([string]$path) {
+    return [bool]($path -match '(\d+)\.\d+\.\d+[fF]\d+[\\/]')
+}
+
+if ($UnityPath) {
+    if (-not (Test-Path -LiteralPath $UnityPath)) {
+        Write-Host ("[unity] -UnityPath 指向的编辑器不存在：{0}" -f $UnityPath) -ForegroundColor Red
+        exit 2
+    }
+} else {
     $version = $null
     $versionFile = Join-Path $ProjectPath 'ProjectSettings\ProjectVersion.txt'
     if (Test-Path -LiteralPath $versionFile) {
         $match = Select-String -LiteralPath $versionFile -Pattern '^m_EditorVersion:\s*(\S+)' | Select-Object -First 1
         if ($match) { $version = $match.Matches[0].Groups[1].Value }
     }
+
     $candidates = @()
-    if ($version) { $candidates += "C:\Program Files\Unity\Hub\Editor\Unity $version\Editor\Unity.exe" }
-    $hub = 'C:\Program Files\Unity\Hub\Editor'
-    if (Test-Path -LiteralPath $hub) {
-        $candidates += @(Get-ChildItem -LiteralPath $hub -Directory -ErrorAction SilentlyContinue |
-            Sort-Object Name -Descending |
-            ForEach-Object { Join-Path $_.FullName 'Editor\Unity.exe' })
+    if ($version -and $version -match '^\d+\.\d+\.\d+[fFpPbB]\d+$') {
+        # 1) 按项目记录的版本精确匹配：本机布局优先，其次 Hub 的两种目录名
+        $candidates += "C:\Program Files\Unity $version\Editor\Unity.exe"
+        $candidates += "C:\Program Files\Unity\Hub\Editor\Unity $version\Editor\Unity.exe"
+        $candidates += "C:\Program Files\Unity\Hub\Editor\$version\Editor\Unity.exe"
     }
     $UnityPath = $candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+
+    if (-not $UnityPath) {
+        # 2) 项目记录版本没装在预期位置：扫描所有已安装版本，取版本号最高者，并在日志里说明。
+        $installs = @(
+            Get-ChildItem -Path 'C:\Program Files' -Directory -Filter 'Unity *' -ErrorAction SilentlyContinue |
+                ForEach-Object { Join-Path $_.FullName 'Editor\Unity.exe' }
+            Get-ChildItem -Path 'C:\Program Files\Unity\Hub\Editor' -Directory -ErrorAction SilentlyContinue |
+                ForEach-Object { Join-Path $_.FullName 'Editor\Unity.exe' }
+        ) | Where-Object { Test-Path -LiteralPath $_ }
+        if ($installs.Count -gt 0) {
+            $installs = @($installs | Sort-Object -Property @{ Expression = { Get-UnityVersionKey $_ } } -Descending)
+            # 优先正式版（f）；本机只装了 Alpha/Beta/Preview 时才退回预发布版并明确告警。
+            $stable = @($installs | Where-Object { Test-UnityStableRelease $_ })
+            $UnityPath = if ($stable.Count -gt 0) { $stable[0] } else { $installs[0] }
+            Write-Host ("[unity] 项目记录的 {0} 不在预期路径，改用扫描到的编辑器：{1}" -f $version, $UnityPath) -ForegroundColor Yellow
+            if ($stable.Count -eq 0) {
+                Write-Host '[unity] 警告：本机没有正式发行版(f)，只能使用预发布版，注意包兼容性。' -ForegroundColor Yellow
+            }
+            if ($installs.Count -gt 1) {
+                Write-Host ("[unity] 本机还装有：{0}。如需指定其它版本请加 -UnityPath。" -f (($installs | Select-Object -Skip 1) -join '; ')) -ForegroundColor Yellow
+            }
+        }
+    }
 }
 if (-not $UnityPath) {
-    Write-Host '[unity] 找不到 Unity 编辑器，用 -UnityPath 指定 Unity.exe。' -ForegroundColor Red
+    Write-Host '[unity] 找不到已安装的 Unity 编辑器（已扫描 C:\Program Files\Unity *\Editor\Unity.exe 与 Hub 目录），用 -UnityPath 指定已核实的 Unity.exe。' -ForegroundColor Red
     exit 2
 }
 

@@ -18,6 +18,8 @@ public sealed class GroundEnemyCombat : MonoBehaviour
 
     [Header("Trap targeting")]
     [SerializeField, Min(0f)] private float trapDetectionDistance = 8f;
+    [SerializeField, Tooltip("允许主动攻击地刺。普通怪物默认关闭；仅为需要此能力的特殊怪物开启，不影响地刺受到其他来源的伤害。")]
+    private bool allowAttackGroundSpikes;
 
     [Header("Melee attack")]
     [SerializeField, Min(0.1f)] private float attackRange = 1.5f;
@@ -117,7 +119,7 @@ public sealed class GroundEnemyCombat : MonoBehaviour
         }
 
         playerTarget = null;
-        // Keep attacking the same trap until it is destroyed or becomes unreachable.
+        // Recheck permissions as well as health and reachability for the current trap.
         if (CanTargetTrap(trapTarget)
             && TryBuildCombatPath(trapTarget.transform.position, false, trapDetectionDistance * 2f, out _))
         {
@@ -154,6 +156,7 @@ public sealed class GroundEnemyCombat : MonoBehaviour
     private bool CanTargetTrap(TrapInstance trap)
     {
         if (trap == null || !trap.isActiveAndEnabled || trap.IsDestroyed) return false;
+        if (!allowAttackGroundSpikes && trap.GetComponent<GroundSpikeTrap>() != null) return false;
         Vector3 position = trap.transform.position;
         return PlanarDistance(transform.position, position) <= trapDetectionDistance
             && Mathf.Abs(position.y - transform.position.y) <= roadHeightTolerance;

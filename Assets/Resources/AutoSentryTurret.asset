@@ -15,7 +15,7 @@ MonoBehaviour:
   trapId: auto_sentry_turret
   displayName: "\u54E8\u6212\u673A\u67AA"
   prefab: {fileID: 100100000, guid: 8c6db5b3e6c7470ca27c3b9d5a46f102, type: 3}
-  cost: 0
+  cost: 40
   footprintWidth: 2
   footprintHeight: 2
   localRotation: {x: 0, y: 0, z: 0}

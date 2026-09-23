@@ -39,6 +39,10 @@ public sealed class TrapPlacementController : MonoBehaviour
     private readonly List<InputAction> suppressedWeaponActions = new List<InputAction>();
     private Material openMaterial, blockedMaterial, footprintMaterial, invalidFootprintMaterial;
     private Material hoveredMaterial;
+    private readonly EconomyUIState economy = new EconomyUIState();
+    private readonly List<Material> previewMaterials = new List<Material>();
+    private float failureVisibleUntil;
+    private GUIStyle placementHintStyle;
 
     public TrapDefinition SelectedTrap
     {
@@ -54,8 +58,10 @@ public sealed class TrapPlacementController : MonoBehaviour
     public int TrapSlotCount => trapSlots != null ? trapSlots.Length : 0;
     public bool PlacementMode => placementMode;
     public bool HasValidPreview => placementMode && hasHoveredCell && activeGrid != null &&
-        selectedTrap != null && CanPlace(activeGrid, hoveredCell);
+        selectedTrap != null && CanPurchaseAt(activeGrid, hoveredCell);
     public TrapPlacementGrid ActiveGrid => activeGrid;
+    public string LastPlacementFailure { get; private set; } = string.Empty;
+    public string PurchaseHint => economy.PurchaseHint(selectedTrap);
     public static bool IsPlacementModeActive { get; private set; }
 
     public TrapDefinition GetTrapSlot(int slot)
@@ -69,6 +75,7 @@ public sealed class TrapPlacementController : MonoBehaviour
         if (trapSlots == null || slot < 0 || slot >= trapSlots.Length) return false;
         selectedSlot = slot;
         selectedTrap = trapSlots[slot];
+        LastPlacementFailure = string.Empty;
         RebuildPreview();
         if (placementMode) RefreshGridMarkers();
         return selectedTrap != null;
@@ -136,9 +143,16 @@ public sealed class TrapPlacementController : MonoBehaviour
         SetPlacementMode(placementMode);
     }
 
+    private void OnEnable()
+    {
+        economy.Changed += RefreshPurchaseFeedback;
+        economy.Enable();
+    }
+
     private void Update()
     {
-        if (TrapSelectionMenu.IsOpen) return;
+        economy.Refresh();
+        if (TrapSelectionMenu.CursorOwned) return;
         // The project uses the new Input System, so read the number keys from
         // Keyboard.current instead of relying only on the legacy Input API.
         if (TryGetTrapSlotPressed(out int slot))
@@ -159,10 +173,10 @@ public sealed class TrapPlacementController : MonoBehaviour
         if (!placementMode && WasDismantleKeyPressed())
             DismantleAimedTrap();
         if (!placementMode) return;
-        if (WasMouseButtonPressed(0) && HasValidPreview)
+        // Report the actual placement failure even when the preview is red.
+        if (WasMouseButtonPressed(0) && hasHoveredCell)
         {
-            PlaceAt(hoveredCell);
-            dragPlacement = allowDragPlacement;
+            dragPlacement = PlaceAt(hoveredCell) && allowDragPlacement;
             lastPlacedCell = hoveredCell;
             hasLastPlacedCell = true;
         }
@@ -217,7 +231,7 @@ public sealed class TrapPlacementController : MonoBehaviour
                 bestOccupied = candidate;
                 occupiedCell = candidateCell;
             }
-            else if (!occupied && candidate.IsOpen(candidateCell) && distance < usableDistance)
+            else if (!occupied && CanPlace(candidate, candidateCell) && distance < usableDistance)
             {
                 usableDistance = distance;
                 bestUsable = candidate;
@@ -299,18 +313,23 @@ public sealed class TrapPlacementController : MonoBehaviour
             return;
         }
         EnsurePreview();
+        if (!activeGrid.TryGetFootprint(selectedTrap, out Vector2Int footprint))
+        {
+            SetPreviewVisible(false);
+            return;
+        }
         // Keep the ghost anchored and sized exactly like the instance that
         // TrapPlacementGrid will create (including multi-cell footprints).
         preview.transform.SetPositionAndRotation(
-            activeGrid.GetTrapWorldPosition(hoveredCell, selectedTrap.Footprint),
-            selectedTrap.LocalRotation);
-        Vector2Int footprint = selectedTrap.Footprint;
+            activeGrid.GetTrapWorldPosition(hoveredCell, footprint),
+            activeGrid.GetTrapWorldRotation(selectedTrap));
         // Authored prefabs (including the 2x2m missile launcher) already carry
         // their world scale. Only the primitive fallback needs footprint scaling.
         preview.transform.localScale = selectedTrap.Prefab != null
             ? previewBaseScale
             : new Vector3(previewBaseScale.x * footprint.x, previewBaseScale.y, previewBaseScale.z * footprint.y);
         SetPreviewVisible(true);
+        UpdatePreviewColor();
         if (!previousHover || !hasHoveredCell || previousCell != hoveredCell || previousGrid != activeGrid)
             RefreshGridMarkers();
     }
@@ -383,20 +402,37 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     private bool CanPlace(TrapPlacementGrid target, Vector2Int cell)
     {
-        if (target == null || selectedTrap == null) return false;
-        Vector2Int size = selectedTrap.Footprint;
-        for (int y = 0; y < size.y; y++) for (int x = 0; x < size.x; x++)
-        {
-            Vector2Int c = cell + new Vector2Int(x, y);
-            if (!target.IsInside(c) || !target.IsOpen(c) || target.IsOccupied(c)) return false;
-        }
-        return true;
+        return target != null && target.CanPlaceTrap(cell, selectedTrap, out _);
     }
 
-    private void PlaceAt(Vector2Int cell)
+    private bool CanPurchaseAt(TrapPlacementGrid target, Vector2Int cell) =>
+        CanPlace(target, cell) && EconomyManager.Instance != null
+        && EconomyManager.Instance.CanAfford(selectedTrap.Cost);
+
+    private void RefreshPurchaseFeedback()
     {
-        if (selectedTrap != null && activeGrid != null) activeGrid.TryPlaceTrap(cell, selectedTrap, out _, out _);
+        // Committed wallet changes invalidate a failure message from the previous balance.
+        LastPlacementFailure = string.Empty;
+        UpdatePreviewColor();
         RefreshGridMarkers();
+    }
+
+    private void UpdatePreviewColor()
+    {
+        Color color = HasValidPreview ? new Color(0.2f, 1f, 0.3f, 0.45f)
+            : new Color(1f, 0.18f, 0.12f, 0.6f);
+        foreach (Material material in previewMaterials)
+            if (material != null) material.color = color;
+    }
+
+    private bool PlaceAt(Vector2Int cell)
+    {
+        bool purchased = TrapPurchaseService.TryPurchase(activeGrid, cell, selectedTrap, out _, out string failure);
+        LastPlacementFailure = failure;
+        failureVisibleUntil = Time.unscaledTime + 3f;
+        UpdatePreviewColor();
+        RefreshGridMarkers();
+        return purchased;
     }
 
     private void PlaceAlongLine(Vector2Int from, Vector2Int to)
@@ -406,6 +442,18 @@ public sealed class TrapPlacementController : MonoBehaviour
         {
             Vector2Int cell = new Vector2Int(Mathf.RoundToInt(Mathf.Lerp(from.x, to.x, i / (float)steps)), Mathf.RoundToInt(Mathf.Lerp(from.y, to.y, i / (float)steps)));
             if (cell == lastPlacedCell) continue;
+            EconomyManager wallet = EconomyManager.Instance;
+            if (selectedTrap == null || wallet == null || !wallet.CanAfford(selectedTrap.Cost))
+            {
+                economy.Refresh();
+                LastPlacementFailure = wallet == null || !wallet.IsInitialized ? "金币暂不可用，连续放置已停止。"
+                    : selectedTrap == null || selectedTrap.Cost < 0 ? "陷阱配置无效，连续放置已停止。"
+                    : $"金币不足，还差 {Mathf.Max(0, selectedTrap.Cost - wallet.AvailableBalance)}，连续放置已停止。";
+                failureVisibleUntil = Time.unscaledTime + 3f;
+                dragPlacement = false;
+                hasLastPlacedCell = false;
+                break;
+            }
             PlaceAt(cell);
             lastPlacedCell = cell;
         }
@@ -424,6 +472,7 @@ public sealed class TrapPlacementController : MonoBehaviour
         IsPlacementModeActive = enabled;
         dragPlacement = false;
         hasLastPlacedCell = false;
+        LastPlacementFailure = string.Empty;
         if (enabled) RefreshGrids();
         if (enabled && !wasPlacementMode)
             Debug.Log("进入陷阱放置状态");
@@ -468,6 +517,7 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     private void RebuildPreview()
     {
+        ReleasePreviewMaterials();
         if (preview != null) Destroy(preview);
         preview = null;
         if (!placementMode || selectedTrap == null) return;
@@ -482,13 +532,26 @@ public sealed class TrapPlacementController : MonoBehaviour
         // And the firing half would otherwise launch real missiles from a ghost.
         MissileLauncherWeapon launcherWeapon = preview.GetComponent<MissileLauncherWeapon>();
         if (launcherWeapon != null) launcherWeapon.enabled = false;
+        foreach (GroundSpikeTrap spikes in preview.GetComponentsInChildren<GroundSpikeTrap>(true)) spikes.enabled = false;
         foreach (TrapInstance trap in preview.GetComponentsInChildren<TrapInstance>(true)) trap.enabled = false;
         foreach (Collider collider in preview.GetComponentsInChildren<Collider>()) collider.enabled = false;
-        foreach (Renderer renderer in preview.GetComponentsInChildren<Renderer>()) renderer.material.color = new Color(0.2f, 1f, 0.3f, 0.45f);
+        foreach (Renderer renderer in preview.GetComponentsInChildren<Renderer>())
+            previewMaterials.AddRange(renderer.materials);
+        UpdatePreviewColor();
         SetPreviewVisible(false);
     }
 
     private void SetPreviewVisible(bool visible) { if (preview != null) preview.SetActive(visible); }
+
+    private void ReleasePreviewMaterials()
+    {
+        foreach (Material material in previewMaterials)
+            if (material != null)
+            {
+                if (Application.isPlaying) Destroy(material); else DestroyImmediate(material);
+            }
+        previewMaterials.Clear();
+    }
 
     private void EnsureMaterials()
     {
@@ -516,7 +579,7 @@ public sealed class TrapPlacementController : MonoBehaviour
             {
                 Vector2Int cell = new Vector2Int(x, y);
                 bool occupied = target.IsOccupied(cell);
-                bool open = target.IsOpen(cell);
+                bool open = target.IsOpenForTrap(cell, selectedTrap);
                 bool inFootprint = hoveringThisGrid && selectedTrap != null && IsFootprintCell(hoveredCell, cell);
                 // Only usable cells are drawn, plus the footprint the player is
                 // about to occupy. Drawing every blocked cell of every grid would
@@ -524,9 +587,9 @@ public sealed class TrapPlacementController : MonoBehaviour
                 if (!open && !occupied && !inFootprint) continue;
                 Material material = open && !occupied ? openMaterial : blockedMaterial;
                 if (inFootprint && cell != hoveredCell)
-                    material = CanPlace(target, hoveredCell) ? footprintMaterial : invalidFootprintMaterial;
+                    material = CanPurchaseAt(target, hoveredCell) ? footprintMaterial : invalidFootprintMaterial;
                 if (hoveringThisGrid && cell == hoveredCell)
-                    material = CanPlace(target, hoveredCell) ? hoveredMaterial : invalidFootprintMaterial;
+                    material = CanPurchaseAt(target, hoveredCell) ? hoveredMaterial : invalidFootprintMaterial;
                 GameObject marker = RentMarker(used++);
                 marker.transform.SetParent(transform, true);
                 marker.transform.SetPositionAndRotation(target.CellToWorld(cell) + target.transform.up * 0.015f, target.transform.rotation);
@@ -559,7 +622,7 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     private bool IsFootprintCell(Vector2Int origin, Vector2Int cell)
     {
-        Vector2Int size = selectedTrap.Footprint;
+        if (activeGrid == null || !activeGrid.TryGetFootprint(selectedTrap, out Vector2Int size)) return false;
         return cell.x >= origin.x && cell.x < origin.x + size.x && cell.y >= origin.y && cell.y < origin.y + size.y;
     }
 
@@ -582,14 +645,18 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     private void OnGUI()
     {
+        if (TrapSelectionMenu.IsOpen) return;
+        economy.Refresh();
+        // Keep placement hints below the wave and economy HUDs.
+        const float hintTop = 218f;
         if (!placementMode)
         {
             // Freeroam hint: name the trap the E key would dismantle right now.
             if (aimedTrap != null)
-                GUI.Label(new Rect(16f, 16f, 460f, 24f), $"按 E 拆除：{DescribeTrap(aimedTrap)}");
+                GUI.Label(new Rect(18f, hintTop, 460f, 24f), $"按 E 拆除：{DescribeTrap(aimedTrap)}");
             return;
         }
-        GUI.Label(new Rect(16f, 16f, 620f, 24f), "陷阱放置模式：左键放置　右键拆除　Esc 退出");
+        GUI.Label(new Rect(18f, hintTop, 620f, 24f), "陷阱放置模式：左键放置　右键拆除　Esc 退出");
         string slotText = "槽位 ";
         for (int i = 0; i < 4; i++)
         {
@@ -597,9 +664,17 @@ public sealed class TrapPlacementController : MonoBehaviour
             string name = definition != null ? definition.DisplayName : "空";
             slotText += $"{i + 4}:{name}" + (i == selectedSlot ? " [当前]" : "") + (i < 3 ? "   " : "");
         }
-        GUI.Label(new Rect(16f, 40f, 900f, 24f), slotText);
-        if (selectedTrap == null) GUI.Label(new Rect(16f, 64f, 420f, 24f), "当前槽位未配置陷阱，可按 N 分配");
-        if (activeGrid != null) GUI.Label(new Rect(16f, 88f, 420f, 24f), $"当前网格：{activeGrid.name}（高度 {activeGrid.PlacementHeight:0.##}）");
+        GUI.Label(new Rect(18f, hintTop + 24f, Screen.width - 36f, 24f), slotText);
+        if (placementHintStyle == null)
+            placementHintStyle = new GUIStyle(GUI.skin.label) { fontSize = 16, wordWrap = true,
+                normal = { textColor = new Color(1f, 0.82f, 0.28f) } };
+        string hint = selectedTrap == null ? "当前槽位未配置陷阱，可按 N 分配"
+            : $"{selectedTrap.DisplayName}  花费 {selectedTrap.Cost}  "
+                + (selectedTrap.AllowsPlatformPlacement ? "可放置：地面 / 高台" : "仅限地面（含道路）")
+                + $"  {PurchaseHint}";
+        GUI.Label(new Rect(18f, hintTop + 50f, Screen.width - 36f, 48f), hint, placementHintStyle);
+        if (Time.unscaledTime < failureVisibleUntil && !string.IsNullOrEmpty(LastPlacementFailure))
+            GUI.Label(new Rect(18f, hintTop + 98f, Screen.width - 36f, 48f), LastPlacementFailure, placementHintStyle);
     }
 
     private static string DescribeTrap(TrapInstance trap)
@@ -610,6 +685,9 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     private void OnDisable()
     {
+        economy.Changed -= RefreshPurchaseFeedback;
+        economy.Dispose();
+        ReleasePreviewMaterials();
         IsPlacementModeActive = false;
         SetWeaponInputSuppressed(false);
         if (preview != null) Destroy(preview);
