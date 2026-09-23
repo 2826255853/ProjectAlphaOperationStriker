@@ -244,10 +244,11 @@ public sealed class TrapSelectionMenu : MonoBehaviour
             if (rect.Contains(mouse)) hoveredTrap = trap;
             GUI.backgroundColor = !affordable ? new Color(1f, 0.58f, 0.52f)
                 : isCurrent ? new Color(0.55f, 0.9f, 1f) : Color.white;
+            string mountLabel = trap.MountType == TrapMountType.Wall ? "墙面" : "地面";
             string status = affordable ? string.Empty : trap.Cost < 0 ? "价格无效"
                 : economy.IsReady ? "金币不足" : "金币暂不可用";
             // Unaffordable traps remain selectable for inspection and later placement.
-            if (GUI.Button(rect, trap.DisplayName + "\n花费 " + trap.Cost + "\n" + status, cellStyle))
+            if (GUI.Button(rect, trap.DisplayName + "\n" + mountLabel + "  花费 " + trap.Cost + "\n" + status, cellStyle))
             {
                 if (target != null)
                 {
@@ -265,7 +266,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
         // trap (or of the selected slot) are spelled out here.
         TrapDefinition described = hoveredTrap != null ? hoveredTrap : currentSlotTrap;
         string description = described != null
-            ? $"{described.DisplayName}   花费 {described.Cost}   占地 {described.Footprint.x}x{described.Footprint.y}"
+            ? $"{described.DisplayName}   {(described.MountType == TrapMountType.Wall ? "墙面" : "地面")}   花费 {described.Cost}   {(described.MountType == TrapMountType.Wall ? "占格" : "占地")} {described.Footprint.x}x{described.Footprint.y}"
             : "将鼠标移到陷阱上查看详情";
         GUI.Label(new Rect(panel.x + pad, panel.y + panelHeight - footerHeight + 8f, panelWidth - pad * 2f, 24f), description);
         GUI.Label(new Rect(panel.x + pad, panel.y + panelHeight - footerHeight + 32f, panelWidth - pad * 2f, 24f),

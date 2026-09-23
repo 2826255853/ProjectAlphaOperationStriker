@@ -23,6 +23,8 @@ public sealed class TrapPlacementController : MonoBehaviour
     [SerializeField] private bool allowRemoveWithRightClick = true;
     [SerializeField] private bool allowDragPlacement = true;
     [SerializeField] private bool placementMode;
+    [SerializeField, Min(0.1f), Tooltip("墙面陷阱从正面可交互的最大距离（米）。")]
+    private float wallPlacementDistance = 6f;
 
     private GameObject preview;
     private Vector3 previewBaseScale = Vector3.one;
@@ -214,6 +216,33 @@ public sealed class TrapPlacementController : MonoBehaviour
     /// </summary>
     private TrapPlacementGrid ResolveGridForRay(Ray ray, out Vector2Int cell)
     {
+        // Wall grids are finite, front-facing surfaces. Resolve the nearest
+        // visible wall first and never skip it merely because its hovered cell
+        // is blocked: the player must see the actual failure on that wall.
+        if (selectedTrap != null && selectedTrap.MountType == TrapMountType.Wall)
+        {
+            TrapPlacementGrid nearestWall = null;
+            Vector2Int nearestWallCell = default;
+            float nearestWallDistance = float.PositiveInfinity;
+            for (int i = 0; i < grids.Count; i++)
+            {
+                TrapPlacementGrid candidate = grids[i];
+                if (candidate == null || !candidate.IsWallSurface || !candidate.SupportsDefinition(selectedTrap)) continue;
+                Vector3 normal = candidate.SurfaceNormal;
+                if (Vector3.Dot(ray.direction, normal) >= -0.001f) continue;
+                if (!candidate.TryRaycastPlane(ray, out Vector3 point, out float distance)) continue;
+                if (distance > Mathf.Max(0.1f, wallPlacementDistance)) continue;
+                if (!candidate.TryWorldToCell(point, out Vector2Int candidateCell)) continue;
+                if (distance >= nearestWallDistance) continue;
+                if (IsWallRayOccluded(candidate, ray, distance)) continue;
+                nearestWall = candidate;
+                nearestWallCell = candidateCell;
+                nearestWallDistance = distance;
+            }
+            cell = nearestWallCell;
+            return nearestWall;
+        }
+
         TrapPlacementGrid bestUsable = null, bestOccupied = null, bestAny = null;
         float usableDistance = float.PositiveInfinity, occupiedDistance = float.PositiveInfinity, anyDistance = float.PositiveInfinity;
         Vector2Int usableCell = default, occupiedCell = default, anyCell = default;
@@ -243,6 +272,30 @@ public sealed class TrapPlacementController : MonoBehaviour
         if (bestOccupied != null) { cell = occupiedCell; return bestOccupied; }
         cell = anyCell;
         return bestAny;
+    }
+
+    /// <summary>
+    /// Returns true when a physical object blocks the selected wall. The
+    /// support collider itself is allowed to sit just behind the grid plane;
+    /// triggers, preview ghosts and overlay markers never count as blockers.
+    /// </summary>
+    private bool IsWallRayOccluded(TrapPlacementGrid candidate, Ray ray, float wallDistance)
+    {
+        RaycastHit[] hits = Physics.RaycastAll(ray, Mathf.Max(0.1f, wallDistance + 0.25f));
+        float supportTolerance = Mathf.Max(0.05f, candidate.SurfaceOffset + 0.1f);
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider collider = hits[i].collider;
+            if (collider == null || collider.isTrigger) continue;
+            if (collider.GetComponentInParent<TrapPlacementPreview>() != null) continue;
+            // Existing trap bodies sit on the same finite plane. They should
+            // remain selectable as occupied cells instead of hiding the grid.
+            if (collider.GetComponentInParent<TrapInstance>() != null) continue;
+            if (candidate.SupportCollider != null && collider == candidate.SupportCollider &&
+                Mathf.Abs(hits[i].distance - wallDistance) <= supportTolerance) continue;
+            if (hits[i].distance < wallDistance - 0.02f) return true;
+        }
+        return false;
     }
 
     private bool TryGetTrapSlotPressed(out int slot)
@@ -315,6 +368,14 @@ public sealed class TrapPlacementController : MonoBehaviour
         {
             activeGrid = resolved;
             hoveredCell = resolvedCell;
+        }
+        // A drag is one continuous stroke on one surface. Crossing to another
+        // wall (or from a wall to the ground) must not draw a line in the
+        // second grid or accidentally bridge unrelated coordinate systems.
+        if (dragPlacement && (resolved == null || previousGrid != resolved))
+        {
+            dragPlacement = false;
+            hasLastPlacedCell = false;
         }
         hoveredTrap = hasHoveredCell ? FindTrapAt(activeGrid, hoveredCell) : FindTrapFromRay(ray);
         if (!placementMode || selectedTrap == null || !hasHoveredCell || activeGrid == null)
@@ -405,11 +466,29 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     private TrapInstance FindTrapFromRay(Ray ray)
     {
-        if (Physics.Raycast(ray, out RaycastHit hit, 1000f))
+        float nearestPhysicalBlock = float.PositiveInfinity;
+        TrapInstance nearestHitTrap = null;
+        float nearestHitTrapDistance = float.PositiveInfinity;
+        RaycastHit[] hits = Physics.RaycastAll(ray, 1000f);
+        for (int i = 0; i < hits.Length; i++)
         {
-            TrapInstance hitTrap = hit.collider.GetComponentInParent<TrapInstance>();
-            if (hitTrap != null) return hitTrap;
+            Collider collider = hits[i].collider;
+            if (collider == null || collider.isTrigger) continue;
+            if (collider.GetComponentInParent<TrapPlacementPreview>() != null) continue;
+            TrapInstance hitTrap = collider.GetComponentInParent<TrapInstance>();
+            if (hitTrap != null)
+            {
+                if (hits[i].distance < nearestHitTrapDistance)
+                {
+                    nearestHitTrap = hitTrap;
+                    nearestHitTrapDistance = hits[i].distance;
+                }
+                continue;
+            }
+            nearestPhysicalBlock = Mathf.Min(nearestPhysicalBlock, hits[i].distance);
         }
+        if (nearestHitTrap != null && nearestHitTrapDistance <= nearestPhysicalBlock + 0.05f)
+            return nearestHitTrap;
 
         // Turret visuals intentionally have no colliders, so also resolve the
         // trap closest to the aim ray. This keeps E usable with the generated
@@ -425,6 +504,7 @@ public sealed class TrapPlacementController : MonoBehaviour
                 Vector3 toTrap = trap.transform.position - ray.origin;
                 float alongRay = Vector3.Dot(toTrap, ray.direction);
                 if (alongRay < 0f) continue;
+                if (alongRay > nearestPhysicalBlock + 0.05f) continue;
                 float distance = Vector3.Cross(ray.direction, toTrap).magnitude;
                 if (distance < closestDistance) { closestDistance = distance; closest = trap; }
             }
@@ -627,8 +707,11 @@ public sealed class TrapPlacementController : MonoBehaviour
                     material = CanPurchaseAt(target, hoveredCell) ? hoveredMaterial : invalidFootprintMaterial;
                 GameObject marker = RentMarker(used++);
                 marker.transform.SetParent(transform, true);
-                marker.transform.SetPositionAndRotation(target.CellToWorld(cell) + target.transform.up * 0.015f, target.transform.rotation);
-                marker.transform.localScale = new Vector3(target.CellSize * 0.92f, 0.018f, target.CellSize * 0.92f);
+                Vector3 markerNormal = target.IsWallSurface ? target.SurfaceNormal : target.transform.up;
+                marker.transform.SetPositionAndRotation(target.CellToWorld(cell) + markerNormal * 0.015f, target.transform.rotation);
+                marker.transform.localScale = target.IsWallSurface
+                    ? new Vector3(target.CellSize * 0.92f, target.CellSize * 0.92f, 0.018f)
+                    : new Vector3(target.CellSize * 0.92f, 0.018f, target.CellSize * 0.92f);
                 marker.GetComponent<Renderer>().sharedMaterial = material;
             }
         }

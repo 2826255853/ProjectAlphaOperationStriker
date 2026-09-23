@@ -14,6 +14,8 @@ public sealed class PlayerHealth : MonoBehaviour
     public bool IsDead => CurrentHealth <= 0f;
     public event Action<PlayerHealth> Damaged;
     public event Action<PlayerHealth> Died;
+    public event Action<PlayerHealth> Revived;
+    private bool initialized;
 
     public Vector3 FeetPosition
     {
@@ -31,7 +33,8 @@ public sealed class PlayerHealth : MonoBehaviour
     private void Awake()
     {
         characterController = GetComponentInChildren<CharacterController>();
-        ResetHealth();
+        CurrentHealth = Mathf.Max(1f, maxHealth);
+        initialized = true;
     }
 
     private void OnEnable() => Instance = this;
@@ -48,5 +51,10 @@ public sealed class PlayerHealth : MonoBehaviour
         if (IsDead) Died?.Invoke(this);
     }
 
-    public void ResetHealth() => CurrentHealth = Mathf.Max(1f, maxHealth);
+    public void ResetHealth()
+    {
+        bool wasDead = IsDead;
+        CurrentHealth = Mathf.Max(1f, maxHealth);
+        if (initialized && wasDead) Revived?.Invoke(this);
+    }
 }

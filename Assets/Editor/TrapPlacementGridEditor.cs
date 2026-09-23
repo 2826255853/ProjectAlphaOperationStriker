@@ -16,6 +16,9 @@ public sealed class TrapPlacementGridEditor : Editor
 
     private SerializedProperty columns;
     private SerializedProperty surfaceKind;
+    private SerializedProperty surfaceType;
+    private SerializedProperty supportCollider;
+    private SerializedProperty surfaceOffset;
     private SerializedProperty rows;
     private SerializedProperty cellSize;
     private SerializedProperty placementHeight;
@@ -36,6 +39,9 @@ public sealed class TrapPlacementGridEditor : Editor
     {
         columns = serializedObject.FindProperty("columns");
         surfaceKind = serializedObject.FindProperty("surfaceKind");
+        surfaceType = serializedObject.FindProperty("surfaceType");
+        supportCollider = serializedObject.FindProperty("supportCollider");
+        surfaceOffset = serializedObject.FindProperty("surfaceOffset");
         rows = serializedObject.FindProperty("rows");
         cellSize = serializedObject.FindProperty("cellSize");
         placementHeight = serializedObject.FindProperty("placementHeight");
@@ -47,7 +53,16 @@ public sealed class TrapPlacementGridEditor : Editor
     {
         serializedObject.Update();
         EditorGUILayout.PropertyField(surfaceKind, new GUIContent("放置表面"));
-        EditorGUILayout.HelpBox("普通炮塔类：地面、道路和高台均可放置。地刺等地面陷阱：只能放在地面或道路。", MessageType.Info);
+        EditorGUILayout.PropertyField(surfaceType, new GUIContent("安装类别"));
+        var gridForInspector = (TrapPlacementGrid)target;
+        if (gridForInspector.IsWallSurface)
+        {
+            EditorGUILayout.PropertyField(supportCollider, new GUIContent("支撑墙体"));
+            EditorGUILayout.PropertyField(surfaceOffset, new GUIContent("墙面偏移"));
+            EditorGUILayout.HelpBox("墙面网格使用本地 X/Y 平面；只接受 MountType=Wall 的陷阱，绘制时按墙面法线贴合。", MessageType.Info);
+        }
+        else
+            EditorGUILayout.HelpBox("地面网格接受 MountType=Ground 的陷阱；地刺仍受地面/道路支撑规则限制。", MessageType.Info);
         EditorGUILayout.PropertyField(columns);
         EditorGUILayout.PropertyField(rows);
         EditorGUILayout.PropertyField(cellSize);
@@ -87,7 +102,10 @@ public sealed class TrapPlacementGridEditor : Editor
         GUI.backgroundColor = Color.white;
         if (GUILayout.Button("停止", GUILayout.Height(24f))) trapPaintMode = false;
         EditorGUILayout.EndHorizontal();
-        EditorGUILayout.HelpBox("在 Scene 视图按住左键拖动连续铺设；Shift 可临时擦除。陷阱占用范围会自动检查。", MessageType.Info);
+        if (trapBrush != null && !gridForInspector.SupportsDefinition(trapBrush))
+            EditorGUILayout.HelpBox(gridForInspector.SurfaceType.DescribeMismatch(), MessageType.Warning);
+        else
+            EditorGUILayout.HelpBox("在 Scene 视图按住左键拖动连续铺设；Shift 可临时擦除。陷阱占用范围会自动检查。", MessageType.Info);
 
         for (int y = grid.Rows - 1; y >= 0; y--)
         {
@@ -303,6 +321,16 @@ public sealed class TrapPlacementGridEditor : Editor
         {
             TrapPlacementGrid grid = gridList[i];
             int open = 0, occupied = 0, laneOverlap = 0, tooHigh = 0, tooLow = 0, noSurface = 0;
+            bool wallGrid = grid.IsWallSurface;
+            if (wallGrid)
+            {
+                Vector3 scale = grid.transform.lossyScale;
+                bool vertical = Mathf.Abs(Vector3.Dot(grid.transform.forward, Vector3.up)) < 0.001f;
+                bool unitScale = Mathf.Abs(scale.x - 1f) < 0.001f && Mathf.Abs(scale.y - 1f) < 0.001f && Mathf.Abs(scale.z - 1f) < 0.001f;
+                if (grid.SupportCollider == null) holes.Add($"{grid.name}：墙面网格未绑定支撑墙体。");
+                if (!vertical) holes.Add($"{grid.name}：墙面法线必须水平（当前网格不是竖直墙面）。");
+                if (!unitScale) holes.Add($"{grid.name}：墙面网格缩放必须为单位缩放。");
+            }
             for (int y = 0; y < grid.Rows; y++)
             for (int x = 0; x < grid.Columns; x++)
             {
@@ -311,8 +339,17 @@ public sealed class TrapPlacementGridEditor : Editor
                 if (grid.IsOccupied(cell)) occupied++;
                 if (!isOpen) continue;
                 open++;
-                if (monsterGrid != null && monsterGrid.IsOpen(cell) && !IsGroundGrid(grid, monsterGrid))
+                if (!wallGrid && monsterGrid != null && monsterGrid.IsOpen(cell) && !IsGroundGrid(grid, monsterGrid))
                     laneOverlap++;
+                if (wallGrid)
+                {
+                    if (grid.SupportCollider != null && !grid.HasWallSupport(cell, Vector2Int.one, null, out _))
+                    {
+                        noSurface++;
+                        if (holes.Count < 6) holes.Add($"{grid.name} 格{cell} 没有连续墙体支撑");
+                    }
+                    continue;
+                }
                 Vector3 center = grid.CellToWorld(cell);
                 if (!Physics.Raycast(center + grid.transform.up * 2f, -grid.transform.up, out RaycastHit hit, 8f))
                 {
@@ -334,7 +371,7 @@ public sealed class TrapPlacementGridEditor : Editor
             }
 
             bool aligned = true;
-            if (monsterGrid != null)
+            if (monsterGrid != null && !wallGrid)
             {
                 if (grid.Columns != monsterGrid.Columns || grid.Rows != monsterGrid.Rows ||
                     Mathf.Abs(grid.CellSize - monsterGrid.CellSize) > LatticeTolerance)
@@ -355,10 +392,11 @@ public sealed class TrapPlacementGridEditor : Editor
                     }
             }
 
-            report.AppendLine($"- {grid.name}：高度 {grid.PlacementHeight:0.##} 米，开格 {open}，已放置 {occupied}，" +
-                $"与怪物网格对齐 {(aligned ? "是" : "否")}" +
-                (monsterGrid != null && !IsGroundGrid(grid, monsterGrid) ? $"，占用怪物走道 {laneOverlap} 格" : string.Empty) +
-                $"，埋入地形 {tooHigh}，悬空 {tooLow}，无地面 {noSurface}。");
+            string alignment = wallGrid ? "不适用" : (aligned ? "是" : "否");
+            report.AppendLine($"- {grid.name}：{(wallGrid ? "墙面" : "地面")}，高度 {grid.PlacementHeight:0.##} 米，开格 {open}，已放置 {occupied}，" +
+                $"与怪物网格对齐 {alignment}" +
+                (!wallGrid && monsterGrid != null && !IsGroundGrid(grid, monsterGrid) ? $"，占用怪物走道 {laneOverlap} 格" : string.Empty) +
+                (wallGrid ? $"，支撑异常 {noSurface}" : $"，埋入地形 {tooHigh}，悬空 {tooLow}，无地面 {noSurface}") + "。");
         }
         for (int i = 0; i < holes.Count; i++) report.AppendLine("  · " + holes[i]);
         if (monsterGrid != null)
@@ -371,7 +409,7 @@ public sealed class TrapPlacementGridEditor : Editor
                 var cell = new Vector2Int(x, y);
                 int levels = 0;
                 for (int i = 0; i < gridList.Length; i++)
-                    if (gridList[i].IsInside(cell) && gridList[i].IsOpen(cell)) levels++;
+                    if (!gridList[i].IsWallSurface && gridList[i].IsInside(cell) && gridList[i].IsOpen(cell)) levels++;
                 if (levels > 0) covered++;
                 if (levels > 1) doubled++;
             }
@@ -396,9 +434,7 @@ public sealed class TrapPlacementGridEditor : Editor
         if ((evt.type == EventType.Layout || evt.type == EventType.MouseDown || painting) && !evt.alt)
             HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
         Ray ray = HandleUtility.GUIPointToWorldRay(evt.mousePosition);
-        Plane plane = new Plane(grid.transform.up, grid.transform.position + grid.transform.up * grid.CellSize * 0.01f);
-        if (!plane.Raycast(ray, out float distance)) return;
-        Vector3 world = ray.GetPoint(distance);
+        if (!grid.TryRaycastPlane(ray, out Vector3 world, out _)) return;
         if (!grid.TryWorldToCell(world, out Vector2Int center)) return;
 
         if (trapPaintMode)
@@ -414,13 +450,9 @@ public sealed class TrapPlacementGridEditor : Editor
         {
             Vector2Int c = center + new Vector2Int(x, y);
             if (!grid.IsInside(c)) continue;
-            Vector3 p = grid.CellToWorld(c);
-            Handles.DrawSolidRectangleWithOutline(new[] {
-                p + grid.transform.TransformVector(new Vector3(-grid.CellSize * .48f, 0, -grid.CellSize * .48f)),
-                p + grid.transform.TransformVector(new Vector3(-grid.CellSize * .48f, 0, grid.CellSize * .48f)),
-                p + grid.transform.TransformVector(new Vector3(grid.CellSize * .48f, 0, grid.CellSize * .48f)),
-                p + grid.transform.TransformVector(new Vector3(grid.CellSize * .48f, 0, -grid.CellSize * .48f))
-            }, Handles.color, Color.clear);
+            var corners = new Vector3[4];
+            grid.GetCellCorners(c, corners);
+            Handles.DrawSolidRectangleWithOutline(corners, Handles.color, Color.clear);
         }
 
         if (evt.type == EventType.MouseDown && (evt.button == 0 || evt.button == 1) && !evt.alt)
@@ -483,6 +515,7 @@ public sealed class TrapPlacementGridEditor : Editor
             return;
         }
         if (trapBrush == null) return;
+        if (!grid.SupportsDefinition(trapBrush)) return;
         Undo.RegisterFullObjectHierarchyUndo(grid.gameObject, "Paint trap");
         if (grid.TryPlaceTrap(cell, trapBrush, out TrapInstance placed, out _))
         {
