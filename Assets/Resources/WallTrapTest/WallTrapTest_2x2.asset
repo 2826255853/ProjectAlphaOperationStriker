@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 584def4af644b0c4fbbf59b658cc2acd, type: 3}
+  m_Name: WallTrapTest_2x2
+  m_EditorClassIdentifier: Assembly-CSharp::TrapDefinition
+  trapId: walltraptest-2x2
+  displayName: "\u5899\u9762\u6D4B\u8BD5\u4EF6 2\xD72"
+  prefab: {fileID: 5832056707926829346, guid: d8aba4173c0c9914eb4eda9ab175cd83, type: 3}
+  cost: 0
+  footprintWidth: 2
+  footprintHeight: 2
+  localRotation: {x: 0, y: 0, z: 0}
+  walkableFloorTrap: 0
+  worldFootprint: {x: 0, y: 0}
+  mountType: 1
+  installBoundsCenter: {x: 0, y: 0, z: 0.12}
+  installBoundsSize: {x: 1.8, y: 1.8, z: 0.18}

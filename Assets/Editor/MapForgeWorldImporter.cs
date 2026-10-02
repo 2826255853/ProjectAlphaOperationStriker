@@ -348,10 +348,33 @@ public static partial class MapForgeWorldImporter
             Debug.LogWarning("MapForge: no MonsterPathGrid found, so the trap grids were not rebuilt.");
             return 0;
         }
-        foreach (var grid in parent.GetComponentsInChildren<TrapPlacementGrid>(true))
+        var grids = parent.GetComponentsInChildren<TrapPlacementGrid>(true);
+        for (int i = grids.Length - 1; i >= 0; i--)
+        {
+            var grid = grids[i];
+            if (grid == null || !IsMapForgeOwnedTrapGrid(grid, parent)) continue;
             UnityEngine.Object.DestroyImmediate(grid.gameObject);
+        }
         CreateTrapPlacementGrids(pathGrid, parent);
         return parent.GetComponentsInChildren<TrapPlacementGrid>(true).Length;
+    }
+
+    /// <summary>
+    /// Returns true only for grids owned by the MapForge importer. New imports use an
+    /// explicit component marker. The name/parent/surface check is a deliberately narrow
+    /// migration path for scenes imported before the marker existed; in particular, a
+    /// wall grid is never treated as an old generated grid.
+    /// </summary>
+    private static bool IsMapForgeOwnedTrapGrid(TrapPlacementGrid grid, Transform generatedRoot)
+    {
+        if (grid == null) return false;
+        if (grid.GetComponent<MapForgeGeneratedTrapGrid>() != null) return true;
+        if (grid.IsWallSurface || grid.transform.parent != generatedRoot) return false;
+
+        string name = grid.gameObject.name;
+        return name == "TrapPlacementGrid_Road"
+            || name == "TrapPlacementGrid_Ground"
+            || name == "TrapPlacementGrid_Platform";
     }
 
     /// <summary>
@@ -632,6 +655,7 @@ public static partial class MapForgeWorldImporter
         gridObject.transform.SetParent(parent, true);
         gridObject.transform.SetPositionAndRotation(anchor, rotation);
         TrapPlacementGrid grid = gridObject.AddComponent<TrapPlacementGrid>();
+        gridObject.AddComponent<MapForgeGeneratedTrapGrid>();
         grid.ConfigureLayout(pathGrid.Columns, pathGrid.Rows, pathGrid.CellSize, placementHeight, openCells, surface);
     }
 

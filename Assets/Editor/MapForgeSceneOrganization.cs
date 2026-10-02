@@ -63,6 +63,18 @@ public static class MapForgeSceneOrganization
         public CoreMap enemyCore;
         public PathNodeMap pathNode;
         public TriggerMap trigger;
+        public WallTrapGridMap[] wallTrapGrids;
+    }
+    [Serializable] public sealed class WallTrapGridMap
+    {
+        public string id;
+        public float[] origin;
+        public float[] rotation;
+        public int columns = 4;
+        public int rows = 3;
+        public float cellSize = 1f;
+        public float surfaceOffset = 0.01f;
+        public bool[] openCells;
     }
     [Serializable] public sealed class PrefabRef { public string id, guid, assetPath; }
     [Serializable] public sealed class ColliderMap
@@ -189,6 +201,7 @@ public static class MapForgeSceneOrganization
     private static void ValidateUnityMapping(UnityMapping unity, string id, Dictionary<string, Node> nodes)
     {
         if (unity == null) return;
+        ValidateWallTrapGrids(unity.wallTrapGrids, id);
         if (unity.collider != null)
         {
             var collider = unity.collider;
@@ -259,6 +272,28 @@ public static class MapForgeSceneOrganization
         }
     }
 
+    private static void ValidateWallTrapGrids(WallTrapGridMap[] grids, string objectId)
+    {
+        if (grids == null) return;
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        for (int i = 0; i < grids.Length; i++)
+        {
+            var grid = grids[i];
+            if (grid == null || string.IsNullOrWhiteSpace(grid.id))
+                throw new ArgumentException(objectId + " 的 unity.wallTrapGrids[" + i + "] 缺少稳定 ID。");
+            if (!ids.Add(grid.id))
+                throw new ArgumentException(objectId + " 的 unity.wallTrapGrids 存在重复 ID：" + grid.id);
+            ValidateVector(grid.origin, false);
+            ValidateVector(grid.rotation, false);
+            if (grid.columns < 1 || grid.rows < 1 || grid.columns > 256 || grid.rows > 256)
+                throw new ArgumentException(objectId + " 的墙面网格 " + grid.id + " 尺寸必须在 1–256 格之间。");
+            if (!Range(grid.cellSize, .01f, 100f) || !Range(grid.surfaceOffset, 0f, 10f))
+                throw new ArgumentException(objectId + " 的墙面网格 " + grid.id + " cellSize/surfaceOffset 无效。");
+            if (grid.openCells != null && grid.openCells.Length != grid.columns * grid.rows)
+                throw new ArgumentException(objectId + " 的墙面网格 " + grid.id + " openCells 长度必须等于 columns×rows。");
+        }
+    }
+
     public static void Create(Document document, Transform parent, string sceneName)
     {
         var instances = new Dictionary<string, GameObject>();
@@ -288,7 +323,6 @@ public static class MapForgeSceneOrganization
     {
         foreach (var node in document.objects)
         {
-            if (node.unity == null) continue;
             if (!instances.TryGetValue(node.id, out var go)) continue;
             meshes.TryGetValue(node.id, out var geometry);
             ApplyUnityMapping(node, go, geometry, document.unity, prefabCache);
@@ -499,7 +533,7 @@ public static class MapForgeSceneOrganization
     /// <summary>Creates the generated Unity components for one authored object.</summary>
     public static void ApplyUnityMapping(Node node, GameObject go, GameObject geometry, UnitySceneData scene, Dictionary<string, GameObject> prefabCache)
     {
-        var unity = node.unity;
+        var unity = node.unity ?? new UnityMapping();
         var metadata = go.GetComponent<MapForgeObjectProperties>();
         metadata.prefabId = unity.prefab != null ? unity.prefab.id ?? string.Empty : string.Empty;
         metadata.prefabGuid = unity.prefab != null ? unity.prefab.guid ?? string.Empty : string.Empty;
@@ -576,6 +610,59 @@ public static class MapForgeSceneOrganization
         }
         if (spawn != null && spawn.enabled) ApplySpawnPoint(go, spawn, scene);
         if (core != null && core.enabled) ApplyEnemyCore(go, core);
+        ApplyWallTrapGrids(node.id, go, geometry, unity.wallTrapGrids);
+    }
+
+    /// <summary>
+    /// Applies MapForge-authored wall grids below their owning wall object. Existing
+    /// grids are reused by stable grid ID; removing one region removes only that region.
+    /// </summary>
+    private static void ApplyWallTrapGrids(string objectId, GameObject owner, GameObject geometry,
+        WallTrapGridMap[] mappings)
+    {
+        var existing = new Dictionary<string, MapForgeWallTrapGrid>(StringComparer.Ordinal);
+        foreach (var marker in owner.GetComponentsInChildren<MapForgeWallTrapGrid>(true))
+            if (marker != null && !string.IsNullOrWhiteSpace(marker.gridId))
+                existing[marker.gridId] = marker;
+
+        var kept = new HashSet<string>(StringComparer.Ordinal);
+        if (mappings != null)
+        {
+            foreach (var mapping in mappings)
+            {
+                if (mapping == null || string.IsNullOrWhiteSpace(mapping.id)) continue;
+                kept.Add(mapping.id);
+                if (!existing.TryGetValue(mapping.id, out var marker) || marker == null)
+                {
+                    var gridObject = new GameObject("WallTrapGrid_" + mapping.id);
+                    gridObject.transform.SetParent(owner.transform, false);
+                    marker = gridObject.AddComponent<MapForgeWallTrapGrid>();
+                    marker.gridId = mapping.id;
+                }
+
+                marker.objectId = objectId;
+                marker.gridId = mapping.id;
+                marker.transform.localPosition = Vector(mapping.origin, Vector3.zero);
+                marker.transform.localRotation = Quaternion.Euler(Vector(mapping.rotation, Vector3.zero) * Mathf.Rad2Deg);
+                var grid = marker.GetComponent<TrapPlacementGrid>() ?? marker.gameObject.AddComponent<TrapPlacementGrid>();
+                int columns = Mathf.Clamp(mapping.columns, 1, 256);
+                int rows = Mathf.Clamp(mapping.rows, 1, 256);
+                var open = mapping.openCells;
+                if (open == null || open.Length != columns * rows)
+                {
+                    open = new bool[columns * rows];
+                    for (int i = 0; i < open.Length; i++) open[i] = true;
+                }
+                grid.ConfigureLayout(columns, rows, Mathf.Max(.01f, mapping.cellSize), 0f, open,
+                    TrapPlacementGrid.SurfaceKind.Ground, TrapMountType.Wall,
+                    geometry != null ? geometry.GetComponent<Collider>() : null,
+                    Mathf.Max(0f, mapping.surfaceOffset));
+            }
+        }
+
+        foreach (var pair in existing)
+            if (!kept.Contains(pair.Key) && pair.Value != null)
+                UnityEngine.Object.DestroyImmediate(pair.Value.gameObject);
     }
 
     /// <summary>Resolves a Prefab ID to a real prefab asset through the scene prefab library.</summary>

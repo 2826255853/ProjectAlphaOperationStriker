@@ -73,6 +73,7 @@ public static class MapForgeLiveSync
         public string Message;
         public readonly List<string> Log = new List<string>();
         public int Created, Updated, Deleted, PrefabInstances, Colliders, NavMesh, SpawnPoints, Cores, PathNodes, Triggers, TrapGrids;
+        public int WallTrapGrids, InvalidWallTrapGrids;
         public string SceneName;
     }
 
@@ -110,6 +111,9 @@ public static class MapForgeLiveSync
     {
         try
         {
+            var generatedRoot = GameObject.Find(GeneratedRoot);
+            var wallIssues = new List<string>();
+            int wallTrapGrids = ValidateWallTrapGrids(generatedRoot?.transform, wallIssues);
             var payload = new Json
             {
                 ["protocol"] = Protocol,
@@ -121,7 +125,9 @@ public static class MapForgeLiveSync
                 ["map"] = ReadString(AppliedJsonPath, "map"),
                 ["lastSeenUtc"] = DateTime.UtcNow.ToString("O", CultureInfo.InvariantCulture),
                 ["isPlaying"] = EditorApplication.isPlaying,
-                ["hasMapForgeWorld"] = GameObject.Find(GeneratedRoot) != null,
+                ["hasMapForgeWorld"] = generatedRoot != null,
+                ["wallTrapGrids"] = wallTrapGrids,
+                ["invalidWallTrapGrids"] = wallIssues.Count,
                 // Objects of the generated hierarchy the sync can match by ID. A scene built
                 // before the importer wrote object metadata has none, which MapForge reads as
                 // "this scene needs a full rebuild first" and reports before anything is written.
@@ -520,6 +526,7 @@ public static class MapForgeLiveSync
     {
         outcome.PrefabInstances = 0; outcome.Colliders = 0; outcome.NavMesh = 0; outcome.SpawnPoints = 0;
         outcome.Cores = 0; outcome.PathNodes = 0; outcome.Triggers = 0;
+        outcome.WallTrapGrids = 0; outcome.InvalidWallTrapGrids = 0;
         var root = GameObject.Find(GeneratedRoot);
         if (root == null) return;
         foreach (var metadata in root.GetComponentsInChildren<MapForgeObjectProperties>(true))
@@ -533,11 +540,46 @@ public static class MapForgeLiveSync
             if (metadata.pathNodeEnabled) outcome.PathNodes++;
             if (metadata.triggerEnabled) outcome.Triggers++;
         }
+        var wallIssues = new List<string>();
+        outcome.WallTrapGrids = ValidateWallTrapGrids(root.transform, wallIssues);
+        outcome.InvalidWallTrapGrids = wallIssues.Count;
+        outcome.Log.AddRange(wallIssues);
         // A spawn point that lost its path grid would not spawn anything, and that is worth
         // surfacing while the author is still looking at the map instead of at play time.
         var orphans = root.GetComponentsInChildren<EnemySpawnPoint>(true)
             .Count(spawn => spawn.GetComponent<MonsterPathGrid>() == null && root.GetComponentInChildren<MonsterPathGrid>(true) == null);
         if (orphans > 0) outcome.Log.Add($"{orphans} 个出怪口没有怪物路径网格引用。");
+    }
+
+    /// <summary>
+    /// Validates authored wall grids after a live-sync pass. MapForge may rebuild the
+    /// generated ground grids, but it must never leave a wall grid detached from its
+    /// support collider or tilted away from the world vertical.
+    /// </summary>
+    public static int ValidateWallTrapGrids(Transform root, IList<string> issues)
+    {
+        if (root == null) return 0;
+        int count = 0;
+        foreach (var grid in root.GetComponentsInChildren<TrapPlacementGrid>(true))
+        {
+            if (grid == null || !grid.IsWallSurface) continue;
+            count++;
+            string prefix = "墙面陷阱网格 '" + grid.name + "'";
+            if (grid.SupportCollider == null)
+                issues?.Add(prefix + " 未绑定支撑墙体。");
+            else if (!grid.SupportCollider.enabled || !grid.SupportCollider.gameObject.activeInHierarchy)
+                issues?.Add(prefix + " 的支撑墙体已禁用。");
+
+            Vector3 scale = grid.transform.lossyScale;
+            if (Mathf.Abs(Mathf.Abs(scale.x) - 1f) > 0.001f
+                || Mathf.Abs(Mathf.Abs(scale.y) - 1f) > 0.001f
+                || Mathf.Abs(Mathf.Abs(scale.z) - 1f) > 0.001f)
+                issues?.Add(prefix + " 的世界缩放必须为单位缩放。");
+
+            if (Mathf.Abs(Vector3.Dot(grid.transform.up, Vector3.up)) < 0.999f)
+                issues?.Add(prefix + " 必须保持竖直墙面朝向。");
+        }
+        return count;
     }
 
     // ---------------------------------------------------------------------- reporting
@@ -585,6 +627,8 @@ public static class MapForgeLiveSync
                 ["updated"] = outcome.Updated,
                 ["deleted"] = outcome.Deleted,
                 ["trapGrids"] = outcome.TrapGrids,
+                ["wallTrapGrids"] = outcome.WallTrapGrids,
+                ["invalidWallTrapGrids"] = outcome.InvalidWallTrapGrids,
                 ["appliedRevision"] = AppliedRevision(),
                 ["components"] = new Json
                 {

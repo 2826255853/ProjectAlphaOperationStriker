@@ -204,7 +204,7 @@ public sealed class FirstPersonController : MonoBehaviour
     {
         Vector2 input = Vector2.ClampMagnitude(moveAction.ReadValue<Vector2>(), 1f);
         Vector3 desiredDirection = transform.right * input.x + transform.forward * input.y;
-        float targetSpeed = SelectMovementSpeed();
+        float targetSpeed = SelectMovementSpeed(input.y);
         Vector3 desiredVelocity = desiredDirection * targetSpeed;
         horizontalVelocity = Vector3.MoveTowards(
             horizontalVelocity, desiredVelocity, acceleration * Time.deltaTime);
@@ -242,7 +242,7 @@ public sealed class FirstPersonController : MonoBehaviour
         }
     }
 
-    private float SelectMovementSpeed()
+    private float SelectMovementSpeed(float forwardInput)
     {
         if (IsCrouching)
         {
@@ -254,7 +254,9 @@ public sealed class FirstPersonController : MonoBehaviour
             return quietWalkSpeed;
         }
 
-        return sprintAction.IsPressed() ? sprintSpeed : walkSpeed;
+        // Sprinting is intentionally forward-only. Strafe and backward input
+        // remain at walk speed even while the sprint key is held.
+        return sprintAction.IsPressed() && forwardInput > 0f ? sprintSpeed : walkSpeed;
     }
 
     public static float CalculateJumpSpeed(float height, float gravityMagnitude)
