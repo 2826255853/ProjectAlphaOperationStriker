@@ -5,11 +5,11 @@
 版本策略见 [SKILL.md 的 Unity 编辑器版本](../SKILL.md#unity-编辑器版本)：后续尽量跟进最新正式发行版；日常批处理使用 `ProjectSettings/ProjectVersion.txt` 的 `m_EditorVersion`，不因执行脚本而自动迁移项目。
 
 ```
-C:\Program Files\Unity <m_EditorVersion>\Editor\Unity.exe                      <- 本机实际布局（2026-09-22 核对：6000.6.2f1）
+C:\Program Files\Unity <m_EditorVersion>\Editor\Unity.exe                      <- 本机实际布局（2026-10-02 核对：6000.6.4f1）
 C:\Program Files\Unity\Hub\Editor\Unity <m_EditorVersion>\Editor\Unity.exe    <- Hub 布局，脚本兼容
 ```
 
-本机**不是** Hub 布局：Unity 直接装在 `C:\Program Files\Unity 6000.6.2f1\Editor\Unity.exe`，`C:\Program Files\Unity\Hub\Editor` **不存在**。版本号随升级不定期变化，所以两处路径都别写死——文档只写 `<m_EditorVersion>` 占位，`scripts/run-unity-method.ps1` 先按项目记录版本在上述两种布局里精确查找，找不到就扫描 `C:\Program Files\Unity *\Editor\Unity.exe` 与 Hub 目录，取**最高版本的正式发行版（`f`）**，并在日志里说明实际用了哪个；本机只有预发布版时才会退回并打印警告。自定义安装位置用 `-UnityPath` 指向已核实的编辑器。升级完成后按更新后的项目记录运行，不读取 `Library/` 或历史日志推断版本。
+本机**不是** Hub 布局：Unity 直接装在 `C:\Program Files\Unity 6000.6.4f1\Editor\Unity.exe`，`C:\Program Files\Unity\Hub\Editor` **不存在**。版本号随升级不定期变化，所以两处路径都别写死——文档只写 `<m_EditorVersion>` 占位，`scripts/run-unity-method.ps1` 先按项目记录版本在上述两种布局里精确查找，找不到就扫描 `C:\Program Files\Unity *\Editor\Unity.exe` 与 Hub 目录，取**最高版本的正式发行版（`f`）**，并在日志里说明实际用了哪个；本机只有预发布版时才会退回并打印警告。自定义安装位置用 `-UnityPath` 指向已核实的编辑器。升级完成后按更新后的项目记录运行，不读取 `Library/` 或历史日志推断版本。
 
 ## 批处理模板
 

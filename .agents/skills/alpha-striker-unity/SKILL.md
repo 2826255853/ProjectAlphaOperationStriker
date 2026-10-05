@@ -12,7 +12,7 @@ description: 在 ProjectAlphaOperationStriker（Unity FPS + 塔防）及配套 M
 ## Unity 编辑器版本
 
 - 后续尽量使用 Unity 最新正式发行版（含正式 Update / LTS 版本），不默认使用 Alpha、Beta 或其他预发布版本，也不固定在某个旧版本。
-- 每次运行 Unity 前，读取 `ProjectSettings/ProjectVersion.txt` 的 `m_EditorVersion`，再核对本机实际安装位置。本机 Unity **不在** Unity Hub 目录，而是 `C:\Program Files\Unity 6000.6.2f1\Editor\Unity.exe`（2026-09-22 核对；`C:\Program Files\Unity\Hub\Editor` 不存在）。版本号随升级不定期变化，因此**任何文档、脚本、`.csproj` 都不要写死版本号**：以项目记录的版本 + `C:\Program Files\Unity *` 下的实际目录为准，脚本会自动探测。旧文档或生成的 `.csproj` 中的历史版本不能作为当前版本依据。
+- 每次运行 Unity 前，读取 `ProjectSettings/ProjectVersion.txt` 的 `m_EditorVersion`，再核对本机实际安装位置。本机 Unity **不在** Unity Hub 目录，而是 `C:\Program Files\Unity 6000.6.4f1\Editor\Unity.exe`（2026-10-02 核对；`C:\Program Files\Unity\Hub\Editor` 不存在）。版本号随升级不定期变化，因此**任何文档、脚本、`.csproj` 都不要写死版本号**：以项目记录的版本 + `C:\Program Files\Unity *` 下的实际目录为准，脚本会自动探测。旧文档或生成的 `.csproj` 中的历史版本不能作为当前版本依据。
 - 日常执行与校验优先使用项目记录的正式版；升级时优先选择最新正式发行版并检查包兼容性。若该版本尚未安装，说明缺失情况，不擅自降级或用预发布版替代；普通代码任务不顺带安装编辑器或迁移项目。
 - 批处理命令使用核实后的路径，不硬编码历史版本号；具体执行方式见 [references/unity-editor.md](references/unity-editor.md)。
 
