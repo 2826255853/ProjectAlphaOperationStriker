@@ -154,7 +154,7 @@ public sealed class TrapPlacementController : MonoBehaviour
     private void Update()
     {
         economy.Refresh();
-        if (TrapSelectionMenu.CursorOwned) return;
+        if (TrapSelectionMenu.CursorOwned || GameStartMenu.CursorOwned) return;
         // The project uses the new Input System, so read the number keys from
         // Keyboard.current instead of relying only on the legacy Input API.
         if (TryGetTrapSlotPressed(out int slot))

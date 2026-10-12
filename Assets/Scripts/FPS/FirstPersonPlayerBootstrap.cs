@@ -25,6 +25,10 @@ public static class FirstPersonPlayerBootstrap
                 legacyPlayer.gameObject.AddComponent<PlayerHealth>();
             EnsureObserverMode(legacyPlayer.gameObject);
             EnsureLifeStateController(legacyPlayer.gameObject);
+            if (legacyPlayer.GetComponent<PlayerSprintAimBridge>() == null)
+            {
+                legacyPlayer.gameObject.AddComponent<PlayerSprintAimBridge>();
+            }
             EnsureLadderClimbStateLogger(legacyPlayer.gameObject);
             return;
         }
@@ -92,6 +96,10 @@ public static class FirstPersonPlayerBootstrap
         if (player.GetComponent<FPSPackagePlayerMotion>() == null)
         {
             player.AddComponent<FPSPackagePlayerMotion>();
+        }
+        if (player.GetComponent<PlayerSprintAimBridge>() == null)
+        {
+            player.AddComponent<PlayerSprintAimBridge>();
         }
         if (player.GetComponent<LadderClimbing>() == null)
         {

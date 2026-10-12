@@ -324,7 +324,7 @@ public sealed class MissileProjectile : MonoBehaviour
         if (directHit != null)
         {
             EnemyHealth health = directHit.GetComponent<EnemyHealth>();
-            if (health != null && !health.IsDead && damaged.Add(health)) health.TakeDamage(damage);
+            if (health != null && !health.IsDead && damaged.Add(health)) health.TakeDamage(damage, TrapDamageType.Explosive);
         }
 
         if (splashRadius > 0f && splashDamageRatio > 0f)
@@ -337,7 +337,7 @@ public sealed class MissileProjectile : MonoBehaviour
                 EnemyHealth health = hits[i].GetComponentInParent<EnemyHealth>();
                 if (health == null || health.IsDead) continue;
                 if (!damaged.Add(health)) continue;
-                health.TakeDamage(splashDamage);
+                health.TakeDamage(splashDamage, TrapDamageType.Explosive);
             }
 
             // OverlapSphere cannot see monsters without a collider, so sweep the
@@ -350,7 +350,7 @@ public sealed class MissileProjectile : MonoBehaviour
                 EnemyHealth health = enemies[i].GetComponent<EnemyHealth>();
                 if (health == null || health.IsDead) continue;
                 if (!damaged.Add(health)) continue;
-                health.TakeDamage(splashDamage);
+                health.TakeDamage(splashDamage, TrapDamageType.Explosive);
             }
         }
 

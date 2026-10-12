@@ -127,7 +127,7 @@ public sealed class GroundSpikeTrap : MonoBehaviour
             if (!contact) continue;
             found = true;
             delay = Mathf.Min(delay, fraction * step);
-            if (applyDamage && hitThisAttack.Add(enemy)) enemy.TakeDamage(damage);
+            if (applyDamage && hitThisAttack.Add(enemy)) enemy.TakeDamage(damage, TrapDamageType.Physical);
         }
         return found;
     }

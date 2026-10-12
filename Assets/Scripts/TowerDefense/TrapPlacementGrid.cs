@@ -327,9 +327,9 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         for (int x = 0; x < footprint.x; x++)
         {
             Vector2Int cell = origin + new Vector2Int(x, y);
-            // CellToWorld already includes surfaceOffset, so the probe starts
+            // CellOriginToWorld already includes surfaceOffset, so the probe starts
             // just off the wall face and may use the full probe distance inward.
-            TrapPlacementGeometry.FillCellProbePattern(CellToWorld(cell), right, up, cellSize, inset, probeBuffer);
+            TrapPlacementGeometry.FillCellProbePattern(CellOriginToWorld(cell), right, up, cellSize, inset, probeBuffer);
             for (int i = 0; i < probeBuffer.Length; i++)
             {
                 if (TryFindSupportHit(probeBuffer[i] + normal * 0.02f, -normal, castDistance + 0.02f, normal, allowedCos))
@@ -567,10 +567,19 @@ public sealed class TrapPlacementGrid : MonoBehaviour
 
     public Vector3 CellToWorld(Vector2Int cell)
     {
-        // Trap positions are anchored to grid-line intersections (as in Go),
-        // rather than the visual center of a cell. Cell indices still describe
-        // the same area for availability and occupancy checks. Wall cells keep
-        // the same corner convention, but on the grid's local X/Y plane.
+        // Wall markers and gizmos are centered inside each cell so the first
+        // row no longer extends below the support's lower edge and the last
+        // row reaches the platform top. The grid transform itself remains the
+        // lower-left boundary, which keeps cell lookup and footprint bounds
+        // unchanged. Ground grids retain their historical anchor convention.
+        Vector3 local = IsWallSurface
+            ? new Vector3((cell.x + 0.5f) * cellSize, (cell.y + 0.5f) * cellSize, SurfaceOffset)
+            : new Vector3(cell.x * cellSize, placementHeight, cell.y * cellSize);
+        return transform.TransformPoint(local);
+    }
+
+    private Vector3 CellOriginToWorld(Vector2Int cell)
+    {
         Vector3 local = IsWallSurface
             ? new Vector3(cell.x * cellSize, cell.y * cellSize, SurfaceOffset)
             : new Vector3(cell.x * cellSize, placementHeight, cell.y * cellSize);
@@ -618,7 +627,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     public void GetCellCorners(Vector2Int cell, Vector3[] corners)
     {
         SurfaceAxes(out Vector3 right, out Vector3 up);
-        Vector3 gridOrigin = CellToWorld(cell);
+        Vector3 gridOrigin = CellOriginToWorld(cell);
         right *= cellSize;
         up *= cellSize;
         corners[0] = gridOrigin;

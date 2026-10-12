@@ -16,6 +16,7 @@ public sealed class PlayerLifeStateController : MonoBehaviour
 
     private readonly List<Behaviour> disabledBehaviours = new List<Behaviour>();
     private readonly List<Collider> disabledColliders = new List<Collider>();
+    private readonly List<Renderer> hiddenRenderers = new List<Renderer>();
     private PlayerHealth health;
     private PlayerObserverMode observerMode;
     private bool gameplaySuspended;
@@ -89,6 +90,7 @@ public sealed class PlayerLifeStateController : MonoBehaviour
 
     private void HandleDied(PlayerHealth _)
     {
+        HidePlayerVisuals();
         TryEnterObserverMode();
         if (respawnRoutine == null) respawnRoutine = StartCoroutine(RespawnAfterDelay());
     }
@@ -97,6 +99,7 @@ public sealed class PlayerLifeStateController : MonoBehaviour
     {
         if (IsObserverMode) observerMode.ExitObserverMode();
         RestoreGameplay();
+        RestorePlayerVisuals();
         LockCursorForGameplay();
     }
 
@@ -133,7 +136,7 @@ public sealed class PlayerLifeStateController : MonoBehaviour
 
     private static void LockCursorForGameplay()
     {
-        if (TrapSelectionMenu.CursorOwned) return;
+        if (TrapSelectionMenu.CursorOwned || GameStartMenu.BlocksPlayerCursor) return;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
@@ -168,6 +171,25 @@ public sealed class PlayerLifeStateController : MonoBehaviour
             if (behaviour != null) behaviour.enabled = true;
         disabledBehaviours.Clear();
         gameplaySuspended = false;
+    }
+
+    private void HidePlayerVisuals()
+    {
+        if (hiddenRenderers.Count > 0) return;
+
+        foreach (Renderer renderer in GetComponentsInChildren<Renderer>(true))
+        {
+            if (renderer == null || !renderer.enabled) continue;
+            hiddenRenderers.Add(renderer);
+            renderer.enabled = false;
+        }
+    }
+
+    private void RestorePlayerVisuals()
+    {
+        foreach (Renderer renderer in hiddenRenderers)
+            if (renderer != null) renderer.enabled = true;
+        hiddenRenderers.Clear();
     }
 
     private bool ControlsPlayer(Behaviour behaviour)

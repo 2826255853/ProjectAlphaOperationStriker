@@ -11,6 +11,8 @@ public sealed class EnemyHealth : MonoBehaviour
     public float CurrentHealth { get; private set; }
     public bool IsDead => CurrentHealth <= 0f;
     public event Action<EnemyHealth> Damaged;
+    /// <summary>Raised for typed trap damage; player weapon calls retain the original API.</summary>
+    public event Action<EnemyHealth, float, TrapDamageType> TrapDamaged;
     public event Action<EnemyHealth> Died;
 
     private bool deathRaised;
@@ -40,6 +42,15 @@ public sealed class EnemyHealth : MonoBehaviour
         deathRaised = true;
         Died?.Invoke(this);
         Destroy(gameObject);
+    }
+
+    /// <summary>Apply trap damage and publish its category for future resistance and combat feedback.</summary>
+    public void TakeDamage(float amount, TrapDamageType type)
+    {
+        if (deathRaised || amount <= 0f) return;
+        float previousHealth = CurrentHealth;
+        TakeDamage(amount);
+        TrapDamaged?.Invoke(this, previousHealth - CurrentHealth, type);
     }
 
     /// <summary>Restores this instance to full health when reused from a pool.</summary>

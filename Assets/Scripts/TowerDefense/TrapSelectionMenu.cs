@@ -43,6 +43,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
     {
         economy.Refresh();
         UpdatePendingWeaponInputRestore();
+        if (GameStartMenu.CursorOwned) return;
         if (Keyboard.current == null) return;
         if (toggleKey == KeyCode.N && Keyboard.current.nKey.wasPressedThisFrame) SetOpen(!open);
         if (open && Keyboard.current.escapeKey.wasPressedThisFrame) SetOpen(false);

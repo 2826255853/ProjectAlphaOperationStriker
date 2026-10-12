@@ -98,7 +98,7 @@ public sealed class GroundEnemyCombat : MonoBehaviour
 
         nextAttackTime = Time.time + attackInterval;
         Transform attackedTarget = CurrentTarget;
-        if (playerTarget != null) playerTarget.TakeDamage(attackDamage);
+        if (playerTarget != null) playerTarget.TakeDamage(attackDamage, transform.position);
         else trapTarget.TakeDamage(attackDamage);
         Debug.DrawLine(transform.position + Vector3.up, targetPosition + Vector3.up, Color.yellow, 0.2f);
         Attacked?.Invoke(this, attackedTarget);

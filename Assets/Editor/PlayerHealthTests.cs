@@ -14,6 +14,8 @@ public sealed class PlayerHealthTests
     private PlayerObserverMode observerMode;
     private PlayerLifeStateController lifeStateController;
     private GameObject respawnMarker;
+    private GameObject visibleModel;
+    private GameObject hiddenModel;
 
     [SetUp]
     public void SetUp()
@@ -32,6 +34,14 @@ public sealed class PlayerHealthTests
         lifeStateController = playerObject.AddComponent<PlayerLifeStateController>();
         Invoke(lifeStateController, "Awake");
         Invoke(lifeStateController, "OnEnable");
+
+        visibleModel = new GameObject("Visible first person model");
+        visibleModel.transform.SetParent(playerObject.transform);
+        visibleModel.AddComponent<MeshRenderer>();
+
+        hiddenModel = new GameObject("Initially hidden model");
+        hiddenModel.transform.SetParent(playerObject.transform);
+        hiddenModel.AddComponent<MeshRenderer>().enabled = false;
     }
 
     [TearDown]
@@ -78,6 +88,8 @@ public sealed class PlayerHealthTests
         Assert.That(playerMotion.enabled, Is.False);
         Assert.That(shooter.enabled, Is.False);
         Assert.That(lifeStateController.IsObserverMode, Is.True);
+        Assert.That(visibleModel.GetComponent<Renderer>().enabled, Is.False);
+        Assert.That(hiddenModel.GetComponent<Renderer>().enabled, Is.False);
         Assert.That(lifeStateController.TryExitObserverMode(), Is.False);
 
         health.ResetHealth();
@@ -89,6 +101,8 @@ public sealed class PlayerHealthTests
         Assert.That(playerMotion.enabled, Is.True);
         Assert.That(shooter.enabled, Is.True);
         Assert.That(lifeStateController.IsObserverMode, Is.False);
+        Assert.That(visibleModel.GetComponent<Renderer>().enabled, Is.True);
+        Assert.That(hiddenModel.GetComponent<Renderer>().enabled, Is.False);
     }
 
     [Test]

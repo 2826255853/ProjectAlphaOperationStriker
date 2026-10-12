@@ -27,6 +27,8 @@ public static class WallTrapTestPieceAuthoring
             new Vector3(0.8f, 0.8f, 0.18f));
         CreateOrUpdateDefinition(TwoByTwoName, "墙面测试件 2×2", twoByTwoPrefab, 2, 2,
             new Vector3(1.8f, 1.8f, 0.18f));
+        CreateOrUpdateDefinition(FlamethrowerName, "火焰喷射器", flamethrowerPrefab, 2, 2,
+            new Vector3(1.8f, 1.8f, 0.18f));
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -34,6 +36,24 @@ public static class WallTrapTestPieceAuthoring
     }
 
     public static void CreateAssetsBatch() => CreateAssets();
+
+    private static GameObject BuildFlamethrowerPrefab()
+    {
+        string prefabPath = ResourceDirectory + "/Flamethrower.prefab";
+        GameObject root = new GameObject(FlamethrowerName);
+        TrapInstance trap = root.AddComponent<TrapInstance>();
+        root.AddComponent<FlamethrowerTrap>();
+        Material material = CreateOrUpdateMaterial("Flamethrower_Material", new Color(0.95f, 0.16f, 0.03f));
+        CreatePrimitive(PrimitiveType.Cube, "Wall Backplate", root.transform, material).transform.localScale = new Vector3(1.72f, 1.72f, 0.12f);
+        GameObject nozzle = CreatePrimitive(PrimitiveType.Cylinder, "Flame Nozzle", root.transform, material);
+        nozzle.transform.localPosition = new Vector3(0f, 0f, 0.22f);
+        nozzle.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+        nozzle.transform.localScale = new Vector3(0.22f, 0.18f, 0.22f);
+        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, prefabPath, out bool saved);
+        Object.DestroyImmediate(root);
+        if (!saved || prefab == null) throw new System.InvalidOperationException("Could not save flamethrower prefab.");
+        return prefab;
+    }
 
     private static void EnsureFolders()
     {

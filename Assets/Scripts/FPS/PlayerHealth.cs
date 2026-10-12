@@ -13,6 +13,7 @@ public sealed class PlayerHealth : MonoBehaviour
     public float CurrentHealth { get; private set; }
     public bool IsDead => CurrentHealth <= 0f;
     public event Action<PlayerHealth> Damaged;
+    public event Action<PlayerHealth, Vector3> DamagedFrom;
     public event Action<PlayerHealth> Died;
     public event Action<PlayerHealth> Revived;
     private bool initialized;
@@ -45,9 +46,16 @@ public sealed class PlayerHealth : MonoBehaviour
 
     public void TakeDamage(float amount)
     {
+        TakeDamage(amount, transform.position);
+    }
+
+    /// <summary>Applies damage and reports the world position of its source to the HUD.</summary>
+    public void TakeDamage(float amount, Vector3 sourcePosition)
+    {
         if (IsDead || amount <= 0f) return;
         CurrentHealth = Mathf.Max(0f, CurrentHealth - amount);
         Damaged?.Invoke(this);
+        DamagedFrom?.Invoke(this, sourcePosition);
         if (IsDead) Died?.Invoke(this);
     }
 

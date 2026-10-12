@@ -42,9 +42,14 @@ public sealed class FirstPersonController : MonoBehaviour
     private readonly Collider[] ceilingOverlaps = new Collider[8];
     private float verticalVelocity;
     private float pitch;
+    private float forwardInput;
+    private bool sprintSuppressedByAim;
 
     public bool IsCrouching { get; private set; }
     public bool IsQuietWalking => quietWalkAction != null && quietWalkAction.IsPressed();
+
+    /// <summary>Whether the player is actually sprinting right now: sprint key held, not crouching, moving forward.</summary>
+    public bool IsSprinting => IsSprintRequested && forwardInput > 0f;
     public float JumpHeight => jumpHeight;
 
     public void SetCameraPivot(Transform pivot)
@@ -105,9 +110,22 @@ public sealed class FirstPersonController : MonoBehaviour
     private void Update()
     {
         UpdateCursor();
+        if (GameStartMenu.CursorOwned) return;
         UpdateView();
         UpdateStance();
         UpdateMovement();
+    }
+
+    /// <summary>Whether sprint input is currently available to the movement pass.</summary>
+    public bool IsSprintRequested => sprintAction != null
+                                     && sprintAction.IsPressed()
+                                     && !IsCrouching
+                                     && !sprintSuppressedByAim;
+
+    /// <summary>Right-click aiming overrides sprint until the aim button is released.</summary>
+    public void SetSprintSuppressedByAim(bool suppressed)
+    {
+        sprintSuppressedByAim = suppressed;
     }
 
     private void ConfigureController()
@@ -203,6 +221,7 @@ public sealed class FirstPersonController : MonoBehaviour
     private void UpdateMovement()
     {
         Vector2 input = Vector2.ClampMagnitude(moveAction.ReadValue<Vector2>(), 1f);
+        forwardInput = input.y;
         Vector3 desiredDirection = transform.right * input.x + transform.forward * input.y;
         float targetSpeed = SelectMovementSpeed(input.y);
         Vector3 desiredVelocity = desiredDirection * targetSpeed;
@@ -256,7 +275,7 @@ public sealed class FirstPersonController : MonoBehaviour
 
         // Sprinting is intentionally forward-only. Strafe and backward input
         // remain at walk speed even while the sprint key is held.
-        return sprintAction.IsPressed() && forwardInput > 0f ? sprintSpeed : walkSpeed;
+        return IsSprinting ? sprintSpeed : walkSpeed;
     }
 
     public static float CalculateJumpSpeed(float height, float gravityMagnitude)
@@ -269,7 +288,7 @@ public sealed class FirstPersonController : MonoBehaviour
         // While the trap menu owns the cursor, a click (or the Escape that
         // closes the menu) must not re-lock the view; the menu restores the
         // lock itself once it closes.
-        if (TrapSelectionMenu.CursorOwned)
+        if (TrapSelectionMenu.CursorOwned || GameStartMenu.BlocksPlayerCursor)
         {
             return;
         }
@@ -322,6 +341,7 @@ public sealed class FPSPackagePlayerMotion : MonoBehaviour
         }
 
         UpdateCursor();
+        if (GameStartMenu.CursorOwned) return;
 
         if (WasJumpPressed())
         {
@@ -331,6 +351,7 @@ public sealed class FPSPackagePlayerMotion : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (GameStartMenu.CursorOwned) return;
         if (characterController == null || !characterController.enabled)
         {
             return;
@@ -355,6 +376,7 @@ public sealed class FPSPackagePlayerMotion : MonoBehaviour
         if (grounded && jumpRequested)
         {
             verticalVelocity = FirstPersonController.CalculateJumpSpeed(jumpHeight, gravity);
+            ReleaseAimForSprintRule();
             fpsPlayer?.OnJump();
             jumpRequested = false;
         }
@@ -363,12 +385,24 @@ public sealed class FPSPackagePlayerMotion : MonoBehaviour
         characterController.Move(Vector3.up * (verticalVelocity * Time.deltaTime));
     }
 
+    /// <summary>
+    /// Jumping immediately leaves ADS, avoiding a jump animation that remains in aim pose.
+    /// </summary>
+    public void ReleaseAimForSprintRule()
+    {
+        PlayerSprintAimBridge bridge = GetComponent<PlayerSprintAimBridge>();
+        if (bridge != null)
+        {
+            bridge.CancelAim(true);
+        }
+    }
+
     private static void UpdateCursor()
     {
         // While the trap menu owns the cursor, a click (or the Escape that
         // closes the menu) must not re-lock the view; the menu restores the
         // lock itself once it closes.
-        if (TrapSelectionMenu.CursorOwned)
+        if (TrapSelectionMenu.CursorOwned || GameStartMenu.BlocksPlayerCursor)
         {
             return;
         }
@@ -437,6 +471,7 @@ public sealed class FPSHitscanShooter : MonoBehaviour
 
     private void Update()
     {
+        if (GameStartMenu.CursorOwned) return;
         if (TrapPlacementController.IsPlacementModeActive)
         {
             // Trap placement owns the mouse while active; discard any weapon

@@ -1,9 +1,15 @@
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>Scene-view authoring tool for explicitly marked wall trap placement grids.</summary>
 public sealed class WallTrapGridAuthoring : EditorWindow
 {
+    private const string DefaultSceneName = "THREE_ROUTE_MERGE_MAP";
+    private const string DefaultScenePath = "Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity";
+    private const string GridRootName = "WallTrapPlacementGrids";
+    private const float WallGridGroundY = 0f;
     private Collider supportCollider;
     private int columns = 4;
     private int rows = 3;
@@ -18,6 +24,150 @@ public sealed class WallTrapGridAuthoring : EditorWindow
     {
         GetWindow<WallTrapGridAuthoring>("Wall Trap Grid");
     }
+
+    /// <summary>
+    /// Adds deterministic wall grids to the current map. The operation
+    /// is intentionally idempotent so it is safe to run from Unity batch mode or
+    /// repeatedly while authoring the map. It uses the imported Platform_*
+    /// colliders as the map's vertical support
+    /// geometry. Each platform receives grids on both long side faces.
+    /// </summary>
+    public static bool EnsureStarterGridForCurrentMap()
+    {
+        Scene activeScene = EditorSceneManager.GetActiveScene();
+        if (activeScene.path != DefaultScenePath)
+            activeScene = EditorSceneManager.OpenScene(DefaultScenePath, OpenSceneMode.Single);
+        if (!activeScene.IsValid() || activeScene.name != DefaultSceneName)
+            throw new System.InvalidOperationException("无法打开主地图场景：" + DefaultScenePath);
+
+        GameObject root = GameObject.Find(GridRootName);
+        if (root == null)
+        {
+            root = new GameObject(GridRootName);
+            root.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+        }
+
+        Collider[] candidates = Object.FindObjectsByType<Collider>(FindObjectsSortMode.None);
+        int created = 0;
+        int aligned = 0;
+        for (int i = 0; i < candidates.Length; i++)
+        {
+            Collider support = candidates[i];
+            if (!support.name.StartsWith("Platform_", System.StringComparison.Ordinal)
+                || !HasVerticalFace(support)) continue;
+            if (!support.gameObject.isStatic) support.gameObject.isStatic = true;
+            EditorUtility.SetDirty(support.gameObject);
+            created += CreatePlatformSideGrids(root, support);
+            aligned += AlignPlatformSideGrids(root, support);
+        }
+        if (created == 0 && aligned == 0)
+            throw new System.InvalidOperationException("主地图中没有找到 Platform_* 墙体碰撞体。");
+
+        EditorUtility.SetDirty(root);
+        EditorSceneManager.MarkSceneDirty(activeScene);
+        EditorSceneManager.SaveScene(activeScene);
+        Debug.Log($"Created {created} and aligned {aligned} wall trap grids for Platform_* map geometry; grid tops follow platform tops and bottoms stay above Y={WallGridGroundY:0.###}.");
+        return true;
+    }
+
+    private static bool HasVerticalFace(Collider collider)
+    {
+        Bounds b = collider.bounds;
+        return b.size.y >= 1f && (b.size.x >= 1f || b.size.z >= 1f);
+    }
+
+    private static int CreatePlatformSideGrids(GameObject root, Collider support)
+    {
+        Bounds bounds = support.bounds;
+        bool wallRunsAlongX = bounds.size.x >= bounds.size.z;
+        int columns = Mathf.Max(1, Mathf.RoundToInt(wallRunsAlongX ? bounds.size.x : bounds.size.z));
+        int rows = GetGridRows(bounds);
+        int created = 0;
+        Vector3[] normals = wallRunsAlongX
+            ? new[] { Vector3.forward, Vector3.back }
+            : new[] { Vector3.right, Vector3.left };
+        for (int side = 0; side < normals.Length; side++)
+        {
+            Vector3 normal = normals[side];
+            string name = $"WallTrapGrid_{support.name}_{(side == 0 ? "A" : "B")}";
+            if (root.transform.Find(name) != null) continue;
+            Vector3 origin;
+            if (wallRunsAlongX)
+                origin = new Vector3(side == 0 ? bounds.min.x : bounds.max.x, bounds.min.y,
+                    side == 0 ? bounds.max.z : bounds.min.z);
+            else
+                origin = new Vector3(side == 0 ? bounds.max.x : bounds.min.x, bounds.min.y,
+                    side == 0 ? bounds.max.z : bounds.min.z);
+            origin.y = GetGridTopY(bounds) - rows;
+            GameObject gridObject = new GameObject(name);
+            gridObject.transform.SetParent(root.transform, false);
+            gridObject.transform.SetPositionAndRotation(origin + normal * 0.01f,
+                Quaternion.LookRotation(normal, Vector3.up));
+            TrapPlacementGrid grid = gridObject.AddComponent<TrapPlacementGrid>();
+            bool[] open = new bool[columns * rows];
+            for (int cell = 0; cell < open.Length; cell++) open[cell] = true;
+            grid.ConfigureLayout(columns, rows, 1f, 0f, open,
+                TrapPlacementGrid.SurfaceKind.Ground, TrapMountType.Wall, support, 0.01f);
+            EditorUtility.SetDirty(grid);
+            created++;
+        }
+        return created;
+    }
+
+    private static int AlignPlatformSideGrids(GameObject root, Collider support)
+    {
+        Bounds bounds = support.bounds;
+        bool wallRunsAlongX = bounds.size.x >= bounds.size.z;
+        int columns = Mathf.Max(1, Mathf.RoundToInt(wallRunsAlongX ? bounds.size.x : bounds.size.z));
+        int rows = GetGridRows(bounds);
+        Vector3[] normals = wallRunsAlongX
+            ? new[] { Vector3.forward, Vector3.back }
+            : new[] { Vector3.right, Vector3.left };
+        int aligned = 0;
+        for (int side = 0; side < normals.Length; side++)
+        {
+            string name = $"WallTrapGrid_{support.name}_{(side == 0 ? "A" : "B")}";
+            Transform gridTransform = root.transform.Find(name);
+            if (gridTransform == null) continue;
+            TrapPlacementGrid grid = gridTransform.GetComponent<TrapPlacementGrid>();
+            if (grid == null) continue;
+
+            Vector3 normal = normals[side];
+            Vector3 origin;
+            if (wallRunsAlongX)
+                origin = new Vector3(side == 0 ? bounds.min.x : bounds.max.x, 0f,
+                    side == 0 ? bounds.max.z : bounds.min.z);
+            else
+                origin = new Vector3(side == 0 ? bounds.max.x : bounds.min.x, 0f,
+                    side == 0 ? bounds.max.z : bounds.min.z);
+            origin.y = GetGridTopY(bounds) - rows;
+            gridTransform.SetPositionAndRotation(origin + normal * 0.01f,
+                Quaternion.LookRotation(normal, Vector3.up));
+
+            if (grid.Columns != columns || grid.Rows != rows || Mathf.Abs(grid.CellSize - 1f) > 0.0001f)
+            {
+                bool[] open = new bool[columns * rows];
+                for (int cell = 0; cell < open.Length; cell++) open[cell] = true;
+                grid.ConfigureLayout(columns, rows, 1f, 0f, open,
+                    TrapPlacementGrid.SurfaceKind.Ground, TrapMountType.Wall, support, 0.01f);
+            }
+            EditorUtility.SetDirty(gridTransform);
+            EditorUtility.SetDirty(grid);
+            aligned++;
+        }
+        return aligned;
+    }
+
+    private static int GetGridRows(Bounds bounds)
+    {
+        // Anchor from the platform top so the visible grid never inherits a
+        // below-ground mesh pivot. Floor the usable height to keep the last
+        // cell inside the support instead of extending below the ground plane.
+        float usableHeight = Mathf.Max(0f, GetGridTopY(bounds) - Mathf.Max(WallGridGroundY, bounds.min.y));
+        return Mathf.Max(1, Mathf.FloorToInt(usableHeight + 0.0001f));
+    }
+
+    private static float GetGridTopY(Bounds bounds) => bounds.max.y;
 
     private void OnEnable() => SceneView.duringSceneGui += OnSceneGUI;
     private void OnDisable() => SceneView.duringSceneGui -= OnSceneGUI;

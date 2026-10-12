@@ -119,6 +119,65 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &21610258
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 21610259}
+  - component: {fileID: 21610260}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Right_Inner_South_A
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &21610259
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 21610258}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 12.01, y: 0, z: -20}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &21610260
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 21610258}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 20
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 1745218330}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 01010101010101010101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1 &50599910
 GameObject:
   m_ObjectHideFlags: 0
@@ -350,6 +409,474 @@ MonoBehaviour:
   triggerSize: {x: 1, y: 2, z: 1}
   triggerRadius: 1
   triggerEvents: []
+--- !u!1 &94811435
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 94811436}
+  - component: {fileID: 94811437}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Right_Inner_South_B
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &94811436
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 94811435}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 7.99, y: 0, z: -40}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &94811437
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 94811435}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 20
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 1745218330}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 01010101010101010101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
+--- !u!1 &100973838
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 100973839}
+  - component: {fileID: 100973840}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Central_East_South_B
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &100973839
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100973838}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 3.99, y: 0, z: -40}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &100973840
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 100973838}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 20
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 1608981744}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 01010101010101010101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
+--- !u!1 &159140752
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 159140753}
+  - component: {fileID: 159140754}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Central_West_South_B
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &159140753
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 159140752}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -8.01, y: 0, z: -40}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &159140754
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 159140752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 20
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 1214727093}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 01010101010101010101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
+--- !u!1 &161865774
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 161865775}
+  - component: {fileID: 161865776}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Central_West_North_B
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &161865775
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 161865774}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -8.01, y: 0, z: -12}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &161865776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 161865774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 52
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 345528474}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
+--- !u!1 &167131266
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 167131267}
+  - component: {fileID: 167131268}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Central_West_North_A
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &167131267
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 167131266}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -3.99, y: 0, z: 40}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &167131268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 167131266}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 52
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 345528474}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
+--- !u!1 &189986663
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 189986664}
+  m_Layer: 0
+  m_Name: WallTrapPlacementGrids
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &189986664
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 189986663}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1742553750}
+  - {fileID: 159140753}
+  - {fileID: 1538699689}
+  - {fileID: 1828390729}
+  - {fileID: 1328820078}
+  - {fileID: 1477529896}
+  - {fileID: 251081151}
+  - {fileID: 100973839}
+  - {fileID: 1724788640}
+  - {fileID: 826077575}
+  - {fileID: 906481544}
+  - {fileID: 235783405}
+  - {fileID: 672134484}
+  - {fileID: 1390066902}
+  - {fileID: 167131267}
+  - {fileID: 161865775}
+  - {fileID: 696939682}
+  - {fileID: 1185135244}
+  - {fileID: 469993987}
+  - {fileID: 1350438449}
+  - {fileID: 1614934271}
+  - {fileID: 2092222913}
+  - {fileID: 21610259}
+  - {fileID: 94811436}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &235783404
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 235783405}
+  - component: {fileID: 235783406}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Turn_Left_South_B
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &235783405
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 235783404}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
+  m_LocalPosition: {x: -4, y: 0, z: -24.01}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &235783406
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 235783404}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 8
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 739454107}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 01010101010101010101010101010101y
+  walkableTrapsOnly: 0
+--- !u!1 &251081150
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 251081151}
+  - component: {fileID: 251081152}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Central_East_South_A
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &251081151
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 251081150}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 8.01, y: 0, z: -20}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &251081152
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 251081150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 20
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 1608981744}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 01010101010101010101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1 &258657423
 GameObject:
   m_ObjectHideFlags: 0
@@ -575,7 +1102,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &341087556
 Transform:
@@ -687,7 +1214,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &345528472
 Transform:
@@ -799,7 +1326,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &358235398
 Transform:
@@ -1015,7 +1542,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &412238638
 Transform:
@@ -1127,7 +1654,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &420571808
 Transform:
@@ -1222,6 +1749,65 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 420571807}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &469993986
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 469993987}
+  - component: {fileID: 469993988}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Turn_Right_North_A
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &469993987
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 469993986}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 4, y: 0, z: -7.99}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &469993988
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 469993986}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 16
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 341087558}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 0101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1 &470925046
 GameObject:
   m_ObjectHideFlags: 0
@@ -1641,6 +2227,124 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WaveManager
   totalWaves: 3
+--- !u!1 &672134483
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 672134484}
+  - component: {fileID: 672134485}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Turn_Left_North_A
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &672134484
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 672134483}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -20, y: 0, z: -7.99}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &672134485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 672134483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 16
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 358235400}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 0101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
+--- !u!1 &696939681
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 696939682}
+  - component: {fileID: 696939683}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Turn_Right_South_A
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &696939682
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 696939681}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 4, y: 0, z: -19.99}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &696939683
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 696939681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 8
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 412238640}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 01010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1 &698130263
 GameObject:
   m_ObjectHideFlags: 0
@@ -1978,7 +2682,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &739454105
 Transform:
@@ -2177,6 +2881,65 @@ MonoBehaviour:
   triggerSize: {x: 1, y: 2, z: 1}
   triggerRadius: 1
   triggerEvents: []
+--- !u!1 &826077574
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 826077575}
+  - component: {fileID: 826077576}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Central_East_North_B
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &826077575
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 826077574}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 3.99, y: 0, z: -12}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &826077576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 826077574}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 52
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 1693023861}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1 &830454070
 GameObject:
   m_ObjectHideFlags: 0
@@ -2385,6 +3148,65 @@ MonoBehaviour:
   triggerSize: {x: 1, y: 2, z: 1}
   triggerRadius: 1
   triggerEvents: []
+--- !u!1 &906481543
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 906481544}
+  - component: {fileID: 906481545}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Turn_Left_South_A
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &906481544
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 906481543}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -12, y: 0, z: -19.99}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &906481545
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 906481543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 8
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 739454107}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 01010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1 &915213806
 GameObject:
   m_ObjectHideFlags: 0
@@ -2514,7 +3336,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &947147389
 Transform:
@@ -2653,12 +3475,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 0
   columns: 48
   rows: 96
   cellSize: 1
   placementHeight: 0.12
   trapParent: {fileID: 0}
+  surfaceType: 0
+  supportCollider: {fileID: 0}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
   openCells: 000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000y
+  walkableTrapsOnly: 0
 --- !u!1 &985143617
 GameObject:
   m_ObjectHideFlags: 0
@@ -2703,12 +3534,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 0
   columns: 48
   rows: 96
   cellSize: 1
   placementHeight: 0
   trapParent: {fileID: 0}
+  surfaceType: 0
+  supportCollider: {fileID: 0}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
   openCells: 010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000010101010101010100000000000000000101010101010101000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010000000000000000000000000000000000000000000000000000000000000000000000000000000001010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010100000000000000000101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1 &1019312127
 GameObject:
   m_ObjectHideFlags: 0
@@ -2821,6 +3661,65 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1019312127}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1185135243
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1185135244}
+  - component: {fileID: 1185135245}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Turn_Right_South_B
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1185135244
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1185135243}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
+  m_LocalPosition: {x: 12, y: 0, z: -24.01}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1185135245
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1185135243}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 8
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 412238640}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 01010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1 &1208263358
 GameObject:
   m_ObjectHideFlags: 0
@@ -2950,7 +3849,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &1214727091
 Transform:
@@ -3307,6 +4206,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawnPoint
   spawningEnabled: 1
   spawnInterval: 1
+  overrideKillReward: 0
+  killRewardOverride: 10
   totalWaves: 3
   enemiesPerWave: 10
   waveSpawnSettings:
@@ -3344,6 +4245,124 @@ MonoBehaviour:
   flyingEntrance: 0
   entranceAltitude: 12
   flyingSpawnSpread: 2
+--- !u!1 &1328820077
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1328820078}
+  - component: {fileID: 1328820079}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Left_Outer_A
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1328820078
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1328820077}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -19.99, y: 0, z: -8}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1328820079
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1328820077}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 32
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 947147391}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
+--- !u!1 &1350438448
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1350438449}
+  - component: {fileID: 1350438450}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Turn_Right_North_B
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1350438449
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1350438448}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
+  m_LocalPosition: {x: 20, y: 0, z: -12.01}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1350438450
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1350438448}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 16
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 341087558}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 0101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1 &1377438783
 GameObject:
   m_ObjectHideFlags: 0
@@ -3448,6 +4467,65 @@ MonoBehaviour:
   triggerSize: {x: 1, y: 2, z: 1}
   triggerRadius: 1
   triggerEvents: []
+--- !u!1 &1390066901
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1390066902}
+  - component: {fileID: 1390066903}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Turn_Left_North_B
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1390066902
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1390066901}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 1, z: -0, w: 0}
+  m_LocalPosition: {x: -4, y: 0, z: -12.01}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1390066903
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1390066901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 16
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 358235400}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 0101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1 &1432380532
 GameObject:
   m_ObjectHideFlags: 0
@@ -3552,6 +4630,65 @@ MonoBehaviour:
   triggerSize: {x: 1, y: 2, z: 1}
   triggerRadius: 1
   triggerEvents: []
+--- !u!1 &1477529895
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1477529896}
+  - component: {fileID: 1477529897}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Left_Outer_B
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1477529896
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1477529895}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -24.01, y: 0, z: -40}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1477529897
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1477529895}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 32
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 947147391}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1 &1499691454
 GameObject:
   m_ObjectHideFlags: 0
@@ -3644,6 +4781,65 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1538699688
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1538699689}
+  - component: {fileID: 1538699690}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Left_Inner_South_A
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1538699689
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1538699688}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -7.99, y: 0, z: -20}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1538699690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1538699688}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 20
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 420571810}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 01010101010101010101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1 &1543841426
 GameObject:
   m_ObjectHideFlags: 0
@@ -3869,7 +5065,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &1608981742
 Transform:
@@ -4068,6 +5264,65 @@ MonoBehaviour:
   triggerSize: {x: 1, y: 2, z: 1}
   triggerRadius: 1
   triggerEvents: []
+--- !u!1 &1614934270
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1614934271}
+  - component: {fileID: 1614934272}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Right_Outer_A
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1614934271
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1614934270}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 24.01, y: 0, z: -8}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1614934272
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1614934270}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 32
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 1873108622}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1 &1638045976
 GameObject:
   m_ObjectHideFlags: 0
@@ -4379,6 +5634,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawnPoint
   spawningEnabled: 1
   spawnInterval: 1
+  overrideKillReward: 0
+  killRewardOverride: 10
   totalWaves: 3
   enemiesPerWave: 10
   waveSpawnSettings:
@@ -4462,6 +5719,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawnPoint
   spawningEnabled: 1
   spawnInterval: 1
+  overrideKillReward: 0
+  killRewardOverride: 10
   totalWaves: 3
   enemiesPerWave: 10
   waveSpawnSettings:
@@ -4516,7 +5775,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &1693023859
 Transform:
@@ -4715,6 +5974,65 @@ MonoBehaviour:
   triggerSize: {x: 1, y: 2, z: 1}
   triggerRadius: 1
   triggerEvents: []
+--- !u!1 &1724788639
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1724788640}
+  - component: {fileID: 1724788641}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Central_East_North_A
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1724788640
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1724788639}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 8.01, y: 0, z: 40}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1724788641
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1724788639}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 52
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 1693023861}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 0101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1 &1739672276
 GameObject:
   m_ObjectHideFlags: 0
@@ -4819,6 +6137,65 @@ MonoBehaviour:
   triggerSize: {x: 1, y: 2, z: 1}
   triggerRadius: 1
   triggerEvents: []
+--- !u!1 &1742553749
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1742553750}
+  - component: {fileID: 1742553751}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Central_West_South_A
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1742553750
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1742553749}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -3.99, y: 0, z: -20}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1742553751
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1742553749}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 20
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 1214727093}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 01010101010101010101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1 &1745218327
 GameObject:
   m_ObjectHideFlags: 0
@@ -4836,7 +6213,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &1745218328
 Transform:
@@ -4931,6 +6308,65 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1745218327}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1828390728
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1828390729}
+  - component: {fileID: 1828390730}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Left_Inner_South_B
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1828390729
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1828390728}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -12.01, y: 0, z: -40}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1828390730
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1828390728}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 20
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 420571810}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 01010101010101010101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1 &1873108619
 GameObject:
   m_ObjectHideFlags: 0
@@ -4948,7 +6384,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &1873108620
 Transform:
@@ -5422,6 +6858,65 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2091066648}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &2092222912
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2092222913}
+  - component: {fileID: 2092222914}
+  m_Layer: 0
+  m_Name: WallTrapGrid_Platform_Right_Outer_B
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2092222913
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2092222912}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 19.99, y: 0, z: -40}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 189986664}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2092222914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2092222912}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 32
+  rows: 2
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 1
+  supportCollider: {fileID: 1873108622}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 01010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1 &2110578626
 GameObject:
   m_ObjectHideFlags: 0
@@ -5869,3 +7364,4 @@ SceneRoots:
   - {fileID: 1499691457}
   - {fileID: 50599913}
   - {fileID: 470925047}
+  - {fileID: 189986664}

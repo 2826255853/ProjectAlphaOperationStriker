@@ -75,7 +75,7 @@ public sealed class PlayerObserverMode : MonoBehaviour
 
     private void Update()
     {
-        if (!IsActive) return;
+        if (!IsActive || GameStartMenu.CursorOwned) return;
         UpdateCursor();
 
         Vector2 move = Vector2.ClampMagnitude(moveAction.ReadValue<Vector2>(), 1f);
@@ -181,7 +181,7 @@ public sealed class PlayerObserverMode : MonoBehaviour
 
     private static void UpdateCursor()
     {
-        if (TrapSelectionMenu.CursorOwned) return;
+        if (TrapSelectionMenu.CursorOwned || GameStartMenu.BlocksPlayerCursor) return;
         if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             Cursor.lockState = CursorLockMode.None;
