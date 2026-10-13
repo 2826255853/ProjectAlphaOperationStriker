@@ -134,7 +134,7 @@ public sealed class AutoSentryTurret : MonoBehaviour
             target = null;
             return;
         }
-        health.TakeDamage(damagePerShot, TrapDamageType.Physical);
+        health.TakeDamage(damagePerShot, TrapDamageType.Bullet);
 
         // A short debug tracer makes the weapon readable in a gray-box scene
         // without requiring an additional projectile asset.

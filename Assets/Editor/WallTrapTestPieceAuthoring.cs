@@ -13,6 +13,7 @@ public static class WallTrapTestPieceAuthoring
     private const string ResourceDirectory = "Assets/Resources/WallTrapTest";
     private const string OneByOneName = "WallTrapTest_1x1";
     private const string TwoByTwoName = "WallTrapTest_2x2";
+    private const string FlamethrowerName = "Flamethrower";
 
     [MenuItem("Tools/塔防/生成墙面陷阱测试件")]
     public static void CreateAssets()
@@ -27,8 +28,7 @@ public static class WallTrapTestPieceAuthoring
             new Vector3(0.8f, 0.8f, 0.18f));
         CreateOrUpdateDefinition(TwoByTwoName, "墙面测试件 2×2", twoByTwoPrefab, 2, 2,
             new Vector3(1.8f, 1.8f, 0.18f));
-        CreateOrUpdateDefinition(FlamethrowerName, "火焰喷射器", flamethrowerPrefab, 2, 2,
-            new Vector3(1.8f, 1.8f, 0.18f));
+        // TODO(确认): Enable the flamethrower definition after its prefab is wired up.
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();

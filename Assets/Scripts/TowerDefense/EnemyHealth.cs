@@ -40,6 +40,7 @@ public sealed class EnemyHealth : MonoBehaviour
         }
 
         deathRaised = true;
+        GetComponent<FireStatusEffect>()?.Clear();
         Died?.Invoke(this);
         Destroy(gameObject);
     }
@@ -58,5 +59,6 @@ public sealed class EnemyHealth : MonoBehaviour
     {
         deathRaised = false;
         CurrentHealth = Mathf.Max(1f, maxHealth);
+        GetComponent<FireStatusEffect>()?.Clear();
     }
 }
