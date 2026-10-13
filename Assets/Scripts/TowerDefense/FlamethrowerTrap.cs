@@ -25,6 +25,7 @@ public sealed class FlamethrowerTrap : MonoBehaviour
     [SerializeField, Min(0f)] private float burnDamagePerSecond = 5f;
 
     private TrapInstance trap;
+    private FlamethrowerFeedback feedback;
     private AttackState state;
     private double stateTime;
     private readonly HashSet<EnemyHealth> hitThisBurst = new HashSet<EnemyHealth>();
@@ -39,16 +40,36 @@ public sealed class FlamethrowerTrap : MonoBehaviour
     public float SprayDuration => sprayDuration;
     public float CooldownDuration => cooldownDuration;
 
-    private void Awake() => trap = GetComponent<TrapInstance>();
+    private void Awake()
+    {
+        trap = GetComponent<TrapInstance>();
+        feedback = GetComponent<FlamethrowerFeedback>();
+        if (feedback == null) feedback = gameObject.AddComponent<FlamethrowerFeedback>();
+        feedback.Bind(this);
+    }
+
     private void OnEnable()
     {
         if (trap == null) trap = GetComponent<TrapInstance>();
+        if (feedback == null)
+        {
+            feedback = GetComponent<FlamethrowerFeedback>();
+            if (feedback == null) feedback = gameObject.AddComponent<FlamethrowerFeedback>();
+        }
+        feedback.Bind(this);
         state = AttackState.Ready;
         stateTime = 0f;
         hitThisBurst.Clear();
         attackTargets.Clear();
+        feedback.ResetFeedback();
     }
-    private void OnDisable() { state = AttackState.Ready; stateTime = 0f; hitThisBurst.Clear(); }
+    private void OnDisable()
+    {
+        state = AttackState.Ready;
+        stateTime = 0f;
+        hitThisBurst.Clear();
+        feedback?.ResetFeedback();
+    }
     private void Update() => Tick(Time.deltaTime);
 
     public void Tick(float deltaTime)
@@ -81,6 +102,7 @@ public sealed class FlamethrowerTrap : MonoBehaviour
     {
         state = next;
         stateTime = 0d;
+        feedback?.SetState(next);
         if (next == AttackState.Delay) hitThisBurst.Clear();
         // Hit at the opening boundary, even when no frame time remains after Delay.
         if (next == AttackState.Spraying) ApplyBurstDamage();

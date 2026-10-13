@@ -23,6 +23,89 @@ public static class FlamethrowerPlacementPreview
         Render(true, true);
     }
 
+    public static void RenderFeedback()
+    {
+        if (!Application.isBatchMode || Application.isPlaying)
+            throw new InvalidOperationException("Run in a batch editor with graphics enabled.");
+
+        EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        TrapDefinition definition = AssetDatabase.LoadAssetAtPath<TrapDefinition>(FlamethrowerTrapAuthoring.DefinitionPath);
+        if (definition == null || definition.Prefab == null)
+            throw new InvalidOperationException("Generate the flamethrower definition first.");
+
+        string directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+            "陷阱素材文件夹", "Flamethrower");
+        Directory.CreateDirectory(directory);
+        var root = new GameObject("Disposable feedback preview");
+        Material wallMaterial = Unlit(new Color(0.09f, 0.11f, 0.14f));
+        Material groundMaterial = Unlit(new Color(0.035f, 0.045f, 0.055f));
+        var target = new RenderTexture(1280, 720, 24);
+        var pixels = new Texture2D(1280, 720, TextureFormat.RGB24, false);
+        RenderTexture previous = RenderTexture.active;
+        bool previousAsyncCompilation = ShaderUtil.allowAsyncCompilation;
+        try
+        {
+            ShaderUtil.allowAsyncCompilation = false;
+            Box(root.transform, "Wall plate", new Vector3(0f, 0f, -0.12f),
+                new Vector3(2.05f, 2.05f, 0.18f), wallMaterial);
+            Box(root.transform, "Ground", new Vector3(0f, -1.05f, 3.6f),
+                new Vector3(10f, 0.08f, 14f), groundMaterial);
+
+            GameObject instance = PrefabUtility.InstantiatePrefab(definition.Prefab) as GameObject;
+            if (instance == null) throw new InvalidOperationException("Prefab instantiation failed.");
+            instance.transform.SetParent(root.transform, false);
+            instance.transform.localPosition = Vector3.zero;
+            FlamethrowerTrap trap = instance.GetComponent<FlamethrowerTrap>();
+            FlamethrowerFeedback feedback = instance.GetComponent<FlamethrowerFeedback>();
+            if (feedback == null) feedback = instance.AddComponent<FlamethrowerFeedback>();
+            feedback.Bind(trap);
+            feedback.SetState(FlamethrowerTrap.AttackState.Spraying);
+            ParticleSystem[] systems = instance.GetComponentsInChildren<ParticleSystem>(true);
+            for (int i = 0; i < systems.Length; i++)
+                systems[i].Simulate(0.82f, true, true, false);
+
+            Camera camera = new GameObject("Feedback preview camera").AddComponent<Camera>();
+            camera.transform.SetParent(root.transform, false);
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = new Color(0.012f, 0.016f, 0.022f);
+            camera.fieldOfView = 42f;
+            camera.nearClipPlane = 0.05f;
+            camera.farClipPlane = 100f;
+            camera.targetTexture = target;
+            // View from the spray side so the forward +Z flame stream is readable in depth.
+            camera.transform.position = new Vector3(5.6f, 2.7f, 10.2f);
+            camera.transform.LookAt(new Vector3(0f, 0.35f, 3.6f));
+
+            Light key = new GameObject("Feedback preview key").AddComponent<Light>();
+            key.transform.SetParent(root.transform, false);
+            key.type = LightType.Directional;
+            key.intensity = 1.8f;
+            key.color = new Color(0.64f, 0.75f, 1f);
+            key.shadows = LightShadows.None;
+            key.transform.rotation = Quaternion.Euler(42f, -28f, 0f);
+
+            camera.Render();
+            camera.Render();
+            RenderTexture.active = target;
+            pixels.ReadPixels(new Rect(0f, 0f, target.width, target.height), 0, 0);
+            pixels.Apply();
+            string path = Path.Combine(directory, "step7-spray-preview.png");
+            File.WriteAllBytes(path, pixels.EncodeToPNG());
+            Debug.Log("FLAMETHROWER_STEP7_PREVIEW: " + path);
+        }
+        finally
+        {
+            ShaderUtil.allowAsyncCompilation = previousAsyncCompilation;
+            RenderTexture.active = previous;
+            Object.DestroyImmediate(root);
+            target.Release();
+            Object.DestroyImmediate(target);
+            Object.DestroyImmediate(pixels);
+            Object.DestroyImmediate(wallMaterial);
+            Object.DestroyImmediate(groundMaterial);
+        }
+    }
+
     private static void Render(bool graybox, bool attackVolume = false)
     {
         if (!Application.isBatchMode || Application.isPlaying)
