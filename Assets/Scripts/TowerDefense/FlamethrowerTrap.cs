@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>2x2 wall trap: delayed forward cone/box burst, then a short recharge.</summary>
+/// <summary>2x2 wall trap: delayed forward box burst, then a short recharge.</summary>
 [DisallowMultipleComponent]
 [RequireComponent(typeof(TrapInstance))]
 [DefaultExecutionOrder(1000)]
@@ -9,11 +9,16 @@ public sealed class FlamethrowerTrap : MonoBehaviour
 {
     public enum AttackState { Ready, Delay, Spraying, Cooldown }
 
+    // 0.01 mm absorbs floating-point roundoff at closed faces after wall rotation.
+    private const float VolumeBoundaryTolerance = 0.00001f;
+    // Sub-microsecond tolerance keeps split frames on the same state boundary.
+    private const double StateBoundaryTolerance = 0.0000001;
+
     [SerializeField, Min(0f)] private float directDamage = 20f;
     [SerializeField, Min(0.001f)] private float triggerDelay = 0.1f;
     [SerializeField, Min(0.001f)] private float sprayDuration = 2f;
     [SerializeField, Min(0.001f)] private float cooldownDuration = 1.9f;
-    [SerializeField, Min(0.01f)] private float range = 4f;
+    [SerializeField, Min(0.01f)] private float range = 8f;
     [SerializeField, Min(0.01f)] private float width = 2f;
     [SerializeField, Min(0.01f)] private float height = 2f;
     [SerializeField, Min(0.01f)] private float burnDuration = 1f;
@@ -21,79 +26,122 @@ public sealed class FlamethrowerTrap : MonoBehaviour
 
     private TrapInstance trap;
     private AttackState state;
-    private float stateTime;
+    private double stateTime;
     private readonly HashSet<EnemyHealth> hitThisBurst = new HashSet<EnemyHealth>();
+    private readonly List<EnemyHealth> attackTargets = new List<EnemyHealth>();
 
     public AttackState State => state;
     public float Range => range;
+    public Vector3 AttackVolumeSize => new Vector3(width, height, range);
+    // Attack dimensions are metres, independent of model or parent scale.
+    public Matrix4x4 AttackVolumeMatrix => Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
+    public float TriggerDelay => triggerDelay;
     public float SprayDuration => sprayDuration;
     public float CooldownDuration => cooldownDuration;
 
     private void Awake() => trap = GetComponent<TrapInstance>();
-    private void OnEnable() { if (trap == null) trap = GetComponent<TrapInstance>(); state = AttackState.Ready; }
+    private void OnEnable()
+    {
+        if (trap == null) trap = GetComponent<TrapInstance>();
+        state = AttackState.Ready;
+        stateTime = 0f;
+        hitThisBurst.Clear();
+        attackTargets.Clear();
+    }
     private void OnDisable() { state = AttackState.Ready; stateTime = 0f; hitThisBurst.Clear(); }
     private void Update() => Tick(Time.deltaTime);
 
     public void Tick(float deltaTime)
     {
-        if (!isActiveAndEnabled || trap == null || trap.IsDestroyed) return;
-        float remaining = Mathf.Max(0f, deltaTime);
-        while (remaining > 0f)
+        if (!isActiveAndEnabled || trap == null || trap.IsDestroyed
+            || deltaTime <= 0f || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime)) return;
+        double remaining = deltaTime;
+        while (remaining > StateBoundaryTolerance)
         {
             if (state == AttackState.Ready)
             {
                 if (!HasTargetInRange()) return;
-                state = AttackState.Delay; stateTime = 0f; hitThisBurst.Clear();
+                // Commit this burst: losing the trigger target never cancels preheat.
+                EnterState(AttackState.Delay);
             }
-            float duration = StateDuration();
-            float step = Mathf.Min(remaining, duration - stateTime);
+            double duration = StateDuration();
+            double step = System.Math.Min(remaining, System.Math.Max(0d, duration - stateTime));
             if (state == AttackState.Spraying) ApplyBurstDamage();
+            if (!isActiveAndEnabled || trap == null || trap.IsDestroyed) return;
             stateTime += step; remaining -= step;
-            if (stateTime < duration) continue;
-            stateTime = 0f;
-            if (state == AttackState.Delay) state = AttackState.Spraying;
-            else if (state == AttackState.Spraying) state = AttackState.Cooldown;
-            else if (state == AttackState.Cooldown) state = AttackState.Ready;
+            if (stateTime + StateBoundaryTolerance < duration) continue;
+            if (state == AttackState.Delay) EnterState(AttackState.Spraying);
+            else if (state == AttackState.Spraying) EnterState(AttackState.Cooldown);
+            else if (state == AttackState.Cooldown) EnterState(AttackState.Ready);
+            if (!isActiveAndEnabled || trap == null || trap.IsDestroyed) return;
         }
     }
 
-    private float StateDuration() => state == AttackState.Delay ? triggerDelay
-        : state == AttackState.Spraying ? sprayDuration : cooldownDuration;
+    private void EnterState(AttackState next)
+    {
+        state = next;
+        stateTime = 0d;
+        if (next == AttackState.Delay) hitThisBurst.Clear();
+        // Hit at the opening boundary, even when no frame time remains after Delay.
+        if (next == AttackState.Spraying) ApplyBurstDamage();
+    }
+
+    private float StateDuration() => Mathf.Max(0.001f, state == AttackState.Delay ? triggerDelay
+        : state == AttackState.Spraying ? sprayDuration : cooldownDuration);
 
     private bool HasTargetInRange()
     {
-        EnemyHealth[] enemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
-        for (int i = 0; i < enemies.Length; i++) if (IsInAttackVolume(enemies[i])) return true;
-        return false;
+        return CollectAttackTargets(attackTargets) > 0;
     }
 
     private void ApplyBurstDamage()
     {
-        EnemyHealth[] enemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
-        for (int i = 0; i < enemies.Length; i++)
+        CollectAttackTargets(attackTargets);
+        for (int i = 0; i < attackTargets.Count; i++)
         {
-            EnemyHealth enemy = enemies[i];
+            EnemyHealth enemy = attackTargets[i];
             if (!IsInAttackVolume(enemy) || !hitThisBurst.Add(enemy)) continue;
             enemy.TakeDamage(directDamage, TrapDamageType.Fire);
             FireStatusEffect.Ignite(enemy, burnDuration, burnDamagePerSecond);
         }
     }
 
-    private bool IsInAttackVolume(EnemyHealth enemy)
+    /// <summary>Replace results with unique living targets, without requiring any Collider.</summary>
+    public int CollectAttackTargets(List<EnemyHealth> results)
     {
-        if (enemy == null || enemy.IsDead) return false;
+        if (results == null) throw new System.ArgumentNullException(nameof(results));
+        results.Clear();
+        // Query health components once rather than colliders: each health is one damage target,
+        // regardless of how many child hitboxes or visual meshes the enemy has.
+        EnemyHealth[] enemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
+        for (int i = 0; i < enemies.Length; i++)
+        {
+            if (IsInAttackVolume(enemies[i])) results.Add(enemies[i]);
+        }
+        return results.Count;
+    }
+
+    /// <summary>Inclusive forward box bounds, measured from the enemy body/root.</summary>
+    public bool IsInAttackVolume(EnemyHealth enemy)
+    {
+        if (enemy == null || !enemy.isActiveAndEnabled || enemy.IsDead) return false;
         EnemyInstance identity = enemy.GetComponentInParent<EnemyInstance>();
-        if (identity == null) return false;
-        Vector3 local = transform.InverseTransformPoint(enemy.transform.position);
-        return local.z >= 0f && local.z <= range && Mathf.Abs(local.x) <= width * 0.5f
-            && Mathf.Abs(local.y) <= height * 0.5f;
+        Vector3 position = identity != null ? identity.transform.position : enemy.transform.position;
+        Vector3 local = AttackVolumeMatrix.inverse.MultiplyPoint3x4(position);
+        return local.z >= -VolumeBoundaryTolerance && local.z <= range + VolumeBoundaryTolerance
+            && Mathf.Abs(local.x) <= width * 0.5f + VolumeBoundaryTolerance
+            && Mathf.Abs(local.y) <= height * 0.5f + VolumeBoundaryTolerance;
     }
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = new Color(1f, 0.25f, 0.05f, 0.25f);
-        Vector3 center = transform.position + transform.forward * range * 0.5f;
-        Gizmos.matrix = Matrix4x4.TRS(center, transform.rotation, Vector3.one);
-        Gizmos.DrawWireCube(Vector3.zero, new Vector3(width, height, range));
+        Matrix4x4 previousMatrix = Gizmos.matrix;
+        Color previousColor = Gizmos.color;
+        Gizmos.matrix = AttackVolumeMatrix;
+        Gizmos.color = new Color(1f, 0.25f, 0.05f, 0.8f);
+        Gizmos.DrawWireCube(Vector3.forward * range * 0.5f, AttackVolumeSize);
+        Gizmos.DrawLine(Vector3.zero, Vector3.forward * range);
+        Gizmos.matrix = previousMatrix;
+        Gizmos.color = previousColor;
     }
 }

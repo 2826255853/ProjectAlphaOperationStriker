@@ -697,13 +697,25 @@ public sealed class TrapPlacementGrid : MonoBehaviour
                 collider.isTrigger = definition.WalkableFloorTrap || RequiresWalkableTrap;
                 if (IsWallSurface)
                 {
-                    // Wall traps get a backplate box (width x height x thickness).
-                    // The ground turret's tall vertical box would poke straight
-                    // through the wall it is mounted on.
-                    Vector2 cell = CellWorldSize;
-                    collider.center = new Vector3(0f, 0f, 0.05f);
-                    collider.size = new Vector3(Mathf.Max(0.25f, footprint.x * cell.x * 0.8f),
-                        Mathf.Max(0.25f, footprint.y * cell.y * 0.8f), 0.2f);
+                    if (definition.HasExplicitInstallBounds)
+                    {
+                        // Use the same solid body for physics and placement.
+                        // In particular, a flamethrower's spray range is not a collider.
+                        definition.ResolveInstallBounds(footprint, CellWorldSize,
+                            out Vector3 center, out Vector3 halfExtents);
+                        collider.center = center;
+                        collider.size = halfExtents * 2f;
+                    }
+                    else
+                    {
+                        // Wall traps get a backplate box (width x height x thickness).
+                        // The ground turret's tall vertical box would poke straight
+                        // through the wall it is mounted on.
+                        Vector2 cell = CellWorldSize;
+                        collider.center = new Vector3(0f, 0f, 0.05f);
+                        collider.size = new Vector3(Mathf.Max(0.25f, footprint.x * cell.x * 0.8f),
+                            Mathf.Max(0.25f, footprint.y * cell.y * 0.8f), 0.2f);
+                    }
                 }
                 else
                 {

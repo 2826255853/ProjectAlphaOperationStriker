@@ -13,7 +13,6 @@ public static class WallTrapTestPieceAuthoring
     private const string ResourceDirectory = "Assets/Resources/WallTrapTest";
     private const string OneByOneName = "WallTrapTest_1x1";
     private const string TwoByTwoName = "WallTrapTest_2x2";
-    private const string FlamethrowerName = "Flamethrower";
 
     [MenuItem("Tools/塔防/生成墙面陷阱测试件")]
     public static void CreateAssets()
@@ -28,7 +27,8 @@ public static class WallTrapTestPieceAuthoring
             new Vector3(0.8f, 0.8f, 0.18f));
         CreateOrUpdateDefinition(TwoByTwoName, "墙面测试件 2×2", twoByTwoPrefab, 2, 2,
             new Vector3(1.8f, 1.8f, 0.18f));
-        // TODO(确认): Enable the flamethrower definition after its prefab is wired up.
+        // The production flamethrower is owned by FlamethrowerTrapAuthoring;
+        // regenerating these free placement fixtures must not reset its price.
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -36,24 +36,6 @@ public static class WallTrapTestPieceAuthoring
     }
 
     public static void CreateAssetsBatch() => CreateAssets();
-
-    private static GameObject BuildFlamethrowerPrefab()
-    {
-        string prefabPath = ResourceDirectory + "/Flamethrower.prefab";
-        GameObject root = new GameObject(FlamethrowerName);
-        TrapInstance trap = root.AddComponent<TrapInstance>();
-        root.AddComponent<FlamethrowerTrap>();
-        Material material = CreateOrUpdateMaterial("Flamethrower_Material", new Color(0.95f, 0.16f, 0.03f));
-        CreatePrimitive(PrimitiveType.Cube, "Wall Backplate", root.transform, material).transform.localScale = new Vector3(1.72f, 1.72f, 0.12f);
-        GameObject nozzle = CreatePrimitive(PrimitiveType.Cylinder, "Flame Nozzle", root.transform, material);
-        nozzle.transform.localPosition = new Vector3(0f, 0f, 0.22f);
-        nozzle.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-        nozzle.transform.localScale = new Vector3(0.22f, 0.18f, 0.22f);
-        GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, prefabPath, out bool saved);
-        Object.DestroyImmediate(root);
-        if (!saved || prefab == null) throw new System.InvalidOperationException("Could not save flamethrower prefab.");
-        return prefab;
-    }
 
     private static void EnsureFolders()
     {

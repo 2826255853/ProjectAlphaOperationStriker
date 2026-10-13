@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 584def4af644b0c4fbbf59b658cc2acd, type: 3}
+  m_Name: Flamethrower
+  m_EditorClassIdentifier: Assembly-CSharp::TrapDefinition
+  trapId: flamethrower
+  displayName: "\u706B\u7130\u55B7\u5C04\u5668"
+  prefab: {fileID: 8147082356432118594, guid: da5a86d832ddc2c41aedfd54a7b5a9f5, type: 3}
+  cost: 40
+  footprintWidth: 2
+  footprintHeight: 2
+  localRotation: {x: 0, y: 0, z: 0}
+  walkableFloorTrap: 0
+  worldFootprint: {x: 0, y: 0}
+  mountType: 1
+  installBoundsCenter: {x: 0, y: 0, z: 0.21}
+  installBoundsSize: {x: 1.8, y: 1.8, z: 0.42}
