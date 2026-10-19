@@ -8,6 +8,10 @@
 /[Bb]uilds/
 /MemoryCaptures/
 /Recordings/
+/[Ee]xported[Oo]bj/
+/[Cc]rash[Rr]eports/
+/TestResults/
+/TestResults*.xml
 
 # IDE and generated project files
 /.vs/

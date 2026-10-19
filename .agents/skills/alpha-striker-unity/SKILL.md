@@ -5,7 +5,7 @@ description: 在 ProjectAlphaOperationStriker（Unity FPS + 塔防）及配套 M
 
 # Alpha Striker Unity / MapForge
 
-本工程是 Unity 6 的第一人称射击 + 塔防项目，地图由浏览器编辑器 MapForge（`C:\MapEditor`）产出：要么导出 JSON 再由 Unity 编辑器脚本全量导入成场景，要么点「Send to Unity」让编辑器把增量修订直接应用到当前场景（`MapForgeSync/` 文件夹协议）。改地图和改代码是同一件事的两半，通常需要同时动 `C:\Unity Project\ProjectAlphaOperationStriker` 和 `C:\MapEditor`。
+本工程是 Unity 6 的第一人称射击 + 塔防项目，地图由浏览器编辑器 MapForge（`C:\MapForge`）产出：要么导出 JSON 再由 Unity 编辑器脚本全量导入成场景，要么点「Send to Unity」让编辑器把增量修订直接应用到当前场景（`MapForgeSync/` 文件夹协议）。改地图和改代码是同一件事的两半，通常需要同时动 `C:\Unity Project\ProjectAlphaOperationStriker` 和 `C:\MapForge`。
 
 工作节奏、只读范围和探索预算见工程根目录的 `AGENTS.md`，本 skill 不重复。这里只讲**这个工程特有的、容易做错的做法**。
 
@@ -150,12 +150,12 @@ Step 5 - 回归：受影响旧功能、预览图、git diff 与最终文件清�
 
 除了一次性导入，现在还多了一条**增量同步**通道：MapForge 里点「Send to Unity」，Unity 编辑器自己把改动应用到**当前打开的场景**上。
 
-- 协议两边各一份常量：MapForge 的 `C:\MapEditor\MapForgeSync.cs`（`MapForgeSync.Protocol`，另有浏览器侧 `C:\MapEditor\wwwroot\unity-sync.js`、配置 `C:\MapEditor\mapforge-sync.json`）与 Unity 的 `Assets/Editor/MapForgeLiveSync.cs`（`MapForgeLiveSync.Protocol`）。**改协议要两边一起改**，版本号是握手的依据。
+- 协议两边各一份常量：MapForge 的 `C:\MapForge\MapForgeSync.cs`（`MapForgeSync.Protocol`，另有浏览器侧 `C:\MapForge\wwwroot\unity-sync.js`、配置 `C:\MapForge\mapforge-sync.json`）与 Unity 的 `Assets/Editor/MapForgeLiveSync.cs`（`MapForgeLiveSync.Protocol`）。**改协议要两边一起改**，版本号是握手的依据。
 - 传输靠文件夹而不是网络：MapForge 写 `<工程>/MapForgeSync/mail/pending.json`，Unity 侧每 2 秒轮询一次（`PollSeconds`，心跳 `HeartbeatSeconds = 15`），应用后把结果写回同目录（`revision.txt`、`status.json`、`applied.txt` / `applied.json`），浏览器据此汇报成败。
 - 增量修订只带「这次真的改过的对象」，Unity 就地把它们重写：新增的建、改过的原地改写、删掉的移除。只有 MapForge 要求时才整图重建（首次发送、地图改名、`gameplay`/场景级映射变了、或改动量过大）；重建也是**原地重建**场景资产，所以 scene 的路径、GUID 以及地图之外的手工对象都保住。整图修订的 world 文件先落到 `Assets/MapForgeSync/sync-world.json` 再交给导入器。
 - **只动 `MapForgeWorld` 生成的层级**，这就是它和 `MapForgeWorldImporter.Import` 的关键区别：手工加的空中出怪口等对象**不会**像全量导入那样被删掉。保留机制在 `Assets/Editor/MapForgeWorldImporter.Authored.cs`（`MapForgeWorldImporter` 现在是 **partial**，两个文件都要在），它把上次生成过的直接子对象名记在 **EditorPrefs**（机器本地、不进版本库），据此把工程自制的对象搬出去再搬回来。
 - 手动/批处理入口：菜单 `MapForge/应用待同步版本 (Apply pending revision)` = `MapForgeLiveSync.ApplyPendingFromMenu`，菜单 `MapForge/下次发送时完整重建 (Request full rebuild)` = `MapForgeLiveSync.RequestFullRebuild`；批处理直接调 `MapForgeLiveSync.ApplyPending()`（public，无待同步修订时返回 null，不算失败）。
-- 两侧各自的测试：浏览器/服务端在 `C:\MapEditor\tests\unity-sync.test.js`（`node --test`）；Unity 侧没有独立用例，改完先跑 `dotnet build "C:\MapEditor\.validation-build\UnityCompile.csproj"` 做编译检查，再手动点一次「Send to Unity」看 `status.json` 的回执。
+- 两侧各自的测试：浏览器/服务端在 `C:\MapForge\tests\unity-sync.test.js`（`node --test`）；Unity 侧没有独立用例，改完先跑 `dotnet build "C:\MapForge\.validation-build\UnityCompile.csproj"` 做编译检查，再手动点一次「Send to Unity」看 `status.json` 的回执。
 - 新增按 `id` 关联的运行时组件也是这批改动的一部分：`Assets/Scripts/MapForgePathNode.cs`（`MapForgePathNode.All` / `Find(objectId)`，`role` / `waitTime` / `links`）与 `Assets/Scripts/MapForgeTrigger.cs`（`MapForgeTrigger.Fired` 事件 + `FindTarget(objectId)`，支持 `spawn/damage/goal/message/enable/disable`）。导入时它们由 `MapForgeSceneOrganization` 从 JSON 的 `unity.pathNode` / `unity.trigger` 段建立并做合法性校验；改 JSON 键名要同步这两处。
 
 ## 路由
@@ -176,6 +176,6 @@ Step 5 - 回归：受影响旧功能、预览图、git diff 与最终文件清�
 - `Assets/FlyingMonsterPlane_preview.png` 这类预览图已迁出仓库（GUID 无任何引用）；要预览图去桌面「陷阱素材文件夹」对应子目录拿。
 - 同一时刻只允许一个 Unity 实例持有 `Library/`。开编辑器时批处理会卡住或失败，先确认没有 Unity 在跑。
 - `MapForgeSync/` 整个目录被 `.gitignore` 忽略，里面是每次同步都会改写的运行时状态（`mail/pending.json`、`revision.txt`、`status.json`）：它出现在工作区是**预期**，不要提交、也不要为它回滚场景。
-- `Assets/Editor` 的编辑期测试类（`FlyingSpawnPointTests`、`GroundEnemyCombatTests`、`TrapHealthBarUITests`、`MissileLauncherTurretTests`、`MissileLauncherWeaponTests`）都被 `#if UNITY_INCLUDE_TESTS` 包住：`-executeMethod` 不会执行它们，必须用 `-runTests`；只想验证编译就走 `dotnet build "C:\MapEditor\.validation-build\UnityCompile.csproj"`。
+- `Assets/Editor` 的编辑期测试类（`FlyingSpawnPointTests`、`GroundEnemyCombatTests`、`TrapHealthBarUITests`、`MissileLauncherTurretTests`、`MissileLauncherWeaponTests`）都被 `#if UNITY_INCLUDE_TESTS` 包住：`-executeMethod` 不会执行它们，必须用 `-runTests`；只想验证编译就走 `dotnet build "C:\MapForge\.validation-build\UnityCompile.csproj"`。
 - `Assets/Models/<TrapName>/`（如 `Assets/Models/DualMissileExhaust/DualMissileExhaust.fbx`）就是「定稿模型」该待的仓库位置，别为了「归位」把它挪到桌面素材文件夹。
 - 场景与预制体是体量很大的 YAML，用 `Select-String` 定位行号后只读局部片段。

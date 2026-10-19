@@ -1,9 +1,9 @@
-# MapForge 地图管线（C:\MapEditor → Unity）
+# MapForge 地图管线（C:\MapForge → Unity）
 
 ## 数据流
 
 ```
-浏览器编辑器 C:\MapEditor (ASP.NET + Three.js)
+浏览器编辑器 C:\MapForge (ASP.NET + Three.js)
         │
         ├─ 「Send to Unity」增量修订（日常改动走这条）
         │      <工程>/MapForgeSync/mail/pending.json
@@ -21,21 +21,21 @@ C:\Unity Project\ProjectAlphaOperationStriker\Assets\Scenes\<地图名>.unity
 启动编辑器：
 
 ```powershell
-& "C:\MapEditor\Start-MapForge.ps1"          # 默认 http://localhost:5090
+& "C:\MapForge\Start-MapForge.ps1"          # 默认 http://localhost:5090
 ```
 
-脚本会先探测 `/api/health`，已经有实例就直接开浏览器，否则 `dotnet run`。手动跑也可以：`dotnet run --project C:\MapEditor\MapEditor.csproj --no-launch-profile --urls http://localhost:5090`。测试在 `C:\MapEditor\tests\`（`node --test` 跑 `.test.js`；`tests/browser.mjs` 是浏览器端驱动）。
+脚本会先探测 `/api/health`，已经有实例就直接开浏览器，否则 `dotnet run`。手动跑也可以：`dotnet run --project C:\MapForge\MapForge.csproj --no-launch-profile --urls http://localhost:5090`。测试在 `C:\MapForge\tests\`（`node --test` 跑 `.test.js`；`tests/browser.mjs` 是浏览器端驱动）。
 
 ## 「Send to Unity」实时同步（走 MapForgeSync 文件夹）
 
 除了导出/导入，MapForge 还有一条**增量同步**通道：点「Send to Unity」，Unity 编辑器自己把改动应用到**当前打开的场景**，不需要手动搬 JSON。
 
-- 协议两侧各一份常量，必须一致：MapForge `C:\MapEditor\MapForgeSync.cs`（`MapForgeSync.Protocol`，浏览器侧 `wwwroot/unity-sync.js`，配置 `C:\MapEditor\mapforge-sync.json` 记 Unity 工程路径）与 Unity `Assets/Editor/MapForgeLiveSync.cs`（`MapForgeLiveSync.Protocol`）。
+- 协议两侧各一份常量，必须一致：MapForge `C:\MapForge\MapForgeSync.cs`（`MapForgeSync.Protocol`，浏览器侧 `wwwroot/unity-sync.js`，配置 `C:\MapForge\mapforge-sync.json` 记 Unity 工程路径）与 Unity `Assets/Editor/MapForgeLiveSync.cs`（`MapForgeLiveSync.Protocol`）。
 - 传输靠文件夹：写 `<工程>/MapForgeSync/mail/pending.json`；Unity 每 2 秒轮询（`PollSeconds = 2.0`，心跳 `HeartbeatSeconds = 15`），应用后回写 `mail/revision.txt`、`mail/status.json`、`mail/applied.txt` / `applied.json`，浏览器据此汇报结果。整个 `MapForgeSync/` 被 `.gitignore` 忽略。
 - 增量修订只带真正改过的对象，Unity 就地重写（新增/改写/删除）；只有 MapForge 要求时才整图重建（首次发送、地图改名、`gameplay` 或场景级映射变了、改动量过大）。整图修订的 world 先落到 `Assets/MapForgeSync/sync-world.json` 再交导入器。
 - **与全量导入的关键区别**：只动 `MapForgeWorld` 生成的层级，工程手工加的对象（如空中出怪口）不会像 `Import` 那样被删。保留机制在 `Assets/Editor/MapForgeWorldImporter.Authored.cs`（`MapForgeWorldImporter` 是 **partial**，两个文件都要在）：上次生成的直接子对象名记在 **EditorPrefs**（机器本地、不进版本库），据此把手工对象搬出去再搬回来。
 - 入口：菜单 `MapForge/应用待同步版本 (Apply pending revision)` = `MapForgeLiveSync.ApplyPendingFromMenu`；`MapForge/下次发送时完整重建 (Request full rebuild)` = `MapForgeLiveSync.RequestFullRebuild`；批处理用 `MapForgeLiveSync.ApplyPending()`（无待同步修订时返回 null，不是失败）。
-- 测试：`C:\MapEditor\tests\unity-sync.test.js`（`node --test`）。Unity 侧没有专门用例，改了先跑 [更快的编译检查](unity-editor.md#更快的编译检查不进-unity)，再点一次「Send to Unity」看 `status.json` 回执。
+- 测试：`C:\MapForge\tests\unity-sync.test.js`（`node --test`）。Unity 侧没有专门用例，改了先跑 [更快的编译检查](unity-editor.md#更快的编译检查不进-unity)，再点一次「Send to Unity」看 `status.json` 回执。
 
 ### 导入新增的按 id 关联组件
 
@@ -52,7 +52,7 @@ C:\Unity Project\ProjectAlphaOperationStriker\Assets\Scenes\<地图名>.unity
 
 ## v2 信封格式
 
-Schema 在 `C:\MapEditor\map-format.schema.json`，服务端校验在 `C:\MapEditor\MapValidation.cs`，前端规范化在 `C:\MapEditor\wwwroot\scene-model.js`。必需字段：
+Schema 在 `C:\MapForge\map-format.schema.json`，服务端校验在 `C:\MapForge\MapValidation.cs`，前端规范化在 `C:\MapForge\wwwroot\scene-model.js`。必需字段：
 
 `version` / `name` / `settings` / `objects` / `groups` / `gameplay`
 

@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## 项目记忆入口（系统重装后重建）
+
+后续在本工程开展编辑前，先读取 `Assets/Editor/PROJECT_MEMORY.md`，再按任务读取对应源码。该文件记录模块入口、数据流、验证方式与重装后的环境状态；代码和当前配置优先于历史记录。完成涉及架构、工作流或环境变化的任务后，同步更新相关记忆，避免重复全量探索。
+
 ## 首要目标：尽早产出文件修改
 
 本项目的任务默认期望**先动手、后完善**。长时间只读探索不给文件修改，视为失败的工作方式。
@@ -29,11 +33,11 @@
 ### 本项目已知信息（避免重复探索）
 
 - Unity 版本与安装路径（2026-10-13 核对）：项目记录为 `6000.6.5f1`（见 `ProjectSettings/ProjectVersion.txt`），编辑器实际装在 `C:\Program Files\Unity 6000.6.5f1\Editor\Unity.exe`——**不是** Unity Hub 的 `C:\Program Files\Unity\Hub\Editor\<版本>\Editor\` 目录。
-- 版本号会随升级不定期变化，任何文档、脚本、`.csproj` 都不要写死版本号：一律以 `ProjectSettings/ProjectVersion.txt` 记录的 `m_EditorVersion` + `C:\Program Files\Unity *` 下的实际目录为准。`.agents/skills/alpha-striker-unity/scripts/run-unity-method.ps1` 与 `C:\MapEditor\.validation-build\UnityCompile.csproj` 已改成自动探测，升级后无需手改。
+- 版本号会随升级不定期变化，任何文档、脚本、`.csproj` 都不要写死版本号：一律以 `ProjectSettings/ProjectVersion.txt` 记录的 `m_EditorVersion` + `C:\Program Files\Unity *` 下的实际目录为准。`.agents/skills/alpha-striker-unity/scripts/run-unity-method.ps1` 与 `C:\MapForge\.validation-build\UnityCompile.csproj` 已改成自动探测，升级后无需手改。
 - 未纳入仓库的第三方包：`Assets/KINEMATION`、`Assets/TextMesh Pro`。缺少它们时 C# 编译会报缺失类型，这属于预期情况，不要为此反复排查。
 - 主要场景：`Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity`。
 - 代码目录：`Assets/Scripts/FPS`、`Assets/Scripts/TowerDefense`、`Assets/Editor`。
-- 近期新增能力（2026-09）：**空中出怪口**（场景对象名 `Enemy Spawn Flying`，预制体 `Assets/Resources/FlyingMonster.prefab`，由 `Assets/Editor/FlyingSpawnPointAuthoring.cs` 生成/放置；飞行移动走 `MonsterPathFollower.InitializeFlying`，不走怪物路径网格）、**打开陷阱菜单时锁定玩家视角**（判据 `TrapSelectionMenu.CursorOwned`，`FirstPersonController` / `FPSPackagePlayerMotion` 两份 `UpdateCursor` 都尊重它）、**瞄准陷阱显示血条**（`Assets/Scripts/TowerDefense/TrapHealthBarUI.cs`）、**双联导弹发射器对空陷阱**（`Assets/Scripts/TowerDefense/MissileLauncher*.cs` + `MissileProjectile` / `MissileAimSolver`，瞄准拦截点、默认只打飞行怪）与 **MapForge「Send to Unity」实时同步**（`Assets/Editor/MapForgeLiveSync.cs` ↔ `C:\MapEditor\MapForgeSync.cs`，走 `MapForgeSync/mail/pending.json`，只就地改写变过的对象，不会删掉手工加的空中出怪口）。细节见 `.agents/skills/alpha-striker-unity/SKILL.md`。
+- 近期新增能力（2026-09）：**空中出怪口**（场景对象名 `Enemy Spawn Flying`，预制体 `Assets/Resources/FlyingMonster.prefab`，由 `Assets/Editor/FlyingSpawnPointAuthoring.cs` 生成/放置；飞行移动走 `MonsterPathFollower.InitializeFlying`，不走怪物路径网格）、**打开陷阱菜单时锁定玩家视角**（判据 `TrapSelectionMenu.CursorOwned`，`FirstPersonController` / `FPSPackagePlayerMotion` 两份 `UpdateCursor` 都尊重它）、**瞄准陷阱显示血条**（`Assets/Scripts/TowerDefense/TrapHealthBarUI.cs`）、**双联导弹发射器对空陷阱**（`Assets/Scripts/TowerDefense/MissileLauncher*.cs` + `MissileProjectile` / `MissileAimSolver`，瞄准拦截点、默认只打飞行怪）与 **MapForge「Send to Unity」实时同步**（`Assets/Editor/MapForgeLiveSync.cs` ↔ `C:\MapForge\MapForgeSync.cs`，走 `MapForgeSync/mail/pending.json`，只就地改写变过的对象，不会删掉手工加的空中出怪口）。细节见 `.agents/skills/alpha-striker-unity/SKILL.md`。
 - Blender 生成/导出脚本（`*.py`）与 Unity 运行时代码无关；按下面的文件放置规范，它们应放在桌面「陷阱素材文件夹」而不是仓库根目录。
 
 ### 文件放置规范：陷阱制作的中间态文件

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -6,7 +7,7 @@ using UnityEngine.InputSystem;
 /// Runtime trap placement, placement confirmation (left click), and
 /// dismantling. Outside placement mode the E key dismantles whatever trap the
 /// player is aiming at; inside placement mode that key is ignored and the right
-/// mouse button removes the hovered trap instead.
+/// mouse button only raises the reserved projection-gun action.
 /// </summary>
 public sealed class TrapPlacementController : MonoBehaviour
 {
@@ -20,7 +21,6 @@ public sealed class TrapPlacementController : MonoBehaviour
     [SerializeField] private TrapDefinition[] trapSlots = new TrapDefinition[4];
     [SerializeField, Range(0, 3)] private int selectedSlot;
     [SerializeField] private KeyCode dismantleKey = KeyCode.E;
-    [SerializeField] private bool allowRemoveWithRightClick = true;
     [SerializeField] private bool allowDragPlacement = true;
     [SerializeField] private bool placementMode;
     [SerializeField, Min(0.1f), Tooltip("墙面陷阱从正面可交互的最大距离（米）。")]
@@ -58,13 +58,68 @@ public sealed class TrapPlacementController : MonoBehaviour
     }
     public int SelectedSlot => selectedSlot;
     public int TrapSlotCount => trapSlots != null ? trapSlots.Length : 0;
+    /// <summary>Read-only placement state; a purchase or slot switch keeps this mode active.</summary>
     public bool PlacementMode => placementMode;
+    /// <summary>True when projection-gun input may be forwarded this frame.</summary>
+    public bool IsProjectionGunInputActive => isActiveAndEnabled && placementMode
+        && !TrapSelectionMenu.CursorOwned
+        && !GameStartMenu.CursorOwned;
     public bool HasValidPreview => placementMode && hasHoveredCell && activeGrid != null &&
         selectedTrap != null && CanPurchaseAt(activeGrid, hoveredCell);
     public TrapPlacementGrid ActiveGrid => activeGrid;
     public string LastPlacementFailure { get; private set; } = string.Empty;
     public string PurchaseHint => economy.PurchaseHint(selectedTrap);
     public static bool IsPlacementModeActive { get; private set; }
+
+    /// <summary>Raised for a secondary projection-gun action in placement mode.</summary>
+    public event Action ProjectionGunSecondaryAction;
+
+    /// <summary>Raised after the placement-mode state changes.</summary>
+    public event Action<bool> PlacementModeChanged;
+
+    /// <summary>
+    /// Attempts the existing hovered-cell purchase. Update owns hover and drag
+    /// input until the dedicated projection-gun controller takes over input polling.
+    /// </summary>
+    public bool OnProjectionGunPrimaryAction()
+    {
+        if (!IsProjectionGunInputActive || !hasHoveredCell) return false;
+        bool purchased = PlaceAt(hoveredCell);
+        dragPlacement = purchased && allowDragPlacement;
+        lastPlacedCell = hoveredCell;
+        hasLastPlacedCell = true;
+        return purchased;
+    }
+
+    /// <summary>Forwards the projection-gun secondary action without gameplay side effects.</summary>
+    public void OnProjectionGunSecondaryAction()
+    {
+        if (!IsProjectionGunInputActive) return;
+        ProjectionGunSecondaryAction?.Invoke();
+    }
+
+    public void OnProjectionGunPrimaryHeld()
+    {
+        if (!IsProjectionGunInputActive || !allowDragPlacement || !dragPlacement || !hasHoveredCell || !hasLastPlacedCell) return;
+        PlaceAlongLine(lastPlacedCell, hoveredCell);
+    }
+
+    public void OnProjectionGunPrimaryReleased()
+    {
+        if (!IsProjectionGunInputActive) return;
+        dragPlacement = false;
+        hasLastPlacedCell = false;
+    }
+
+    public void ExitPlacementMode()
+    {
+        SetPlacementMode(false);
+    }
+
+    public void EnterPlacementMode()
+    {
+        SetPlacementMode(true);
+    }
 
     public TrapDefinition GetTrapSlot(int slot)
     {
@@ -147,6 +202,7 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     private void OnEnable()
     {
+        IsPlacementModeActive = placementMode;
         economy.Changed += RefreshPurchaseFeedback;
         economy.Enable();
     }
@@ -155,37 +211,16 @@ public sealed class TrapPlacementController : MonoBehaviour
     {
         economy.Refresh();
         if (TrapSelectionMenu.CursorOwned || GameStartMenu.CursorOwned) return;
-        // The project uses the new Input System, so read the number keys from
-        // Keyboard.current instead of relying only on the legacy Input API.
-        if (TryGetTrapSlotPressed(out int slot))
-        {
-            SelectTrapSlot(slot);
-            if (!placementMode) SetPlacementMode(true);
-        }
-        if (WasEscapePressed()) SetPlacementMode(false);
         if (placementMode) SetWeaponInputSuppressed(true);
         if (placementCamera == null) placementCamera = Camera.main;
         if (grids.Count == 0) RefreshGrids();
         if (grids.Count == 0 || placementCamera == null) return;
         UpdateHover();
-        // E disassembles the trap under the crosshair, but only while trap
-        // placement mode is off: the placement flow owns its own remove input
-        // (right mouse button), so E stays reserved for the weapon layer there.
+        // E disassembles the aimed trap only outside placement mode.
         aimedTrap = placementMode ? null : FindTrapFromRay(AimRay());
         if (!placementMode && WasDismantleKeyPressed())
             DismantleAimedTrap(WasSellModifierHeld());
         if (!placementMode) return;
-        // Report the actual placement failure even when the preview is red.
-        if (WasMouseButtonPressed(0) && hasHoveredCell)
-        {
-            dragPlacement = PlaceAt(hoveredCell) && allowDragPlacement;
-            lastPlacedCell = hoveredCell;
-            hasLastPlacedCell = true;
-        }
-        if (allowDragPlacement && dragPlacement && IsMouseButtonHeld(0) && hasHoveredCell && hasLastPlacedCell)
-            PlaceAlongLine(lastPlacedCell, hoveredCell);
-        if (WasMouseButtonReleased(0)) { dragPlacement = false; hasLastPlacedCell = false; }
-        if (allowRemoveWithRightClick && WasMouseButtonPressed(1)) DismantleHoveredTrap(WasSellModifierHeld());
     }
 
     /// <summary>
@@ -405,15 +440,6 @@ public sealed class TrapPlacementController : MonoBehaviour
             RefreshGridMarkers();
     }
 
-    private void DismantleHoveredTrap(bool sell)
-    {
-        if (hoveredTrap == null) return;
-        TrapInstance target = hoveredTrap;
-        hoveredTrap = null;
-        RemoveTrap(target, sell);
-        RefreshGridMarkers();
-    }
-
     /// <summary>
     /// The crosshair ray. Placement mode aims with the mouse pointer, while
     /// freeroam aims with the locked cursor, which sits at the viewport centre.
@@ -422,8 +448,8 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     /// <summary>
     /// Removes the trap the player is aiming at. Only reachable while trap
-    /// placement mode is off; placement mode dismantles with the right mouse
-    /// button so the E key stays free for gameplay input. Holding Shift sells
+    /// placement mode is off, so the E key stays free for gameplay input in
+    /// placement mode. Holding Shift sells
     /// instead, which pays part of the purchase price back.
     /// </summary>
     private void DismantleAimedTrap(bool sell)
@@ -591,6 +617,7 @@ public sealed class TrapPlacementController : MonoBehaviour
         SetWeaponInputSuppressed(enabled);
         if (!enabled) { SetPreviewVisible(false); ClearGridMarkers(); }
         else { EnsureMaterials(); RefreshGridMarkers(); }
+        if (wasPlacementMode != enabled) PlacementModeChanged?.Invoke(enabled);
     }
 
     private void SetWeaponInputSuppressed(bool suppressed)
@@ -775,7 +802,7 @@ public sealed class TrapPlacementController : MonoBehaviour
                     $"按 E 拆除：{DescribeTrap(aimedTrap)}　Shift+E 出售（回收 ~{TrapSaleService.RefundFor(aimedTrap)} 金币）");
             return;
         }
-        GUI.Label(new Rect(18f, hintTop, 760f, 24f), "陷阱放置模式：左键放置　右键拆除　Shift+右键出售　Esc 退出");
+        GUI.Label(new Rect(18f, hintTop, 760f, 24f), "陷阱放置模式：左键放置　Esc 退出");
         string slotText = "槽位 ";
         for (int i = 0; i < 4; i++)
         {
@@ -804,11 +831,10 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     private void OnDisable()
     {
+        SetPlacementMode(false);
         economy.Changed -= RefreshPurchaseFeedback;
         economy.Dispose();
         ReleasePreviewMaterials();
-        IsPlacementModeActive = false;
-        SetWeaponInputSuppressed(false);
         if (preview != null) Destroy(preview);
         preview = null;
         ClearGridMarkers();

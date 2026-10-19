@@ -548,6 +548,14 @@ public sealed class FPSHitscanShooter : MonoBehaviour
 
     private void FireHitscan()
     {
+        // The projection gun owns the placement-mode click; keep this guard at
+        // the damage boundary as well as in Update so a same-frame weapon
+        // state change cannot leak a normal shot into gameplay.
+        if (TrapPlacementController.IsPlacementModeActive)
+        {
+            return;
+        }
+
         Ray ray = playerCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
         if (observedStats.BaseDamage <= 0f)
         {

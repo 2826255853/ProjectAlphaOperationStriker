@@ -92,7 +92,7 @@ Unity.exe -batchmode -nographics -quit `
 改完 `Assets/Editor` 里的 C# 后，先用这个 csproj 做秒级编译检查，别每次都花几分钟起 Unity：
 
 ```powershell
-dotnet build "C:\MapEditor\.validation-build\UnityCompile.csproj"
+dotnet build "C:\MapForge\.validation-build\UnityCompile.csproj"
 ```
 
 UnityEngine 引用已改成 glob（`C:\Program Files\Unity *\Editor\Data\Managed\UnityEngine\*.dll` + Hub 通配），Unity 升级换版本号后**不用手改**，但仍不要把旧版 DLL 的编译结果当成新版验证。它还引用本工程的 `Library/ScriptAssemblies/Assembly-CSharp.dll`（netstandard2.1 / LangVersion 9），当前只编译这 7 个文件：

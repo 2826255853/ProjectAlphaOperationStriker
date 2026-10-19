@@ -102,7 +102,7 @@
 
 - 在墙对象上新增 `unity.wallTrapGrids[]` 可选字段，包含网格稳定 ID、局部原点与旋转、columns、rows、cellSize、surfaceOffset、openCells。
 - 墙对象既有稳定 ID 作为支撑对象 ID；区域可多个，每个区域独立正反面、占格和掩码。
-- `C:\MapEditor` 增加选面、矩形区域和刷格交互，保存/导出及 Send to Unity 共用数据。
+- `C:\MapForge` 增加选面、矩形区域和刷格交互，保存/导出及 Send to Unity 共用数据。
 - Unity 按“墙对象 ID + 网格 ID”原位更新；删除指定区域只影响该区域，不影响 Unity 手工网格。非结构性更新保留 ID 与已有实例；结构性变更使实例失效时返回明确错误，不静默删陷阱。
 - 旧 JSON 无此字段时不生成墙面网格；未知/非法数据报告对象 ID 与原因。若须升级传输协议，Unity 和 MapForge 同步升级版本常量。
 
