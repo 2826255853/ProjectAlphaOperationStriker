@@ -619,17 +619,17 @@ MonoBehaviour:
   waveSpawnSettings:
   - enabled: 1
     enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
   - enabled: 1
     enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
   - enabled: 1
     enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
   initialWaveDelay: 2
@@ -637,7 +637,7 @@ MonoBehaviour:
   - 5
   - 5
   timeBetweenWaves: -1
-  enemyPrefab: {fileID: 3351786287224707534, guid: 0a2e88ba7f09049488f04f11ca538dc5, type: 3}
+  enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
   enemyParent: {fileID: 0}
   pathGrid: {fileID: 496458492}
   core: {fileID: 2072737536}
@@ -1560,17 +1560,17 @@ MonoBehaviour:
   waveSpawnSettings:
   - enabled: 1
     enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
   - enabled: 1
     enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
   - enabled: 1
     enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
   initialWaveDelay: 2
@@ -1578,7 +1578,7 @@ MonoBehaviour:
   - 5
   - 5
   timeBetweenWaves: -1
-  enemyPrefab: {fileID: 3351786287224707534, guid: 0a2e88ba7f09049488f04f11ca538dc5, type: 3}
+  enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
   enemyParent: {fileID: 0}
   pathGrid: {fileID: 496458492}
   core: {fileID: 2072737536}
@@ -2728,17 +2728,17 @@ MonoBehaviour:
   waveSpawnSettings:
   - enabled: 1
     enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
   - enabled: 1
     enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
   - enabled: 1
     enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
   initialWaveDelay: 2
@@ -2746,7 +2746,7 @@ MonoBehaviour:
   - 5
   - 5
   timeBetweenWaves: -1
-  enemyPrefab: {fileID: 3351786287224707534, guid: 0a2e88ba7f09049488f04f11ca538dc5, type: 3}
+  enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
   enemyParent: {fileID: 0}
   pathGrid: {fileID: 496458492}
   core: {fileID: 2072737536}

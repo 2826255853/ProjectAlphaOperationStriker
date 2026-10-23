@@ -44,6 +44,8 @@ public sealed class WaveStatusUI : MonoBehaviour
 
     private void OnGUI()
     {
+        // The start menu is a full-screen overlay; keep the gameplay HUD out of it.
+        if (GameStartMenu.CursorOwned) return;
         GameFlowManager flow = GameFlowManager.Instance;
         EnemyCore core = FindAnyObjectByType<EnemyCore>();
         if (flow != null && flow.CurrentResult != GameFlowManager.Result.Playing)

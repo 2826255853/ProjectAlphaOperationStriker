@@ -26,7 +26,8 @@ public sealed class WallTrapPlacementTests
         TrapPlacementGrid grid = CreateWallGrid("Wall grid", 4, 3);
         TrapDefinition definition = CreateDefinition("wall_1x1", TrapMountType.Wall, 1, 1);
 
-        Assert.That(grid.CellToWorld(new Vector2Int(2, 1)), Is.EqualTo(new Vector3(2f, 1f, 0.01f)));
+        // Wall cells are centred half a cell inside the support boundary.
+        Assert.That(grid.CellToWorld(new Vector2Int(2, 1)), Is.EqualTo(new Vector3(2.5f, 1.5f, 0.01f)));
         grid.GetPlacementPose(new Vector2Int(1, 1), definition, out Vector3 position, out Quaternion rotation);
         Assert.That(position, Is.EqualTo(new Vector3(1.5f, 1.5f, 0.01f)));
         Assert.That(Vector3.Dot(rotation * Vector3.forward, grid.SurfaceNormal), Is.GreaterThan(0.999f));
@@ -41,7 +42,7 @@ public sealed class WallTrapPlacementTests
         TrapDefinition wall = CreateDefinition("wall_2x2", TrapMountType.Wall, 2, 2);
 
         Assert.That(grid.CanPlaceTrap(Vector2Int.zero, ground, out string mismatch), Is.False);
-        StringAssert.Contains("地面", mismatch);
+        StringAssert.Contains("仅限墙面", mismatch);
         Assert.That(grid.TryPlaceTrap(Vector2Int.zero, wall, out TrapInstance instance, out string failure), Is.True, failure);
         Assert.That(grid.IsOccupied(new Vector2Int(1, 1)), Is.True);
         Assert.That(grid.RemoveTrap(instance), Is.True);

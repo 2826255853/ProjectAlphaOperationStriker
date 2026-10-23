@@ -435,6 +435,9 @@ public sealed class FPSPackagePlayerMotion : MonoBehaviour
 /// package remains responsible for fire cadence, ammo, animation, sound and
 /// recoil; this bridge only supplies gameplay hit detection for scene targets
 /// that implement TakeDamage(float) (or a compatible SendMessage receiver).
+/// Enemy hits settle through the categorized <see cref="EnemyHealth"/> entry when
+/// the active weapon declares a <see cref="DamageType"/>; weapons without one keep
+/// the legacy uncategorized path so no category is guessed for them.
 /// </summary>
 public sealed class FPSHitscanShooter : MonoBehaviour
 {
@@ -451,6 +454,8 @@ public sealed class FPSHitscanShooter : MonoBehaviour
     private WeaponDamageStats observedStats;
     private Camera playerCamera;
     private int previousAmmo = -1;
+    private bool observedHasDamageType;
+    private DamageType observedDamageType;
 
     /// <summary>Damage stats currently in effect, exposed for tests and HUD debugging.</summary>
     public WeaponDamageStats CurrentWeaponStats => observedStats;
@@ -460,6 +465,12 @@ public sealed class FPSHitscanShooter : MonoBehaviour
 
     /// <summary>Whether per-weapon damage profiles are in effect (HUD reads this to mirror the shooter).</summary>
     public bool UsesPerWeaponDamage => usePerWeaponDamage;
+
+    /// <summary>
+    /// Authoritative category of the active weapon, or null when it has none.
+    /// Null means the shooter keeps the legacy uncategorized damage path.
+    /// </summary>
+    public DamageType? CurrentWeaponDamageType => observedHasDamageType ? observedDamageType : (DamageType?)null;
 
     private void Awake()
     {
@@ -527,6 +538,31 @@ public sealed class FPSHitscanShooter : MonoBehaviour
         observedProfile = usePerWeaponDamage && weapon != null
             ? weapon.GetComponentInChildren<WeaponDamageProfile>(true)
             : null;
+        observedHasDamageType = ResolveDamageTypeFor(weapon, usePerWeaponDamage, out observedDamageType);
+    }
+
+    /// <summary>
+    /// Single source of truth for "what category does this weapon deal". A hand-authored
+    /// <see cref="WeaponDamageProfile"/> wins; otherwise the weapon's resolved family decides.
+    /// Returns false when nothing authoritative is known, which keeps the legacy raw-damage path.
+    /// </summary>
+    public static bool ResolveDamageTypeFor(FPSWeapon weapon, bool usePerWeaponDamage, out DamageType damageType)
+    {
+        damageType = default;
+        if (!usePerWeaponDamage || weapon == null)
+        {
+            // Uniform-damage mode cannot know a family without guessing from the name.
+            return false;
+        }
+
+        WeaponDamageProfile profile = weapon.GetComponentInChildren<WeaponDamageProfile>(true);
+        if (profile != null)
+        {
+            return profile.TryGetDamageType(out damageType);
+        }
+
+        return WeaponDamageTypeMapping.TryGetForClass(
+            WeaponDamageStats.DefaultsFor(weapon.gameObject.name, 0f).WeaponClass, out damageType);
     }
 
     /// <summary>
@@ -600,7 +636,17 @@ public sealed class FPSHitscanShooter : MonoBehaviour
 
                 Debug.Log($"[FPSHitscanShooter] {observedStats.WeaponClass} 造成伤害: {appliedDamage:0.##}" +
                           $"（基础 {observedStats.BaseDamage:0.##}，距离 {hit.distance:0.##}m，目标 {targetType}）", this);
-                enemyHealth.TakeDamage(appliedDamage);
+                if (observedHasDamageType)
+                {
+                    // Categorized hit: EnemyHealth settles the matching resistance exactly once.
+                    enemyHealth.TakeDamage(appliedDamage, observedDamageType);
+                }
+                else
+                {
+                    // Unknown / uncategorized weapon: never guess a category, keep raw damage.
+                    enemyHealth.TakeDamage(appliedDamage);
+                }
+
                 return;
             }
 

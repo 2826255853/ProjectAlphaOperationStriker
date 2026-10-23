@@ -29,11 +29,19 @@ public sealed class AutoSentryTurret : MonoBehaviour
     private float shotTimer;
     private bool visualsBuilt;
 
+    /// <summary>
+    /// Raised once per fired round with the muzzle world position. Purely additive:
+    /// aiming, damage, cooldown and the fallback geometry do not depend on listeners.
+    /// </summary>
+    public event System.Action<Vector3> ShotFired;
+
     public float DetectionRange => detectionRange;
     public float BurstDuration => burstDuration;
     public float CooldownDuration => cooldownDuration;
     public bool IsCoolingDown => cooldownTime > 0f;
     public EnemyInstance CurrentTarget => target;
+    public Transform AimPivot => aimPivot;
+    public Transform Muzzle => muzzle;
 
     private void Awake()
     {
@@ -52,8 +60,21 @@ public sealed class AutoSentryTurret : MonoBehaviour
 
     private void Update()
     {
+        Tick(Time.deltaTime);
+    }
+
+    /// <summary>
+    /// Advances cooldown, acquisition, aiming and the burst cadence by an explicit
+    /// step. <see cref="Update"/> forwards <c>Time.deltaTime</c>; EditMode acceptance
+    /// and offline previews call it directly so the burst rhythm is deterministic
+    /// outside the player loop. The behavior itself is unchanged.
+    /// </summary>
+    public void Tick(float deltaTime)
+    {
+        if (deltaTime < 0f) deltaTime = 0f;
+
         if (cooldownTime > 0f)
-            cooldownTime = Mathf.Max(0f, cooldownTime - Time.deltaTime);
+            cooldownTime = Mathf.Max(0f, cooldownTime - deltaTime);
 
         AcquireTarget();
         if (target == null)
@@ -66,12 +87,12 @@ public sealed class AutoSentryTurret : MonoBehaviour
             return;
         }
 
-        bool aligned = AimAtTarget(Time.deltaTime);
+        bool aligned = AimAtTarget(deltaTime);
         if (!aligned) return;
         if (cooldownTime > 0f) return;
 
-        burstTime += Time.deltaTime;
-        shotTimer -= Time.deltaTime;
+        burstTime += deltaTime;
+        shotTimer -= deltaTime;
         float interval = 1f / roundsPerSecond;
         while (shotTimer <= 0f && burstTime < burstDuration && target != null)
         {
@@ -135,6 +156,7 @@ public sealed class AutoSentryTurret : MonoBehaviour
             return;
         }
         health.TakeDamage(damagePerShot, TrapDamageType.Bullet);
+        ShotFired?.Invoke(muzzle != null ? muzzle.position : transform.position);
 
         // A short debug tracer makes the weapon readable in a gray-box scene
         // without requiring an additional projectile asset.

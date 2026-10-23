@@ -19,6 +19,77 @@ public enum WeaponClass
 }
 
 /// <summary>
+/// Authoritative damage category a weapon declares to <see cref="EnemyHealth"/>.
+/// <see cref="Auto"/> derives the category from <see cref="WeaponClass"/>, which is
+/// correct for every shipped gun and launcher; a weapon whose family does not imply
+/// its category (for example a melee blade) overrides it explicitly instead of
+/// letting the shooter guess from the object name.
+/// </summary>
+public enum WeaponDamageTypeMode
+{
+    Auto = 0,
+    Fire = 1,
+    Electric = 2,
+    Frost = 3,
+    Light = 4,
+    RangedPhysical = 5,
+    MeleePhysical = 6,
+    Explosive = 7
+}
+
+/// <summary>
+/// Fixed, documented mapping from weapon family to <see cref="DamageType"/>.
+/// Guns are ranged physical, launchers are explosive, and <see cref="WeaponClass.Unknown"/>
+/// stays uncategorized so an unrecognised weapon keeps the legacy raw-damage behaviour.
+/// </summary>
+public static class WeaponDamageTypeMapping
+{
+    /// <summary>
+    /// Resolves the category implied by a weapon family. Returns false when the family
+    /// carries no authoritative category; callers must then use the uncategorized path.
+    /// </summary>
+    public static bool TryGetForClass(WeaponClass weaponClass, out DamageType damageType)
+    {
+        switch (weaponClass)
+        {
+            case WeaponClass.Rifle:
+            case WeaponClass.Pistol:
+            case WeaponClass.Smg:
+            case WeaponClass.Shotgun:
+            case WeaponClass.Sniper:
+            case WeaponClass.Lmg:
+                damageType = DamageType.RangedPhysical;
+                return true;
+
+            case WeaponClass.Launcher:
+                // Grenade / RPG style launchers settle explosive resistance only.
+                damageType = DamageType.Explosive;
+                return true;
+
+            default:
+                damageType = default;
+                return false;
+        }
+    }
+
+    /// <summary>Resolves an explicit (non-Auto) profile override, or false for Auto / unknown.</summary>
+    public static bool TryGetForMode(WeaponDamageTypeMode mode, out DamageType damageType)
+    {
+        switch (mode)
+        {
+            case WeaponDamageTypeMode.Fire: damageType = DamageType.Fire; return true;
+            case WeaponDamageTypeMode.Electric: damageType = DamageType.Electric; return true;
+            case WeaponDamageTypeMode.Frost: damageType = DamageType.Frost; return true;
+            case WeaponDamageTypeMode.Light: damageType = DamageType.Light; return true;
+            case WeaponDamageTypeMode.RangedPhysical: damageType = DamageType.RangedPhysical; return true;
+            case WeaponDamageTypeMode.MeleePhysical: damageType = DamageType.MeleePhysical; return true;
+            case WeaponDamageTypeMode.Explosive: damageType = DamageType.Explosive; return true;
+            default: damageType = default; return false;
+        }
+    }
+}
+
+/// <summary>
 /// Pure value type that resolves a single hit into a damage number.
 ///
 /// Keeping the maths in a struct (instead of inside the shooter) makes the
@@ -285,8 +356,32 @@ public sealed class WeaponDamageProfile : MonoBehaviour
     [SerializeField] private WeaponDamageStats stats = new WeaponDamageStats(
         WeaponClass.Rifle, 25f, 45f, 130f, 0.55f, 2f, 1f, 1f);
 
+    [Header("伤害类别")]
+    [SerializeField, Tooltip("Auto：枪械=远程物理、发射器=爆炸。近战武器请显式设为近程物理。")]
+    private WeaponDamageTypeMode damageTypeMode = WeaponDamageTypeMode.Auto;
+
     /// <summary>Effective stats after clamping the serialized values.</summary>
     public WeaponDamageStats Stats => stats.Sanitized();
+
+    /// <summary>
+    /// Authoritative category this weapon declares, or false when it has none.
+    /// Unknown families stay uncategorized instead of being guessed from the name.
+    /// </summary>
+    public bool TryGetDamageType(out DamageType damageType)
+    {
+        if (damageTypeMode != WeaponDamageTypeMode.Auto)
+        {
+            return WeaponDamageTypeMapping.TryGetForMode(damageTypeMode, out damageType);
+        }
+
+        return WeaponDamageTypeMapping.TryGetForClass(Stats.WeaponClass, out damageType);
+    }
+
+    /// <summary>Runtime/test seam: force an explicit category, or <see cref="WeaponDamageTypeMode.Auto"/>.</summary>
+    public void ConfigureDamageType(WeaponDamageTypeMode mode)
+    {
+        damageTypeMode = mode;
+    }
 
     /// <summary>Object-name defaults, used by the context menu and by tests.</summary>
     public WeaponDamageStats DefaultStatsForThisWeapon(float fallbackDamage = 25f)

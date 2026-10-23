@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using KINEMATION.FPSAnimationPack.Scripts.Player;
+using KINEMATION.FPSAnimationPack.Scripts.Weapon;
 
 /// <summary>
 /// Owns projection-gun mouse input and display state while
@@ -16,6 +18,9 @@ public sealed class TrapPlacementProjectionGunController : MonoBehaviour
     [SerializeField] private Transform projectionGunAnchor;
 
     private GameObject projectionGunInstance;
+    private Renderer[] hiddenWeaponRenderers;
+    private bool[] previousRendererStates;
+    private bool weaponVisualsSuppressed;
     private bool missingPrefabWarningIssued;
     private bool subscribed;
 
@@ -45,6 +50,15 @@ public sealed class TrapPlacementProjectionGunController : MonoBehaviour
         if (TrapSelectionMenu.CursorOwned || GameStartMenu.CursorOwned) return;
 
         if (WasEscapePressed() && placement.PlacementMode)
+        {
+            placement.ExitPlacementMode();
+            return;
+        }
+
+        // While placing traps, reserve the usual first-weapon key and wheel
+        // for returning to the player's normal weapon. Exiting restores its
+        // visuals and re-enables the weapon input actions.
+        if (placement.PlacementMode && WasNormalWeaponSwitchRequested())
         {
             placement.ExitPlacementMode();
             return;
@@ -80,26 +94,71 @@ public sealed class TrapPlacementProjectionGunController : MonoBehaviour
         if (!enabled)
         {
             if (projectionGunInstance != null) projectionGunInstance.SetActive(false);
+            SetNormalWeaponVisualsVisible(true);
             return;
         }
 
         if (projectionGunPrefab == null)
+            projectionGunPrefab = Resources.Load<GameObject>("TrapPlacementProjectionGun");
+
+        ShowResolvedProjectionGun(projectionGunPrefab);
+    }
+
+    // Keep resource lookup separate from presentation so the genuine missing-resource
+    // fallback can be verified without moving or deleting the shipped Resources asset.
+    private void ShowResolvedProjectionGun(GameObject prefab)
+    {
+        if (prefab == null)
         {
-            if (!missingPrefabWarningIssued)
-            {
-                Debug.LogWarning("[TrapPlacementProjectionGunController] 未配置投影枪 Prefab；放置模式仍可工作，但不会替换或隐藏普通武器。", this);
-                missingPrefabWarningIssued = true;
-            }
+            WarnMissingPrefabOnce();
             return;
         }
 
         if (projectionGunInstance == null)
         {
             Transform anchor = projectionGunAnchor != null ? projectionGunAnchor : Camera.main != null ? Camera.main.transform : transform;
-            projectionGunInstance = Instantiate(projectionGunPrefab, anchor);
-            projectionGunInstance.name = projectionGunPrefab.name + " (Projection Gun)";
+            projectionGunInstance = Instantiate(prefab, anchor);
+            projectionGunInstance.name = prefab.name + " (Projection Gun)";
         }
         projectionGunInstance.SetActive(true);
+        SetNormalWeaponVisualsVisible(false);
+    }
+
+    private void WarnMissingPrefabOnce()
+    {
+        if (missingPrefabWarningIssued) return;
+        Debug.LogWarning("[TrapPlacementProjectionGunController] 未配置投影枪 Prefab；放置模式仍可工作，但不会替换或隐藏普通武器。", this);
+        missingPrefabWarningIssued = true;
+    }
+
+    private void SetNormalWeaponVisualsVisible(bool visible)
+    {
+        if (visible)
+        {
+            if (!weaponVisualsSuppressed) return;
+            for (int i = 0; i < hiddenWeaponRenderers.Length; i++)
+                if (hiddenWeaponRenderers[i] != null) hiddenWeaponRenderers[i].enabled = previousRendererStates[i];
+            hiddenWeaponRenderers = null;
+            previousRendererStates = null;
+            weaponVisualsSuppressed = false;
+            return;
+        }
+
+        if (weaponVisualsSuppressed) return;
+        FPSPlayer player = FindAnyObjectByType<FPSPlayer>();
+        if (player == null) return;
+        FPSWeapon weapon;
+        try { weapon = player.GetActiveWeapon(); }
+        catch (System.ArgumentOutOfRangeException) { return; }
+        if (weapon == null) return;
+        hiddenWeaponRenderers = weapon.GetComponentsInChildren<Renderer>(true);
+        previousRendererStates = new bool[hiddenWeaponRenderers.Length];
+        for (int i = 0; i < hiddenWeaponRenderers.Length; i++)
+        {
+            previousRendererStates[i] = hiddenWeaponRenderers[i] != null && hiddenWeaponRenderers[i].enabled;
+            if (hiddenWeaponRenderers[i] != null) hiddenWeaponRenderers[i].enabled = false;
+        }
+        weaponVisualsSuppressed = true;
     }
 
     private void OnDisable()
@@ -107,6 +166,7 @@ public sealed class TrapPlacementProjectionGunController : MonoBehaviour
         if (placement != null && subscribed) placement.PlacementModeChanged -= OnPlacementModeChanged;
         subscribed = false;
         if (projectionGunInstance != null) projectionGunInstance.SetActive(false);
+        SetNormalWeaponVisualsVisible(true);
     }
 
     private static bool TryGetTrapSlotPressed(out int slot)
@@ -124,6 +184,16 @@ public sealed class TrapPlacementProjectionGunController : MonoBehaviour
     private static bool WasEscapePressed()
     {
         return Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
+    }
+
+    private static bool WasNormalWeaponSwitchRequested()
+    {
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard != null && (keyboard.digit1Key.wasPressedThisFrame || keyboard.numpad1Key.wasPressedThisFrame))
+            return true;
+
+        Mouse mouse = Mouse.current;
+        return mouse != null && Mathf.Abs(mouse.scroll.ReadValue().y) > 0.01f;
     }
 
     private static bool WasMouseButtonPressed(int button)

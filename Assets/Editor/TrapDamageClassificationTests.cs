@@ -26,6 +26,8 @@ public sealed class TrapDamageClassificationTests
         try
         {
             EnemyHealth health = enemy.AddComponent<EnemyHealth>();
+            // Ordinary MonoBehaviour.Awake is not dispatched by EditMode creation.
+            health.ResetHealth();
             TrapDamageType observedType = TrapDamageType.Physical;
             float observedAmount = 0f;
             health.TrapDamaged += (_, amount, type) =>
@@ -53,6 +55,7 @@ public sealed class TrapDamageClassificationTests
         try
         {
             EnemyHealth health = enemy.AddComponent<EnemyHealth>();
+            health.ResetHealth();
             bool trapEventRaised = false;
             health.TrapDamaged += (_, _, _) => trapEventRaised = true;
 

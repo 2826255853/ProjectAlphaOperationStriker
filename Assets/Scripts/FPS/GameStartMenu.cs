@@ -2,10 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>Start and pause menu for the gameplay scene.</summary>
 public sealed class GameStartMenu : MonoBehaviour
 {
+    private const string ViewPrefabPath = "UI/GameStartMenu";
     private readonly List<InputAction> pausedActions = new List<InputAction>();
+    private GameStartMenuView view;
     private bool open;
     private bool settings;
     private bool started;
@@ -27,6 +28,10 @@ public sealed class GameStartMenu : MonoBehaviour
 
     private void Awake()
     {
+        GameObject prefab = Resources.Load<GameObject>(ViewPrefabPath);
+        view = prefab != null ? Instantiate(prefab).GetComponent<GameStartMenuView>() : GameStartMenuView.CreateFallback();
+        view.Initialize(this);
+        view.SetVisible(false);
         Open();
     }
 
@@ -36,22 +41,33 @@ public sealed class GameStartMenu : MonoBehaviour
         if (Keyboard.current == null || !Keyboard.current.escapeKey.wasPressedThisFrame) return;
         if (open)
         {
-            if (settings) settings = false;
+            if (settings) ShowSettings(false);
             else if (started) Close();
         }
-        else if (!TrapSelectionMenu.CursorOwned)
-        {
-            Open();
-        }
+        else if (!TrapSelectionMenu.CursorOwned) Open();
     }
 
     private void LateUpdate()
     {
         if (!open) return;
-        // Players bootstrapped later in the same scene load must be paused too.
         PausePlayerInput();
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+    }
+
+    public void BeginOrResume() => Close();
+    public void OpenSettings() => ShowSettings(true);
+    public void CloseSettings() => ShowSettings(false);
+    public void SetMasterVolume(float value) => AudioListener.volume = Mathf.Clamp01(value);
+    public void SetFullscreen(bool value) => Screen.fullScreen = value;
+
+    public void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 
     private void PausePlayerInput()
@@ -81,6 +97,7 @@ public sealed class GameStartMenu : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         PausePlayerInput();
+        RefreshView();
     }
 
     private void Close()
@@ -93,9 +110,24 @@ public sealed class GameStartMenu : MonoBehaviour
         cursorReleasedFrame = Time.frameCount;
         Time.timeScale = previousTimeScale;
         restoreInputPending = true;
+        RefreshView();
         RestoreInputAfterClick();
-        Cursor.lockState = started ? CursorLockMode.Locked : previousCursorLock;
-        Cursor.visible = started ? false : previousCursorVisible;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    private void ShowSettings(bool show)
+    {
+        if (!open || settings == show) return;
+        settings = show;
+        RefreshView();
+    }
+
+    private void RefreshView()
+    {
+        if (view == null) return;
+        view.SetVisible(open);
+        if (open) view.SetState(started, settings, AudioListener.volume, Screen.fullScreen);
     }
 
     private void RestoreInputAfterClick()
@@ -114,43 +146,5 @@ public sealed class GameStartMenu : MonoBehaviour
         foreach (InputAction action in pausedActions)
             if (action != null) action.Enable();
         pausedActions.Clear();
-    }
-
-    private void OnGUI()
-    {
-        if (!open) return;
-        GUI.depth = -100;
-        float width = Mathf.Min(360f, Screen.width - 24f);
-        float height = settings ? 290f : 276f;
-        Rect panel = new Rect((Screen.width - width) * .5f, (Screen.height - height) * .5f, width, height);
-        GUI.color = new Color(0f, 0f, 0f, .78f);
-        GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
-        GUI.color = Color.white;
-        GUI.Box(panel, settings ? "设置" : "行动打击");
-
-        float x = panel.x + 24f;
-        float contentWidth = width - 48f;
-        if (settings)
-        {
-            GUI.Label(new Rect(x, panel.y + 56f, contentWidth, 24f), "主音量");
-            AudioListener.volume = GUI.HorizontalSlider(
-                new Rect(x, panel.y + 91f, contentWidth, 20f), AudioListener.volume, 0f, 1f);
-            bool fullscreen = GUI.Toggle(new Rect(x, panel.y + 135f, contentWidth, 28f),
-                Screen.fullScreen, "全屏模式");
-            if (fullscreen != Screen.fullScreen) Screen.fullScreen = fullscreen;
-            if (GUI.Button(new Rect(x, panel.y + 206f, contentWidth, 42f), "返回")) settings = false;
-            return;
-        }
-
-        if (GUI.Button(new Rect(x, panel.y + 60f, contentWidth, 44f), started ? "继续游戏" : "开始游戏")) Close();
-        if (GUI.Button(new Rect(x, panel.y + 120f, contentWidth, 44f), "设置")) settings = true;
-        if (GUI.Button(new Rect(x, panel.y + 180f, contentWidth, 44f), "退出游戏"))
-        {
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#else
-            Application.Quit();
-#endif
-        }
     }
 }

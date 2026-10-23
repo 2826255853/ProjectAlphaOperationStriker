@@ -1,6 +1,7 @@
 #if UNITY_INCLUDE_TESTS
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 public sealed class FireStatusEffectTests
 {
@@ -13,11 +14,15 @@ public sealed class FireStatusEffectTests
     {
         enemyObject = new GameObject("Fire status test enemy");
         health = enemyObject.AddComponent<EnemyHealth>();
+        // Ordinary MonoBehaviour.Awake is not dispatched by EditMode creation, so CurrentHealth would
+        // stay 0 and FireStatusEffect.Ignite would early-out on IsDead. Full health matches runtime.
+        health.ResetHealth();
     }
 
     [TearDown]
     public void TearDown()
     {
+        LogAssert.ignoreFailingMessages = false;
         if (enemyObject != null) Object.DestroyImmediate(enemyObject);
     }
 
@@ -51,6 +56,8 @@ public sealed class FireStatusEffectTests
     public void ReignitionRefreshesDurationWithoutStackingAndKeepsHigherRate()
     {
         FireStatusEffect.Ignite(health, 0.5f, 2f);
+        burn = enemyObject.GetComponent<FireStatusEffect>();
+        Assert.That(burn, Is.Not.Null);
         burn.Tick(0.25f);
         FireStatusEffect.Ignite(health, 0.75f, 3f);
 
@@ -75,6 +82,8 @@ public sealed class FireStatusEffectTests
     [Test]
     public void DeathClearsBurnBeforeDeathCallbacksRun()
     {
+        // The kill path calls Destroy, which EditMode cannot perform and the engine reports as an error.
+        LogAssert.ignoreFailingMessages = true;
         IgniteDefault();
         bool burnWasClearAtDeath = false;
         health.Died += _ => burnWasClearAtDeath = !burn.IsBurning;
@@ -88,6 +97,14 @@ public sealed class FireStatusEffectTests
     public void DisablingEnemyClearsBurn()
     {
         IgniteDefault();
+
+        // MonoBehaviours without ExecuteAlways receive no lifecycle messages in EditMode, and routing
+        // OnDisable through SendMessage trips Unity's native ShouldRunBehaviour assert. Invoke the
+        // private handler directly so the disable path stays covered outside play mode.
+        System.Reflection.MethodInfo onDisable = typeof(FireStatusEffect)
+            .GetMethod("OnDisable", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        Assert.That(onDisable, Is.Not.Null);
+        onDisable.Invoke(burn, null);
 
         enemyObject.SetActive(false);
 

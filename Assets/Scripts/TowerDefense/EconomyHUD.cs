@@ -23,7 +23,7 @@ public sealed class EconomyHUD : MonoBehaviour
 
     private void OnGUI()
     {
-        if (TrapSelectionMenu.IsOpen) return; // The menu shows the same balance in its header.
+        if (GameStartMenu.CursorOwned || TrapSelectionMenu.IsOpen) return;
         economy.Refresh();
         if (balanceStyle == null)
             balanceStyle = new GUIStyle(GUI.skin.label)

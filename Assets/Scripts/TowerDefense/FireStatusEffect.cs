@@ -32,6 +32,8 @@ public sealed class FireStatusEffect : MonoBehaviour
         RemainingSeconds = Mathf.Max(0f, RemainingSeconds - step);
         visual?.SetBurning(IsBurning);
         // Integrate partial seconds, but never deal damage beyond expiry on a long frame.
+        // The legacy trap category maps 1:1 to DamageType.Fire, so burn ticks settle fire
+        // resistance exactly once through the shared EnemyHealth entry (never twice).
         if (step > 0f) health.TakeDamage(DamagePerSecond * step, TrapDamageType.Fire);
         if (!IsBurning) DamagePerSecond = 0f;
     }
