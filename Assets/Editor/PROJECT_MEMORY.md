@@ -37,6 +37,12 @@
 
 ## 玩家与输入
 
+- 武器快捷分类（2026-10-23）：`PlayerWeaponCategory` / `PlayerWeaponCategories` 将现有 `WeaponClass.Pistol`（含左轮）映射为副武器（2）、`Launcher` 映射为发射器（3），其余包括 Unknown 均为主武器（1）。优先读武器子层级的 `WeaponDamageProfile`，无档案时按现有名字映射解析；运行时实例名去掉 `(Clone)`。当前 20 把武器为 14 主武器、4 副武器、2 发射器。
+- `FirstPersonPlayerBootstrap.EnsureBridgeComponents` 安装 `PlayerWeaponCategorySwitcher`：支持主键盘/小键盘 1/2/3；重复按同类键循环该类所有武器，跨类返回记住上次武器。临时覆盖运行时 `ChangeWeapon` 的键盘绑定（移除旧 F），停用组件时恢复；保留滚轮。菜单、暂停、死亡、观察和玩家输入停用时阻止切枪。投影枪放置模式按任意 1/2/3 均退出并恢复普通武器 Renderer。
+- KINEMATION 没有公开按索引装备接口，桥接反射集中在 switcher：`_weapons` / `_activeWeaponIndex` / `EquipWeapon(bool,bool)`。用与包内 `OnMouseWheel` 相同的立即装备路径（旧武器停用、设置索引、新武器启用、`EquipWeapon(false,true)`），同时取消待处理的 `EquipWeapon_Incremental` / `SetWeaponVisible`，避免延迟回调抢回武器。不编辑被忽略的第三方包或手工改 prefab。
+- 数字键通过独立 `InputActionMap` 的 Button `performed` 事件接入，组件启停时同步启停，销毁时释放。回归入口：`Assets/Editor/RunEnemyDamageResistanceTests.ps1 -Fixtures PlayerWeaponCategoryTests,WeaponDamageProfileTests -OutputDirectory C:/Users/ASUS/Desktop/WeaponCategories`。真实 Unity 6000.6.6f1 验收 **24/24 通过、0 失败、0 跳过、无 C# 编译错误**：分类测试 14 项（含真实主场景进入 Play Mode 的集成测试），原武器伤害测试 10 项。覆盖主键盘 1/2/3、20 把武器的 14/4/2 分类与完整类内循环、跨类记忆、小键盘 2 退出投影枪、旧 F 不再切枪、主菜单/陷阱菜单阻止切枪、组件停用恢复原 F 绑定。结果：`C:/Users/ASUS/Desktop/WeaponCategories/20261023-231621-073/editmode-results.xml`。
+- 无图形输入验收注意（2026-10-23）：测试临时设置 `editorInputBehaviorInPlayMode = AllDeviceInputAlwaysGoesToGameView`、`backgroundBehavior = IgnoreFocus` 和 `Application.runInBackground = true`，结束时恢复；否则虚拟键盘事件可能只进入编辑器状态，不能触发游戏 Action。测试注入时临时用 `ProcessEventsManually` + `InputSystem.Update()`，立即恢复更新模式，不保存项目输入配置。进入 Play Mode 的 `UnityTest` 不要在迭代器里用捕获局部变量的调试 lambda：域重载后闭包可能失效，赋值时抛空引用；采用静态回调。主键盘数字键绑定路径为 `<Keyboard>/1` / `2` / `3`，通过实际控件匹配和按键事件验证。
+
 - 菜单中文字体修复（2026-10-23）：`GameStartMenuView` 统一加载 `Resources/UI/Fonts/MenuChinese SDF`，初始化时也替换旧预制体中所有文本（含未激活的设置页）。源字体为随包携带的 Noto Sans CJK SC，路径 `Assets/Resources/UI/Fonts/NotoSansCJKsc-Regular.otf`，同目录保留 OFL 许可；不依赖目标机器的系统字体。`GameStartMenuAuthoring.GenerateAndValidate` 生成动态 TMP 字体、预填菜单及“继续游戏”字符、保存材质与图集子资源并重建菜单预制体；`Validate` 检查全部标签和字符覆盖，结果写到当前用户桌面 `GameStartMenu/font-validation.txt`。本次仅修字体，不改变战斗 HUD 显隐。
 - 字体验收：Unity 编译、生成及 14 个标签（加“继续游戏”动态文字）的字符覆盖检查通过；主菜单与设置页渲染预览分别在 `C:\Users\ASUS\Desktop\GameStartMenu\font-main-menu.png`、`font-settings.png`，已确认中文字形正常。生成日志 `font-generation.log` 包含成功退出标记且无 C# 编译错误或异常；主场景、ProjectSettings、构建场景设置、包清单的前后 SHA256 均一致。备份在同目录 `font-fix-backup`，预览工具不保存或修改游戏场景。
 
@@ -83,7 +89,7 @@
 | 对空双联导弹 | `MissileLauncherTurret` → `MissileLauncherWeapon` → `MissileProjectile` | `MissileLauncherTurretAuthoring.CreateLauncherPrefabBatch`；预制体配置为 `Assets/Prefabs/DualMissileLauncher.prefab`，定义分别位于 `Assets/Resources` 和 `Assets/TrapDefinitions` |
 | 导弹尾焰 | `MissileExhaustFx` | `Assets/Models/DualMissileExhaust/DualMissileExhaust.fbx`；生成器负责安装两组并替换 URP 材质 |
 | 地刺 | `GroundSpikeTrap` | `GroundSpikeTrapAuthoring.CreateAssets`；模型 `Assets/Models/GroundSpike/GroundSpike.fbx`，生成 `Assets/Resources/GroundSpike.prefab` / `.asset` |
-| 墙面喷火器 | `FlamethrowerTrap` + `FlamethrowerFeedback` | `FlamethrowerTrapAuthoring.CreateAssetsBatch` / `CreateGraybox`；配置路径 `Assets/Resources/Flamethrower.prefab` / `.asset`；当前生成链含灰盒表现 |
+| 墙面喷火器 | `FlamethrowerTrap` + `FlamethrowerFeedback` | 模型 `Assets/Models/Flamethrower/Flamethrower.fbx`（Blender 源在桌面「陷阱素材文件夹\Flamethrower」），`FlamethrowerModelAuthoring.CreateModelPrefabBatch` 生成 `Assets/Resources/Flamethrower.prefab`（`Model` 子节点 + `Flame Origin` / `Attack Origin` / 三个 Fx 挂点），定义 `Assets/Resources/Flamethrower.asset`；`CreateGraybox` 已加保护，检测到 `Model` 就拒绝覆盖 |
 | 燃烧 | `FireStatusEffect` + `FireStatusEffectVisual` | 状态挂在怪物上，独立于点燃它的陷阱 |
 | 瞄准陷阱血条 | `TrapHealthBarUI` | 复用 `TrapInstance.CurrentHealth` / `MaxHealth`，场景加载后自建 HUD |
 
@@ -127,7 +133,7 @@
 | 陷阱血条 | `TrapHealthBarUITests` |
 | 墙面放置 | `WallTrapPlacementTests`、`WallTrapGridValidation.Run` |
 | 地刺 | `GroundSpikeTrapValidation.Run`、`GroundSpikeStage5Acceptance.Run` |
-| 喷火器 | `FlamethrowerPlacementValidation.Run`、`FlamethrowerGrayboxValidation.Run`、`FlamethrowerTimingValidation.Run` / `RunPlayMode`、`FlamethrowerAttackVolumeValidation.Run`、`FlamethrowerFeedbackValidation.Run` |
+| 喷火器 | `FlamethrowerPlacementValidation.Run`、`FlamethrowerGrayboxValidation.Run`（现校验模型预制体结构，不再生成灰盒）、`FlamethrowerTimingValidation.Run` / `RunPlayMode`、`FlamethrowerAttackVolumeValidation.Run`、`FlamethrowerFeedbackValidation.Run` |
 | 燃烧与伤害类别 | `FireStatusEffectTests`、`TrapDamageClassificationTests`、`EnemyDamageResistanceDataTests`、`EnemyDamageSettlementTests`、`WeaponDamageCategoryTests`、`WeaponDamageProfileTests` |
 | 网格对齐/掩码 | `TrapPlacementGridEditor.ValidateTrapGrids` / `ValidateOverlap`；使用数值校验 |
 
@@ -135,7 +141,7 @@
 - `*Validation.Run` / `*Acceptance.Run` 是独立编辑器入口，先看方法副作用再调用；部分会创建资源、切换场景或进入 PlayMode，不能当作纯只读检查。
 - 静态编辑器方法优先通过 `.agents/skills/alpha-striker-unity/scripts/run-unity-method.ps1` 调用。读 `references/unity-editor.md` 了解日志判定与单实例限制；测试要检查结果 XML 和实际用例数量，不能只看进程退出码。
 - 历史 `dotnet build C:\MapForge\.validation-build\UnityCompile.csproj` 当前路径缺失；即使恢复，其 Include 列表也只覆盖部分地图代码，不能当作全项目编译通过。
-- 预览：`GroundSpikeTrapAuthoring.RenderPreview`、`MissileLauncherTurretPreview.RenderPreview`、`MissileExhaustPreview.RenderPreview`、`FlamethrowerPlacementPreview.Render` / `RenderGraybox` / `RenderAttackVolume` / `RenderFeedback`。执行前检查输出位置；已有实现中部分走临时目录，喷火器走当前账户桌面，与用户指定旧账户素材路径不一定一致。新增产物应服从用户给定位置。
+- 预览：`GroundSpikeTrapAuthoring.RenderPreview`、`MissileLauncherTurretPreview.RenderPreview`、`MissileExhaustPreview.RenderPreview`、`FlamethrowerPlacementPreview.Render` / `RenderGraybox` / `RenderAttackVolume` / `RenderFeedback`、`FlamethrowerModelAuthoring.RenderModelPreview`（**必须 `-WithGraphics`，且首帧是预热帧**，否则第一张图会偏灰）。执行前检查输出位置；已有实现中部分走临时目录，喷火器走当前账户桌面，与用户指定旧账户素材路径不一定一致。新增产物应服从用户给定位置。
 - 图形修改须有备份/回滚点和可查看预览；优先改生成器，再生成定稿资源。不要在本次记忆恢复任务中运行会写场景/资源的验证。
 
 ## 后续任务的最短开始方式

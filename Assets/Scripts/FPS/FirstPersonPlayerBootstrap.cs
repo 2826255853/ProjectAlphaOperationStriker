@@ -101,6 +101,10 @@ public static class FirstPersonPlayerBootstrap
         {
             player.AddComponent<PlayerSprintAimBridge>();
         }
+        if (player.GetComponent<PlayerWeaponCategorySwitcher>() == null)
+        {
+            player.AddComponent<PlayerWeaponCategorySwitcher>();
+        }
         if (player.GetComponent<LadderClimbing>() == null)
         {
             player.AddComponent<LadderClimbing>();

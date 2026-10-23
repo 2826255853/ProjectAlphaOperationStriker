@@ -2,7 +2,11 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-/// <summary>Step 4 asset and regeneration checks; also exercises the actual wall placement path.</summary>
+/// <summary>
+/// Asset, regeneration and wall-placement checks for the flamethrower prefab.
+/// The prefab now carries the modelled visuals, so the structural assertions
+/// follow the model hierarchy instead of the retired graybox primitives.
+/// </summary>
 public static class FlamethrowerGrayboxValidation
 {
     private static int checks;
@@ -15,38 +19,67 @@ public static class FlamethrowerGrayboxValidation
         TrapDefinition definition = AssetDatabase.LoadAssetAtPath<TrapDefinition>(FlamethrowerTrapAuthoring.DefinitionPath);
         Check(definition != null && definition.Prefab != null, "definition references a prefab");
         GameObject prefab = definition.Prefab;
-        Check(AssetDatabase.GetAssetPath(prefab) == FlamethrowerTrapAuthoring.PrefabPath, "canonical graybox path");
+        Check(AssetDatabase.GetAssetPath(prefab) == FlamethrowerTrapAuthoring.PrefabPath, "canonical prefab path");
         Check(prefab.GetComponents<TrapInstance>().Length == 1, "one root TrapInstance");
         Check(prefab.GetComponents<FlamethrowerTrap>().Length == 1, "one root runtime component");
         Check(prefab.GetComponentsInChildren<Collider>(true).Length == 0, "visual-only prefab has no colliders");
         Check(prefab.GetComponentsInChildren<Rigidbody>(true).Length == 0, "visual-only prefab has no rigidbodies");
+
         Transform root = prefab.transform;
-        Transform plate = root.Find("Wall Backplate");
-        Check(plate != null && Almost(plate.localScale, new Vector3(1.8f, 1.8f, 0.12f)), "1.8m square backplate");
-        Transform nozzle = root.Find("Flame Nozzle");
-        Check(nozzle != null && Vector3.Dot(nozzle.up, root.forward) > 0.9999f, "nozzle axis is root +Z");
-        Transform arrow = Mount(root, FlamethrowerTrapAuthoring.DirectionName);
-        Check(arrow.GetComponentsInChildren<MeshRenderer>().Length == 3, "visible shaft and two arrowhead wings");
-        Check(arrow.Find("Shaft").localPosition.z < arrow.Find("Tip Left").localPosition.z
-            && arrow.Find("Shaft").localPosition.z < arrow.Find("Tip Right").localPosition.z, "arrowhead points +Z");
+        Transform model = root.Find(FlamethrowerModelAuthoring.ModelRootName);
+        Check(model != null, "model container exists");
+        Renderer[] parts = model.GetComponentsInChildren<Renderer>(true);
+        Check(parts.Length >= 8, "model is built from the authored parts, found " + parts.Length);
+        Check(root.Find(FlamethrowerTrapAuthoring.DirectionName) == null,
+            "graybox direction marker is gone");
+
+        Bounds bounds = MeasureBounds(model);
+        Check(bounds.size.x > 1.6f && bounds.size.y > 1.6f, "model is sized for a 2x2 wall footprint");
+        Check(bounds.min.z > 0f, "model sits in front of the wall plane");
+
         Transform attack = Mount(root, "Attack Origin");
         Check(Almost(attack.localPosition, Vector3.zero), "attack origin matches runtime root coordinates");
         Transform flame = Mount(root, "Flame Origin");
-        Vector3 exit = nozzle.localPosition + Vector3.forward * nozzle.localScale.y;
-        Check(Almost(flame.localPosition, exit), "flame mount starts at cylinder nozzle exit");
+        Check(flame.localPosition.z > bounds.max.z - 0.05f, "flame mount starts at the muzzle plane");
+
+        // Barrels must actually point +Z, or every flame effect fires backwards.
+        Vector3 barrelCentre = Vector3.zero;
+        int barrels = 0;
+        foreach (Renderer part in parts)
+        {
+            if (part.name.IndexOf("Barrel", StringComparison.OrdinalIgnoreCase) < 0) continue;
+            barrelCentre += part.bounds.center;
+            barrels++;
+        }
+        Check(barrels > 0, "barrel meshes are present");
+        barrelCentre /= Mathf.Max(1, barrels);
+        Check(barrelCentre.z > bounds.center.z, "barrels sit in front of the mounting plate");
+
+        float padZ = 0f;
+        foreach (Renderer part in parts)
+        {
+            if (part.name.IndexOf("Slab", StringComparison.OrdinalIgnoreCase) < 0) continue;
+            padZ = part.bounds.center.z;
+            break;
+        }
+        Check(padZ < barrelCentre.z, "concrete pad stays behind the barrels");
+
         foreach (string name in new[] { "Preheat Fx", "Spray Fx", "Cooldown Fx" })
         {
             Transform fx = Mount(flame, name);
             Check(Almost(fx.localPosition, Vector3.zero) && fx.childCount == 0
                 && fx.GetComponents<Component>().Length == 1, name + " is an empty future effect mount");
         }
+
         int descendants = root.GetComponentsInChildren<Transform>(true).Length;
         string runtimeSettings = EditorJsonUtility.ToJson(prefab.GetComponent<FlamethrowerTrap>());
         string prefabGuid = AssetDatabase.AssetPathToGUID(FlamethrowerTrapAuthoring.PrefabPath);
         string definitionGuid = AssetDatabase.AssetPathToGUID(FlamethrowerTrapAuthoring.DefinitionPath);
         int price = definition.Cost;
-        AssetDatabase.TryGetGUIDAndLocalFileIdentifier(nozzle, out string nozzleGuid, out long nozzleId);
-        FlamethrowerTrapAuthoring.CreateGraybox();
+        AssetDatabase.TryGetGUIDAndLocalFileIdentifier(model, out string modelGuid, out long modelId);
+
+        FlamethrowerModelAuthoring.CreateModelPrefab();
+
         definition = AssetDatabase.LoadAssetAtPath<TrapDefinition>(FlamethrowerTrapAuthoring.DefinitionPath);
         prefab = definition.Prefab;
         Check(AssetDatabase.AssetPathToGUID(FlamethrowerTrapAuthoring.PrefabPath) == prefabGuid, "regeneration preserves prefab GUID");
@@ -54,12 +87,34 @@ public static class FlamethrowerGrayboxValidation
         Check(price == definition.Cost, "regeneration preserves price");
         Check(runtimeSettings == EditorJsonUtility.ToJson(prefab.GetComponent<FlamethrowerTrap>()), "regeneration preserves attack tuning");
         Check(prefab.transform.GetComponentsInChildren<Transform>(true).Length == descendants, "regeneration does not duplicate children");
-        AssetDatabase.TryGetGUIDAndLocalFileIdentifier(prefab.transform.Find("Flame Nozzle"), out string newGuid, out long newId);
-        Check(newGuid == nozzleGuid && newId == nozzleId, "regeneration preserves existing nozzle identity");
+        AssetDatabase.TryGetGUIDAndLocalFileIdentifier(
+            prefab.transform.Find(FlamethrowerModelAuthoring.ModelRootName), out string newGuid, out long newId);
+        Check(newGuid == modelGuid && newId == modelId, "regeneration preserves model container identity");
+
         // This regression also checks every mesh corner against the solid install
         // box and places real prefabs on supported, obstructed and rotated walls.
         FlamethrowerPlacementValidation.Run();
         Debug.Log($"FLAMETHROWER_STEP4_PASS: {checks} assertions plus wall placement regression");
+    }
+
+    private static Bounds MeasureBounds(Transform root)
+    {
+        Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+        bool has = false;
+        Bounds bounds = new Bounds(Vector3.zero, Vector3.zero);
+        foreach (Renderer renderer in renderers)
+        {
+            if (!has)
+            {
+                bounds = renderer.bounds;
+                has = true;
+            }
+            else
+            {
+                bounds.Encapsulate(renderer.bounds);
+            }
+        }
+        return bounds;
     }
 
     private static Transform Mount(Transform parent, string name)

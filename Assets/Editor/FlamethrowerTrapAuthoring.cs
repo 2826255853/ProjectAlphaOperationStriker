@@ -9,10 +9,12 @@ public static class FlamethrowerTrapAuthoring
     public const string TrapId = "flamethrower";
     public const string DirectionName = "Graybox Direction";
 
-    // Solid backplate/nozzle only. The four-metre attack volume must never be
-    // included in placement/support/overlap checks.
-    public static readonly Vector3 InstallBoundsCenter = new Vector3(0f, 0f, 0.21f);
-    public static readonly Vector3 InstallBoundsSize = new Vector3(1.8f, 1.8f, 0.42f);
+    // Solid housing/nozzle only. The four-metre attack volume must never be
+    // included in placement/support/overlap checks. These values are the
+    // fallback for a definition repair; generating the model prefab re-measures
+    // the real mesh and writes the result back into the definition.
+    public static readonly Vector3 InstallBoundsCenter = new Vector3(0f, 0f, 0.452f);
+    public static readonly Vector3 InstallBoundsSize = new Vector3(1.82f, 1.82f, 0.744f);
 
     [MenuItem("Tools/塔防/生成火焰喷射器墙面定义")]
     public static void CreateAssets()
@@ -44,6 +46,12 @@ public static class FlamethrowerTrapAuthoring
     public static void CreateGraybox()
     {
         CreateAssets();
+        GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+        // The canonical prefab now carries the modelled visuals; rebuilding the
+        // placeholder over it would throw the finished art away.
+        if (existing != null && existing.transform.Find("Model") != null)
+            throw new System.InvalidOperationException(
+                "当前预制体已使用火焰喷射器模型，灰盒生成不再覆盖它。要重做模型请用 Tools/塔防/生成火焰喷射器模型预制体。");
         GameObject root = PrefabUtility.LoadPrefabContents(PrefabPath);
         try
         {
@@ -170,6 +178,18 @@ public static class FlamethrowerTrapAuthoring
         if (definition == null) throw new System.ArgumentNullException(nameof(definition));
         if (prefab == null) throw new System.ArgumentNullException(nameof(prefab));
 
+        // A model-built prefab measures its own solid housing; only the legacy
+        // graybox falls back to the constants above.
+        Vector3 center = InstallBoundsCenter;
+        Vector3 size = InstallBoundsSize;
+        Transform model = prefab.transform.Find(FlamethrowerModelAuthoring.ModelRootName);
+        if (model != null && TryMeasureBounds(model, prefab.transform, out Bounds measured))
+        {
+            center = new Vector3(0f, 0f, measured.center.z);
+            size = new Vector3(Mathf.Max(1.6f, measured.size.x), Mathf.Max(1.6f, measured.size.y),
+                Mathf.Max(0.05f, measured.size.z));
+        }
+
         var settings = new SerializedObject(definition);
         settings.FindProperty("trapId").stringValue = TrapId;
         settings.FindProperty("displayName").stringValue = "火焰喷射器";
@@ -181,9 +201,34 @@ public static class FlamethrowerTrapAuthoring
         // Wall footprint is expressed in the existing grid's local X/Y cells.
         settings.FindProperty("worldFootprint").vector2Value = Vector2.zero;
         settings.FindProperty("mountType").enumValueIndex = (int)TrapMountType.Wall;
-        settings.FindProperty("installBoundsCenter").vector3Value = InstallBoundsCenter;
-        settings.FindProperty("installBoundsSize").vector3Value = InstallBoundsSize;
+        settings.FindProperty("installBoundsCenter").vector3Value = center;
+        settings.FindProperty("installBoundsSize").vector3Value = size;
         settings.ApplyModifiedPropertiesWithoutUndo();
         EditorUtility.SetDirty(definition);
+    }
+
+    /// <summary>Renderer bounds of a child hierarchy, expressed in the prefab root space.</summary>
+    private static bool TryMeasureBounds(Transform model, Transform root, out Bounds bounds)
+    {
+        bounds = new Bounds(Vector3.zero, Vector3.zero);
+        bool has = false;
+        foreach (Renderer renderer in model.GetComponentsInChildren<Renderer>(true))
+        {
+            Bounds world = renderer.bounds;
+            Vector3 min = root.InverseTransformPoint(world.min);
+            Vector3 max = root.InverseTransformPoint(world.max);
+            var local = new Bounds((min + max) * 0.5f, new Vector3(
+                Mathf.Abs(max.x - min.x), Mathf.Abs(max.y - min.y), Mathf.Abs(max.z - min.z)));
+            if (!has)
+            {
+                bounds = local;
+                has = true;
+            }
+            else
+            {
+                bounds.Encapsulate(local);
+            }
+        }
+        return has;
     }
 }

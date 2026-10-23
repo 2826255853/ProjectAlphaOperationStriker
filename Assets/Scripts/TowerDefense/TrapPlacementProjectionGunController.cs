@@ -55,7 +55,7 @@ public sealed class TrapPlacementProjectionGunController : MonoBehaviour
             return;
         }
 
-        // While placing traps, reserve the usual first-weapon key and wheel
+        // While placing traps, reserve the three weapon-category keys and wheel
         // for returning to the player's normal weapon. Exiting restores its
         // visuals and re-enables the weapon input actions.
         if (placement.PlacementMode && WasNormalWeaponSwitchRequested())
@@ -189,7 +189,9 @@ public sealed class TrapPlacementProjectionGunController : MonoBehaviour
     private static bool WasNormalWeaponSwitchRequested()
     {
         Keyboard keyboard = Keyboard.current;
-        if (keyboard != null && (keyboard.digit1Key.wasPressedThisFrame || keyboard.numpad1Key.wasPressedThisFrame))
+        if (keyboard != null && (keyboard.digit1Key.wasPressedThisFrame || keyboard.numpad1Key.wasPressedThisFrame
+            || keyboard.digit2Key.wasPressedThisFrame || keyboard.numpad2Key.wasPressedThisFrame
+            || keyboard.digit3Key.wasPressedThisFrame || keyboard.numpad3Key.wasPressedThisFrame))
             return true;
 
         Mouse mouse = Mouse.current;

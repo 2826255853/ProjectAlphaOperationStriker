@@ -39,8 +39,7 @@ public static class FlamethrowerPlacementValidation
         finally { Cleanup(); }
     }
 
-    private static TrapDefinition ValidateAssetAndMenu()
-    {
+    private static TrapDefinition ValidateAssetAndMenu()    {
         TrapDefinition definition = AssetDatabase.LoadAssetAtPath<TrapDefinition>(FlamethrowerTrapAuthoring.DefinitionPath);
         Check(definition != null, "definition asset exists");
         Check(definition.TrapId == FlamethrowerTrapAuthoring.TrapId, "stable flamethrower ID");
@@ -57,10 +56,17 @@ public static class FlamethrowerPlacementValidation
         Check(Quaternion.Angle(definition.Prefab.transform.rotation, Quaternion.identity) < 0.001f, "root +Z faces out");
         Check(definition.HasExplicitInstallBounds, "solid install bounds are explicit");
         definition.ResolveInstallBounds(definition.Footprint, Vector2.one, out Vector3 center, out Vector3 extents);
-        Check(Almost(center, FlamethrowerTrapAuthoring.InstallBoundsCenter)
-            && Almost(extents * 2f, FlamethrowerTrapAuthoring.InstallBoundsSize), "authored install bounds");
+        // The install box is measured from the authored model when the prefab is
+        // generated, so validate it against that model instead of the retired
+        // graybox constants.
+        Bounds authoredModel = MeasureModelBounds(definition.Prefab.transform);
+        Check(authoredModel.size.x <= extents.x * 2f + 0.02f && authoredModel.size.y <= extents.y * 2f + 0.02f
+            && authoredModel.max.z <= center.z + extents.z + 0.02f
+            && authoredModel.min.z >= center.z - extents.z - 0.02f, "install bounds cover the authored model");
+        // Well below the four-metre spray volume; 0.9 m leaves room for the
+        // modelled housing and barrels to stand off the wall.
         Check(extents.x <= 1f && extents.y <= 1f && center.z - extents.z >= -0.0001f
-            && center.z + extents.z < 0.5f, "body fits 2x2 wall area and excludes four-metre spray");
+            && center.z + extents.z < 0.9f, "body fits 2x2 wall area and excludes four-metre spray");
         var body = new Bounds(center, extents * 2f + Vector3.one * 0.001f);
         foreach (MeshFilter mesh in definition.Prefab.GetComponentsInChildren<MeshFilter>(true))
         {
@@ -157,10 +163,12 @@ public static class FlamethrowerPlacementValidation
         Check(Vector3.Dot(trap.transform.up, grid.transform.up) > 0.9999f, "local Y follows rotated wall");
         Check(Almost(trap.transform.position, grid.transform.TransformPoint(new Vector3(1f, 1f, grid.SurfaceOffset))),
             "rotated wall retains shared 2x2 anchor");
-        Transform nozzle = trap.transform.Find("Flame Nozzle");
+        // The modelled prefab has no graybox nozzle; the flame mount marks the
+        // muzzle plane and must stay outside the rotated wall.
+        Transform nozzle = trap.transform.Find("Flame Origin");
         Check(nozzle != null && Vector3.Dot(nozzle.position - trap.transform.position, grid.SurfaceNormal) > 0f,
-            "nozzle is outside rotated wall");
-        Check(nozzle != null && Vector3.Dot(nozzle.up, grid.SurfaceNormal) > 0.9999f, "nozzle axis and root +Z agree");
+            "flame mount is outside rotated wall");
+        Check(nozzle != null && Vector3.Dot(nozzle.forward, grid.SurfaceNormal) > 0.9999f, "flame mount forward and root +Z agree");
     }
 
     private static void ValidateRegeneration(TrapDefinition definition)
@@ -201,6 +209,25 @@ public static class FlamethrowerPlacementValidation
 
     private static GameObject NewObject(string name) => Own(new GameObject(name));
     private static T Own<T>(T value) where T : Object { owned.Add(value); return value; }
+
+    /// <summary>Renderer bounds of the authored model, expressed in prefab root space.</summary>
+    private static Bounds MeasureModelBounds(Transform root)
+    {
+        bool has = false;
+        Bounds bounds = new Bounds(Vector3.zero, Vector3.zero);
+        foreach (Renderer renderer in root.GetComponentsInChildren<Renderer>(true))
+        {
+            Bounds world = renderer.bounds;
+            Vector3 min = root.InverseTransformPoint(world.min);
+            Vector3 max = root.InverseTransformPoint(world.max);
+            var local = new Bounds((min + max) * 0.5f, max - min);
+            if (local.size.x < 0f) local.size = new Vector3(Mathf.Abs(local.size.x), local.size.y, local.size.z);
+            if (!has) { bounds = local; has = true; }
+            else bounds.Encapsulate(local);
+        }
+        return bounds;
+    }
+
     private static bool Almost(Vector3 a, Vector3 b) => (a - b).sqrMagnitude < 0.000001f;
     private static void Check(bool passed, string message)
     {
