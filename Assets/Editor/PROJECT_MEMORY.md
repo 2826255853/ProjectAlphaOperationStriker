@@ -452,6 +452,13 @@
 
 ## 哨戒机枪模型与开火/抛壳动画（2026-10-23，阶段 7 收尾总索引）
 
+## 哨戒机枪索敌反馈（2026-10-23）
+- `AutoSentryTurret` 增加默认开启的 `targetingFeedbackEnabled` Inspector 开关与 `TargetAcquired` 事件；只在无有效目标切换为有目标时发出，目标仍有效时更换目标不会重复发出。关闭开关时事件不触发。
+- `SentryLaserSight` 订阅目标事件并在索敌时播放 0.1 秒亮、0.1 秒灭、0.1 秒亮，结束后持续亮；保留原有射线截断与炮塔禁用隐藏行为，`BeginTargetingPulse` / `TickTargetingPulse` 支持确定性采样。
+- 新增 `SentryTargetingFeedback`：可配置 AudioClip，缺省生成 48 kHz、精确 0.1 秒的 880 Hz 滴声；序列为立即播放、0.1 秒停止、0.2 秒再次播放、0.3 秒结束。反馈由炮塔根 Inspector 开关控制。
+- `SentryMachineGunAuthoring.CreateAssetsBatch` 自动挂载新音频反馈组件并在探针中校验；生成的 `Assets/Resources/SentryMachineGun.prefab` 已包含该组件，不要手工修改生成 prefab。
+- 验证：`SentryMachineGunAuthoring.CreateAssetsBatch` 成功；`Assets/Editor/RunSentryMachineGunTests.ps1 -ExpectedCases 13` 结果 13/13 通过；`SentryMachineGunStage5Validation.Run` 成功，零编译错误/异常。测试覆盖首次锁定、目标保持不重复、目标消失后重新获得、激光脉冲边界、两次滴声启动与开关关闭。
+
 - 这一节是「哨戒机枪」能力的**唯一入口**：以后改模型、动画或排障先看这里，再按需跳到上方「哨戒机枪阶段 3/4/5/6」「哨戒机枪出厂预制体修复」「哨戒机枪枪口开孔」小节。设计文档仍是 `C:\Users\ASUS\Desktop\陷阱素材文件夹\哨戒机枪设计.txt`（阶段 7 的收尾要求即来自其 Step 7）。
 - 素材目录（全部中间态都在这，不进仓库）：`C:\Users\ASUS\Desktop\陷阱素材文件夹\SentryMachineGun\`。仓库内只有定稿：模型、材质、两个生成预制体和脚本。
 - **数据流（结构未改，仍是 2×2 定义）**：`TrapDefinition`（`Assets/Resources/AutoSentryTurret.asset` + `Assets/TrapDefinitions/AutoSentryTurret.asset`）→ `Assets/Prefabs/AutoSentryTurret.prefab`（裸根 + `TrapInstance` + `AutoSentryTurret`）→ `AutoSentryTurret.Awake` 中 `Resources.Load("SentryMachineGun")` → `Assets/Resources/SentryMachineGun.prefab`（art 根）。价格、占格、安装类别、购买/经济/伤害结算链一行未改。

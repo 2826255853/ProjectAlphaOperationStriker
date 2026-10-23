@@ -369,6 +369,70 @@ public sealed class SentryMachineGunTests
     // --- 10. 旧功能回归 ----------------------------------------------------
 
     [Test]
+    public void TargetAcquisitionFeedbackUsesFixedPulseAndReacquiresAfterLoss()
+    {
+        AutoSentryTurret turret = CreateTurret();
+        var laser = turret.GetComponentInChildren<SentryLaserSight>(true);
+        var feedback = turret.GetComponentInChildren<SentryTargetingFeedback>(true);
+        Assert.That(laser, Is.Not.Null);
+        Assert.That(feedback, Is.Not.Null);
+        Invoke(laser, "OnEnable");
+        Invoke(feedback, "OnEnable");
+
+        int acquisitions = 0;
+        turret.TargetAcquired += _ => acquisitions++;
+        EnemyHealth victim = CreateEnemy(new Vector3(0f, 0f, 2.5f), 100000f);
+        turret.Tick(0.01f);
+        Assert.That(acquisitions, Is.EqualTo(1));
+        Assert.That(laser.IsTargetingPulseActive, Is.True, "目标获取事件应启动激光脉冲。");
+        Assert.That(feedback.IsSequenceActive, Is.True, "目标获取事件应启动滴声序列。");
+        Assert.That(feedback.BeepStartCount, Is.EqualTo(1));
+        turret.Tick(0.1f);
+        Assert.That(acquisitions, Is.EqualTo(1));
+
+        laser.BeginTargetingPulse();
+        laser.UpdateBeam();
+        Assert.That(laser.IsBeamVisible, Is.True);
+        laser.TickTargetingPulse(0.1f);
+        laser.UpdateBeam();
+        Assert.That(laser.IsBeamVisible, Is.False);
+        laser.TickTargetingPulse(0.1f);
+        laser.UpdateBeam();
+        Assert.That(laser.IsBeamVisible, Is.True);
+        laser.TickTargetingPulse(0.1f);
+        laser.UpdateBeam();
+        Assert.That(laser.IsTargetingPulseActive, Is.False);
+        Assert.That(laser.IsBeamVisible, Is.True);
+
+        feedback.Tick(0.1f);
+        feedback.Tick(0.1f);
+        Assert.That(feedback.BeepStartCount, Is.EqualTo(2));
+        feedback.Tick(0.1f);
+        Assert.That(feedback.IsSequenceActive, Is.False);
+
+        Object.DestroyImmediate(victim.gameObject);
+        turret.Tick(0.01f);
+        Assert.That(turret.CurrentTarget, Is.Null);
+        CreateEnemy(new Vector3(0f, 0f, 2.5f), 100000f);
+        turret.Tick(0.01f);
+        Assert.That(acquisitions, Is.EqualTo(2));
+    }
+
+    [Test]
+    public void TargetAcquisitionFeedbackCanBeDisabled()
+    {
+        AutoSentryTurret turret = CreateTurret();
+        var serialized = new SerializedObject(turret);
+        serialized.FindProperty("targetingFeedbackEnabled").boolValue = false;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+        int acquisitions = 0;
+        turret.TargetAcquired += _ => acquisitions++;
+        CreateEnemy(new Vector3(0f, 0f, 2.5f), 100000f);
+        turret.Tick(0.01f);
+        Assert.That(acquisitions, Is.Zero);
+    }
+
+    [Test]
     public void TurretStillLocksOnAndDealsDamage()
     {
         AutoSentryTurret turret = CreateTurret();

@@ -10,6 +10,10 @@ using UnityEngine;
 [AddComponentMenu("Tower Defense/Sentry Laser Sight")]
 public sealed class SentryLaserSight : MonoBehaviour
 {
+    public const float TargetingBrightDuration = 0.1f;
+    public const float TargetingDarkDuration = 0.1f;
+    public const float TargetingPulseDuration = 0.3f;
+
     [Header("Rig")]
     [SerializeField] private Transform laserEmitter;
     [SerializeField] private Material beamMaterial;
@@ -23,33 +27,57 @@ public sealed class SentryLaserSight : MonoBehaviour
     private LineRenderer line;
     private AutoSentryTurret turret;
     private float currentLength;
+    private float targetingPulseElapsed = -1f;
 
     public Transform LaserEmitter => laserEmitter;
     public Material BeamMaterial => beamMaterial;
     public float MaxDistance => maxDistance;
     public bool IsBeamVisible => line != null && line.enabled;
     public float CurrentBeamLength => currentLength;
+    public bool IsTargetingPulseActive => targetingPulseElapsed >= 0f;
+    public float TargetingPulseElapsed => Mathf.Max(0f, targetingPulseElapsed);
 
     private void OnEnable()
     {
         // The LineRenderer is runtime-only. Building it in the editor would leak a
         // "Laser Beam" child into the generated prefab, so edit-mode tests call
         // EnsureBeam / UpdateBeam explicitly instead.
-        if (!Application.isPlaying) return;
-        EnsureBeam();
+        if (Application.isPlaying) EnsureBeam();
         turret = GetComponentInParent<AutoSentryTurret>();
-        UpdateBeam();
+        Subscribe();
+        if (Application.isPlaying) UpdateBeam();
     }
 
     private void Update()
     {
         if (!Application.isPlaying) return;
+        TickTargetingPulse(Time.deltaTime);
         UpdateBeam();
     }
 
     private void OnDisable()
     {
+        Unsubscribe();
         if (line != null) line.enabled = false;
+    }
+
+    /// <summary>Starts the fixed 0.1 s bright / 0.1 s dark / 0.1 s bright sequence.</summary>
+    public void BeginTargetingPulse()
+    {
+        if (turret == null) turret = GetComponentInParent<AutoSentryTurret>();
+        if (turret != null && !turret.TargetingFeedbackEnabled) return;
+        targetingPulseElapsed = 0f;
+        UpdateBeam();
+    }
+
+    /// <summary>Advances the targeting pulse deterministically for tests and previews.</summary>
+    public void TickTargetingPulse(float deltaTime)
+    {
+        if (targetingPulseElapsed < 0f) return;
+        if (deltaTime < 0f) deltaTime = 0f;
+        targetingPulseElapsed += deltaTime;
+        if (targetingPulseElapsed >= TargetingPulseDuration)
+            targetingPulseElapsed = -1f;
     }
 
     /// <summary>Lazily builds the runtime-only LineRenderer (there is no serialized line in the prefab).</summary>
@@ -108,6 +136,31 @@ public sealed class SentryLaserSight : MonoBehaviour
         currentLength = Vector3.Distance(origin, end);
         line.SetPosition(0, origin);
         line.SetPosition(1, end);
-        line.enabled = true;
+        line.enabled = ShouldShowBeam();
+    }
+
+    private bool ShouldShowBeam()
+    {
+        if (targetingPulseElapsed < 0f) return true;
+        return targetingPulseElapsed < TargetingBrightDuration
+            || targetingPulseElapsed >= TargetingBrightDuration + TargetingDarkDuration;
+    }
+
+    private void Subscribe()
+    {
+        if (turret == null) return;
+        turret.TargetAcquired -= HandleTargetAcquired;
+        turret.TargetAcquired += HandleTargetAcquired;
+    }
+
+    private void Unsubscribe()
+    {
+        if (turret == null) return;
+        turret.TargetAcquired -= HandleTargetAcquired;
+    }
+
+    private void HandleTargetAcquired(EnemyInstance enemy)
+    {
+        BeginTargetingPulse();
     }
 }

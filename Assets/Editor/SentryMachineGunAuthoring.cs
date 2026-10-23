@@ -1033,6 +1033,7 @@ public static class SentryMachineGunAuthoring
             var feedback = root.AddComponent<SentryFireFeedback>();
             var ejector = root.AddComponent<SentryShellEjector>();
             var laserSight = root.AddComponent<SentryLaserSight>();
+            root.AddComponent<SentryTargetingFeedback>();
             GameObject casingPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(CasingPrefabPath);
             Material beamMaterial = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath(LaserBeamMaterialName));
 
@@ -1246,6 +1247,10 @@ public static class SentryMachineGunAuthoring
                               && laserSight.BeamMaterial != null && IsUrpShader(laserSight.BeamMaterial.shader);
             checks.Add(new Check("wiring/laser-sight", laserWired,
                 laserSight == null ? "missing component" : "laserEmitter / beamMaterial"));
+
+            var targeting = prefab.GetComponent<SentryTargetingFeedback>();
+            checks.Add(new Check("wiring/targeting-feedback", targeting != null,
+                targeting == null ? "missing component" : "component present"));
         }
 
         if (casing != null)

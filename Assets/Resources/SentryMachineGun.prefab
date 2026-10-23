@@ -2451,6 +2451,7 @@ GameObject:
   - component: {fileID: 6076413882373690746}
   - component: {fileID: 8109741773722679932}
   - component: {fileID: 4677730387686991715}
+  - component: {fileID: 4284921708515948306}
   m_Layer: 0
   m_Name: SentryMachineGun
   m_TagString: Untagged
@@ -2534,6 +2535,20 @@ MonoBehaviour:
   beamWidth: 0.012
   beamStartColor: {r: 1, g: 0.22, b: 0.13, a: 0.85}
   beamEndColor: {r: 1, g: 0.22, b: 0.13, a: 0}
+--- !u!114 &4284921708515948306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3271451020769320756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 396a9d6f2f5892a4795741d98fe0ebb4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SentryTargetingFeedback
+  beepClip: {fileID: 0}
+  volume: 0.7
 --- !u!1 &3295766955961668676
 GameObject:
   m_ObjectHideFlags: 0

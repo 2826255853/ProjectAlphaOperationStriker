@@ -14,6 +14,7 @@ public sealed class AutoSentryTurret : MonoBehaviour
     [Header("Targeting")]
     [SerializeField, Min(0.1f)] private float detectionRange = 5f;
     [SerializeField, Min(0f)] private float rotationSpeed = 360f;
+    [SerializeField] private bool targetingFeedbackEnabled = true;
 
     [Header("Weapon")]
     [SerializeField, Min(0.01f)] private float roundsPerSecond = 8f;
@@ -35,10 +36,14 @@ public sealed class AutoSentryTurret : MonoBehaviour
     /// </summary>
     public event System.Action<Vector3> ShotFired;
 
+    /// <summary>Raised once when the turret transitions from no valid target to a valid target.</summary>
+    public event System.Action<EnemyInstance> TargetAcquired;
+
     public float DetectionRange => detectionRange;
     public float BurstDuration => burstDuration;
     public float CooldownDuration => cooldownDuration;
     public bool IsCoolingDown => cooldownTime > 0f;
+    public bool TargetingFeedbackEnabled => targetingFeedbackEnabled;
     public EnemyInstance CurrentTarget => target;
     public Transform AimPivot => aimPivot;
     public Transform Muzzle => muzzle;
@@ -76,7 +81,10 @@ public sealed class AutoSentryTurret : MonoBehaviour
         if (cooldownTime > 0f)
             cooldownTime = Mathf.Max(0f, cooldownTime - deltaTime);
 
+        bool hadValidTarget = IsValidTarget(target);
         AcquireTarget();
+        if (targetingFeedbackEnabled && !hadValidTarget && target != null)
+            TargetAcquired?.Invoke(target);
         if (target == null)
         {
             // A burst is continuous only while an enemy is actually present.
