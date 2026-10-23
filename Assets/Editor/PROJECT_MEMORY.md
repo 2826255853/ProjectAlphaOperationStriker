@@ -79,7 +79,7 @@
 
 | 能力 | 运行时入口 | 生成/资产入口与约束 |
 | --- | --- | --- |
-| 机枪炮塔 | `AutoSentryTurret` | 子弹伤害分类为 `Bullet`；定义由现有资源加载链提供 |
+| 机枪炮塔 | `AutoSentryTurret` + `SentryFireFeedback` / `SentryShellEjector` / `SentryLaserSight` | 子弹伤害分类为 `Bullet`；美术为 `Assets/Resources/SentryMachineGun.prefab`（四脚支架 + 通用机枪 + 激光瞄准 + 开火后坐/枪口焰 + 抛壳），入口与契约见「哨戒机枪模型与开火/抛壳动画」小节 |
 | 对空双联导弹 | `MissileLauncherTurret` → `MissileLauncherWeapon` → `MissileProjectile` | `MissileLauncherTurretAuthoring.CreateLauncherPrefabBatch`；预制体配置为 `Assets/Prefabs/DualMissileLauncher.prefab`，定义分别位于 `Assets/Resources` 和 `Assets/TrapDefinitions` |
 | 导弹尾焰 | `MissileExhaustFx` | `Assets/Models/DualMissileExhaust/DualMissileExhaust.fbx`；生成器负责安装两组并替换 URP 材质 |
 | 地刺 | `GroundSpikeTrap` | `GroundSpikeTrapAuthoring.CreateAssets`；模型 `Assets/Models/GroundSpike/GroundSpike.fbx`，生成 `Assets/Resources/GroundSpike.prefab` / `.asset` |
@@ -408,6 +408,14 @@
 - 顺带修掉的编译阻断：`Assets/Editor/DroneCameraControllerTests.cs` 不再继承 `InputTestFixture`（改用 `InputSystem.AddDevice<Mouse>()` + `QueueDeltaStateEvent` + `InputSystem.Update()`，并手写 `[SetUp]`/`[TearDown]`），工程恢复可编译。**遗留**：该 fixture 仍未被 `-runTests -testFilter DroneCameraControllerTests` 发现（0 用例），而同目录 `TrapPurchaseTests` 正常发现 34 条，属该文件/无人机功能自己的问题，与哨戒机枪无关，后续处理无人机时再查。
 - 未做：阶段 6（`SentryMachineGunPreview.RenderPreview` 预览图、`SentryMachineGunTests` NUnit 全套）、PlayMode 实机验收。
 
+## 哨戒机枪阶段 6：预览与 EditMode 回归（2026-10-23）
+
+- 阶段 6 入口：`Assets/Editor/SentryMachineGunPreview.cs`（菜单 `Tools/塔防/哨戒机枪/渲染阶段 6 预览`；批处理 `SentryMachineGunPreview.RenderPreviewBatch`，必须使用 `-WithGraphics`）与 `Assets/Editor/SentryMachineGunTests.cs`（`UNITY_INCLUDE_TESTS` 下的 EditMode fixture；PowerShell 入口 `Assets/Editor/RunSentryMachineGunTests.ps1`）。预览基于 `Assets/Resources/SentryMachineGun.prefab`，不改场景和生成资产。
+- 预览输出桌面 `C:\Users\ASUS\Desktop\陷阱素材文件夹\SentryMachineGun\previews\unity-step6\`，含 14 张：三分之四/侧/正/俯、yaw 90/180/270、后坐峰值/回程/归零、枪口焰、弹壳 0.08/0.25/0.42 s，以及 `preview-manifest.json`。批处理预热两帧以等待 URP；目视确认外观、四腿、转向、后坐、枪口焰和可见弹壳弧线正常。
+- 修复预览后坐采样：每张图都会重启单发周期，必须用该帧的**绝对**采样时间（0.18/0.5/1.0 × `SingleShotDuration`），不能把增量时间传给重置后的动画；否则回程和归零帧标签不实。弹壳帧使用 0.08/0.25/0.42 s，每帧都实际推进 `SentryShellEjector.Step`。
+- 验证：Unity `6000.6.6f1` 图形批处理日志 `C:\Users\ASUS\AppData\Local\Temp\alpha-striker-unity\20261023-141644-sentrymachinegunpreview-renderpreviewbatch.log` 有 `SENTRY_MG_STEP6_PREVIEW_PASS: 14 frames` 和成功退出标记；`Assets/Editor/RunSentryMachineGunTests.ps1` 实测 `SentryMachineGunTests` **11/11 通过、0 失败、0 跳过**，XML 与日志在桌面 `C:\Users\ASUS\Desktop\陷阱素材文件夹\SentryMachineGun\stage6-unity\20261023-141711-189\`。覆盖占格/定义不变、尺寸、层级与朝向、URP 材质/无物理体、弹壳纯视觉、后坐/枪口焰、ShotFired/弹壳池与抛物线回收、激光遮挡/禁用、旧炮塔锁定和伤害。
+- 本轮未做 PlayMode 实机战斗验收；阶段 6 仅要求 EditMode + 预览。Unity 测试 runner 因 Unity 编辑器单实例要求为 `-runTests` 单独启动，不与图形预览并行。
+
 ## 哨戒机枪出厂预制体修复（2026-10-23）
 
 - 现象：`Assets/Prefabs/AutoSentryTurret.prefab` 的导入结果是 `UnityEditor.BrokenPrefabAsset`，子资源只有一个 `ImportLog`，`AssetDatabase.LoadAssetAtPath<GameObject>` 返回 null；两份 `AutoSentryTurret.asset` 的 `prefab` 引用（GUID 命中、fileID = 100100000）因此运行时解析成 null。
@@ -423,3 +431,46 @@
 - 新增 `Assets/Editor/GameStartMenuPlayModeTests.cs` 与运行入口 `Assets/Editor/RunGameStartMenuPlayModeTests.ps1`。测试从 `THREE_ROUTE_MERGE_MAP` 进入真实 Play Mode，验证主菜单打开时暂停时间、光标所有权、UI EventSystem、玩家 `InputAction` 禁用；进入设置、修改主音量、返回以及开始游戏后恢复时间、光标、菜单可见性和玩家输入。
 - Unity `6000.6.6f1` 实测 NUnit **1/1 通过、0 失败、0 跳过**，无 C# 编译错误、异常或脚本编译阻断。结果归档：`C:\Users\ASUS\Desktop\陷阱素材文件夹\GameStartMenu\playmode-unity\20261023-110855-288\`，包含 `editmode-results.xml`、`editmode.log` 与 `summary.json`。
 - 测试前备份并在测试后核对 `THREE_ROUTE_MERGE_MAP.unity`、`ProjectSettings/ProjectSettings.asset`、`ProjectSettings/EditorBuildSettings.asset`、`Packages/manifest.json` 的 SHA256，四项均未改变。未发现阻断，因此没有修改运行时菜单逻辑。
+
+## 哨戒机枪枪口开孔（2026-10-23）
+
+- 需求：在枪口开一个**小孔**模拟真实枪口，**不做完整内构**（不打通枪管、不加膛线/导气结构）。只改模型几何，不动 Unity 脚本、预制体、场景、材质。
+- 唯一实现：`C:\Users\ASUS\Desktop\陷阱素材文件夹\SentryMachineGun\add_muzzle_bore.py` 的 `bore_muzzle(dark_material=None)`。它用两段同轴圆柱对 `Gun_Muzzle_Tip` / `Gun_Muzzle_Device` / `Gun_Barrel` 做 `BOOLEAN DIFFERENCE`（solver=EXACT）：
+  - 内孔：半径 **15.5 mm**，从枪口端面（Blender Y=0.945）往里钻 **87 mm**，孔底在 Y=0.858 封实；
+  - 膛口冠（扩口）：半径 **23 mm**、深 **27 mm**，做出真实枪口的收口台阶；
+  - 新内壁面沿用模型自带 `Sentry_DarkMetal`，所以孔内是暗色，不需要新建材质。
+- **坐标契约**：枪口轴线 Blender `X=0, Z=0.76`，枪管沿 **+Y**；Unity 侧仍是 -Z（阶段 4 的 180° yaw 补偿不变）。切刀沿 +Y 覆盖 `[tip-depth, tip+0.06]`——**别把中心公式写成 `tip + overshoot - depth/2`**，那样切刀只从端面往里覆盖 `overshoot` 那么长，实测只钻出 30 mm 且扩口几乎没切到（本轮踩过）。
+- **不新增对象、不改对象名**（脚本内部断言对象集合前后一致），因此 `Assets/Resources/SentryMachineGun.prefab` 按名字绑定的网格不受影响，**不需要重跑 `SentryMachineGunAuthoring.CreateAssetsBatch`**。
+- 两种调用方式：① 独立脚本 `add_muzzle_bore.py` 打开 `SentryMachineGun.blend` 开孔后另存 `SentryMachineGun_muzzle_bore.blend` 并导出 FBX（源 blend 只读）；② `build_sentry_machine_gun.py` 的 `main()` 在 `build_sentry()` 之后直接 `import add_muzzle_bore; add_muzzle_bore.bore_muzzle(mats["dark"])`，**重建模型自动带孔**。两条路共用同一份代码，别各写一套参数。
+- **幂等保护**：`bore_muzzle` 先用只打枪口对象的轴线射线测孔深，>20 mm 就判定「已开孔」直接跳过，避免重复运行把孔越钻越深。
+- **导出坑**：独立脚本导出时必须排除预览场景对象（`Preview_Floor` 等），否则 FBX 会多出一个 `Preview_Floor` 网格（本轮踩过，70 vs 69 个网格）。用 `EXPORT_EXCLUDE_PREFIXES = ("Preview_", "BORE_CUT_", "Bore_", "Wide_")`，导出设置与建模脚本一致（`bake_space_transform=False`、`mesh_smooth_type="FACE"`）。
+- 几何结果：开孔前 4132 三角面，开孔后 **4648**（+516，只加在三个枪口件上：`Gun_Muzzle_Tip` 60→320、`Gun_Muzzle_Device` 60→188、`Gun_Barrel` 60→188），切刀 32 段。包围盒不变（1.261 × 1.710 × 0.92 m），枪口端面仍在 Y=0.945 / Unity 的 `Muzzle` 空节点位置不变。
+- 验证：① Blender 回读 FBX（`check_muzzle_bore_fbx.py`）——对象名/空节点集合与原 FBX 完全一致、原模型轴向射线打在端面（Y=0.945）、新模型打在孔底（Y=0.858，深 87 mm），5 项断言 `FBX_CHECK_RESULT PASS`；② 真实 Unity `6000.6.6f1` 跑 `Assets/Editor/RunSentryMachineGunTests.ps1` → `SentryMachineGunTests` **11/11 通过、0 失败、0 跳过**（结果在桌面 `SentryMachineGun\muzzle-bore-tests\20261023-143653-688\`），说明 FBX 重导入后预制体、材质、层级、朝向都没坏。
+- 预览（已目视确认孔洞与扩口台阶）：`C:\Users\ASUS\Desktop\陷阱素材文件夹\SentryMachineGun\previews\muzzle-bore\` 下 `muzzle_bore_01_muzzle_front.png`（正对枪口）、`02_muzzle_three_quarter.png`（斜前近景）、`03_side_overview.png`、`04_three_quarter_wide.png`、`05_side_wide.png`。**渲染前必须隐藏 `FX_Muzzle_Flash*`**，否则枪口焰锥（半径 0.21，伸到 Y=1.08）会把整个镜头糊住，什么也看不见。
+- 备份与回滚：改前原件在 `SentryMachineGun\backups\muzzle-bore-20261023-142506\`（原 blend / 原 FBX / `.meta` / 建模脚本）；可用产物快照在 `backups\muzzle-bore-good-20261023-143340\`；建模脚本自动备份在 `backups\20261023-143452\`。回滚 = 把备份的 `SentryMachineGun.fbx` 拷回 `Assets/Models/SentryMachineGun/`（`.meta` 未改动，GUID 不变，无需重导预制体）。
+- 未做：PlayMode 实机看孔（枪口焰、后坐动画下的观感）、LOD、孔内膛线/导气等内构；也没有改任何 C#、预制体、场景或材质。
+
+## 哨戒机枪模型与开火/抛壳动画（2026-10-23，阶段 7 收尾总索引）
+
+- 这一节是「哨戒机枪」能力的**唯一入口**：以后改模型、动画或排障先看这里，再按需跳到上方「哨戒机枪阶段 3/4/5/6」「哨戒机枪出厂预制体修复」「哨戒机枪枪口开孔」小节。设计文档仍是 `C:\Users\ASUS\Desktop\陷阱素材文件夹\哨戒机枪设计.txt`（阶段 7 的收尾要求即来自其 Step 7）。
+- 素材目录（全部中间态都在这，不进仓库）：`C:\Users\ASUS\Desktop\陷阱素材文件夹\SentryMachineGun\`。仓库内只有定稿：模型、材质、两个生成预制体和脚本。
+- **数据流（结构未改，仍是 2×2 定义）**：`TrapDefinition`（`Assets/Resources/AutoSentryTurret.asset` + `Assets/TrapDefinitions/AutoSentryTurret.asset`）→ `Assets/Prefabs/AutoSentryTurret.prefab`（裸根 + `TrapInstance` + `AutoSentryTurret`）→ `AutoSentryTurret.Awake` 中 `Resources.Load("SentryMachineGun")` → `Assets/Resources/SentryMachineGun.prefab`（art 根）。价格、占格、安装类别、购买/经济/伤害结算链一行未改。
+- **资源所有权**：模型 `Assets/Models/SentryMachineGun/SentryMachineGun.fbx`（69 网格 / 4,648 三角面，含枪口开孔）与 `SentryShellCasing.fbx`（3 网格 / 132 三角面）；材质 `Assets/Models/SentryMachineGun/Materials/M_Sentry_*.mat` 共 8 个；两个视觉预制体由 `SentryMachineGunAuthoring.CreateAssetsBatch` 生成；出厂陷阱预制体由 `SentryTrapPrefabRepair.RepairBatch` 生成。**这四类资产都归生成器所有，不要手改**：改配色只动脚本里的配色表/材质定义再重跑。
+- **层级契约（代码按名字查找，改名即断线）**：`SentryMachineGun → Base → Leg_FL|FR|RL|RR`（每条腿 Leg / Foot / Foot_Sole / Brace 四件）+ 底座杂件；`Aim Pivot (0, 0.62, 0) → Gun Recoil → Art / Muzzle / Ejection Port / Laser Emitter / Muzzle Flash`。`Aim Pivot` **只承载 yaw**（`AutoSentryTurret` 写它），`Gun Recoil` 静止零偏移**只给后坐动画**，`Art` 带 180° yaw 把 FBX 的 -Z 枪口翻成 +Z。实测 pivot 局部：`Muzzle (0, 0.14, 0.92)`、`Ejection Port (0.13, 0.16, -0.02)`、`Laser Emitter (0, 0.275, 0.10)`。
+- **组件分工**（预制体根挂三个表现组件，炮塔只对外发一个事件）：
+  - `AutoSentryTurret`：只新增 `event ShotFired(Vector3 枪口位置)`、只读 `AimPivot` / `Muzzle`、可测入口 `Tick(float)`；瞄准、伤害、冷却、兜底几何逻辑未动。
+  - `SentryFireFeedback`：订阅 `ShotFired` 驱动后坐（沿 -Z 0.04 m、抬枪 3°，kickIn 0.18、单发 0.11 s）与枪口焰（0.045 s）；`EvaluateRecoil01(progress)` 纯函数、`Tick(dt)` 手动推进、结束精确回零。
+  - `SentryShellEjector`：32 个池化弹壳，父级挂 art 根**不随 yaw**；`SamplePosition` / `SampleRotation` 解析积分（含 -9.81 重力），初速局部 (+1.5, +2.2, -0.4)、自旋 900°/s、寿命 1.6 s、落地或超时回收；`ActiveCasingCount` 可断言。
+  - `SentryLaserSight`：运行时建两点 `LineRenderer`（材质 `M_Sentry_LaserBeam`），沿枪管射线截断（忽略 Trigger），炮塔未启用即隐藏；**编辑期不建线**，否则生成预制体会多出 `Laser Beam` 子物体。
+- **验证命令（工程根执行，Unity 版本从 `ProjectSettings/ProjectVersion.txt` 动态匹配）**：
+  - 行为总验收：`SentryMachineGunStage5Validation.Run`（`-nographics` 足够）→ 期望 `SENTRY_MG_STAGE5_PASS: 114 assertions`，覆盖接线、炮塔回归、后坐/枪口焰、弹壳、激光五组。
+  - 预制体探针：`SentryMachineGunAuthoring.ProbePrefabBatch` → `SENTRY_MG_STEP4_PROBE_PASS | checks=37 failed=0`。
+  - EditMode 回归：`Assets/Editor/RunSentryMachineGunTests.ps1` → `SentryMachineGunTests` 11 条，判定以 XML 的失败/跳过数为准（0/0），不看进程退出码。
+  - 预览：`SentryMachineGunPreview.RenderPreviewBatch`（**必须 `-WithGraphics`**，且必须预热两帧）→ 桌面 `previews/unity-step6/` 的 14 张 + `preview-manifest.json`。
+  - 出厂预制体排障：`SentryTrapPrefabRepair.DiagnoseBatch`（只读，打印 ImportLog）。
+- **阶段 7 收尾复跑（2026-10-23）**：`Assets/Editor/RunSentryMachineGunTests.ps1 -OutputDirectory <桌面>\SentryMachineGun\stage7-unity` 实测 `SentryMachineGunTests` **11/11 通过、0 失败、0 跳过**，日志 0 个 `error CS`、第 3358 行 `Test run completed. Exiting with code 0 (Ok).`；结果目录 `C:\Users\ASUS\Desktop\陷阱素材文件夹\SentryMachineGun\stage7-unity\20261023-144500-739\`。日志里大量 `Exception` 命中是 `Debug.Log` 堆栈中的 `UnityLogCheckDelegatingCommand:CaptureException` 帧（伤害日志正常输出），不是测试异常；`failed` 命中只有许可证与 `abort_threads` 退出噪声，**排障时别被关键字计数误导，直接看 XML 的 failed/skipped**。收尾报告：同目录 `STAGE7_CLOSEOUT.md`。
+- **边界（本轮明确未做，别当成已完成）**：
+  - 没有 PlayMode 实机战斗验收（真机下开火节奏、枪口焰与弹壳观感、激光在复杂场景里的截断都只做过批处理断言与静态预览）。
+  - 没有 AnimationClip / Animator 资产，全部是程序化动画；没有 LOD、UV 图集、贴图绘制（纯材质色块）；没有受击/被摧毁表现；没有俯仰（运行时只有 yaw）。
+  - 测试只覆盖 EditMode + 预览；`AutoSentryTurret` 的既有行为回归靠 `SentryMachineGunStage5Validation` 与 11 条 EditMode 用例，不替代实机。
+- **回滚**：模型回滚把 `SentryMachineGun\backups\muzzle-bore-20261023-142506\SentryMachineGun.fbx` 拷回（`.meta` 未动，GUID 不变）；预制体/材质回滚走 `git checkout -- Assets/Resources/SentryMachineGun.prefab Assets/Prefabs/SentryShellCasing.prefab Assets/Models/SentryMachineGun`；出厂陷阱预制体回滚见「哨戒机枪出厂预制体修复」小节。当前这些文件在本工作区仍是未提交状态（`Assets/Models/SentryMachineGun/SentryMachineGun.fbx`、`Assets/Models/SentryMachineGun/Materials/M_Sentry_LaserBeam.mat` 为 `M`，`Assets/Editor/SentryMachineGunPreview.cs` / `SentryMachineGunTests.cs` / `RunSentryMachineGunTests.ps1` 为未跟踪），提交前先确认没有其他会话在改同一批文件。
