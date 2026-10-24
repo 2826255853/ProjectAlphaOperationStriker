@@ -3,18 +3,34 @@ using UnityEngine;
 /// <summary>
 /// Automatic sentry machine gun trap. It acquires the nearest live enemy in
 /// range, turns its gun toward that enemy and applies hitscan damage. Ammo is
-/// unlimited; the only firing limitation is a three-second burst followed by
-/// a one-second cooldown.
+/// unlimited; the firing limitations are a three-second burst followed by a
+/// one-second cooldown, plus a fixed vertical field of fire: the barrel only
+/// traverses between <see cref="MinPitchDegrees"/> (30 degrees down) and
+/// <see cref="MaxPitchDegrees"/> (60 degrees up), and the gun holds fire for
+/// targets outside that band instead of shooting through the limit.
 /// </summary>
 [DisallowMultipleComponent]
 [ExecuteAlways]
 [AddComponentMenu("Tower Defense/Auto Sentry Turret")]
 public sealed class AutoSentryTurret : MonoBehaviour
 {
+    /// <summary>Lowest elevation the sentry barrel can reach (pointing down).</summary>
+    public const float MinPitchDegrees = -30f;
+
+    /// <summary>Highest elevation the sentry barrel can reach (pointing up).</summary>
+    public const float MaxPitchDegrees = 60f;
+
+    private const float AimToleranceDegrees = 5f;
+    private const float ElevationToleranceDegrees = 0.5f;
+
     [Header("Targeting")]
     [SerializeField, Min(0.1f)] private float detectionRange = 5f;
     [SerializeField, Min(0f)] private float rotationSpeed = 360f;
     [SerializeField] private bool targetingFeedbackEnabled = true;
+
+    [Header("Vertical Field of Fire")]
+    [SerializeField, Range(MinPitchDegrees, MaxPitchDegrees)] private float minPitchDegrees = MinPitchDegrees;
+    [SerializeField, Range(MinPitchDegrees, MaxPitchDegrees)] private float maxPitchDegrees = MaxPitchDegrees;
 
     [Header("Weapon")]
     [SerializeField, Min(0.01f)] private float roundsPerSecond = 8f;
@@ -47,6 +63,25 @@ public sealed class AutoSentryTurret : MonoBehaviour
     public EnemyInstance CurrentTarget => target;
     public Transform AimPivot => aimPivot;
     public Transform Muzzle => muzzle;
+    public float MinPitchLimit => minPitchDegrees;
+    public float MaxPitchLimit => maxPitchDegrees;
+
+    /// <summary>
+    /// Clamps any requested elevation into the sentry's fixed -30..+60 degree
+    /// band. Missile turrets expose the same helper shape, so both traps agree
+    /// on what "the gun cannot go there" means.
+    /// </summary>
+    public static float ClampPitchDegrees(float pitchDegrees)
+    {
+        return Mathf.Clamp(pitchDegrees, MinPitchDegrees, MaxPitchDegrees);
+    }
+
+    /// <summary>Narrows the vertical field of fire, always inside the hard -30..+60 band.</summary>
+    public void ApplyPitchLimits(float minPitch, float maxPitch)
+    {
+        minPitchDegrees = Mathf.Clamp(minPitch, MinPitchDegrees, MaxPitchDegrees);
+        maxPitchDegrees = Mathf.Clamp(maxPitch, minPitchDegrees, MaxPitchDegrees);
+    }
 
     private void Awake()
     {
@@ -61,6 +96,8 @@ public sealed class AutoSentryTurret : MonoBehaviour
         damagePerShot = Mathf.Max(0f, damagePerShot);
         burstDuration = Mathf.Max(0.01f, burstDuration);
         cooldownDuration = Mathf.Max(0.01f, cooldownDuration);
+        minPitchDegrees = Mathf.Clamp(minPitchDegrees, MinPitchDegrees, MaxPitchDegrees);
+        maxPitchDegrees = Mathf.Clamp(maxPitchDegrees, minPitchDegrees, MaxPitchDegrees);
     }
 
     private void Update()
@@ -143,15 +180,58 @@ public sealed class AutoSentryTurret : MonoBehaviour
         return delta.sqrMagnitude <= detectionRange * detectionRange;
     }
 
+    /// <summary>
+    /// Elevation in degrees the barrel would need to point at
+    /// <paramref name="worldPosition"/>: negative means below the pivot, positive
+    /// means above it.
+    /// </summary>
+    public float RequiredElevationDegrees(Vector3 worldPosition)
+    {
+        Vector3 origin = aimPivot != null ? aimPivot.position : transform.position;
+        Vector3 direction = worldPosition - origin;
+        float planar = Mathf.Sqrt(direction.x * direction.x + direction.z * direction.z);
+        if (planar < 0.0001f) return direction.y >= 0f ? 90f : -90f;
+        return Mathf.Atan2(direction.y, planar) * Mathf.Rad2Deg;
+    }
+
+    /// <summary>
+    /// True when <paramref name="worldPosition"/> sits inside the vertical field
+    /// of fire, i.e. the barrel can actually point at it (-30..+60 by default).
+    /// </summary>
+    public bool IsWithinFieldOfFire(Vector3 worldPosition)
+    {
+        float elevation = RequiredElevationDegrees(worldPosition);
+        return elevation >= minPitchDegrees - ElevationToleranceDegrees
+            && elevation <= maxPitchDegrees + ElevationToleranceDegrees;
+    }
+
     private bool AimAtTarget(float deltaTime)
     {
         if (aimPivot == null) return true;
         Vector3 direction = target.transform.position - aimPivot.position;
-        direction.y = 0f;
         if (direction.sqrMagnitude < 0.0001f) return true;
-        Quaternion desired = Quaternion.LookRotation(direction.normalized, Vector3.up);
+
+        // Aim in full 3D, then clamp the elevation to the field of fire. The
+        // desired pose always stays inside -30..+60, so the barrel physically
+        // stops at the limit instead of swinging past it.
+        float requestedElevation = RequiredElevationDegrees(target.transform.position);
+        float elevation = Mathf.Clamp(requestedElevation, minPitchDegrees, maxPitchDegrees);
+        float planarSqr = direction.x * direction.x + direction.z * direction.z;
+
+        // A target straight above/below the pivot leaves yaw undefined; keep the
+        // current heading instead of snapping to an arbitrary one.
+        float yaw = planarSqr < 0.000001f
+            ? aimPivot.eulerAngles.y
+            : Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
+
+        Quaternion desired = Quaternion.Euler(-elevation, yaw, 0f);
         aimPivot.rotation = Quaternion.RotateTowards(aimPivot.rotation, desired, rotationSpeed * deltaTime);
-        return Quaternion.Angle(aimPivot.rotation, desired) <= 5f;
+        if (Quaternion.Angle(aimPivot.rotation, desired) > AimToleranceDegrees) return false;
+
+        // Reaching the clamped pose is not enough: a target outside the vertical
+        // field of fire must never be shot at from the limit. Keep tracking it
+        // (in case it descends into the arc) but hold fire.
+        return IsWithinFieldOfFire(target.transform.position);
     }
 
     private void FireAtTarget(EnemyInstance enemy)

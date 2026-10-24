@@ -52,7 +52,6 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     private readonly Vector3[] installCorners = new Vector3[8];
     private readonly Vector3[] probeBuffer = new Vector3[5];
     private MonsterPathGrid cachedPathGrid;
-    private readonly RaycastHit[] raycastBuffer = new RaycastHit[16];
 
     public int Columns => columns;
     public int Rows => rows;
@@ -342,31 +341,20 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     }
 
     /// <summary>
-    /// True when the nearest surface along the ray is the bound support collider
-    /// with an aligned normal. The distance tolerance exists only for the small
-    /// offset between the grid plane and the wall face; it never lets a probe
-    /// see through a different wall.
+    /// True when the bound support collider is present along the probe with an
+    /// aligned normal. Other wall-mounted colliders are checked separately as
+    /// installation conflicts and must not mask this support result.
     /// </summary>
     private bool TryFindSupportHit(Vector3 start, Vector3 direction, float distance, Vector3 expectedNormal,
         float allowedCos)
     {
-        int count = Physics.RaycastNonAlloc(new Ray(start, direction), raycastBuffer, distance,
-            Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
-        float nearestAny = float.PositiveInfinity;
-        bool nearestIsSupport = false;
-        for (int i = 0; i < count; i++)
-        {
-            RaycastHit hit = raycastBuffer[i];
-            if (hit.collider == null) continue;
-            if (hit.distance >= nearestAny) continue;
-            // Previews and other traps are never supporting geometry.
-            if (hit.collider.GetComponentInParent<TrapPlacementPreview>() != null) continue;
-            if (hit.collider.GetComponentInParent<TrapInstance>() != null) continue;
-            nearestAny = hit.distance;
-            nearestIsSupport = IsSupportCollider(hit.collider)
-                && Vector3.Dot(hit.normal, expectedNormal) >= allowedCos;
-        }
-        return nearestIsSupport;
+        // The support query answers whether the authored backing collider is
+        // present. Unrelated wall-mounted props (buttons, trim, etc.) must not
+        // hide that backing surface from the probe; actual installation still
+        // checks those props separately against the trap's solid bounds.
+        if (supportCollider == null) return false;
+        if (!supportCollider.Raycast(new Ray(start, direction), out RaycastHit hit, distance)) return false;
+        return Vector3.Dot(hit.normal, expectedNormal) >= allowedCos;
     }
 
     /// <summary>
@@ -388,7 +376,8 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     /// Rejects installation when the trap's solid body would overlap another
     /// trap, a protruding wall-corner prop or the player. Ghost previews, the
     /// trap being validated and the bound backing wall are excluded; visual
-    /// effect ranges never take part.
+    /// effect ranges never take part. Thin floor contact at a wall trap's
+    /// lower edge is tolerated within the small platform seam allowance.
     /// </summary>
     public bool ConflictsWithSolidEntity(Vector2Int origin, Vector2Int footprint, TrapDefinition definition,
         TrapInstance ignoreInstance, GameObject ignoreRoot, out string failure)
@@ -416,6 +405,11 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             if (ignoreInstance != null && trap == ignoreInstance) continue;
             if (trap != null)
             {
+                // Wall and ground traps occupy independent installation surfaces.
+                // Keep same-category collision checks, but ignore a classified
+                // trap from the other category even when its body overlaps.
+                if (trap.Definition != null
+                    && trap.Definition.MountType != definition.MountType) continue;
                 failure = "实体冲突：安装位置与已有陷阱重叠。";
                 return true;
             }
@@ -430,11 +424,23 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             // wall, a neighbouring wall's AABB). Require the collider's solid
             // surface to actually reach inside the installation box.
             Vector3 closest = other.ClosestPoint(boxCenter);
+            // A wall trap's lower edge can be within a few centimetres of a
+            // thin road/floor slab at the platform base. Treat a slab that is
+            // entirely below the body as contact, while still rejecting props
+            // that protrude materially into the solid installation body.
+            if (IsMinorWallFloorContact(other, boxCenter, halfExtents)) continue;
             if (!TrapPlacementGeometry.PointInOrientedBox(closest, boxCenter, rotation, halfExtents, 0.005f)) continue;
             failure = $"实体冲突：安装位置被 {other.name} 占用。";
             return true;
         }
         return false;
+    }
+
+    private bool IsMinorWallFloorContact(Collider other, Vector3 boxCenter, Vector3 halfExtents)
+    {
+        if (!IsWallSurface || other == null) return false;
+        float installationBottom = boxCenter.y - halfExtents.y;
+        return other.bounds.max.y <= installationBottom + 0.025f;
     }
 
     /// <summary>
@@ -446,8 +452,10 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         out string failure)
     {
         failure = string.Empty;
+        if (definition == null) return false;
+        if (definition.SkipMonsterClearanceCheck) return false;
         MonsterPathGrid pathGrid = ResolvePathGrid();
-        if (pathGrid == null || definition == null) return false;
+        if (pathGrid == null) return false;
         GetPlacementPose(origin, definition, out Vector3 anchor, out Quaternion rotation);
         definition.ResolveInstallBounds(footprint, CellWorldSize, out Vector3 localCenter, out Vector3 halfExtents);
         Vector3 boxCenter = anchor + rotation * localCenter;
@@ -504,7 +512,11 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         {
             if (!other.isActiveAndEnabled || other.Definition == null) continue;
             TrapPlacementGrid owner = other.OwnerGrid != null ? other.OwnerGrid : other.GetComponentInParent<TrapPlacementGrid>();
-            if (owner == null || owner == this || (!definition.WalkableFloorTrap && !other.Definition.WalkableFloorTrap)) continue;
+            if (owner == null || owner == this) continue;
+            // Installation categories have independent occupancy. Do not let a
+            // wall footprint block a ground footprint (or the reverse), even
+            // when their world-space rectangles overlap across grids.
+            if (definition.MountType != other.Definition.MountType) continue;
             if (!owner.TryGetFootprint(other.Definition, out Vector2Int otherFootprint)) continue;
             Vector3 delta = other.transform.position - center;
             if (Mathf.Abs(delta.y) > 0.15f) continue;

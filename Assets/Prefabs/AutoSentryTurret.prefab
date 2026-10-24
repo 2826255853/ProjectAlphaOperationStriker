@@ -66,5 +66,7 @@ MonoBehaviour:
   damagePerShot: 12
   burstDuration: 3
   cooldownDuration: 1
+  minPitchDegrees: -30
+  maxPitchDegrees: 60
   aimPivot: {fileID: 0}
   muzzle: {fileID: 0}

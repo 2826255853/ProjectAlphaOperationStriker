@@ -449,15 +449,110 @@ public sealed class SentryMachineGunTests
         Assert.That(startHealth - victim.CurrentHealth, Is.EqualTo(rounds * 12f).Within(0.01f),
             "每发 12 伤害，结算链路不变。");
 
-        // Target moves to the right flank: yaw must follow.
+        // Target moves to the right flank: yaw must follow, and the barrel also
+        // tilts down because the pivot sits above the victim's origin.
         victim.transform.position = new Vector3(2.5f, 0f, 0f);
         Advance(turret, 0.8f);
-        Assert.That(Vector3.Dot(turret.AimPivot.forward, Vector3.right), Is.GreaterThan(0.99f),
+        Vector3 flatForward = turret.AimPivot.forward;
+        flatForward.y = 0f;
+        Assert.That(Vector3.Dot(flatForward.normalized, Vector3.right), Is.GreaterThan(0.99f),
             "Aim Pivot 应转向右翼目标。");
+        float actualElevation = Mathf.Asin(Mathf.Clamp(turret.AimPivot.forward.y, -1f, 1f)) * Mathf.Rad2Deg;
+        Assert.That(actualElevation,
+            Is.EqualTo(turret.RequiredElevationDegrees(victim.transform.position)).Within(0.5f),
+            "Aim Pivot 实际俯仰应等于目标所需仰角（该目标在 -30..+60 射界内）。");
 
         Object.DestroyImmediate(victim.gameObject);
         Advance(turret, 0.1f);
         Assert.That(turret.CurrentTarget, Is.Null, "目标消失后应清空锁定。");
+    }
+
+    // --- 5. 竖直射界 -30°..+60° -------------------------------------------
+
+    [Test]
+    public void VerticalFieldOfFireIsMinusThirtyToSixty()
+    {
+        Assert.That(AutoSentryTurret.MinPitchDegrees, Is.EqualTo(-30f), "射界下限固定为 -30°。");
+        Assert.That(AutoSentryTurret.MaxPitchDegrees, Is.EqualTo(60f), "射界上限固定为 +60°。");
+        Assert.That(AutoSentryTurret.ClampPitchDegrees(-95f), Is.EqualTo(-30f), "低于下限要夹到 -30°。");
+        Assert.That(AutoSentryTurret.ClampPitchDegrees(95f), Is.EqualTo(60f), "高于上限要夹到 +60°。");
+        Assert.That(AutoSentryTurret.ClampPitchDegrees(17f), Is.EqualTo(17f), "射界内不改变仰角。");
+
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(ShippedTrapPrefabPath);
+        Assert.That(prefab, Is.Not.Null, "缺少出厂陷阱预制体：" + ShippedTrapPrefabPath);
+        AutoSentryTurret shipped = prefab.GetComponent<AutoSentryTurret>();
+        Assert.That(shipped, Is.Not.Null, "出厂预制体上必须有 AutoSentryTurret。");
+        Assert.That(shipped.MinPitchLimit, Is.EqualTo(-30f).Within(0.01f), "出厂预制体射界下限必须是 -30°。");
+        Assert.That(shipped.MaxPitchLimit, Is.EqualTo(60f).Within(0.01f), "出厂预制体射界上限必须是 +60°。");
+    }
+
+    [Test]
+    public void BarrelStopsAtSixtyDegreesAndHoldsFireAboveTheArc()
+    {
+        AutoSentryTurret turret = CreateTurret();
+        // 1 m in front and 4.5 m up: ~75° required elevation, outside the +60° limit.
+        EnemyHealth victim = CreateEnemy(new Vector3(0f, 4.5f, 1f), 100000f);
+        float startHealth = victim.CurrentHealth;
+
+        int rounds = Advance(turret, 2f);
+        float elevation = ElevationOf(turret);
+        Assert.That(elevation, Is.EqualTo(60f).Within(0.6f), $"炮管应停在 +60°（实测 {elevation:F2}°）。");
+        Assert.That(elevation, Is.LessThanOrEqualTo(60.01f), "仰角绝不能超过 +60°。");
+        Assert.That(rounds, Is.Zero, "目标在射界之上时必须停火。");
+        Assert.That(victim.CurrentHealth, Is.EqualTo(startHealth).Within(0.01f), "射界外不能造成伤害。");
+
+        // The same target descending into the arc is engaged again.
+        victim.transform.position = new Vector3(0f, 1.2f, 2.5f);
+        int descendedRounds = Advance(turret, 1f);
+        Assert.That(descendedRounds, Is.GreaterThan(0), "目标进入射界后应恢复开火。");
+    }
+
+    [Test]
+    public void BarrelStopsAtMinusThirtyDegreesAndHoldsFireBelowTheArc()
+    {
+        AutoSentryTurret turret = CreateTurret();
+        // 1.2 m in front and 2.5 m below the root: ~-69° required elevation.
+        EnemyHealth victim = CreateEnemy(new Vector3(0f, -2.5f, 1.2f), 100000f);
+        float startHealth = victim.CurrentHealth;
+
+        int rounds = Advance(turret, 2f);
+        float elevation = ElevationOf(turret);
+        Assert.That(elevation, Is.EqualTo(-30f).Within(0.6f), $"炮管应停在 -30°（实测 {elevation:F2}°）。");
+        Assert.That(elevation, Is.GreaterThanOrEqualTo(-30.01f), "俯角绝不能低于 -30°。");
+        Assert.That(rounds, Is.Zero, "目标在射界之下时必须停火。");
+        Assert.That(victim.CurrentHealth, Is.EqualTo(startHealth).Within(0.01f), "射界外不能造成伤害。");
+    }
+
+    [Test]
+    public void TargetInsideTheVerticalArcIsEngaged()
+    {
+        AutoSentryTurret turret = CreateTurret();
+        EnemyHealth victim = CreateEnemy(new Vector3(0f, 1.5f, 2.5f), 100000f);
+        float startHealth = victim.CurrentHealth;
+
+        int rounds = Advance(turret, 1f);
+        float required = turret.RequiredElevationDegrees(victim.transform.position);
+        Assert.That(required, Is.InRange(AutoSentryTurret.MinPitchDegrees, AutoSentryTurret.MaxPitchDegrees),
+            "本用例的目标必须落在射界内。");
+        Assert.That(rounds, Is.InRange(6, 10), $"射界内 1 s 应约 8 发（实测 {rounds}）。");
+        Assert.That(ElevationOf(turret), Is.EqualTo(required).Within(0.6f), "射界内应精确瞄准目标仰角。");
+        Assert.That(startHealth - victim.CurrentHealth, Is.EqualTo(rounds * 12f).Within(0.01f),
+            "射界内每发仍是 12 伤害。");
+    }
+
+    [Test]
+    public void PitchLimitsCanOnlyNarrowInsideTheHardBand()
+    {
+        AutoSentryTurret turret = CreateTurret();
+        turret.ApplyPitchLimits(-70f, 120f);
+        Assert.That(turret.MinPitchLimit, Is.EqualTo(-30f), "自定义下限不能超出 -30°。");
+        Assert.That(turret.MaxPitchLimit, Is.EqualTo(60f), "自定义上限不能超出 +60°。");
+
+        turret.ApplyPitchLimits(-10f, 25f);
+        Assert.That(turret.MinPitchLimit, Is.EqualTo(-10f), "可以在硬射界内收窄下限。");
+        Assert.That(turret.MaxPitchLimit, Is.EqualTo(25f), "可以在硬射界内收窄上限。");
+        Assert.That(turret.IsWithinFieldOfFire(new Vector3(0f, 3f, 1f)), Is.False,
+            "+71° 在收窄后的射界之外。");
     }
 
     // --- 工具 --------------------------------------------------------------
@@ -527,6 +622,12 @@ public sealed class SentryMachineGunTests
         int steps = Mathf.Max(1, Mathf.CeilToInt(seconds / FixedStep));
         for (int i = 0; i < steps; i++) turret.Tick(FixedStep);
         return shotCount - before;
+    }
+
+    /// <summary>Actual barrel elevation in degrees, negative pointing down.</summary>
+    private static float ElevationOf(AutoSentryTurret turret)
+    {
+        return Mathf.Asin(Mathf.Clamp(turret.AimPivot.forward.y, -1f, 1f)) * Mathf.Rad2Deg;
     }
 
     private static Bounds UnionBounds(GameObject root)

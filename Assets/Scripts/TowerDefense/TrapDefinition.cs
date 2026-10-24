@@ -24,6 +24,8 @@ public sealed class TrapDefinition : ScriptableObject
     private Vector3 installBoundsCenter;
     [SerializeField, Tooltip("实体安装包围盒尺寸（陷阱本地空间，米，宽×高×厚）。零表示按占格与预制体自动推导；效果范围不计入。")]
     private Vector3 installBoundsSize;
+    [SerializeField, Tooltip("跳过怪物通行净空冲突检测。用于悬挂在道路上方但实际不堵塞通道的墙面陷阱（如火焰喷射器）。")]
+    private bool skipMonsterClearanceCheck;
 
     public string TrapId => trapId;
     public string DisplayName => displayName;
@@ -42,6 +44,7 @@ public sealed class TrapDefinition : ScriptableObject
     /// <summary>Explicit solid installation box size in the trap's local space; zero means auto.</summary>
     public Vector3 InstallBoundsSize => installBoundsSize;
     public bool HasExplicitInstallBounds => installBoundsSize.x > 0f && installBoundsSize.y > 0f && installBoundsSize.z > 0f;
+    public bool SkipMonsterClearanceCheck => skipMonsterClearanceCheck;
 
     /// <summary>True when this definition may be installed on the given surface category.</summary>
     public bool SupportsMountType(TrapMountType surfaceType) => surfaceType.SupportsDefinition(this);

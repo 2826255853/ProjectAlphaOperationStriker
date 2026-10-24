@@ -247,6 +247,18 @@ public static class WallTrapGridValidation
             "an empty wall spot has no entity conflict: " + cleanFailure);
         wall.GetPlacementPose(Vector2Int.zero, oneByOne, out Vector3 anchor, out _);
 
+        // A thin road/floor slab may touch the lower edge of a wall trap by a
+        // centimetre at the platform base. That contact tolerance must not make
+        // every lowest wall row appear unusable.
+        var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        floor.name = "Thin floor contact";
+        floor.transform.position = anchor + new Vector3(0f, -0.44f, 0.05f);
+        floor.transform.localScale = new Vector3(0.8f, 0.1f, 0.8f);
+        owned.Add(floor);
+        Check(wall.CanPlaceTrap(Vector2Int.zero, oneByOne, out string floorFailure) && floorFailure.Length == 0,
+            "a thin floor contact at the body edge is tolerated: " + floorFailure);
+        Object.DestroyImmediate(floor);
+
         var ghost = GameObject.CreatePrimitive(PrimitiveType.Cube);
         ghost.name = "Trap Preview";
         ghost.AddComponent<TrapPlacementPreview>();
@@ -261,6 +273,9 @@ public static class WallTrapGridValidation
         prop.transform.position = anchor;
         prop.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
         owned.Add(prop);
+        Check(wall.HasWallSupport(Vector2Int.zero, Vector2Int.one, oneByOne, out string occludedSupportFailure)
+            && occludedSupportFailure.Length == 0,
+            "a foreground wall prop does not hide the bound backing collider: " + occludedSupportFailure);
         Check(!wall.CanPlaceTrap(Vector2Int.zero, oneByOne, out string propFailure)
             && propFailure.Contains("实体冲突"), "a protruding prop blocks the install box: " + propFailure);
         Object.DestroyImmediate(prop);

@@ -155,10 +155,34 @@ public static class SentryMachineGunStage5Validation
         Check(shotCount > beforeCooldown, "ShotFired keeps firing after the cooldown");
 
         // Yaw tracking: move the victim to the right flank and let the pivot follow.
+        // The assertion only looks at the horizontal heading because the barrel now
+        // also pitches down toward the target (vertical field of fire -30..+60).
         victim.transform.position = new Vector3(2.5f, 0f, 0f);
         Advance(turret, 0.8f);
-        float rightDot = Vector3.Dot(turret.AimPivot.forward, Vector3.right);
+        Vector3 flatForward = turret.AimPivot.forward;
+        flatForward.y = 0f;
+        float rightDot = Vector3.Dot(flatForward.normalized, Vector3.right);
         Check(rightDot > 0.99f, "Aim Pivot yaw follows the target to the right flank (dot " + rightDot + ")");
+
+        // Vertical field of fire is fixed at -30..+60. The barrel clamps to the limit
+        // and holds fire while the target stays outside the arc.
+        Check(Mathf.Approximately(turret.MinPitchLimit, -30f) && Mathf.Approximately(turret.MaxPitchLimit, 60f),
+            "vertical field of fire is -30..+60 (got " + turret.MinPitchLimit + ".." + turret.MaxPitchLimit + ")");
+        victim.transform.position = new Vector3(0f, 4.5f, 1f);
+        int upShots = Advance(turret, 1.5f);
+        float upElevation = ElevationOf(turret);
+        Check(upElevation > 59f && upElevation <= 60.01f,
+            "barrel clamps to +60 deg on a high target (got " + upElevation.ToString("F2") + ")");
+        int highShots = upShots + Advance(turret, 0.5f);
+        Check(highShots == 0, "no rounds leave the barrel above +60 deg (" + highShots + " rounds)");
+
+        victim.transform.position = new Vector3(0f, -2.5f, 1.2f);
+        int downShots = Advance(turret, 1.5f);
+        float downElevation = ElevationOf(turret);
+        Check(downElevation < -29f && downElevation >= -30.01f,
+            "barrel clamps to -30 deg on a low target (got " + downElevation.ToString("F2") + ")");
+        int lowShots = downShots + Advance(turret, 0.5f);
+        Check(lowShots == 0, "no rounds leave the barrel below -30 deg (" + lowShots + " rounds)");
 
         // Losing every target resets the burst instead of stalling in cooldown.
         Object.DestroyImmediate(victim.gameObject);
@@ -517,6 +541,12 @@ public static class SentryMachineGunStage5Validation
         int steps = Mathf.Max(1, Mathf.CeilToInt(seconds / FixedStep));
         for (int i = 0; i < steps; i++) turret.Tick(FixedStep);
         return shotCount - before;
+    }
+
+    /// <summary>Actual barrel elevation in degrees, negative pointing down.</summary>
+    private static float ElevationOf(AutoSentryTurret turret)
+    {
+        return Mathf.Asin(Mathf.Clamp(turret.AimPivot.forward.y, -1f, 1f)) * Mathf.Rad2Deg;
     }
 
     private static int CountNamed(Transform root, string name)

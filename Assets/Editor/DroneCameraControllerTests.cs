@@ -3,6 +3,7 @@ using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.TestTools;
 
 /// <summary>
 /// DroneCameraController EditMode 测试。
@@ -17,8 +18,11 @@ public class DroneCameraControllerTests
 {
     Mouse mouse;
     GameObject droneGo;
+    GameObject pivotParentGo;
     GameObject pivotGo;
     DroneCameraController controller;
+    CursorLockMode cursorLockStateBefore;
+    bool cursorVisibleBefore;
 
     // ──────────────────────────────────────────────
     //  准备 / 清理
@@ -27,16 +31,22 @@ public class DroneCameraControllerTests
     [SetUp]
     public void Setup()
     {
+        cursorLockStateBefore = Cursor.lockState;
+        cursorVisibleBefore = Cursor.visible;
+
         // 添加虚拟鼠标（替换 Mouse.current）
         mouse = InputSystem.AddDevice<Mouse>();
 
         // 无人机根对象 + 摄像头枢轴子对象
         droneGo = new GameObject("DroneTest");
-        pivotGo = new GameObject("Camera_Lens");
-        pivotGo.transform.SetParent(droneGo.transform, worldPositionStays: false);
+        pivotParentGo = new GameObject("CameraMount");
+        pivotParentGo.transform.SetParent(droneGo.transform, worldPositionStays: false);
+        pivotGo = new GameObject("Camera_Gimbal");
+        pivotGo.transform.SetParent(pivotParentGo.transform, worldPositionStays: false);
 
-        // AddComponent 触发 Awake；Awake 会找到 Camera_Lens 并读取初始 pitch
+        // EditMode 中手动驱动 Awake；应找到嵌套的 Camera_Gimbal 并读取初始 pitch
         controller = droneGo.AddComponent<DroneCameraController>();
+        StepAwake(controller);
     }
 
     [TearDown]
@@ -44,6 +54,8 @@ public class DroneCameraControllerTests
     {
         Object.DestroyImmediate(droneGo);
         if (mouse != null && mouse.added) InputSystem.RemoveDevice(mouse);
+        Cursor.lockState = cursorLockStateBefore;
+        Cursor.visible = cursorVisibleBefore;
     }
 
     /// <summary>等价于 InputTestFixture.Set：写入鼠标 delta 并让输入系统分发一次。</summary>
@@ -57,6 +69,13 @@ public class DroneCameraControllerTests
     //  辅助：通过反射调用私有 Update
     // ──────────────────────────────────────────────
 
+    static void StepAwake(DroneCameraController c)
+    {
+        typeof(DroneCameraController)
+            .GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance)
+            ?.Invoke(c, null);
+    }
+
     static void StepUpdate(DroneCameraController c)
     {
         typeof(DroneCameraController)
@@ -67,6 +86,63 @@ public class DroneCameraControllerTests
     // ──────────────────────────────────────────────
     //  测试用例
     // ──────────────────────────────────────────────
+
+    /// <summary>Awake 应从子树中找到约定的 Camera_Gimbal 节点。</summary>
+    [Test]
+    public void Awake_FindsNestedCameraGimbal()
+    {
+        var cameraPivotField = typeof(DroneCameraController)
+            .GetField("cameraPivot", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        Assert.That(cameraPivotField, Is.Not.Null, "应存在序列化的 cameraPivot 字段");
+        Assert.That(cameraPivotField.GetValue(controller), Is.EqualTo(pivotGo.transform),
+            "Awake 应找到嵌套的 Camera_Gimbal 节点");
+    }
+
+    /// <summary>已存在的无人机资源仍使用 Camera_Lens，需在新名称未找到时兼容它。</summary>
+    [Test]
+    public void Awake_FallsBackToLegacyCameraLens()
+    {
+        Object.DestroyImmediate(droneGo);
+        droneGo = new GameObject("DroneLegacyPivotTest");
+        pivotGo = new GameObject("Camera_Lens");
+        pivotGo.transform.SetParent(droneGo.transform, worldPositionStays: false);
+        controller = droneGo.AddComponent<DroneCameraController>();
+        StepAwake(controller);
+
+        var cameraPivotField = typeof(DroneCameraController)
+            .GetField("cameraPivot", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        Assert.That(cameraPivotField.GetValue(controller), Is.EqualTo(pivotGo.transform),
+            "现有 Camera_Lens 资产应保持可用");
+    }
+
+    /// <summary>两种约定节点都不存在时，Awake 应输出可供 CI 捕获的错误日志。</summary>
+    [Test]
+    public void Awake_LogsErrorWhenCameraPivotIsMissing()
+    {
+        Object.DestroyImmediate(droneGo);
+        droneGo = new GameObject("DroneMissingPivotTest");
+        controller = droneGo.AddComponent<DroneCameraController>();
+
+        LogAssert.Expect(LogType.Error,
+            "[DroneCameraController] 未找到 Camera_Gimbal 或 Camera_Lens 节点，请在 Inspector 里手动赋值 Camera Pivot。");
+        StepAwake(controller);
+    }
+
+    /// <summary>SetActive 只切换组件启用状态，不接管全局光标。</summary>
+    [Test]
+    public void SetActive_DoesNotChangeGlobalCursor()
+    {
+        var lockState = Cursor.lockState;
+        var visible = Cursor.visible;
+
+        controller.SetActive(false);
+
+        Assert.That(controller.enabled, Is.False, "SetActive(false) 应停用摄像头控制器");
+        Assert.That(Cursor.lockState, Is.EqualTo(lockState), "SetActive 不应修改全局光标锁定状态");
+        Assert.That(Cursor.visible, Is.EqualTo(visible), "SetActive 不应修改全局光标可见性");
+    }
 
     /// <summary>鼠标向右移动 100 单位，机身 Yaw 应增加约 12°（sensitivity 0.12 默认值）。</summary>
     [Test]

@@ -108,6 +108,7 @@ public sealed class WallTrapGridAuthoring : EditorWindow
             for (int cell = 0; cell < open.Length; cell++) open[cell] = true;
             grid.ConfigureLayout(columns, rows, 1f, 0f, open,
                 TrapPlacementGrid.SurfaceKind.Ground, TrapMountType.Wall, support, 0.01f);
+            CloseUnsupportedCells(grid);
             EditorUtility.SetDirty(grid);
             created++;
         }
@@ -151,11 +152,27 @@ public sealed class WallTrapGridAuthoring : EditorWindow
                 grid.ConfigureLayout(columns, rows, 1f, 0f, open,
                     TrapPlacementGrid.SurfaceKind.Ground, TrapMountType.Wall, support, 0.01f);
             }
+            CloseUnsupportedCells(grid);
             EditorUtility.SetDirty(gridTransform);
             EditorUtility.SetDirty(grid);
             aligned++;
         }
         return aligned;
+    }
+
+    private static int CloseUnsupportedCells(TrapPlacementGrid grid)
+    {
+        if (grid == null || !grid.IsWallSurface) return 0;
+        int closed = 0;
+        for (int y = 0; y < grid.Rows; y++)
+        for (int x = 0; x < grid.Columns; x++)
+        {
+            Vector2Int cell = new Vector2Int(x, y);
+            if (!grid.IsOpen(cell) || grid.HasWallSupport(cell, Vector2Int.one, null, out _)) continue;
+            grid.SetOpen(cell, false);
+            closed++;
+        }
+        return closed;
     }
 
     private static int GetGridRows(Bounds bounds)

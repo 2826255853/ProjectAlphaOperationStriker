@@ -9,6 +9,7 @@
 - 运行时代码：`Assets/Scripts/FPS`、`Assets/Scripts/TowerDefense`、`Assets/Scripts/MapForge*.cs`；编辑器工具与验证：`Assets/Editor`。
 - 主场景：`Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity`，已在 `ProjectSettings/EditorBuildSettings.asset` 中确认。
 - Unity 版本唯一依据：`ProjectSettings/ProjectVersion.txt`。运行前动态匹配安装目录，不把历史版本号固定到脚本或文档。
+- 当前项目记录的 Unity 编辑器版本（2026-10-24）：`6000.6.7f1`（以 `ProjectSettings/ProjectVersion.txt` 为准；运行前动态匹配安装目录）。
 - 本次确认包依赖：URP、新 Input System、Unity Test Framework；具体版本始终读 `Packages/manifest.json`。`activeInputHandler: 1`。
 - 可信顺序：当前源码/配置 > 本文件的源码核对记录 > 技能中的历史环境描述。
 
@@ -77,8 +78,10 @@
 - `TrapMountType` 同时供定义和网格使用，`Ground` 与 `Wall` 必须匹配；墙面与 `WalkableFloorTrap` 同时开启无效。
 - `TrapPlacementGrid.CanPlaceTrap` 是编辑器、运行时、批量放置共用判定：安装类别、占格、跨网格重叠、地刺平地支撑、墙体支撑、实体冲突、怪物通行净空。`TrapPlacementGeometry` 提供公共几何，不另写一套判定。
 - 地面网格区分 `Ground` / `Road` / `Platform`。道路生成与放置链支持可通行地刺；地刺不能放在高台。旧文档中“道路全部不可放陷阱”的描述不能覆盖当前实现。
+- 墙面与地面陷阱按 `TrapDefinition.MountType` 使用相互独立的占用空间：跨类别的邻近、实体包围盒或跨网格 footprint 重叠不会阻止放置；同类别重叠以及墙体支撑、玩家碰撞和怪物通行净空检查保持不变。
 - 怪物网格锚在格角，陷阱网格锚在格心，地面锚点相差本地 `(+0.5, 0, +0.5) × cellSize`。复用 `TrapGridAuthoring.GroundAnchor` / `CellCenter` / `DominantSurfaceTop`，并留意 `TrapPlacementGridEditor.MonsterGridToTrapGridOffset` 的对应定义。
 - 地面/平台掩码由 `TrapGridAuthoring` 生成；墙面网格由 `WallTrapGridAuthoring` 或 MapForge 的 `unity.wallTrapGrids` 生成。墙面需要绑定支撑 Collider，验证法线、多个支撑探点、实体包围盒和道路净空；攻击/特效范围不计入实体安装体积。
+- 主地图墙面网格（2026-10-24）：`WallTrapGridAuthoring.EnsureStarterGridForCurrentMap` 在 `Platform_*` 两侧按 1 m 单元生成/对齐网格，支撑 Collider 绑定平台侧面；墙面开格需通过 `TrapPlacementGrid.HasWallSupport`，无连续支撑的格子保持关闭。主场景当前有 24 个墙面网格、1156 个开放格（关闭了 28 个支撑不足格）。场景实测用“先打开 `THREE_ROUTE_MERGE_MAP`，再调用 `TrapPlacementGridEditor.ValidateTrapGrids`”；不打开地图直接调用只会报告场景没有网格。此次地面格与怪物网格对齐通过，墙面支撑异常 0，4608/4608 个地面格无重复覆盖；原地面/道路掩码另报告 1096/8 个埋入地形格，尚未处理，不能称全地图校验通过。墙格沿墙方向按地面格距/半格格心对齐，法线方向贴合墙面（不能要求其同时落在地面格心上）；最后的专用对齐探针误比较了法线方向，修正后因 30 分钟限制未复跑。原场景副本：`C:\Users\ASUS\Desktop\TrapGridBackups\THREE_ROUTE_MERGE_MAP_before_wall_trap_grids_20261024.unity`；可检查预览：同目录 `THREE_ROUTE_MERGE_MAP_wall_trap_grids_preview.png`（绿=开放，红=关闭；仅预览叠加层，未保存进场景）。
 - `MapForgeWallTrapGrid` 保存墙体对象 ID + 网格 ID；`MapForgeSceneOrganization` 和实时同步共同维护，修改格式时一起检查。
 
 ## 陷阱与伤害
@@ -96,6 +99,8 @@
 以上资产位置由源码常量确认，未逐个打开资源检查其当前内容。
 
 - 导弹瞄准与速度估计统一走 `MissileAimSolver` / `MissileVelocityTracker`；默认空中目标判定是 `EnemyInstance.MonsterType`，不是世界高度。默认只对空，yaw 可全圈，pitch 限制 0–75°。拦截点超仰角可退回瞄准本体；本体也超限则不能开火。
+- 哨戒机枪竖直射界固定为 **-30°～+60°**（2026-10-24 明确）：`AutoSentryTurret.MinPitchDegrees = -30` / `MaxPitchDegrees = +60`，是硬边界，`ApplyPitchLimits` 只能在硬边界内收窄。瞄准改为按目标真实三维方向求仰角后夹取，`AimPivot` 同时承担 yaw 与 pitch；**目标超出射界时只跟踪、不开火**（`IsWithinFieldOfFire`，容差 0.5°），不要退化成“在限位姿态下照打”。`RequiredElevationDegrees` / `IsWithinFieldOfFire` / `ClampPitchDegrees` 是唯一判据，别在别处另写一套角度公式。出厂预制体 `Assets/Prefabs/AutoSentryTurret.prefab` 已显式写入 `minPitchDegrees: -30` / `maxPitchDegrees: 60`。回归：`SentryMachineGunTests`（18 例，含 5 例射界）与批处理 `SentryMachineGunStage5Validation.Run`（119 条断言）。
+- 哨戒机枪的激光线挂在 `Aim Pivot` 下（`SentryLaserSight` 用 `laserEmitter.forward`），因此会跟随新增俯仰一起摆动，这符合弹道，不要为了“看起来水平”再把它拉平。
 - 导弹弹道有持续修正预测与冻结拦截点两种模式，伤害归 `Explosive`；命中/溅射自行结算，不应为“没有 Collider”擅自补物理体。
 - 地刺状态：`Ready → Extending → Holding → Retracting → Cooldown`；记录上一帧位置以检测快速穿越，每轮攻击去重，伤害归 `Melee`。
 - 喷火器状态：`Ready → Delay → Spraying → Cooldown`。攻击是向前的盒形体积，世界尺寸不随父级缩放；按 `EnemyHealth` 去重选靶，不要求目标有 Collider。每轮喷射对同一目标直接伤害一次，并施加燃烧。
@@ -130,6 +135,7 @@
 | 钱包、购买与 UI | `EconomySystemTests`、`TrapPurchaseTests`、`EconomyUITests`、`EconomyAcceptanceTests` |
 | 地面怪与飞行入口 | `GroundEnemyCombatTests`、`FlyingSpawnPointTests` |
 | 导弹与尾焰 | `MissileLauncherTurretTests`、`MissileLauncherWeaponTests`、`MissileExhaustFxTests` |
+| 哨戒机枪（含 -30°～+60° 竖直射界） | `SentryMachineGunTests`（`Assets/Editor/RunSentryMachineGunTests.ps1 -ExpectedCases 18`）、批处理 `SentryMachineGunStage5Validation.Run` |
 | 陷阱血条 | `TrapHealthBarUITests` |
 | 墙面放置 | `WallTrapPlacementTests`、`WallTrapGridValidation.Run` |
 | 地刺 | `GroundSpikeTrapValidation.Run`、`GroundSpikeStage5Acceptance.Run` |
@@ -219,6 +225,8 @@
 
 ## 四轴无人机模型（2026-10-20）
 - 编译隔离（2026-10-23）：无人机功能暂不参与默认编译。`DroneCameraController.cs`、`QuadcopterFlightController.cs`、`QuadcopterDroneAuthoring.cs` 使用 `#if ENABLE_DRONE_CODE`；测试还要求 `UNITY_INCLUDE_TESTS`。需要恢复无人机功能时，在 Unity Player Settings / Scripting Define Symbols 显式加入 `ENABLE_DRONE_CODE`，然后再处理测试程序集配置。
+- 接入步骤 1 完成（2026-10-24）：`ProjectSettings/ProjectSettings.asset` 的 `scriptingDefineSymbols` 已写入 `Standalone: ENABLE_DRONE_CODE`（编辑器脚本沿用活动构建目标组，没有独立 Editor 键）。真实 Unity 6000.6.7f1 批处理编译零 `error CS`、无异常；`QuadcopterDroneAuthoring.ProbePrefab` 27 项 PASS、`ProbeModel` 26 项 PASS（旋翼枢轴/自转轴/桨盘/URP 材质全部通过）。探针显示云台节点实际名为 `Camera_Lens`（局部 z=0.178），接入计划里“模型用 Camera_Gimbal”的说法需按实际层级复核。报告与备份在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\QuadcopterDrone\probe-20261024.txt`。下一步按计划步骤 2 处理云台查找与光标副作用。
+- 接入步骤 2 完成（2026-10-24）：`DroneCameraController` 优先查找 `Camera_Gimbal`，并兼容现有预制体实际使用的 `Camera_Lens`；两者都缺失时输出错误。`SetActive(bool)` 只切换组件启用状态，生命周期不再更改全局光标。通过 `Assets/Editor/RunEnemyDamageResistanceTests.ps1 -Fixtures DroneCameraControllerTests`（临时定义 `UNITY_INCLUDE_TESTS`，默认 Editor 程序集可发现，无需新增 asmdef）运行 EditMode 夹具 9/9；结果：`C:\Users\ASUS\Desktop\陷阱素材文件夹\QuadcopterDrone\step2-unity\20261024-234437-423\editmode-results.xml`。
 
 - 本次只交付美术资产与导入工具，不含飞行、输入、AI 或场景接线；不修改场景、MapForge、陷阱逻辑与玩家代码。
 - 素材目录沿用当前账户：`C:/Users/ASUS/Desktop/陷阱素材文件夹/QuadcopterDrone/`（生成/校验脚本、.blend、8 张预览、`validation_report.json`、`model_stats.json`、`HANDOFF.md`、`backups/`）。定稿 FBX 进 `Assets/Models/QuadcopterDrone/`，URP 材质进其 `Materials/` 子目录，预制体 `Assets/Prefabs/QuadcopterDrone.prefab`。
@@ -229,7 +237,7 @@
 - 材质：FBX 自带内置 Standard（URP 下品红）。`CreateDronePrefabMenu` 生成 `Assets/Models/QuadcopterDrone/Materials/M_DR_*.mat`（URP/Lit）并覆盖 6 个槽位后存预制体；改配色改该脚本 `Palette` 再重跑，不要手改 FBX 材质。`addColliders` 保持 0，碰撞体应在组件层加。
 - 验证：Blender 复导入 39/39（`result: PASS`）、Unity 模型探针 PASS、Unity 预制体探针 PASS（6 材质均为 `Universal Render Pipeline/Lit`）；工程内 FBX 与校验件 SHA256 一致。**未做** Unity 实机飞行验收、PlayMode 测试、贴图/UV 图集与 LOD。
 
-- 后续游戏接入路线见 `Assets/Editor/DroneControlIntegrationGuide.md`。当前仍是隔离的控制原型：默认未启用 `ENABLE_DRONE_CODE`，未接入玩家控制、菜单光标或场景流程；模型枢轴节点约定 `Camera_Gimbal` 与控制器默认查找 `Camera_Lens` 不一致，接入前必须显式绑定或统一契约。控制器测试此前编译可过但未被 Unity Test Runner 发现，不能视为功能验收通过。
+- 后续游戏接入路线见 `Assets/Editor/DroneControlIntegrationGuide.md`。当前仍是隔离的控制原型，尚未接入玩家控制或场景流程；步骤 2 已使 `DroneCameraController` 优先查找 `Camera_Gimbal` 并兼容预制体中的 `Camera_Lens`，同时取消自身的光标控制。`DroneCameraControllerTests` 现在可通过现有 EditMode runner 发现并已 9/9 通过。
 
 
 ## 投影枪阶段三续作（2026-10-20，进行中）

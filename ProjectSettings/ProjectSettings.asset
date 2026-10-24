@@ -831,7 +831,8 @@ PlayerSettings:
   webWasm2023: 1
   webEnableSubmoduleStrippingCompatibility: 0
   webProgressiveAssetLoading: 0
-  scriptingDefineSymbols: {}
+  scriptingDefineSymbols:
+    Standalone: ENABLE_DRONE_CODE
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:

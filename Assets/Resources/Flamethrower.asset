@@ -24,3 +24,4 @@ MonoBehaviour:
   mountType: 1
   installBoundsCenter: {x: 0, y: 0, z: 0.4520001}
   installBoundsSize: {x: 1.82, y: 1.8199999, z: 0.74400026}
+  skipMonsterClearanceCheck: 1

@@ -203,6 +203,7 @@ public static class FlamethrowerTrapAuthoring
         settings.FindProperty("mountType").enumValueIndex = (int)TrapMountType.Wall;
         settings.FindProperty("installBoundsCenter").vector3Value = center;
         settings.FindProperty("installBoundsSize").vector3Value = size;
+        settings.FindProperty("skipMonsterClearanceCheck").boolValue = true;
         settings.ApplyModifiedPropertiesWithoutUndo();
         EditorUtility.SetDirty(definition);
     }
