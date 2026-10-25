@@ -64,6 +64,16 @@ public static class MapForgeSceneOrganization
         public PathNodeMap pathNode;
         public TriggerMap trigger;
         public WallTrapGridMap[] wallTrapGrids;
+        public CeilingTrapGridMap[] ceilingTrapGrids;
+    }
+    [Serializable] public sealed class CeilingTrapGridMap
+    {
+        public string id;
+        public float[] origin, rotation;
+        public int columns = 4, rows = 4;
+        public float cellSize = 1f, surfaceOffset = .01f;
+        public bool[] openCells;
+        public bool autoFit = true;
     }
     [Serializable] public sealed class WallTrapGridMap
     {
@@ -202,6 +212,7 @@ public static class MapForgeSceneOrganization
     {
         if (unity == null) return;
         ValidateWallTrapGrids(unity.wallTrapGrids, id);
+        ValidateCeilingTrapGrids(unity.ceilingTrapGrids, id);
         if (unity.collider != null)
         {
             var collider = unity.collider;
@@ -269,6 +280,23 @@ public static class MapForgeSceneOrganization
                     if (!Range(entry.amount, 0f, 1e9f)) throw new ArgumentException(id + " has a trigger amount outside 0-1000000000.");
                     if (!Range(entry.delay, 0f, 600f)) throw new ArgumentException(id + " has a trigger delay outside 0-600.");
                 }
+        }
+    }
+
+    private static void ValidateCeilingTrapGrids(CeilingTrapGridMap[] grids, string objectId)
+    {
+        if (grids == null) return;
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var grid in grids)
+        {
+            if (grid == null || string.IsNullOrWhiteSpace(grid.id) || !ids.Add(grid.id))
+                throw new ArgumentException(objectId + " 的天花板网格需要唯一且非空的 ID。");
+            ValidateVector(grid.origin, false);
+            ValidateVector(grid.rotation, false);
+            if (grid.columns < 1 || grid.columns > 256 || grid.rows < 1 || grid.rows > 256
+                || !Range(grid.cellSize, .01f, 100f) || !Range(grid.surfaceOffset, 0f, 10f)
+                || (grid.openCells != null && grid.openCells.Length != grid.columns * grid.rows))
+                throw new ArgumentException(objectId + " 的天花板网格尺寸、格距、偏移或掩码无效。");
         }
     }
 
@@ -535,6 +563,7 @@ public static class MapForgeSceneOrganization
     {
         var unity = node.unity ?? new UnityMapping();
         var metadata = go.GetComponent<MapForgeObjectProperties>();
+        if (metadata == null) metadata = go.AddComponent<MapForgeObjectProperties>();
         metadata.prefabId = unity.prefab != null ? unity.prefab.id ?? string.Empty : string.Empty;
         metadata.prefabGuid = unity.prefab != null ? unity.prefab.guid ?? string.Empty : string.Empty;
         metadata.prefabAssetPath = unity.prefab != null ? unity.prefab.assetPath ?? string.Empty : string.Empty;
@@ -611,12 +640,41 @@ public static class MapForgeSceneOrganization
         if (spawn != null && spawn.enabled) ApplySpawnPoint(go, spawn, scene);
         if (core != null && core.enabled) ApplyEnemyCore(go, core);
         ApplyWallTrapGrids(node.id, go, geometry, unity.wallTrapGrids);
+        ApplyCeilingTrapGrids(node.id, go, geometry, unity.ceilingTrapGrids);
     }
 
     /// <summary>
     /// Applies MapForge-authored wall grids below their owning wall object. Existing
     /// grids are reused by stable grid ID; removing one region removes only that region.
     /// </summary>
+    private static void ApplyCeilingTrapGrids(string objectId, GameObject owner, GameObject geometry,
+        CeilingTrapGridMap[] mappings)
+    {
+        var existing = new Dictionary<string, MapForgeCeilingTrapGrid>(StringComparer.Ordinal);
+        foreach (var marker in owner.GetComponentsInChildren<MapForgeCeilingTrapGrid>(true))
+            if (marker != null && marker.objectId == objectId && !string.IsNullOrWhiteSpace(marker.gridId))
+                existing[marker.gridId] = marker;
+        var kept = new HashSet<string>(StringComparer.Ordinal);
+        if (mappings != null) foreach (var mapping in mappings)
+        {
+            kept.Add(mapping.id);
+            if (!existing.TryGetValue(mapping.id, out var marker) || marker == null)
+            {
+                var child = new GameObject("CeilingTrapGrid_" + mapping.id);
+                child.transform.SetParent(owner.transform, false);
+                marker = child.AddComponent<MapForgeCeilingTrapGrid>();
+            }
+            marker.objectId = objectId; marker.gridId = mapping.id;
+            marker.mappingJson = JsonUtility.ToJson(mapping);
+            var grid = marker.GetComponent<TrapPlacementGrid>() ?? marker.gameObject.AddComponent<TrapPlacementGrid>();
+            // Reset before fitting: repeated updates must not accumulate inverse scale.
+            marker.transform.localScale = Vector3.one;
+            CeilingTrapGridAuthoring.Configure(grid, geometry != null ? geometry.GetComponent<BoxCollider>() : null, mapping);
+        }
+        foreach (var pair in existing)
+            if (!kept.Contains(pair.Key) && pair.Value != null) UnityEngine.Object.DestroyImmediate(pair.Value.gameObject);
+    }
+
     private static void ApplyWallTrapGrids(string objectId, GameObject owner, GameObject geometry,
         WallTrapGridMap[] mappings)
     {

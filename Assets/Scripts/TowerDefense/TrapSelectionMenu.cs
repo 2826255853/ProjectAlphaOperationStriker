@@ -9,6 +9,12 @@ public sealed class TrapSelectionMenu : MonoBehaviour
     [SerializeField] private KeyCode toggleKey = KeyCode.N;
     [SerializeField] private string resourcesFolder = "";
     private readonly List<TrapDefinition> available = new List<TrapDefinition>();
+    private readonly List<TrapDefinition> filtered = new List<TrapDefinition>();
+    private int mountFilter;
+    private static readonly string[] MountFilters = { "全部", "地面", "墙面", "天花板" };
+
+    public static bool MatchesMountFilter(TrapDefinition definition, int filter)
+        => definition != null && (filter == 0 || (int)definition.MountType == filter - 1);
     private TrapPlacementController placement;
     private bool open;
     private CursorLockMode previousLock;
@@ -188,7 +194,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
         // The trap list is laid out as a fixed 6 rows x 9 columns grid whose
         // cells are always square. The cell size is derived from the screen so
         // the whole panel keeps fitting, then clamped to a readable range.
-        const float pad = 24f, gap = 8f, headerHeight = 136f, footerHeight = 112f;
+        const float pad = 24f, gap = 8f, headerHeight = 176f, footerHeight = 112f;
         float cell = Mathf.Floor(Mathf.Min(
             (Screen.width * 0.92f - pad * 2f - gap * (GridColumns - 1)) / GridColumns,
             (Screen.height * 0.9f - headerHeight - footerHeight - gap * (GridRows - 1)) / GridRows));
@@ -219,6 +225,10 @@ public sealed class TrapSelectionMenu : MonoBehaviour
             BalanceText + "    选择不扣款，确认放置时支付");
 
         EnsureCellStyles(cell);
+        mountFilter = GUI.Toolbar(new Rect(panel.x + pad, panel.y + 132f, panelWidth - pad * 2f, 30f), mountFilter, MountFilters);
+        filtered.Clear();
+        foreach (var definition in available)
+            if (MatchesMountFilter(definition, mountFilter)) filtered.Add(definition);
         float gridX = panel.x + (panelWidth - gridWidth) * .5f;
         float gridTop = panel.y + headerHeight;
         Vector2 mouse = Event.current != null ? Event.current.mousePosition : new Vector2(-1f, -1f);
@@ -229,7 +239,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
             int col = i % GridColumns;
             int row = i / GridColumns;
             Rect rect = new Rect(gridX + col * (cell + gap), gridTop + row * (cell + gap), cell, cell);
-            if (i >= available.Count)
+            if (i >= filtered.Count)
             {
                 // Filler cells keep the requested 6x9 shape visible without
                 // pretending they are clickable.
@@ -239,13 +249,13 @@ public sealed class TrapSelectionMenu : MonoBehaviour
                 continue;
             }
 
-            TrapDefinition trap = available[i];
+            TrapDefinition trap = filtered[i];
             bool isCurrent = currentSlotTrap == trap;
             bool affordable = economy.CanAfford(trap);
             if (rect.Contains(mouse)) hoveredTrap = trap;
             GUI.backgroundColor = !affordable ? new Color(1f, 0.58f, 0.52f)
                 : isCurrent ? new Color(0.55f, 0.9f, 1f) : Color.white;
-            string mountLabel = trap.MountType == TrapMountType.Wall ? "墙面" : "地面";
+            string mountLabel = trap.MountType.DisplayName();
             string status = affordable ? string.Empty : trap.Cost < 0 ? "价格无效"
                 : economy.IsReady ? "金币不足" : "金币暂不可用";
             // Unaffordable traps remain selectable for inspection and later placement.
@@ -267,7 +277,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
         // trap (or of the selected slot) are spelled out here.
         TrapDefinition described = hoveredTrap != null ? hoveredTrap : currentSlotTrap;
         string description = described != null
-            ? $"{described.DisplayName}   {(described.MountType == TrapMountType.Wall ? "墙面" : "地面")}   花费 {described.Cost}   {(described.MountType == TrapMountType.Wall ? "占格" : "占地")} {described.Footprint.x}x{described.Footprint.y}"
+            ? $"{described.DisplayName}   {described.MountType.DisplayName()}   花费 {described.Cost}   {(described.MountType != TrapMountType.Ground ? "占格" : "占地")} {described.Footprint.x}x{described.Footprint.y}"
             : "将鼠标移到陷阱上查看详情";
         GUI.Label(new Rect(panel.x + pad, panel.y + panelHeight - footerHeight + 8f, panelWidth - pad * 2f, 24f), description);
         GUI.Label(new Rect(panel.x + pad, panel.y + panelHeight - footerHeight + 32f, panelWidth - pad * 2f, 24f),

@@ -66,6 +66,8 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     /// <summary>Installation surface category. Wall grids only accept Wall traps.</summary>
     public TrapMountType SurfaceType => surfaceType;
     public bool IsWallSurface => surfaceType == TrapMountType.Wall;
+    public bool IsCeilingSurface => surfaceType == TrapMountType.Ceiling;
+    public bool IsMountedSurface => IsWallSurface || IsCeilingSurface;
     public Collider SupportCollider => supportCollider;
     public float SurfaceOffset => Mathf.Max(0f, surfaceOffset);
 
@@ -188,7 +190,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             GetPlacementPose(trap.OriginCell, trap.Definition, out Vector3 posePosition, out Quaternion poseRotation);
             trap.transform.SetPositionAndRotation(posePosition, poseRotation);
             MakeTrapPassableIfRequired(trap.gameObject, trap.Definition);
-            if ((trap.Definition.WalkableFloorTrap || IsWallSurface)
+            if ((trap.Definition.WalkableFloorTrap || IsMountedSurface)
                 && !CanPlaceTrap(trap.OriginCell, trap.Definition, trap, null, out _)) continue;
             bool valid = true;
             for (int y = 0; y < footprint.y && valid; y++)
@@ -257,9 +259,9 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             failure = SurfaceType.DescribeMismatch();
             return false;
         }
-        if (IsWallSurface && supportCollider == null)
+        if (IsMountedSurface && supportCollider == null)
         {
-            failure = "墙面网格未绑定支撑墙体。";
+            failure = "贴面网格未绑定支撑碰撞体。";
             return false;
         }
         if (definition != null && SurfaceType == TrapMountType.Ground
@@ -293,10 +295,10 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         // Wall-specific checks run after the shared footprint rules so a wall
         // trap is never rejected for a support/clearance reason when it already
         // failed the cheaper category or occupancy test.
-        if (IsWallSurface && !HasWallSupport(origin, footprint, definition, out failure)) return false;
-        if ((IsWallSurface || definition.HasExplicitInstallBounds)
+        if (IsMountedSurface && !HasWallSupport(origin, footprint, definition, out failure)) return false;
+        if ((IsMountedSurface || definition.HasExplicitInstallBounds)
             && ConflictsWithSolidEntity(origin, footprint, definition, ignoreInstance, ignoreRoot, out failure)) return false;
-        if (IsWallSurface && ConflictsWithMonsterClearance(origin, footprint, definition, out failure)) return false;
+        if (IsMountedSurface && ConflictsWithMonsterClearance(origin, footprint, definition, out failure)) return false;
         return true;
     }
 
@@ -308,13 +310,26 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     /// that hangs in mid air.
     /// </summary>
     public bool HasWallSupport(Vector2Int origin, Vector2Int footprint, TrapDefinition definition, out string failure)
+        => HasSurfaceSupport(origin, footprint, definition, out failure);
+
+    public bool HasSurfaceSupport(Vector2Int origin, Vector2Int footprint, TrapDefinition definition, out string failure)
     {
         failure = string.Empty;
-        if (!IsWallSurface) return true;
+        if (!IsMountedSurface) return true;
         SyncPhysicsForEditorValidation();
+        if (IsCeilingSurface && (Vector3.Dot(SurfaceNormal, Vector3.down) < 0.999f
+            || supportCollider == null || !supportCollider.enabled || !supportCollider.gameObject.isStatic
+            || supportCollider.isTrigger || !(supportCollider is BoxCollider)
+            || supportCollider.transform.lossyScale.x <= 0f || supportCollider.transform.lossyScale.y <= 0f
+            || supportCollider.transform.lossyScale.z <= 0f
+            || Vector3.Dot(supportCollider.transform.up, Vector3.up) < 0.999f))
+        {
+            failure = "天花板需要水平、静态、正缩放的盒体底面支撑。";
+            return false;
+        }
         if (supportCollider == null)
         {
-            failure = "墙面网格未绑定支撑墙体。";
+            failure = "贴面网格未绑定支撑碰撞体。";
             return false;
         }
         SurfaceAxes(out Vector3 right, out Vector3 up);
@@ -333,7 +348,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             {
                 if (TryFindSupportHit(probeBuffer[i] + normal * 0.02f, -normal, castDistance + 0.02f, normal, allowedCos))
                     continue;
-                failure = $"支撑不足：格 {cell} 的采样点未命中绑定墙体的正面。";
+                failure = $"支撑不足：格 {cell} 的采样点未命中绑定支撑体的正面。";
                 return false;
             }
         }
@@ -413,6 +428,10 @@ public sealed class TrapPlacementGrid : MonoBehaviour
                 failure = "实体冲突：安装位置与已有陷阱重叠。";
                 return true;
             }
+            // Installation supports belong to their own surface category. A
+            // ceiling slab must not block a ground or wall installation that
+            // happens to share its footprint (and vice versa).
+            if (IsOtherMountSupportCollider(other, definition.MountType)) continue;
             if (IsSupportCollider(other)) continue;
             if (other.GetComponentInParent<PlayerHealth>() != null
                 || other.GetComponentInParent<FirstPersonController>() != null)
@@ -432,6 +451,19 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             if (!TrapPlacementGeometry.PointInOrientedBox(closest, boxCenter, rotation, halfExtents, 0.005f)) continue;
             failure = $"实体冲突：安装位置被 {other.name} 占用。";
             return true;
+        }
+        return false;
+    }
+
+    private bool IsOtherMountSupportCollider(Collider candidate, TrapMountType definitionType)
+    {
+        if (candidate == null) return false;
+        foreach (TrapPlacementGrid grid in FindObjectsByType<TrapPlacementGrid>(FindObjectsSortMode.None))
+        {
+            if (grid == null || grid == this || grid.SupportCollider == null
+                || grid.SurfaceType == definitionType) continue;
+            Collider support = grid.SupportCollider;
+            if (candidate == support || candidate.transform.IsChildOf(support.transform)) return true;
         }
         return false;
     }
@@ -469,7 +501,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         {
             Vector3 sample = i == installCorners.Length ? boxCenter : installCorners[i];
             if (!pathGrid.TryWorldToCell(sample, out Vector2Int cell) || !pathGrid.IsOpen(cell)) continue;
-            failure = $"占据通道：墙面实体侵入道路格 {cell} 的怪物通行净空。";
+            failure = $"占据通道：陷阱实体侵入道路格 {cell} 的怪物通行净空。";
             return true;
         }
         return false;
@@ -498,7 +530,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         // Wall traps inherit the grid orientation so they face away from the
         // wall; LocalRotation then only corrects the authored model axes.
         // Ground traps keep the historical behavior exactly as before.
-        if (IsWallSurface) return transform.rotation * definition.LocalRotation;
+        if (IsMountedSurface) return transform.rotation * definition.LocalRotation;
         return definition.WalkableFloorTrap
             ? transform.rotation * definition.LocalRotation : definition.LocalRotation;
     }
@@ -519,7 +551,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             if (definition.MountType != other.Definition.MountType) continue;
             if (!owner.TryGetFootprint(other.Definition, out Vector2Int otherFootprint)) continue;
             Vector3 delta = other.transform.position - center;
-            if (Mathf.Abs(delta.y) > 0.15f) continue;
+            if (Mathf.Abs(IsCeilingSurface ? Vector3.Dot(delta, SurfaceNormal) : delta.y) > 0.15f) continue;
             owner.SurfaceAxes(out Vector3 otherRight, out Vector3 otherForward);
             Vector2 otherHalf = new Vector2(otherFootprint.x * owner.CellWorldSize.x,
                 otherFootprint.y * owner.CellWorldSize.y) * 0.5f;
@@ -584,7 +616,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         // row reaches the platform top. The grid transform itself remains the
         // lower-left boundary, which keeps cell lookup and footprint bounds
         // unchanged. Ground grids retain their historical anchor convention.
-        Vector3 local = IsWallSurface
+        Vector3 local = IsMountedSurface
             ? new Vector3((cell.x + 0.5f) * cellSize, (cell.y + 0.5f) * cellSize, SurfaceOffset)
             : new Vector3(cell.x * cellSize, placementHeight, cell.y * cellSize);
         return transform.TransformPoint(local);
@@ -592,7 +624,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
 
     private Vector3 CellOriginToWorld(Vector2Int cell)
     {
-        Vector3 local = IsWallSurface
+        Vector3 local = IsMountedSurface
             ? new Vector3(cell.x * cellSize, cell.y * cellSize, SurfaceOffset)
             : new Vector3(cell.x * cellSize, placementHeight, cell.y * cellSize);
         return transform.TransformPoint(local);
@@ -602,7 +634,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     public Vector3 SurfaceOffsetWorld => transform.TransformVector(new Vector3(0f, 0f, SurfaceOffset));
 
     /// <summary>World size of one cell along the grid's two in-plane axes.</summary>
-    public Vector2 CellWorldSize => IsWallSurface
+    public Vector2 CellWorldSize => IsMountedSurface
         ? new Vector2(cellSize * Mathf.Abs(transform.lossyScale.x), cellSize * Mathf.Abs(transform.lossyScale.y))
         : new Vector2(cellSize * Mathf.Abs(transform.lossyScale.x), cellSize * Mathf.Abs(transform.lossyScale.z));
 
@@ -610,7 +642,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     private void SurfaceAxes(out Vector3 right, out Vector3 up)
     {
         right = transform.right;
-        up = IsWallSurface ? transform.up : transform.forward;
+        up = IsMountedSurface ? transform.up : transform.forward;
     }
 
     /// <summary>Returns the same footprint anchor used by real trap instances.</summary>
@@ -658,7 +690,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         // Ground grids intersect on their horizontal plane; wall grids intersect
         // on the backplate plane pushed out by surfaceOffset, so the cursor lands
         // where the trap will actually hang.
-        Plane plane = IsWallSurface
+        Plane plane = IsMountedSurface
             ? new Plane(SurfaceNormal, transform.position + SurfaceOffsetWorld)
             : new Plane(transform.up, CellToWorld(Vector2Int.zero));
         if (plane.Raycast(ray, out distance))
@@ -674,7 +706,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     public bool TryWorldToCell(Vector3 worldPosition, out Vector2Int cell)
     {
         Vector3 local = transform.InverseTransformPoint(worldPosition);
-        float second = IsWallSurface ? local.y : local.z;
+        float second = IsMountedSurface ? local.y : local.z;
         cell = new Vector2Int(Mathf.FloorToInt(local.x / cellSize), Mathf.FloorToInt(second / cellSize));
         return IsInside(cell);
     }
@@ -707,7 +739,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             {
                 BoxCollider collider = root.AddComponent<BoxCollider>();
                 collider.isTrigger = definition.WalkableFloorTrap || RequiresWalkableTrap;
-                if (IsWallSurface)
+                if (IsMountedSurface)
                 {
                     if (definition.HasExplicitInstallBounds)
                     {
@@ -793,9 +825,14 @@ public sealed class TrapPlacementGrid : MonoBehaviour
                 // PrefabUtility preserves a proper prefab instance in the
                 // scene, including added/generated child meshes.
                 root = (GameObject)PrefabUtility.InstantiatePrefab(definition.Prefab, gameObject.scene);
-                GetPlacementPose(origin, definition, out Vector3 posePosition, out Quaternion poseRotation);
-                root.transform.SetPositionAndRotation(posePosition, poseRotation);
-                return;
+                // Test and authoring probes may use a scene object as their
+                // definition prefab; PrefabUtility only accepts prefab assets.
+                if (root != null)
+                {
+                    GetPlacementPose(origin, definition, out Vector3 posePosition, out Quaternion poseRotation);
+                    root.transform.SetPositionAndRotation(posePosition, poseRotation);
+                    return;
+                }
             }
 #endif
             GetPlacementPose(origin, definition, out Vector3 runtimePosition, out Quaternion runtimeRotation);
@@ -912,7 +949,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         // for a wall.
         Vector2 cell = CellWorldSize;
         Vector2 plate = new Vector2(footprint.x * cell.x * 0.8f, footprint.y * cell.y * 0.8f);
-        root.transform.localScale = IsWallSurface
+        root.transform.localScale = IsMountedSurface
             ? new Vector3(plate.x, plate.y, 0.15f)
             : new Vector3(plate.x, 0.25f, plate.y);
         // Keep the fallback usable when a definition's prefab reference is
@@ -932,7 +969,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
 
     private Vector3 TrapWorldPosition(Vector2Int origin, Vector2Int footprint)
     {
-        if (IsWallSurface)
+        if (IsMountedSurface)
         {
             // Wall cells are addressed from the authored rectangle's lower-left
             // corner on the local X/Y plane. A multi-cell trap hangs at the center
@@ -963,7 +1000,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             Gizmos.matrix = Matrix4x4.TRS(center, transform.rotation, Vector3.one);
             // Ground marks lie flat in X/Z; wall marks lie in the X/Y plane so the
             // Scene view shows where a trap would actually hang.
-            if (IsWallSurface)
+            if (IsMountedSurface)
             {
                 Gizmos.DrawCube(Vector3.zero, new Vector3(cellSize * 0.96f, cellSize * 0.96f, 0.02f));
                 Gizmos.color = new Color(0f, 0f, 0f, 0.35f);

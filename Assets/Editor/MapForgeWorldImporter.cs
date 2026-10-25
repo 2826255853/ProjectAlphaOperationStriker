@@ -186,6 +186,7 @@ public static partial class MapForgeWorldImporter
         scene.name = sceneName;
         int globalTotalWaves = ResolveTotalWaves(world);
         var root = Build(world, organized, sceneName, globalTotalWaves);
+        WallTrapGridAuthoring.RestoreForScene(scene);
         // Overwrite the canonical scene for this world instead of asking Unity
         // for a unique path. A unique path turns every import into a numbered
         // copy ("Map 1", "Map 2", ...); saving over the same path keeps one
@@ -234,6 +235,7 @@ public static partial class MapForgeWorldImporter
         int globalTotalWaves = ResolveTotalWaves(world);
         var root = Build(world, organized, sceneName, globalTotalWaves);
         int restored = RestoreAuthoredChildren(authored, root.transform);
+        WallTrapGridAuthoring.RestoreForScene(scene);
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
         if (restored > 0) Debug.Log($"MapForge: kept {restored} project-authored object(s) under {RootName}.");
@@ -584,7 +586,7 @@ public static partial class MapForgeWorldImporter
         CreateTrapPlacementGrids(pathGrid, parent);
 
         if (data.spawns == null) return;
-        var enemyPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/TestMonster.prefab");
+        var enemyPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(MaskedSoldierAuthoring.PrefabPath);
         for (int i = 0; i < data.spawns.Length; i++)
         {
             var spawn = data.spawns[i];

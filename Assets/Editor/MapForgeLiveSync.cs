@@ -406,6 +406,16 @@ public static class MapForgeLiveSync
             MapForgeSceneOrganization.ApplyUnityMapping(node, lookups.Find(node.id), lookups.Geometry(node.id), revision.unity, lookups.PrefabCache);
         }
 
+        // Parent-only revisions can change a ceiling's physical scale without
+        // changing its own JSON. Refit generated ceilings after all transforms.
+        foreach (var marker in root.GetComponentsInChildren<MapForgeCeilingTrapGrid>(true))
+        {
+            var grid = marker.GetComponent<TrapPlacementGrid>();
+            if (grid == null || string.IsNullOrEmpty(marker.mappingJson)) continue;
+            CeilingTrapGridAuthoring.Configure(grid, grid.SupportCollider as BoxCollider,
+                JsonUtility.FromJson<MapForgeSceneOrganization.CeilingTrapGridMap>(marker.mappingJson));
+        }
+
         // Path links point at other object IDs, and a target may have been created or
         // deleted in this revision, so the links of every touched node are rebuilt.
         RefreshPathNodeLinks(root.transform, touched, outcome);

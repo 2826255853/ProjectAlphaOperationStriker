@@ -254,7 +254,7 @@ public sealed class TrapPlacementController : MonoBehaviour
         // Wall grids are finite, front-facing surfaces. Resolve the nearest
         // visible wall first and never skip it merely because its hovered cell
         // is blocked: the player must see the actual failure on that wall.
-        if (selectedTrap != null && selectedTrap.MountType == TrapMountType.Wall)
+        if (selectedTrap != null && selectedTrap.MountType != TrapMountType.Ground)
         {
             TrapPlacementGrid nearestWall = null;
             Vector2Int nearestWallCell = default;
@@ -262,7 +262,7 @@ public sealed class TrapPlacementController : MonoBehaviour
             for (int i = 0; i < grids.Count; i++)
             {
                 TrapPlacementGrid candidate = grids[i];
-                if (candidate == null || !candidate.IsWallSurface || !candidate.SupportsDefinition(selectedTrap)) continue;
+                if (candidate == null || !candidate.IsMountedSurface || !candidate.SupportsDefinition(selectedTrap)) continue;
                 Vector3 normal = candidate.SurfaceNormal;
                 if (Vector3.Dot(ray.direction, normal) >= -0.001f) continue;
                 if (!candidate.TryRaycastPlane(ray, out Vector3 point, out float distance)) continue;
@@ -284,7 +284,7 @@ public sealed class TrapPlacementController : MonoBehaviour
         for (int i = 0; i < grids.Count; i++)
         {
             TrapPlacementGrid candidate = grids[i];
-            if (candidate == null) continue;
+            if (candidate == null || candidate.IsMountedSurface) continue;
             if (!candidate.TryRaycastPlane(ray, out Vector3 point, out float distance)) continue;
             if (!candidate.TryWorldToCell(point, out Vector2Int candidateCell)) continue;
             if (distance < anyDistance) { anyDistance = distance; bestAny = candidate; anyCell = candidateCell; }
@@ -433,6 +433,8 @@ public sealed class TrapPlacementController : MonoBehaviour
         // their world scale. Only the primitive fallback needs footprint scaling.
         preview.transform.localScale = selectedTrap.Prefab != null
             ? previewBaseScale
+            : activeGrid.IsMountedSurface
+            ? new Vector3(footprint.x * activeGrid.CellWorldSize.x * 0.8f, footprint.y * activeGrid.CellWorldSize.y * 0.8f, 0.15f)
             : new Vector3(previewBaseScale.x * footprint.x, previewBaseScale.y, previewBaseScale.z * footprint.y);
         SetPreviewVisible(true);
         UpdatePreviewColor();
@@ -734,9 +736,9 @@ public sealed class TrapPlacementController : MonoBehaviour
                     material = CanPurchaseAt(target, hoveredCell) ? hoveredMaterial : invalidFootprintMaterial;
                 GameObject marker = RentMarker(used++);
                 marker.transform.SetParent(transform, true);
-                Vector3 markerNormal = target.IsWallSurface ? target.SurfaceNormal : target.transform.up;
+                Vector3 markerNormal = target.IsMountedSurface ? target.SurfaceNormal : target.transform.up;
                 marker.transform.SetPositionAndRotation(target.CellToWorld(cell) + markerNormal * 0.015f, target.transform.rotation);
-                marker.transform.localScale = target.IsWallSurface
+                marker.transform.localScale = target.IsMountedSurface
                     ? new Vector3(target.CellSize * 0.92f, target.CellSize * 0.92f, 0.018f)
                     : new Vector3(target.CellSize * 0.92f, 0.018f, target.CellSize * 0.92f);
                 marker.GetComponent<Renderer>().sharedMaterial = material;

@@ -55,11 +55,11 @@ public sealed class TrapPlacementGridEditor : Editor
         EditorGUILayout.PropertyField(surfaceKind, new GUIContent("放置表面"));
         EditorGUILayout.PropertyField(surfaceType, new GUIContent("安装类别"));
         var gridForInspector = (TrapPlacementGrid)target;
-        if (gridForInspector.IsWallSurface)
+        if (gridForInspector.IsMountedSurface)
         {
-            EditorGUILayout.PropertyField(supportCollider, new GUIContent("支撑墙体"));
+            EditorGUILayout.PropertyField(supportCollider, new GUIContent("支撑碰撞体"));
             EditorGUILayout.PropertyField(surfaceOffset, new GUIContent("墙面偏移"));
-            EditorGUILayout.HelpBox("墙面网格使用本地 X/Y 平面；只接受 MountType=Wall 的陷阱，绘制时按墙面法线贴合。", MessageType.Info);
+            EditorGUILayout.HelpBox("墙面/天花板使用本地 X/Y 平面；只接受相同安装类别的陷阱，天花板法线朝下。", MessageType.Info);
         }
         else
             EditorGUILayout.HelpBox("地面网格接受 MountType=Ground 的陷阱；地刺仍受地面/道路支撑规则限制。", MessageType.Info);
@@ -321,14 +321,14 @@ public sealed class TrapPlacementGridEditor : Editor
         {
             TrapPlacementGrid grid = gridList[i];
             int open = 0, occupied = 0, laneOverlap = 0, tooHigh = 0, tooLow = 0, noSurface = 0;
-            bool wallGrid = grid.IsWallSurface;
+            bool wallGrid = grid.IsMountedSurface;
             if (wallGrid)
             {
                 Vector3 scale = grid.transform.lossyScale;
-                bool vertical = Mathf.Abs(Vector3.Dot(grid.transform.forward, Vector3.up)) < 0.001f;
+                bool vertical = grid.IsCeilingSurface ? Vector3.Dot(grid.SurfaceNormal, Vector3.down) > .999f : Mathf.Abs(Vector3.Dot(grid.transform.forward, Vector3.up)) < 0.001f;
                 bool unitScale = Mathf.Abs(scale.x - 1f) < 0.001f && Mathf.Abs(scale.y - 1f) < 0.001f && Mathf.Abs(scale.z - 1f) < 0.001f;
-                if (grid.SupportCollider == null) holes.Add($"{grid.name}：墙面网格未绑定支撑墙体。");
-                if (!vertical) holes.Add($"{grid.name}：墙面法线必须水平（当前网格不是竖直墙面）。");
+                if (grid.SupportCollider == null) holes.Add($"{grid.name}：墙面网格未绑定支撑碰撞体。");
+                if (!vertical) holes.Add($"{grid.name}：贴面法线方向无效（墙面须水平法线，天花板须朝下）。");
                 if (!unitScale) holes.Add($"{grid.name}：墙面网格缩放必须为单位缩放。");
             }
             for (int y = 0; y < grid.Rows; y++)
@@ -343,7 +343,7 @@ public sealed class TrapPlacementGridEditor : Editor
                     laneOverlap++;
                 if (wallGrid)
                 {
-                    if (grid.SupportCollider != null && !grid.HasWallSupport(cell, Vector2Int.one, null, out _))
+                    if (grid.SupportCollider != null && !grid.HasSurfaceSupport(cell, Vector2Int.one, null, out _))
                     {
                         noSurface++;
                         if (holes.Count < 6) holes.Add($"{grid.name} 格{cell} 没有连续墙体支撑");
@@ -409,7 +409,7 @@ public sealed class TrapPlacementGridEditor : Editor
                 var cell = new Vector2Int(x, y);
                 int levels = 0;
                 for (int i = 0; i < gridList.Length; i++)
-                    if (!gridList[i].IsWallSurface && gridList[i].IsInside(cell) && gridList[i].IsOpen(cell)) levels++;
+                    if (!gridList[i].IsMountedSurface && gridList[i].IsInside(cell) && gridList[i].IsOpen(cell)) levels++;
                 if (levels > 0) covered++;
                 if (levels > 1) doubled++;
             }

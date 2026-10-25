@@ -3064,6 +3064,76 @@
           "events": []
         }
       }
+    },
+    {
+      "id": "ceiling_test_panel_20261025",
+      "name": "Ceiling Trap Test Panel",
+      "type": "cube",
+      "parentId": null,
+      "transform": {
+        "position": [
+          0,
+          4.1,
+          0
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          4,
+          0.2,
+          4
+        ]
+      },
+      "color": "#7894ad",
+      "material": {
+        "type": "standard",
+        "roughness": 0.68,
+        "metalness": 0
+      },
+      "tags": [
+        "ceiling-trap-test"
+      ],
+      "layer": 0,
+      "visible": true,
+      "locked": false,
+      "collapsed": false,
+      "collision": true,
+      "static": true,
+      "prefabType": "",
+      "parameters": {},
+      "unity": {
+        "ceilingTrapGrids": [
+          {
+            "id": "bottom",
+            "columns": 4,
+            "rows": 4,
+            "cellSize": 1,
+            "surfaceOffset": 0.01,
+            "autoFit": true,
+            "openCells": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          }
+        ]
+      }
     }
   ],
   "groups": [],

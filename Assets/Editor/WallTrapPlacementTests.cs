@@ -21,6 +21,41 @@ public sealed class WallTrapPlacementTests
     }
 
     [Test]
+    public void RestoringPlatformWallGridsRebindsReplacedSupportAndKeepsPaintedMask()
+    {
+        GameObject root = NewObject("WallTrapPlacementGrids");
+        GameObject platform = NewObject("Platform_rebind");
+        platform.isStatic = true;
+        BoxCollider support = platform.AddComponent<BoxCollider>();
+        support.center = new Vector3(0f, 2f, 0f);
+        support.size = new Vector3(4f, 4f, 2f);
+        Physics.SyncTransforms();
+        var flags = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic;
+        var create = typeof(WallTrapGridAuthoring).GetMethod("CreatePlatformSideGrids", flags);
+        var align = typeof(WallTrapGridAuthoring).GetMethod("AlignPlatformSideGrids", flags);
+        Assert.That(create.Invoke(null, new object[] { root, support }), Is.EqualTo(2));
+        var grids = root.GetComponentsInChildren<TrapPlacementGrid>();
+        grids[0].SetOpen(Vector2Int.zero, false);
+        Assert.That(grids[0].IsOpen(new Vector2Int(1, 1)), Is.True);
+
+        Object.DestroyImmediate(support);
+        BoxCollider replacement = platform.AddComponent<BoxCollider>();
+        replacement.center = new Vector3(0f, 2f, 0f);
+        replacement.size = new Vector3(4f, 4f, 2f);
+        Physics.SyncTransforms();
+        Assert.That(align.Invoke(null, new object[] { root, replacement }), Is.EqualTo(2));
+        Assert.That(create.Invoke(null, new object[] { root, replacement }), Is.EqualTo(0));
+        Assert.That(root.GetComponentsInChildren<TrapPlacementGrid>().Length, Is.EqualTo(2));
+        foreach (var grid in grids)
+        {
+            Assert.That(grid.SupportCollider, Is.SameAs(replacement));
+            Assert.That(grid.HasWallSupport(new Vector2Int(1, 1), Vector2Int.one, null, out string failure), Is.True, failure);
+        }
+        Assert.That(grids[0].IsOpen(Vector2Int.zero), Is.False);
+        Assert.That(grids[0].IsOpen(new Vector2Int(1, 1)), Is.True);
+    }
+
+    [Test]
     public void WallGridUsesLocalXYAndOutwardPose()
     {
         TrapPlacementGrid grid = CreateWallGrid("Wall grid", 4, 3);

@@ -495,3 +495,23 @@
   - 没有 AnimationClip / Animator 资产，全部是程序化动画；没有 LOD、UV 图集、贴图绘制（纯材质色块）；没有受击/被摧毁表现；没有俯仰（运行时只有 yaw）。
   - 测试只覆盖 EditMode + 预览；`AutoSentryTurret` 的既有行为回归靠 `SentryMachineGunStage5Validation` 与 11 条 EditMode 用例，不替代实机。
 - **回滚**：模型回滚把 `SentryMachineGun\backups\muzzle-bore-20261023-142506\SentryMachineGun.fbx` 拷回（`.meta` 未动，GUID 不变）；预制体/材质回滚走 `git checkout -- Assets/Resources/SentryMachineGun.prefab Assets/Prefabs/SentryShellCasing.prefab Assets/Models/SentryMachineGun`；出厂陷阱预制体回滚见「哨戒机枪出厂预制体修复」小节。当前这些文件在本工作区仍是未提交状态（`Assets/Models/SentryMachineGun/SentryMachineGun.fbx`、`Assets/Models/SentryMachineGun/Materials/M_Sentry_LaserBeam.mat` 为 `M`，`Assets/Editor/SentryMachineGunPreview.cs` / `SentryMachineGunTests.cs` / `RunSentryMachineGunTests.ps1` 为未跟踪），提交前先确认没有其他会话在改同一批文件。
+
+## 天花板陷阱系统首版（2026-10-25）
+- `TrapMountType` 保留 `Ground=0`、`Wall=1`，新增 `Ceiling=2`；`TrapDefinition`/`TrapPlacementGrid` 统一使用三类匹配，Ceiling 与 `WalkableFloorTrap` 互斥。菜单筛选为“全部／地面／墙面／天花板”，类型标签和失败提示走 `TrapMountTypeExtensions`。
+- `TrapPlacementGrid` 的贴面几何统一使用本地 XY；天花板网格的本地 +Z 指向下方。`CeilingTrapGridAuthoring` 只接受静态、水平、正缩放的 `BoxCollider`，按格中心与内缩四角检查支撑；同类占用仍冲突，Ceiling/Ground/Wall 的不同类别和支撑体互不阻挡。配置后调用 `Physics.SyncTransforms()`，避免 Play Mode 同帧采样关闭有效格。
+- MapForge 字段为对象级 `unity.ceilingTrapGrids[]`：`id`、`origin`、`rotation`、`columns`、`rows`、`cellSize`、`surfaceOffset`、`autoFit`、`openCells`。前端位于 `C:\MapForge\wwwroot\ceiling-traps.js`，入口为“＋ 天花板与陷阱网格”和选中板块 Inspector 的“为底面添加／刷新网格”；服务端 `MapValidation.cs`、`map-format.schema.json`、Unity DTO/导入/实时同步均已同步。旧地图缺字段时按空数组处理。
+- 灰盒资源由 `Assets/Editor/CeilingTrapTestPieceAuthoring.cs` 生成到 `Assets/Resources/CeilingTrapTest/`，定义 ID 为 `ceiling_test`，无攻击行为；预览入口为 `CeilingTrapSystemValidation.GenerateAndPreview`。中间态、截图、日志和 NUnit XML 在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\CeilingTrapSystem\`。
+- 验证证据：`Assets/Editor/RunCeilingTrapPlacementTests.ps1 -WithGraphics` 使用 Unity `6000.6.7f1`，`CeilingTrapPlacementTests` **17/17 通过、0 失败、0 跳过**；最新结果目录为 `C:\Users\ASUS\Desktop\陷阱素材文件夹\CeilingTrapSystem\20261025-224737-640\`。Node 回归 `npm test` 为 25 通过、0 失败、4 跳过；MapForge API `tests/api.test.js` 在 `http://127.0.0.1:5097` 下 1/1 通过；浏览器 `tests/browser.mjs` 全部 PASS 且无未捕获异常；MapForge 编译 0 警告/0 错误；Unity 定向快速编译 0 错误，仅有既有 `MapForgeTrigger` 弃用警告。
+- 主场景 `THREE_ROUTE_MERGE_MAP` 已加入 MapForge JSON 对应对象 `ceiling_test_panel_20261025` 和 `CeilingTrapGrid_bottom`；通过 `CeilingTrapGridAuthoring.AddTestPanelToMainScene` 添加。全量导入曾移除 24 个手工墙面网格，随后恢复导入前备份并仅添加测试板；静态比较确认原 24 个网格、`Enemy Spawn Flying` 和场景 GUID 都保留。主场景 diff 最终只增量加对象与几何，测试板材质在 `Assets/Resources/CeilingTrapTest/CeilingPanel.mat`。
+- 首版限制：只支持水平盒体底面；倾斜、曲面、动态支撑、负缩放拒绝创建。主地图已做静态场景接入，尚未做主地图 Play Mode 实机放置/战斗验收；MapForge 增量同步入口已接线，但尚未对主地图执行人工 Send to Unity。
+
+## 普通小怪引用回退修复（2026-10-25）
+- `Assets/Editor/MapForgeWorldImporter.cs` 的全量导入默认地面出怪预制体已从 `Assets/Prefabs/TestMonster.prefab` 改为 `MaskedSoldierAuthoring.PrefabPath`（`Assets/Prefabs/MaskedSoldier.prefab`），避免重新导入地图后恢复测试怪物。
+- 已运行 `MaskedSoldierSceneWiring.WireGroundSpawnersBatch` 更新主场景；Unity 批处理日志确认成功且无 C# 编译错误/异常。主场景 `THREE_ROUTE_MERGE_MAP.unity` 中 `TestMonster` 引用为 0，蒙面士兵 GUID 引用为 12；飞行出怪口逻辑未改。
+
+## 墙面陷阱网格恢复（2026-10-25）
+- 本次实际打开主场景时墙面网格为 **0**；已用 `WallTrapGridAuthoring.EnsureStarterGridForCurrentMap` 恢复并保存 **24 个墙面网格、1184 个开放格、0 个关闭格、0 个支撑异常**。此数据取代上文 2026-10-24 的历史场景快照。地面/天花板网格实例保留；完整校验中地面/道路另有既有 6/8 个埋入地形格，本次未修改，不应称全地图校验通过。
+- 根因链路：`MapForgeWorldImporter.Import` 创建新场景后未重建手工墙格；原位重建虽然可保留墙格对象，却会替换平台 Collider，而原 `AlignPlatformSideGrids` 在尺寸相同时不会重新绑定。现在全量导入和 `RebuildInPlace` 都调用 `WallTrapGridAuthoring.RestoreForScene`，仅处理主地图 `Platform_*` 两侧；重新绑定 Collider 时保留同尺寸网格原掩码。生成前同步物理变换，避免用未同步的平台形状关闭有效格。
+- 可重复恢复入口：菜单 `Tools/Tower Defense/Restore Main Map Wall Trap Grids` 或批处理 `WallTrapGridRestoration.Restore`（预览需 `-WithGraphics`）。自动备份后恢复两次，检查幂等性、开放格支撑，并调用项目完整网格校验；预览叠加层不会保存到场景。
+- 产物目录：`C:\Users\ASUS\Desktop\陷阱素材文件夹\WallTrapGridRestore\`。修改前原始场景和 `.meta` 在 `backup-20261025-234958\`；`validation.txt` 为场景校验，`wall-grids-restored.png` 为已目视确认的 Unity 实机预览，`restore.log` 含成功退出标记且无 C# 编译错误/异常。需要撤回场景时从该备份复制 `.unity` 回原路径，保留原 `.meta`。
+- 回归：`RunEnemyDamageResistanceTests.ps1 -Fixtures WallTrapPlacementTests,CeilingTrapPlacementTests` 使用项目记录的 Unity 版本运行，**25/25 通过、0 失败、0 跳过**（墙面 8，天花板 17）。新增墙面用例覆盖平台 Collider 被替换后重新绑定、手绘关闭格保留及重复创建不增生对象；结果在 `tests\20261025-235202-420\editmode-results.xml`。未做主地图 Play Mode 人工放置验收。

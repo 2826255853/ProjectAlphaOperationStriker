@@ -40,6 +40,19 @@ public sealed class WallTrapGridAuthoring : EditorWindow
         if (!activeScene.IsValid() || activeScene.name != DefaultSceneName)
             throw new System.InvalidOperationException("无法打开主地图场景：" + DefaultScenePath);
 
+        RestoreForScene(activeScene);
+        EditorSceneManager.MarkSceneDirty(activeScene);
+        EditorSceneManager.SaveScene(activeScene);
+        return true;
+    }
+
+    // Called after map generation too: a full import creates a fresh scene and
+    // otherwise drops these project-authored wall grids.
+    public static void RestoreForScene(Scene activeScene)
+    {
+        if (!activeScene.IsValid() || activeScene.name != DefaultSceneName) return;
+        Physics.SyncTransforms();
+
         GameObject root = GameObject.Find(GridRootName);
         if (root == null)
         {
@@ -53,7 +66,8 @@ public sealed class WallTrapGridAuthoring : EditorWindow
         for (int i = 0; i < candidates.Length; i++)
         {
             Collider support = candidates[i];
-            if (!support.name.StartsWith("Platform_", System.StringComparison.Ordinal)
+            if (support.gameObject.scene != activeScene
+                || !support.name.StartsWith("Platform_", System.StringComparison.Ordinal)
                 || !HasVerticalFace(support)) continue;
             if (!support.gameObject.isStatic) support.gameObject.isStatic = true;
             EditorUtility.SetDirty(support.gameObject);
@@ -65,9 +79,7 @@ public sealed class WallTrapGridAuthoring : EditorWindow
 
         EditorUtility.SetDirty(root);
         EditorSceneManager.MarkSceneDirty(activeScene);
-        EditorSceneManager.SaveScene(activeScene);
         Debug.Log($"Created {created} and aligned {aligned} wall trap grids for Platform_* map geometry; grid tops follow platform tops and bottoms stay above Y={WallGridGroundY:0.###}.");
-        return true;
     }
 
     private static bool HasVerticalFace(Collider collider)
@@ -108,6 +120,7 @@ public sealed class WallTrapGridAuthoring : EditorWindow
             for (int cell = 0; cell < open.Length; cell++) open[cell] = true;
             grid.ConfigureLayout(columns, rows, 1f, 0f, open,
                 TrapPlacementGrid.SurfaceKind.Ground, TrapMountType.Wall, support, 0.01f);
+            Physics.SyncTransforms();
             CloseUnsupportedCells(grid);
             EditorUtility.SetDirty(grid);
             created++;
@@ -145,13 +158,15 @@ public sealed class WallTrapGridAuthoring : EditorWindow
             gridTransform.SetPositionAndRotation(origin + normal * 0.01f,
                 Quaternion.LookRotation(normal, Vector3.up));
 
-            if (grid.Columns != columns || grid.Rows != rows || Mathf.Abs(grid.CellSize - 1f) > 0.0001f)
-            {
-                bool[] open = new bool[columns * rows];
-                for (int cell = 0; cell < open.Length; cell++) open[cell] = true;
-                grid.ConfigureLayout(columns, rows, 1f, 0f, open,
-                    TrapPlacementGrid.SurfaceKind.Ground, TrapMountType.Wall, support, 0.01f);
-            }
+            bool sameLayout = grid.Columns == columns && grid.Rows == rows
+                && Mathf.Abs(grid.CellSize - 1f) <= 0.0001f;
+            bool[] open = new bool[columns * rows];
+            for (int cell = 0; cell < open.Length; cell++)
+                open[cell] = !sameLayout || grid.IsOpen(new Vector2Int(cell % columns, cell / columns));
+            // Rebind even if dimensions did not change: MapForge can replace
+            // the platform collider while retaining this authored grid object.
+            grid.ConfigureLayout(columns, rows, 1f, 0f, open,
+                TrapPlacementGrid.SurfaceKind.Ground, TrapMountType.Wall, support, 0.01f);
             CloseUnsupportedCells(grid);
             EditorUtility.SetDirty(gridTransform);
             EditorUtility.SetDirty(grid);

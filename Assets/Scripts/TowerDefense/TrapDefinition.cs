@@ -54,8 +54,8 @@ public sealed class TrapDefinition : ScriptableObject
         // Wall-mounted traps hang on a vertical backplate; the walkable-floor
         // flag only describes ground spikes. Rejecting the pair keeps the
         // intent explicit instead of silently ignoring one of the two flags.
-        if (mountType == TrapMountType.Wall && walkableFloorTrap)
-            Debug.LogWarning($"[TrapDefinition] {name}: Wall 与 WalkableFloorTrap 不能同时开启，" +
+        if (mountType != TrapMountType.Ground && walkableFloorTrap)
+            Debug.LogWarning($"[TrapDefinition] {name}: {mountType} 与 WalkableFloorTrap 不能同时开启，" +
                 "该组合无效；请关闭 WalkableFloorTrap。", this);
     }
 

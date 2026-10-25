@@ -11,6 +11,8 @@ public enum TrapMountType
     Ground = 0,
     /// <summary>Developer-marked, flat, vertical wall surfaces.</summary>
     Wall = 1,
+    /// <summary>Developer-marked, horizontal underside surfaces.</summary>
+    Ceiling = 2,
 }
 
 public static class TrapMountTypeExtensions
@@ -24,14 +26,20 @@ public static class TrapMountTypeExtensions
     {
         if (definition == null) return false;
         if (definition.MountType != surfaceType) return false;
-        return !(surfaceType == TrapMountType.Wall && definition.WalkableFloorTrap);
+        return !(surfaceType != TrapMountType.Ground && definition.WalkableFloorTrap);
     }
 
     /// <summary>Reason text used by placement previews and editor validation.</summary>
     public static string DescribeMismatch(this TrapMountType surfaceType)
     {
-        return surfaceType == TrapMountType.Wall
-            ? "仅限墙面：该陷阱只能安装在标记过的墙面网格上。"
-            : "仅限地面：该陷阱只能安装在地面、道路或高台网格上。";
+        switch (surfaceType)
+        {
+            case TrapMountType.Wall: return "仅限墙面：该陷阱只能安装在标记过的墙面网格上。";
+            case TrapMountType.Ceiling: return "仅限天花板：该陷阱只能安装在标记过的天花板网格上。";
+            default: return "仅限地面：该陷阱只能安装在地面、道路或高台网格上。";
+        }
     }
+
+    public static string DisplayName(this TrapMountType type) => type == TrapMountType.Ceiling
+        ? "天花板" : type == TrapMountType.Wall ? "墙面" : "地面";
 }
