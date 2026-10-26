@@ -1,9 +1,11 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using KINEMATION.FPSAnimationPack.Scripts.Player;
 
 public static class FirstPersonPlayerBootstrap
 {
     private const float SpawnClearance = 0.05f;
+    private static DroneControlSession activeDroneSession;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void CreatePlayerIfMissing()
@@ -15,6 +17,7 @@ public static class FirstPersonPlayerBootstrap
         if (existingPackagePlayer != null)
         {
             EnsureBridgeComponents(existingPackagePlayer.transform.root.gameObject);
+            SetupDroneIntegration(existingPackagePlayer.transform.root.gameObject);
             return;
         }
 
@@ -30,6 +33,7 @@ public static class FirstPersonPlayerBootstrap
                 legacyPlayer.gameObject.AddComponent<PlayerSprintAimBridge>();
             }
             EnsureLadderClimbStateLogger(legacyPlayer.gameObject);
+            SetupDroneIntegration(legacyPlayer.gameObject);
             return;
         }
 
@@ -60,6 +64,7 @@ public static class FirstPersonPlayerBootstrap
         GameObject player = Object.Instantiate(playerPrefab, spawnPosition, spawnRotation);
         player.name = "FPS Player";
         EnsureBridgeComponents(player);
+        SetupDroneIntegration(player);
 
         Camera packageCamera = player.GetComponentInChildren<Camera>(true);
         if (packageCamera != null)
@@ -141,6 +146,74 @@ public static class FirstPersonPlayerBootstrap
             player.AddComponent<LadderClimbStateLogger>();
         }
     }
+
+#if ENABLE_DRONE_CODE
+    private static void SetupDroneIntegration(GameObject player)
+    {
+        // Only setup if drone code is enabled
+        GameObject dronePrefab = Resources.Load<GameObject>("QuadcopterDrone");
+        if (dronePrefab == null)
+        {
+            Debug.LogWarning("[Bootstrap] QuadcopterDrone prefab not found in Resources. Skipping drone integration.");
+            return;
+        }
+
+        // Spawn drone above and forward of player
+        Vector3 droneSpawnOffset = new Vector3(0f, 3f, 2f);
+        Vector3 droneSpawnPos = player.transform.position + player.transform.TransformDirection(droneSpawnOffset);
+        GameObject drone = Object.Instantiate(dronePrefab, droneSpawnPos, Quaternion.identity);
+        drone.name = "Quadcopter Drone";
+
+        // Create and bind session
+        DroneControlSession session = player.GetComponent<DroneControlSession>();
+        if (session == null)
+        {
+            session = player.AddComponent<DroneControlSession>();
+        }
+        session.Bind(player, drone);
+
+        // Store reference for input handling
+        activeDroneSession = session;
+
+        // Register V key input for toggle
+        var keyboard = Keyboard.current;
+        if (keyboard != null)
+        {
+            InputSystem.onAfterUpdate += HandleDroneToggleInput;
+        }
+        else
+        {
+            Debug.LogWarning("[Bootstrap] No keyboard detected. Drone toggle input not registered.");
+        }
+
+        Debug.Log("[Bootstrap] Drone integration setup complete. Press V to toggle drone control.");
+    }
+
+    private static void HandleDroneToggleInput()
+    {
+        if (activeDroneSession == null) return;
+
+        var keyboard = Keyboard.current;
+        if (keyboard == null) return;
+
+        // Check V key pressed this frame
+        if (keyboard.vKey.wasPressedThisFrame)
+        {
+            // Guard: don't toggle if menu owns cursor
+            if (GameStartMenu.CursorOwned || TrapSelectionMenu.CursorOwned)
+            {
+                return;
+            }
+
+            activeDroneSession.RequestToggle();
+        }
+    }
+#else
+    private static void SetupDroneIntegration(GameObject player)
+    {
+        // No-op when drone code is disabled
+    }
+#endif
 
     private static Vector3 FindSpawnPosition(Vector3 cameraPosition)
     {
