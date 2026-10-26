@@ -284,7 +284,7 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
 
     // ── Boundary Event Handlers ────────────────────────────────
 
-    private void OnPlayerDied()
+    private void OnPlayerDied(PlayerHealth health)
     {
         if (State == DroneControlState.Drone)
         {

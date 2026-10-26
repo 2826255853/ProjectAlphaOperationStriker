@@ -1,4 +1,5 @@
-#if UNITY_INCLUDE_TESTS && ENABLE_DRONE_CODE
+#if UNITY_INCLUDE_TESTS
+#if ENABLE_DRONE_CODE
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
@@ -211,4 +212,5 @@ public class DroneCameraControllerTests
             "ResetPitch 后枢轴 localRotation 应为 identity");
     }
 }
+#endif
 #endif

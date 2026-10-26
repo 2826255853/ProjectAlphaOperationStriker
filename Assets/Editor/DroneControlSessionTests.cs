@@ -1,4 +1,5 @@
-#if UNITY_INCLUDE_TESTS && ENABLE_DRONE_CODE
+#if UNITY_INCLUDE_TESTS
+#if ENABLE_DRONE_CODE
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -127,4 +128,5 @@ public sealed class DroneControlSessionTests
         Assert.IsFalse(session.CanEnter(health), "Should reject when player is dead");
     }
 }
+#endif
 #endif
