@@ -7,11 +7,19 @@ public sealed class Ladder : MonoBehaviour
     [SerializeField, Min(0.5f)] private float height = 3f;
     [SerializeField, Min(0.2f)] private float width = 1f;
     [SerializeField, Min(0.2f)] private float depth = 0.8f;
+    [SerializeField, Tooltip("Distance from top to trigger auto-dismount")]
+    private float topDismountThreshold = 0.3f;
+
     private BoxCollider trigger;
+
     public float Bottom => transform.position.y;
     public float Top => transform.position.y + height;
+    public float TopDismountThreshold => topDismountThreshold;
+    public Vector3 Forward => transform.forward;
+
     private void Awake() => EnsureTrigger();
     private void OnValidate() => EnsureTrigger();
+
     private void EnsureTrigger()
     {
         trigger = GetComponent<BoxCollider>();
@@ -27,17 +35,29 @@ public sealed class Ladder : MonoBehaviour
 public sealed class LadderClimbing : MonoBehaviour
 {
     [SerializeField, Min(0.1f)] private float climbSpeed = 3f;
+    [SerializeField, Tooltip("Vertical mouse sensitivity multiplier while climbing")]
+    private float climbLookSensitivity = 0.5f;
+    [SerializeField, Tooltip("Pitch limit while climbing (degrees)")]
+    private float climbPitchLimit = 60f;
+
     private CharacterController controller;
     private Ladder ladder;
     private int ladderContacts;
     private float detachLockUntil;
+    private bool wasClimbingLastFrame;
+
     public bool IsClimbing { get; private set; }
+
     private void Awake() => controller = GetComponent<CharacterController>();
+
     private void Update()
     {
         if (ladder == null || ladderContacts <= 0)
         {
-            IsClimbing = false;
+            if (IsClimbing)
+            {
+                ExitClimb();
+            }
             return;
         }
 
@@ -47,9 +67,19 @@ public sealed class LadderClimbing : MonoBehaviour
         if (!IsClimbing && Time.time >= detachLockUntil && Mathf.Abs(ReadVerticalInput()) > 0.01f)
         {
             IsClimbing = true;
+            OnEnterClimb();
         }
 
         if (!IsClimbing) return;
+
+        // Auto-dismount at top
+        if (transform.position.y >= ladder.Top - ladder.TopDismountThreshold && ReadVerticalInput() > 0.01f)
+        {
+            ExitClimb();
+            // Push player slightly forward to clear the ladder
+            controller.Move(ladder.Forward * 0.5f);
+            return;
+        }
 
         // Horizontal movement and jump are the conventional ways to leave a
         // ladder. Release the climb immediately and let the normal controller
@@ -58,13 +88,30 @@ public sealed class LadderClimbing : MonoBehaviour
         {
             ExitClimb();
         }
+
+        wasClimbingLastFrame = true;
     }
+
     private void LateUpdate()
     {
         if (!IsClimbing || ladder == null || controller == null) return;
+
         Vector3 position = transform.position;
-        float targetY = Mathf.Clamp(position.y + ReadVerticalInput() * climbSpeed * Time.deltaTime, ladder.Bottom, ladder.Top);
+        float verticalInput = ReadVerticalInput();
+        float targetY = Mathf.Clamp(
+            position.y + verticalInput * climbSpeed * Time.deltaTime,
+            ladder.Bottom,
+            ladder.Top
+        );
+
+        // Disable gravity while climbing by only moving vertically
         controller.Move(Vector3.up * (targetY - position.y));
+    }
+
+    private void OnEnterClimb()
+    {
+        wasClimbingLastFrame = false;
+        // TODO(确认): 是否需要禁用玩家武器输入？
     }
     private static float ReadVerticalInput()
     {
@@ -80,7 +127,10 @@ public sealed class LadderClimbing : MonoBehaviour
     {
         Keyboard keyboard = Keyboard.current;
         if (keyboard == null) return Vector2.zero;
-        return new Vector2((keyboard.dKey.isPressed ? 1f : 0f) - (keyboard.aKey.isPressed ? 1f : 0f), 0f);
+        return new Vector2(
+            (keyboard.dKey.isPressed ? 1f : 0f) - (keyboard.aKey.isPressed ? 1f : 0f),
+            0f
+        );
     }
 
     private static bool WasJumpPressed()
@@ -91,21 +141,46 @@ public sealed class LadderClimbing : MonoBehaviour
 
     public void ExitClimb()
     {
+        if (!IsClimbing) return;
+
         IsClimbing = false;
+        wasClimbingLastFrame = false;
         // Prevent the same held key from reattaching on the next frame.
         detachLockUntil = Time.time + 0.25f;
+
+        // TODO(确认): 是否需要在退出时恢复重力或速度？
     }
+
     private void OnTriggerEnter(Collider other)
     {
         Ladder found = other.GetComponentInParent<Ladder>();
         if (found == null) return;
-        ladder = found; ladderContacts++;
+
+        // First contact with this ladder
+        if (ladder != found)
+        {
+            ladder = found;
+            ladderContacts = 1;
+        }
+        else
+        {
+            ladderContacts++;
+        }
     }
+
     private void OnTriggerExit(Collider other)
     {
         Ladder found = other.GetComponentInParent<Ladder>();
         if (found == null || found != ladder) return;
+
         ladderContacts = Mathf.Max(0, ladderContacts - 1);
-        if (ladderContacts == 0) { ladder = null; IsClimbing = false; }
+        if (ladderContacts == 0)
+        {
+            ladder = null;
+            if (IsClimbing)
+            {
+                ExitClimb();
+            }
+        }
     }
 }

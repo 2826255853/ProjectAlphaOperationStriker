@@ -175,14 +175,12 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
         // 1. Reset drone velocity and freeze
         if (droneController != null)
         {
-            // TODO(步骤4): 需要 QuadcopterFlightController.ResetVelocity() 方法
+            droneController.ResetVelocity();
             droneController.enabled = false;
         }
 
         if (droneRigidbody != null)
         {
-            droneRigidbody.linearVelocity = Vector3.zero;
-            droneRigidbody.angularVelocity = Vector3.zero;
             droneRigidbody.isKinematic = true; // Freeze drone
         }
 

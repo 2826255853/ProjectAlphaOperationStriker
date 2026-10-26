@@ -170,6 +170,20 @@ namespace TowerDefense
 
         // ── 工具方法 ──────────────────────────────────────────────
 
+        /// <summary>切换回玩家模式前由协调器调用，清除速度残留。</summary>
+        public void ResetVelocity()
+        {
+            _smoothLocalVel = Vector3.zero;
+            _velDamp        = Vector3.zero;
+            _smoothYawRate  = 0f;
+            _yawDamp        = 0f;
+            if (_rb != null)
+            {
+                _rb.linearVelocity  = Vector3.zero;
+                _rb.angularVelocity = Vector3.zero;
+            }
+        }
+
         Transform[] FindRotors()
         {
             var result = new Transform[RotorNames.Length];
