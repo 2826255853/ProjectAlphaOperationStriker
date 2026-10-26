@@ -5,7 +5,9 @@ using KINEMATION.FPSAnimationPack.Scripts.Player;
 public static class FirstPersonPlayerBootstrap
 {
     private const float SpawnClearance = 0.05f;
+#if ENABLE_DRONE_CODE
     private static DroneControlSession activeDroneSession;
+#endif
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void CreatePlayerIfMissing()
