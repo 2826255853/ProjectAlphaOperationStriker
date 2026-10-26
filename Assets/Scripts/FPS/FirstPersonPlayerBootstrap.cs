@@ -175,6 +175,9 @@ public static class FirstPersonPlayerBootstrap
         // Store reference for input handling
         activeDroneSession = session;
 
+        // Setup HUD
+        SetupDroneHUD(session);
+
         // Register V key input for toggle
         var keyboard = Keyboard.current;
         if (keyboard != null)
@@ -187,6 +190,20 @@ public static class FirstPersonPlayerBootstrap
         }
 
         Debug.Log("[Bootstrap] Drone integration setup complete. Press V to toggle drone control.");
+    }
+
+    private static void SetupDroneHUD(DroneControlSession session)
+    {
+        // Create canvas for drone HUD
+        GameObject hudObj = new GameObject("DroneHUD");
+        Canvas canvas = hudObj.AddComponent<Canvas>();
+        hudObj.AddComponent<UnityEngine.UI.CanvasScaler>();
+        hudObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+
+        DroneHUD hud = hudObj.AddComponent<DroneHUD>();
+        hud.BindSession(session);
+
+        Object.DontDestroyOnLoad(hudObj);
     }
 
     private static void HandleDroneToggleInput()

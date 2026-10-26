@@ -1,6 +1,8 @@
 #if ENABLE_DRONE_CODE
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
+using TowerDefense;
 
 public enum DroneControlState
 {
@@ -60,7 +62,17 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
             // Try to find FPSPackagePlayerMotion by name (avoid hard reference)
             var motion = playerRoot.GetComponent("FPSPackagePlayerMotion") as MonoBehaviour;
             fpsPackageMotion = motion;
+
+            // Subscribe to player death event
+            var playerHealth = playerRoot.GetComponent<PlayerHealth>();
+            if (playerHealth != null)
+            {
+                playerHealth.Died += OnPlayerDied;
+            }
         }
+
+        // Subscribe to scene unload
+        SceneManager.sceneUnloaded += OnSceneUnloaded;
     }
 
     /// <summary>Requests a player/drone mode toggle.</summary>
@@ -255,6 +267,76 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
         if (State == DroneControlState.Drone)
         {
             ExitDroneMode();
+        }
+
+        // Unsubscribe from events
+        if (playerRoot != null)
+        {
+            var playerHealth = playerRoot.GetComponent<PlayerHealth>();
+            if (playerHealth != null)
+            {
+                playerHealth.Died -= OnPlayerDied;
+            }
+        }
+
+        SceneManager.sceneUnloaded -= OnSceneUnloaded;
+    }
+
+    // ── Boundary Event Handlers ────────────────────────────────
+
+    private void OnPlayerDied()
+    {
+        if (State == DroneControlState.Drone)
+        {
+            Debug.Log("[DroneControlSession] Player died while in drone mode. Exiting to Player state.");
+            ExitDroneMode();
+        }
+    }
+
+    private void OnSceneUnloaded(Scene scene)
+    {
+        // Clean up references without calling Exit (objects may already be destroyed)
+        State = DroneControlState.Player;
+        playerRoot = null;
+        droneRoot = null;
+        droneCamera = null;
+        droneController = null;
+        droneRigidbody = null;
+        observerMode = null;
+        originalPlayerCamera = null;
+        fpsController = null;
+        fpsPackageMotion = null;
+    }
+
+    private void Update()
+    {
+        // Monitor drone destruction
+        if (droneRoot == null && State == DroneControlState.Drone)
+        {
+            Debug.LogWarning("[DroneControlSession] Drone was destroyed. Exiting to Player state.");
+            ExitDroneMode();
+        }
+
+        // Stop drone input if menu takes cursor ownership
+        if (State == DroneControlState.Drone)
+        {
+            if (GameStartMenu.CursorOwned || TrapSelectionMenu.CursorOwned)
+            {
+                // Disable drone controller input temporarily
+                // Controller will resume when menu closes
+                if (droneController != null && droneController.enabled)
+                {
+                    droneController.enabled = false;
+                }
+            }
+            else
+            {
+                // Re-enable if it was disabled
+                if (droneController != null && !droneController.enabled)
+                {
+                    droneController.enabled = true;
+                }
+            }
         }
     }
 }
