@@ -515,3 +515,23 @@
 - 可重复恢复入口：菜单 `Tools/Tower Defense/Restore Main Map Wall Trap Grids` 或批处理 `WallTrapGridRestoration.Restore`（预览需 `-WithGraphics`）。自动备份后恢复两次，检查幂等性、开放格支撑，并调用项目完整网格校验；预览叠加层不会保存到场景。
 - 产物目录：`C:\Users\ASUS\Desktop\陷阱素材文件夹\WallTrapGridRestore\`。修改前原始场景和 `.meta` 在 `backup-20261025-234958\`；`validation.txt` 为场景校验，`wall-grids-restored.png` 为已目视确认的 Unity 实机预览，`restore.log` 含成功退出标记且无 C# 编译错误/异常。需要撤回场景时从该备份复制 `.unity` 回原路径，保留原 `.meta`。
 - 回归：`RunEnemyDamageResistanceTests.ps1 -Fixtures WallTrapPlacementTests,CeilingTrapPlacementTests` 使用项目记录的 Unity 版本运行，**25/25 通过、0 失败、0 跳过**（墙面 8，天花板 17）。新增墙面用例覆盖平台 Collider 被替换后重新绑定、手绘关闭格保留及重复创建不增生对象；结果在 `tests\20261025-235202-420\editmode-results.xml`。未做主地图 Play Mode 人工放置验收。
+
+## 高台可见放置网格线（2026-10-26）
+
+- 用户确认需求为在高台显示清晰网格线。主场景原本已有 `TrapPlacementGrid_Platform`：1,088 个开放格、1 m 格距、放置高度 2.02 m；本次保留该掩码，仅给该对象增加 `PlatformTrapGridLines` 组件。
+- `Assets/Scripts/TowerDefense/PlatformTrapGridLines.cs` 在编辑器和运行时根据开放格生成一份共享网格，格心四周各退半格构造边界，共用边不重复绘制；线宽 0.035 m，额外抬高 0.012 m，无 Collider。生成的子对象、Mesh、Material 不序列化，禁用组件时清理；重新加载场景时自动重建。
+- `MapForgeWorldImporter.CreateTrapPlacementGrid` 与 `TrapPlacementGridEditor.ConfigureGrid` 在生成平台网格时补上该组件。入口 `PlatformTrapGridAuthoring.ApplyToCurrentMap` 自动备份主场景、复用 `TrapGridAuthoring.BuildPlatformMask`、保存场景并生成俯视/近景预览。
+- 原始场景与 `.meta` 的已校验备份：`C:\Users\ASUS\Desktop\TrapGridBackups\PlatformGrid-20261026-174516\`。预览与日志：`C:\Users\ASUS\Desktop\TrapGridBackups\PlatformGridOutput\platform-grid-detail.png`、`platform-grids.png`、`visible-grid.log`、`validation.txt`。Unity 按项目版本启动，日志确认 `PLATFORM_GRID_PASS` 和成功退出，无 C# 错误/方法异常；高台 0 埋入、0 悬空、0 无支撑、0 道路重叠。整图原有地面/道路 6/8 个埋入地形格仍保留，未做主地图人工 Play Mode 放置验收。
+- 本次 `run-unity-method.ps1` 的 `-NoNewWindow` 启动触发 Mono `System.Console` 无效 handle；使用动态匹配项目版本的 Unity 路径并以 `Start-Process -WindowStyle Hidden`（不重定向标准句柄）启动后编译、校验、预览均成功。未更改公共运行脚本。
+
+## DroneControlSession 测试恢复与收尾（2026-10-26）
+
+- `Assets/Editor/DroneControlSessionTests.cs` 原有 7 个会话用例恢复后，测试类需导入 `TowerDefense` 命名空间；夹具复用飞控的 `Rigidbody`，预先创建旋翼节点，并按 `Drone → Camera_Gimbal → DroneCamera(Camera)` 构建相机层级后再挂相机控制器。菜单私有 setter 用反射注入，teardown 销毁对象后恢复菜单静态状态和光标。
+- 首次会话测试 3/7 失败的根因是新建 `PlayerHealth` 未执行 `Awake`，令默认 `CurrentHealth == 0` 被误判死亡；夹具显式初始化后会话测试 **7/7** 通过。与相机夹具联跑 **16/16**（会话 7、相机 9；0 失败、0 跳过）。XML：`C:\Users\ASUS\Desktop\DroneControlSessionChecks\20261026-202314-248\editmode-results.xml` 与 `C:\Users\ASUS\Desktop\DroneControlSessionChecks\20261026-202357-777\editmode-results.xml`。
+- 符号关闭编译首次暴露 `FirstPersonPlayerBootstrap.activeDroneSession` 字段未受 `ENABLE_DRONE_CODE` 保护，导致宏关闭时找不到已被排除的 `DroneControlSession`。字段现由同一宏包围；无人机初始化方法已有关闭时空实现，因此宏开启时的运行路径未变。
+- 从 `Tests~/Editor/DroneControlSessionTests.cs` 清除了临时 `TODO(确认)`。会话和相机测试源码及 `.meta` 保留在 `Tests~\Editor`，Unity 后续导入不包含测试专用源码；重跑前临时复制到 `Assets/Editor`，测试结束后立即移回。
+- Unity `6000.6.7f1` 批处理编译：`ENABLE_DRONE_CODE` 关闭时 0 个 C# 编译错误，开启时也为 0。关闭宏验证使用临时 `ProjectSettings.asset` 快照并在结束时恢复，当前 Standalone 符号仍为 `ENABLE_DRONE_CODE`。日志：`C:\Users\ASUS\Desktop\DroneControlSessionChecks\20261026-step4-symbol-off\unity-compile.log`、`C:\Users\ASUS\Desktop\DroneControlSessionChecks\20261026-step4-symbol-off\unity-compile-symbol-on.log`。未做完整 Player 构建或 Play Mode 实机飞行验收。
+
+## 测试源码编译隔离
+
+测试专用源码在测试结束后不得继续被 Unity 导入或编译。长期保留的测试源码应放在 Unity 不导入的 `Tests~` 目录或项目外；临时放在 `Assets/` 中的测试源码，应在测试完成后立即移出或删除并清理对应 `.meta`，再启动后续 Unity 编译或打开项目。不应把 `#if UNITY_INCLUDE_TESTS` 单独视为充分隔离。

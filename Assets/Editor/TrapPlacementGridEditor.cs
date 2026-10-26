@@ -283,6 +283,12 @@ public sealed class TrapPlacementGridEditor : Editor
         Undo.RecordObject(grid, "Configure trap placement grid");
         grid.transform.SetPositionAndRotation(anchorPosition, anchorRotation);
         grid.ConfigureLayout(monsterGrid.Columns, monsterGrid.Rows, monsterGrid.CellSize, placementHeight, openCells, surface);
+        if (surface == TrapPlacementGrid.SurfaceKind.Platform)
+        {
+            var lines = grid.GetComponent<PlatformTrapGridLines>();
+            if (lines == null) lines = Undo.AddComponent<PlatformTrapGridLines>(grid.gameObject);
+            lines.Rebuild();
+        }
         EditorUtility.SetDirty(grid);
         UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(grid.gameObject.scene);
         return grid;

@@ -659,6 +659,8 @@ public static partial class MapForgeWorldImporter
         TrapPlacementGrid grid = gridObject.AddComponent<TrapPlacementGrid>();
         gridObject.AddComponent<MapForgeGeneratedTrapGrid>();
         grid.ConfigureLayout(pathGrid.Columns, pathGrid.Rows, pathGrid.CellSize, placementHeight, openCells, surface);
+        if (surface == TrapPlacementGrid.SurfaceKind.Platform)
+            gridObject.AddComponent<PlatformTrapGridLines>();
     }
 
     private static void OpenSegment(MonsterPathGrid grid, PathSegmentData segment)
