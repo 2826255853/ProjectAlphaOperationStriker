@@ -146,6 +146,18 @@ Step 5 - 回归：受影响旧功能、预览图、git diff 与最终文件清�
 - 生成的预制体落在 `Assets/Prefabs/DualMissileLauncher.prefab`（**不是** `Assets/Resources/`）：它由 `TrapDefinition` 资产直接引用，不需要 `Resources.Load` 兜底；飞行怪物那套才必须待在 `Resources/`。新增陷阱按各自的引用方式选目录，别照抄。
 - 回归测试：`Assets/Editor/MissileLauncherTurretTests.cs`（两轴限位、预制体接线的旋转台、原始 FBX 能自建 rig、空中过滤）与 `Assets/Editor/MissileLauncherWeaponTests.cs`（选靶优先级、拦截点领先、齐射两发、装填阻塞、超程引爆、无 Collider 结算）。两者都在 `#if UNITY_INCLUDE_TESTS` 里，跑法 `-runTests -testPlatform EditMode`（可加 `-testFilter MissileLauncher`）。
 
+### 贝蒂7号跳雷（地面陷阱，2026-10 改为逐槽装填）
+
+`Assets/Scripts/TowerDefense/Betty7JumpMineTrap.cs` 现在是**四个槽位各一套状态机**，不是整机一个状态机：
+
+- 装填时间 `cooldownSeconds` 只属于刚起爆的那一颗；其余槽位保持自己的 `Ready`/冷却，`GetMineReloadRemaining(i)` 读的是单个槽位。
+- 开火是"方向择雷"：取 `detectRadius` 内最近的地面怪 → 在已装填槽位里选方位最贴合的那颗（`SelectMineForTarget`，`Vector2.Dot` 最大、同方位再比水平距离）。改方向规则只改这一个函数。
+- **同一时间只允许一颗起爆**（`IsAnyMineEngaged` 门控）：这是"启动最靠近的一个可使用的跳雷"的落点，四角跳雷不再齐爆。想恢复齐爆就得重写状态机，别只改一个布尔。
+- 起爆中心是**被选中那颗跳雷自己的角位**（`MineBlastCenter`），不是陷阱中心；所以"侦测圈内但爆破圈外"的距离判据要按角位算，写回归用例时别再用陷阱中心。
+- `State` 变成所有槽位的聚合态（最活跃优先），`DetonationCount` 是总数，另有 `LastLaunchedMineIndex` / `LastLaunchDirection` / `GetMineState` / `IsMineReady` / `GetMineDetonationCount` 供测试与工具使用。
+- 序列化字段名一个都没改，`Assets/Prefabs/Betty7.prefab` 无需重新生成；改字段名会丢掉预制体里已保存的数值。
+- 回归用例在 `Tests~\Editor\Betty7JumpMineSlotTests.cs`（12 例，含真实预制体四槽接线），跑法：复制到 `Assets/Editor` 后 `Assets/Editor/RunEnemyDamageResistanceTests.ps1 -Fixtures Betty7JumpMineSlotTests`，跑完删除源码与 `.meta`。夹具的怪物必须给高血量：`EnemyHealth` 死亡时调用 `Destroy`，编辑期会报错并留下待销毁对象污染后续 TearDown。
+
 ### MapForge「Send to Unity」实时同步（2026-09 新增）
 
 除了一次性导入，现在还多了一条**增量同步**通道：MapForge 里点「Send to Unity」，Unity 编辑器自己把改动应用到**当前打开的场景**上。
@@ -167,6 +179,7 @@ Step 5 - 回归：受影响旧功能、预览图、git diff 与最终文件清�
 - 改双联导弹发射器（炮塔两轴、拦截点预测、齐射/装填、对空过滤、预制体生成），读上面的[双联导弹发射器](#双联导弹发射器对空陷阱2026-09-新增)。
 - 改「Send to Unity」实时同步、MapForgeSync/ 目录或 MapForgeWorldImporter.Authored.cs 的手工对象保留，读上面的[MapForge「Send to Unity」实时同步](#mapforgesend-to-unity实时同步2026-09-新增)。
 - 改陷阱血条显示（准星选靶、遮挡判定、HUD 样式），读上面的[瞄准陷阱时显示陷阱血条](#瞄准陷阱时显示陷阱血条2026-09-新增)。
+- 改贝蒂7号跳雷（方向择雷、逐槽装填、起爆中心、预制体四槽接线），读上面的[贝蒂7号跳雷](#贝蒂7号跳雷地面陷阱2026-10-改为逐槽装填)。
 
 ## 已知会造成误判的情况
 

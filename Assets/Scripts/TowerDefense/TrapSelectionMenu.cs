@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>Runtime trap picker. Press N to assign available traps to the four hotbar slots.
+/// <summary>Runtime trap picker. Press N to assign available traps to the five hotbar slots.
 /// Traps are listed in a fixed 6 rows x 9 columns grid of square buttons.</summary>
 public sealed class TrapSelectionMenu : MonoBehaviour
 {
@@ -207,12 +207,14 @@ public sealed class TrapSelectionMenu : MonoBehaviour
         GUI.Box(panel, "陷阱选择");
         GUI.Label(new Rect(panel.x + pad, panel.y + 30f, panelWidth - pad * 2f, 24f), "先选择目标槽位，再点击陷阱分配（N 或 Esc 关闭）");
         GUI.Label(new Rect(panel.x + pad, panel.y + 62f, 80f, 28f), "目标槽位");
-        for (int i = 0; i < 4; i++)
+        const float slotButtonWidth = 94f;
+        const float slotButtonGap = 3f;
+        for (int i = 0; i < 5; i++)
         {
             TrapDefinition slotTrap = target != null ? target.GetTrapSlot(i) : null;
             string label = $"{i + 4}: {(slotTrap != null ? slotTrap.DisplayName : "空")}";
             GUI.backgroundColor = i == targetSlot ? new Color(0.55f, 0.9f, 1f) : Color.white;
-            if (GUI.Button(new Rect(panel.x + pad + 84f + i * 116f, panel.y + 58f, 110f, 34f), label))
+            if (GUI.Button(new Rect(panel.x + pad + 84f + i * (slotButtonWidth + slotButtonGap), panel.y + 58f, slotButtonWidth, 34f), label))
             {
                 targetSlot = i;
                 currentSlotTrap = slotTrap;

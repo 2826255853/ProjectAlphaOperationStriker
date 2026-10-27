@@ -1,5 +1,7 @@
 # 无人机系统游戏接入计划
 
+> 历史计划（2026-10-23）。游戏内接入已于 2026-10-26 完成；当前资源路径、运行行为与验证记录以 [`DroneControlIntegrationGuide.md`](DroneControlIntegrationGuide.md) 和最新源码为准。
+
 文档日期：2026-10-23  
 基于：`DroneControlIntegrationGuide.md`（已有原型路线）+ 当前源码分析
 
@@ -14,11 +16,11 @@
 | `Assets/Scripts/FPS/PlayerObserverMode.cs` | 已定义 `IObserverModeDriver` 接口与 `ObserverModeInput` 结构体；预留无人机驱动插槽 | 接口未被任何无人机代码实现 |
 | `Assets/Editor/QuadcopterDroneAuthoring.cs` | 导入校验与预制体探针；菜单 `Tools/塔防/探针：无人机模型导入检查/预制体检查` | 包在 `#if ENABLE_DRONE_CODE` |
 | `Assets/Editor/DroneCameraControllerTests.cs` | 文件存在 | 历史运行 0 个用例；程序集配置未解决 |
-| `Assets/Prefabs/QuadcopterDrone.prefab` | 已存在 | 接入前需用探针确认 Rigidbody / 旋翼 / 材质 / 云台节点 |
+| `Assets/Resources/QuadcopterDrone.prefab` | 已接入 | 由生成器写入 Rigidbody / 飞控 / Camera / AudioListener，并由探针验证 |
 
 ### 关键约束（接入前必须满足）
 
-1. `ENABLE_DRONE_CODE` 当前未启用；所有无人机代码在默认编译中不存在。
+1. `ENABLE_DRONE_CODE` 已在 Standalone 配置启用；关闭宏时无人机代码仍按预期排除。
 2. 云台节点：`DroneCameraController` 自动查找 `Camera_Lens`，但模型约定是 `Camera_Gimbal`——接入前必须统一，或改成序列化显式引用。
 3. `DroneCameraController.OnEnable` 直接调用 `Cursor.lockState = Locked`，会与 `GameStartMenu.CursorOwned` / `TrapSelectionMenu.CursorOwned` 冲突——接入前必须移除。
 4. `QuadcopterFlightController` 键盘映射（W/S/A/D/Q/E/Shift/Ctrl）与 FPS 键位重叠，Drone 状态必须停用玩家输入后再启用飞控输入。

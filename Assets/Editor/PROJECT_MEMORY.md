@@ -24,7 +24,7 @@
 | Python | 仅定位到 `C:\Users\ASUS\AppData\Local\Microsoft\WindowsApps\python.exe` | 可能是应用执行别名，未验证真实解释器 |
 | MapForge | 用户于 2026-10-16 确认原地图编辑器已迁移至 `C:\MapForge`（C 盘根目录）；2026-10-18 统一工程命名 | 启动与维护使用 `C:\MapForge\MapForge.csproj`；2026-10-18 确认 `.validation-build\UnityCompile.csproj` 不存在 |
 | 第三方资源 | `Assets/KINEMATION`、`Assets/TextMesh Pro` 目录存在 | 只确认存在，未核验完整性或编译 |
-| 陷阱中间素材 | 用户指定的 `C:\Users\Origami\Desktop\陷阱素材文件夹` 不存在 | 本次未创建；后续制作仍遵守指定路径，若需更换账户路径须明确更新约定 |
+| 陷阱中间素材（2026-10-27 更正） | 当前目录为 `C:\Users\ASUS\Desktop\陷阱素材文件夹`；`C:\Users\Origami` 是旧用户目录，已停用，不再使用 | 后续陷阱制作的中间产物统一放入 ASUS 当前桌面素材目录 |
 
 此表是一次性观察，不是安装/迁移清单。环境变化后更新，不为了解决玩法任务顺带安装或升级工具。
 
@@ -92,6 +92,7 @@
 | 对空双联导弹 | `MissileLauncherTurret` → `MissileLauncherWeapon` → `MissileProjectile` | `MissileLauncherTurretAuthoring.CreateLauncherPrefabBatch`；预制体配置为 `Assets/Prefabs/DualMissileLauncher.prefab`，定义分别位于 `Assets/Resources` 和 `Assets/TrapDefinitions` |
 | 导弹尾焰 | `MissileExhaustFx` | `Assets/Models/DualMissileExhaust/DualMissileExhaust.fbx`；生成器负责安装两组并替换 URP 材质 |
 | 地刺 | `GroundSpikeTrap` | `GroundSpikeTrapAuthoring.CreateAssets`；模型 `Assets/Models/GroundSpike/GroundSpike.fbx`，生成 `Assets/Resources/GroundSpike.prefab` / `.asset` |
+| 贝蒂7号跳雷（地面陷阱） | `Betty7JumpMineTrap` | `Betty7TrapAuthoring.CreateAssets`；模型 `Assets/Models/Betty7/Betty7.fbx`，预制体 `Assets/Prefabs/Betty7.prefab`（四角 `Mine_01..04` 各自独立装填 + 方向择雷），定义 `Assets/Resources/Betty7.asset` |
 | 墙面喷火器 | `FlamethrowerTrap` + `FlamethrowerFeedback` | 模型 `Assets/Models/Flamethrower/Flamethrower.fbx`（Blender 源在桌面「陷阱素材文件夹\Flamethrower」），`FlamethrowerModelAuthoring.CreateModelPrefabBatch` 生成 `Assets/Resources/Flamethrower.prefab`（`Model` 子节点 + `Flame Origin` / `Attack Origin` / 三个 Fx 挂点），定义 `Assets/Resources/Flamethrower.asset`；`CreateGraybox` 已加保护，检测到 `Model` 就拒绝覆盖 |
 | 燃烧 | `FireStatusEffect` + `FireStatusEffectVisual` | 状态挂在怪物上，独立于点燃它的陷阱 |
 | 瞄准陷阱血条 | `TrapHealthBarUI` | 复用 `TrapInstance.CurrentHealth` / `MaxHealth`，场景加载后自建 HUD |
@@ -532,6 +533,56 @@
 - 从 `Tests~/Editor/DroneControlSessionTests.cs` 清除了临时 `TODO(确认)`。会话和相机测试源码及 `.meta` 保留在 `Tests~\Editor`，Unity 后续导入不包含测试专用源码；重跑前临时复制到 `Assets/Editor`，测试结束后立即移回。
 - Unity `6000.6.7f1` 批处理编译：`ENABLE_DRONE_CODE` 关闭时 0 个 C# 编译错误，开启时也为 0。关闭宏验证使用临时 `ProjectSettings.asset` 快照并在结束时恢复，当前 Standalone 符号仍为 `ENABLE_DRONE_CODE`。日志：`C:\Users\ASUS\Desktop\DroneControlSessionChecks\20261026-step4-symbol-off\unity-compile.log`、`C:\Users\ASUS\Desktop\DroneControlSessionChecks\20261026-step4-symbol-off\unity-compile-symbol-on.log`。未做完整 Player 构建或 Play Mode 实机飞行验收。
 
+## 快速小怪（新怪物种类）与防暴警棍兵模型（2026-10-26）
+
+- 依据：参考图 `C:\Users\ASUS\Desktop\策划\` 的防暴警棍兵三视图 + `关卡设计示例（15波）.docx` 的「普通怪·地面·快速小怪：攻击 8，血量 40，移速快，光属性易伤」。设计意图是体型小、相对不易命中，逼迫手打玩家停下开火（第 2 波起大量使用）。
+- **怪物数值唯一来源是 `Assets/Scripts/TowerDefense/MonsterSpecies.cs`**：`MonsterSpecies`（Id / 显示名 / 血量 / 攻击 / 攻击间隔 / 移速 / 模型缩放 / 七类抗性 / 特性说明）+ `MonsterSpeciesCatalog.FastRunner`（`fast_runner`，40 HP、攻击 8、间隔 0.8 s、移速 4、缩放 0.9、光抗 -30%）。改平衡只改这里再重跑生成器，不要在生成器或预制体里另写数字。
+- 生成入口 `Assets/Editor/FastRunnerAuthoring.cs`：菜单 `Tools/塔防/快速小怪/生成材质与预制体` = `CreateAssetsBatch`（`Assets/Models/FastRunner/Materials/FR_*.mat` 15 个 URP/Lit 材质 + `Assets/Prefabs/FastRunner.prefab`）；`ProbeModel`（骨骼/警棍权重探针，写 `%TEMP%/alpha-striker-unity/fast-runner/probe.json`）；`Validate` / `ValidateBatch`（12 项断言，写 `validation.json`，失败抛异常）；`RenderPreview`（**需 `-WithGraphics`**，正/侧/背/三分之四 + 两个走路相位，输出桌面素材目录 `FastRunner\unity-previews\`）。
+- 预制体结构：根 `FastRunner`（`CapsuleCollider` 1.78 m / r 0.30、`EnemyHealth`、`GroundEnemyCombat`、`MonsterWalkAnimator`，整体缩放 0.9）→ 子节点 `FastRunner_Model`（FBX 实例）。**不要手工加/改这几个组件**，重跑生成器即可；`GroundEnemyCombat` 带 `RequireComponent`，会连带 `MonsterPathFollower`。
+- 模型规格：Blender 源 `C:\Users\ASUS\Desktop\陷阱素材文件夹\FastRunner\build_fast_runner.py`（可编辑 `FastRunner.blend`）；身高 1.827 m、身体 7,607 顶点 / 14,708 三角面、警棍独立蒙皮网格 296 顶点 / 560 三角面；21 根骨骼（`Root/Hips/Spine/Chest/Neck/Head` + 两侧 `Shoulder/UpperArm/LowerArm/Hand` + `UpperLeg/LowerLeg/Foot` + `Baton` 挂 `Hand.R`），命名与 `MonsterWalkAnimator` 查找表一致，零缺失。
+- **右手持棍**：警棍是 `FastRunner_Baton` 独立对象，权重 100% 在 `Baton` 骨骼上（父级 `Hand.R`），网格在世界 -X 侧，即角色右手；挥棍/摆动随 `Hand.R`。改握持方向只改 `build_baton()` 的 `axis` 与 `hand_center(-1)`。
+- 材质要点：面罩 `FR_Visor_Glass` 是 URP 透明（`_Surface=1`、`SrcAlpha/OneMinusSrcAlpha`、`ZWrite=0`、`renderQueue=3000`、关 ShadowCaster），`_BaseColor` 的 **alpha 必须是 0.22 左右**，否则脸部被完全遮住（本轮踩过：alpha 默认 1，Unity 预览里只见一块黑板）。改配色改 `FastRunnerAuthoring.Palette` 再重跑。
+- 一键进出怪口（已被下面的 50/50 混刷取代，保留作历史）：菜单 `Tools/塔防/快速小怪/写入选中出怪口的第1-3波` 原先把选中出怪口整波改成快速小怪；现在同名入口已改为写 50% 混刷。
+- 验证：`Assets/Editor/FastRunnerTests.cs` 6/6 通过（数值表与文档一致、预制体血量/抗性/攻击接线、程序化步态骨骼齐全、警棍独立网格且挂 `Hand.R`、体型小于普通小怪）；Unity `6000.6.7f1`，结果 `C:\Users\ASUS\Desktop\陷阱素材文件夹\FastRunner\editmode\20261026-221746-892\editmode-results.xml`。`ValidateBatch` 12 项 PASS、`RenderPreview` 出 6 张图并目视确认。
+- 未做：PlayMode 实机战斗/追击验收、LOD、UV 图集与贴图、受击/死亡表现、`MonsterSpecies` 尚未接入 HUD 或图鉴。
+
+## 快速小怪接入刷怪：一半普通 + 一半快速（2026-10-27）
+
+- 刷怪侧新增「混刷」，不新增怪物种类也不复制出怪口：`EnemySpawnPoint.WaveSpawnSettings` 增加 `alternateEnemyPrefab`（第二种预制体）、`alternateShare`（0–1 占比）、`alternateMoveSpeed`（0 = 沿用出怪口速度）。主预制体仍是 `enemyPrefab`。
+- 选怪唯一判据是 `EnemySpawnPoint.UseAlternatePrefab(indexInWave, share)`：按 `floor(i*share)` 的增量判断，整波正好 `floor(总数*share)` 只第二种怪，且在波内均匀交错（0.5 时是 普通/快速 交替，不会扎堆）。`GetAlternateCount` 是同一公式的数量版本，改占比逻辑只改这两处。
+- 混刷只作用于地面波次（`MonsterType.Ground`）；飞行出怪口和飞行波次直接忽略，避免把地面快速小怪混进空中。
+- **快速小怪的移速靠 `alternateMoveSpeed` 传下去**：`EnemySpawnPoint` 原来给所有怪统一 `moveSpeed`，所以生成器写入 `MonsterSpeciesCatalog.FastRunner.MoveSpeed`（4），不要在场景里手填数字。
+- 编辑器入口 `Assets/Editor/FastRunnerAuthoring.cs`：`ApplyMixedWaves(spawn, prefab, share)` 只写这三字段（不改数量），并把旧「整波快速小怪」配置的主预制体还原成出怪口默认预制体；菜单 `Tools/塔防/快速小怪/写入选中出怪口的 50% 快速小怪`；整场景入口菜单 `把主场景地面出怪口改为 50% 普通 + 50% 快速`，批处理 `FastRunnerAuthoring.ApplyMixedWavesToMainScene`（打开并保存构建场景列表第一个场景；**会写场景，先备份**）。
+- 主场景已接线：`Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity` 的 3 个地面出怪口 × 3 波 = 9 个波次均为 `alternateShare 0.5` / `alternateMoveSpeed 4`。场景备份：`C:\Users\ASUS\Desktop\陷阱素材文件夹\FastRunner\backups\20261027-141924`。
+- 踩过的坑：`EnemySpawnPoint.OnValidate` 会调 `EnsureWaveSpawnData()` 把波次列表补齐到总波数，所以编辑期测试改 `waveSpawnSettings` 时必须同时把 `totalWaves` 固定成期望值，否则数组会被重新撑大。
+- 回归：`FastRunnerTests` 新增 5 个用例——交替数量正好一半、0.5 时严格交错、边界与 clamp、真实 `CreateEnemy` 刷 10 只中 5 只快速且移速 4、`ApplyMixedWaves` 还原主预制体且不改波次数量。Unity `6000.6.7f1` 实跑 **11/11 通过、0 失败**，结果 `C:\Users\ASUS\Desktop\陷阱素材文件夹\FastRunner\editmode\20261027-144717-879\editmode-results.xml`；场景写入日志 `%TEMP%\alpha-striker-unity\20261027-141931-fastrunnerauthoring-applymixedwavestomainscene.log`，场景 diff 为纯新增 27 行（9 波 × 3 字段）。
+- 未做：PlayMode 实机验收（快速小怪实际追击玩家、被陷阱击杀的实战表现）。
+
 ## 测试源码编译隔离
 
 测试专用源码在测试结束后不得继续被 Unity 导入或编译。长期保留的测试源码应放在 Unity 不导入的 `Tests~` 目录或项目外；临时放在 `Assets/` 中的测试源码，应在测试完成后立即移出或删除并清理对应 `.meta`，再启动后续 Unity 编译或打开项目。不应把 `#if UNITY_INCLUDE_TESTS` 单独视为充分隔离。
+
+## 无人机游戏内 V 键切换接入（2026-10-26）
+
+- 根因：玩家 Bootstrap 用 `Resources.Load("QuadcopterDrone")`，原预制体却在 `Assets/Prefabs/`；并且原生成器只保存模型外观，未写入 Rigidbody、飞控和游戏相机。
+- 无人机运行时资源现统一为 `Assets/Resources/QuadcopterDrone.prefab`。原 `.prefab` 与 `.meta` 已迁移后由 `QuadcopterDroneAuthoring.CreateDronePrefabMenu` 重建，保留 GUID。生成器现在加 Rigidbody、`QuadcopterFlightController`、`DroneCameraController`、Camera 和 AudioListener；`ProbePrefab` 同步检查这些组件。
+- `FirstPersonPlayerBootstrap` 通过 `SceneManager.sceneLoaded` 为复用/生成的玩家接入无人机，并对已有有效会话与 HUD 做幂等检查。无人机和 HUD 随玩家/场景清理；一名玩家仅保留一个无人机与 HUD。
+- V 输入由 `DroneControlSession` 持有 `<Keyboard>/v` `InputAction`，组件禁用/销毁时释放。进入 Drone 停用 `PlayerInput`、项目 FPS 移动/武器输入、玩家 Camera/AudioListener；返回时恢复原启用状态，飞控速度清零并冻结。菜单占用光标时拒绝切换并暂停飞控/观察输入；玩家死亡、无人机销毁或场景卸载会回到 Player。
+- 回归源码 `Tests~/Editor/DroneGameplayIntegrationTests.cs`（运行时临时复制到 `Assets/Editor`，测试结束立即移回）。Unity `6000.6.7f1` EditMode runner 结果 **2/2 通过**，其中 PlayMode 用例进入主地图实际按 V 往返，并覆盖重复 Bootstrap、HUD 不重复、菜单拦截、玩家死亡及无人机销毁。XML：`C:\Users\ASUS\AppData\Local\Temp\DroneGameplayIntegration\20261026-222914-470\editmode-results.xml`。此后补充的会话销毁清理与生成器组件默认禁用未重新跑 EditMode；最终资源生成通过。
+- 最终生成器批处理成功：`C:\Users\ASUS\AppData\Local\Temp\alpha-striker-unity\20261026-225415-quadcopterdroneauthoring-createdroneprefabmenu.log`；飞控、相机控制器、Camera 和监听器在预制体中初始禁用。Unity 当前启用 `ENABLE_DRONE_CODE`；关闭该符号的独立编译与 Standalone Player 构建尚未执行，其他含玩家场景也未逐个 PlayMode 验收。
+
+## 无人机相机俯视修复（2026-10-27）
+
+- 根因：模型原有 `Camera_Gimbal` 的本地 X 轴不是相机俯仰轴。预制体探针在原挂点写入本地 +30° 后，世界视线 `forward.y` 实测为 `+0.8660`（约向上 60°），因此限制值/鼠标输入本身不能修正其基准轴向。
+- 修复：`DroneCameraController.Awake` 优先寻找独立 `DroneCameraPivot`；生成器在模型镜头位置建立该节点，直接挂载 Camera / AudioListener，并写入本地 +30° 初始俯角、85°下俯限位及序列化引用。旧 `Camera_Gimbal` / `Camera_Lens` 仍作为兼容回退。
+- 验收：Unity `6000.6.7f1` 生成器批处理成功；最终 `QuadcopterDroneAuthoring.ProbePrefab` 报告 `result=PASS`，相机位于模型镜头位置（offset 0）、`forward.y=-0.5000`、俯视 30°、下俯限位 85°。
+- 回归测试：为 `Tests~/Editor/DroneCameraControllerTests.cs` 加入默认朝下与独立枢轴优先用例，并更新俯仰预期。第一次运行暴露测试夹具再次调用 `Awake` 时没有清空已缓存枢轴，测试代码已修正。后续重跑被另一项目已运行的 Unity Editor 拒绝；没有终止该实例，修正后的 EditMode 全套仍待复验。临时复制到 `Assets/Editor` 的测试源码及 `.meta` 已在 runner 结束后清理。
+
+## 贝蒂7号跳雷地面陷阱（2026-10-27）
+- 依据参考图（四角跳雷 ×4 + 中央侦测器 + 低矮装甲底座，即 `贝蒂7号 / 地面陷阱`）新建的可行走地面陷阱。模型脚本 `C:\Users\ASUS\Desktop\陷阱素材文件夹\Betty7\build_betty7.py`（Blender 5.2 无头运行，自动备份 .blend 并渲染 6 张预览），定稿 FBX 在 `Assets/Models/Betty7/Betty7.fbx`。
+- 几何契约（Blender 名 → Unity 名字驱动，改名字会断线）：`Betty7_Base`（底座+四角插槽+橙色警示条+中央基座）、`Detector_Dome`（青色发光半球）、`Mine_01..Mine_04`（四角跳雷筒，静止时坐进插槽、沿 +Z 竖直上跳）。整机 2.0×2.0 m、高约 0.51 m，底面在 y=0。
+- 生成链（不要手改生成物）：`Assets/Editor/Betty7TrapAuthoring.cs` —— `CreateAssets`（菜单 `Tools/塔防/接入贝蒂7号陷阱预制体`）从 FBX 搭 `Assets/Prefabs/Betty7.prefab`（根 `Betty7` 挂 `TrapInstance` + `Betty7JumpMineTrap`，跳雷统一放进 `Mines` 空节点），按 Blender 材质名生成 `Assets/Models/Betty7/Materials/*.mat`（URP/Lit，橙色与青色带自发光）并写入 `Assets/Resources/Betty7.asset`（trapId `betty7`、显示名 `贝蒂7号`、2×2、`walkableFloorTrap`、Ground、首版价 60）。`ProbePrefab` 打印层级/材质/shader，`RenderPreview`（需 `-WithGraphics`）出 `preview_unity_hero/top/launch.png`。
+- 运行时 `Assets/Scripts/TowerDefense/Betty7JumpMineTrap.cs`：**每个跳雷槽位各自一套状态机** `Ready→Arming→Launching→Detonating→Recovering→Cooldown`，装填计时（`cooldownSeconds`）只属于刚起爆的那一颗，其余槽位保持各自的 `Ready`/冷却。开火是"方向择雷"：先按水平距离取 `detectRadius` 内最近的地面怪，再在**已装填**的槽位里选朝向最贴合该怪方位（`Vector2.Dot` 最大）的一颗，方位相同再比到怪的水平距离；同一时间**只允许一颗起爆**（`IsAnyMineEngaged` 门控），所以四角跳雷是轮流启用而不是齐爆。可测入口 `Tick(float)`，`State` 是所有槽位的聚合态（最活跃的优先），另有 `GetMineState/IsMineReady/GetMineReloadRemaining/GetMineDetonationCount/LastLaunchedMineIndex/LastLaunchDirection`。侦测与伤害都用水平距离，**只打地面怪**（`MonsterType.Flying` 优先、`MonsterPathFollower.IsFlying` 兜底），与地刺同一套判据；起爆中心是**被选中那颗跳雷自己的角位**（`MineBlastCenter`）而不是陷阱中心，伤害由 `EnemyHealth.TakeDamage(damage, TrapDamageType.Explosive)` 结算，**不依赖 Collider**（与导弹一致，所以不用给模型补物理体）。改择雷规则只改 `SelectMineForTarget`，不要把方向判断复制到别处。
+- 起爆特效是运行时自建：四发加法亮球 + 点光，`Destroy` 在非 PlayMode 下自动换成 `DestroyImmediate`（否则编辑期测试/预览会刷 `Destroy may not be called from edit mode` 错误）。
+- 验证：回归用例 `Tests~\Editor\Betty7JumpMineSlotTests.cs`（**12 例**，不进 `Assets/`，运行时临时复制到 `Assets/Editor` 后用 `Assets/Editor/RunEnemyDamageResistanceTests.ps1 -Fixtures Betty7JumpMineSlotTests` 跑）覆盖：+Z/−Z/+X 三个方位各选对应侧的跳雷、同时只有一颗启用、单次发射只起爆一次、只有起爆的那颗进入装填、两个槽位的剩余装填时间差等于发射间隔、装填完毕后同一颗能再次发射、飞行怪不触发、侦测圈内但爆破圈外不掉血、跳雷回插槽，以及**真实 `Assets/Prefabs/Betty7.prefab` 四个 `mineRoots` 全部接线**。Unity `6000.6.7f1` EditMode 结果 **12/12 通过、0 失败、0 跳过、无 `error CS`**：`C:\Users\ASUS\Desktop\陷阱素材文件夹\Betty7\slot-tests\20261027-154704-418\editmode-results.xml`。用例夹具给怪物 100000 血：`EnemyHealth` 死亡时走 `Destroy`，编辑期会报错并留下待销毁对象污染后续 TearDown。早期旧用例（齐爆版 4/4）已归档为同目录 `Betty7JumpMineTrapTests.cs.bak`，仅作历史对照。
+- 未做：PlayMode 实机放置/战斗验收、贴图与 UV（纯材质色块）、受击/销毁表现、对飞行怪的任何攻击（设计上刻意不做）。

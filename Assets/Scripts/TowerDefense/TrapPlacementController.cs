@@ -18,8 +18,8 @@ public sealed class TrapPlacementController : MonoBehaviour
     [SerializeField] private bool autoDiscoverGrids = true;
     [SerializeField] private Camera placementCamera;
     [SerializeField] private TrapDefinition selectedTrap;
-    [SerializeField] private TrapDefinition[] trapSlots = new TrapDefinition[4];
-    [SerializeField, Range(0, 3)] private int selectedSlot;
+    [SerializeField] private TrapDefinition[] trapSlots = new TrapDefinition[5];
+    [SerializeField, Range(0, 4)] private int selectedSlot;
     [SerializeField] private KeyCode dismantleKey = KeyCode.E;
     [SerializeField] private bool allowDragPlacement = true;
     [SerializeField] private bool placementMode;
@@ -126,7 +126,7 @@ public sealed class TrapPlacementController : MonoBehaviour
         return trapSlots != null && slot >= 0 && slot < trapSlots.Length ? trapSlots[slot] : null;
     }
 
-    /// <summary>Selects one of the four hotbar slots without changing placement mode.</summary>
+    /// <summary>Selects one of the five hotbar slots without changing placement mode.</summary>
     public bool SelectTrapSlot(int slot)
     {
         if (trapSlots == null || slot < 0 || slot >= trapSlots.Length) return false;
@@ -149,10 +149,10 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     private void InitializeTrapSlots()
     {
-        if (trapSlots == null || trapSlots.Length != 4)
+        if (trapSlots == null || trapSlots.Length != 5)
         {
             TrapDefinition[] previous = trapSlots;
-            trapSlots = new TrapDefinition[4];
+            trapSlots = new TrapDefinition[5];
             if (previous != null)
                 for (int i = 0; i < Mathf.Min(previous.Length, trapSlots.Length); i++) trapSlots[i] = previous[i];
         }
@@ -342,6 +342,7 @@ public sealed class TrapPlacementController : MonoBehaviour
         else if (keyboard.digit5Key.wasPressedThisFrame || keyboard.numpad5Key.wasPressedThisFrame) slot = 1;
         else if (keyboard.digit6Key.wasPressedThisFrame || keyboard.numpad6Key.wasPressedThisFrame) slot = 2;
         else if (keyboard.digit7Key.wasPressedThisFrame || keyboard.numpad7Key.wasPressedThisFrame) slot = 3;
+        else if (keyboard.digit8Key.wasPressedThisFrame || keyboard.numpad8Key.wasPressedThisFrame) slot = 4;
         return slot >= 0;
     }
 
@@ -806,11 +807,11 @@ public sealed class TrapPlacementController : MonoBehaviour
         }
         GUI.Label(new Rect(18f, hintTop, 760f, 24f), "陷阱放置模式：左键放置　Esc 退出");
         string slotText = "槽位 ";
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 5; i++)
         {
             TrapDefinition definition = GetTrapSlot(i);
             string name = definition != null ? definition.DisplayName : "空";
-            slotText += $"{i + 4}:{name}" + (i == selectedSlot ? " [当前]" : "") + (i < 3 ? "   " : "");
+            slotText += $"{i + 4}:{name}" + (i == selectedSlot ? " [当前]" : "") + (i < 4 ? "   " : "");
         }
         GUI.Label(new Rect(18f, hintTop + 24f, Screen.width - 36f, 24f), slotText);
         if (placementHintStyle == null)

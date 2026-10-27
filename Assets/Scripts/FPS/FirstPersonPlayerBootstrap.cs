@@ -1,16 +1,24 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using KINEMATION.FPSAnimationPack.Scripts.Player;
 
 public static class FirstPersonPlayerBootstrap
 {
     private const float SpawnClearance = 0.05f;
-#if ENABLE_DRONE_CODE
-    private static DroneControlSession activeDroneSession;
-#endif
-
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void CreatePlayerIfMissing()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        EnsurePlayerForCurrentScene();
+    }
+
+    private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        EnsurePlayerForCurrentScene();
+    }
+
+    private static void EnsurePlayerForCurrentScene()
     {
         // The KINEMATION prefab owns the camera, PlayerInput, weapon animation,
         // recoil and ADS state. Do not create a second player when a scene
@@ -152,80 +160,52 @@ public static class FirstPersonPlayerBootstrap
 #if ENABLE_DRONE_CODE
     private static void SetupDroneIntegration(GameObject player)
     {
-        // Only setup if drone code is enabled
-        GameObject dronePrefab = Resources.Load<GameObject>("QuadcopterDrone");
-        if (dronePrefab == null)
+        // Reuse the existing scene/player binding if scene initialization runs again.
+        DroneControlSession session = player.GetComponent<DroneControlSession>();
+        if (session != null && session.IsBoundTo(player))
         {
-            Debug.LogWarning("[Bootstrap] QuadcopterDrone prefab not found in Resources. Skipping drone integration.");
+            SetupDroneHUD(session);
             return;
         }
 
-        // Spawn drone above and forward of player
+        GameObject dronePrefab = Resources.Load<GameObject>("QuadcopterDrone");
+        if (dronePrefab == null)
+        {
+            Debug.LogWarning("[Bootstrap] QuadcopterDrone prefab was not found at Resources/QuadcopterDrone.prefab.");
+            return;
+        }
+
+        // Spawn one drone above and forward of the player for this session.
         Vector3 droneSpawnOffset = new Vector3(0f, 3f, 2f);
         Vector3 droneSpawnPos = player.transform.position + player.transform.TransformDirection(droneSpawnOffset);
         GameObject drone = Object.Instantiate(dronePrefab, droneSpawnPos, Quaternion.identity);
         drone.name = "Quadcopter Drone";
 
-        // Create and bind session
-        DroneControlSession session = player.GetComponent<DroneControlSession>();
-        if (session == null)
-        {
-            session = player.AddComponent<DroneControlSession>();
-        }
+        if (session == null) session = player.AddComponent<DroneControlSession>();
         session.Bind(player, drone);
-
-        // Store reference for input handling
-        activeDroneSession = session;
-
         // Setup HUD
         SetupDroneHUD(session);
-
-        // Register V key input for toggle
-        var keyboard = Keyboard.current;
-        if (keyboard != null)
-        {
-            InputSystem.onAfterUpdate += HandleDroneToggleInput;
-        }
-        else
-        {
-            Debug.LogWarning("[Bootstrap] No keyboard detected. Drone toggle input not registered.");
-        }
-
         Debug.Log("[Bootstrap] Drone integration setup complete. Press V to toggle drone control.");
     }
 
     private static void SetupDroneHUD(DroneControlSession session)
     {
+        DroneHUD hud = session.GetComponentInChildren<DroneHUD>(true);
+        if (hud != null)
+        {
+            hud.BindSession(session);
+            return;
+        }
+
         // Create canvas for drone HUD
         GameObject hudObj = new GameObject("DroneHUD");
+        hudObj.transform.SetParent(session.transform, false);
         Canvas canvas = hudObj.AddComponent<Canvas>();
         hudObj.AddComponent<UnityEngine.UI.CanvasScaler>();
         hudObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();
 
-        DroneHUD hud = hudObj.AddComponent<DroneHUD>();
+        hud = hudObj.AddComponent<DroneHUD>();
         hud.BindSession(session);
-
-        Object.DontDestroyOnLoad(hudObj);
-    }
-
-    private static void HandleDroneToggleInput()
-    {
-        if (activeDroneSession == null) return;
-
-        var keyboard = Keyboard.current;
-        if (keyboard == null) return;
-
-        // Check V key pressed this frame
-        if (keyboard.vKey.wasPressedThisFrame)
-        {
-            // Guard: don't toggle if menu owns cursor
-            if (GameStartMenu.CursorOwned || TrapSelectionMenu.CursorOwned)
-            {
-                return;
-            }
-
-            activeDroneSession.RequestToggle();
-        }
     }
 #else
     private static void SetupDroneIntegration(GameObject player)

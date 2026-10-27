@@ -1,4 +1,5 @@
 #if ENABLE_DRONE_CODE
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -24,6 +25,22 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
     private PlayerObserverMode observerMode;
     private Camera originalPlayerCamera;
     private Camera droneCamera_cam;
+    private PlayerInput playerInput;
+    private AudioListener playerAudioListener;
+    private AudioListener droneAudioListener;
+    private InputAction toggleAction;
+    private bool playerInputWasEnabled;
+    private bool playerAudioListenerWasEnabled;
+    private MonoBehaviour[] playerInputBehaviours;
+    private bool[] playerInputBehavioursWereEnabled;
+
+    private static readonly string[] PlayerInputComponentNames =
+    {
+        "PlayerSprintAimBridge",
+        "PlayerWeaponCategorySwitcher",
+        "FPSHitscanShooter",
+        "LadderClimbing"
+    };
 
     // Player state restoration
     private FirstPersonController fpsController;
@@ -32,9 +49,45 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
     private bool fpsPackageMotionWasEnabled;
     private bool playerCameraWasEnabled;
 
+    private void OnEnable()
+    {
+        toggleAction = new InputAction("Toggle Drone Control", InputActionType.Button);
+        toggleAction.AddBinding("<Keyboard>/v");
+        toggleAction.performed += OnTogglePerformed;
+        toggleAction.Enable();
+    }
+
+    private void OnDisable()
+    {
+        toggleAction?.Disable();
+        if (toggleAction != null) toggleAction.performed -= OnTogglePerformed;
+        toggleAction?.Dispose();
+        toggleAction = null;
+
+        if (State == DroneControlState.Drone) ExitDroneMode();
+    }
+
+    private void OnTogglePerformed(InputAction.CallbackContext context)
+    {
+        RequestToggle();
+    }
+
+    public bool IsBoundTo(GameObject player)
+    {
+        return playerRoot == player && droneRoot != null;
+    }
+
     /// <summary>Connects the player and the single drone instance owned by this session.</summary>
     public void Bind(GameObject playerRoot, GameObject droneRoot)
     {
+        if (State == DroneControlState.Drone) ExitDroneMode();
+        SceneManager.sceneUnloaded -= OnSceneUnloaded;
+        if (this.playerRoot != null)
+        {
+            PlayerHealth oldHealth = this.playerRoot.GetComponent<PlayerHealth>();
+            if (oldHealth != null) oldHealth.Died -= OnPlayerDied;
+        }
+
         this.playerRoot = playerRoot;
         this.droneRoot = droneRoot;
         State = DroneControlState.Player;
@@ -45,19 +98,24 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
             droneController = droneRoot.GetComponent<QuadcopterFlightController>();
             droneRigidbody = droneRoot.GetComponent<Rigidbody>();
             droneCamera_cam = droneRoot.GetComponentInChildren<Camera>();
+            droneAudioListener = droneRoot.GetComponentInChildren<AudioListener>(true);
 
             // Initialize drone in frozen state
             if (droneController != null) droneController.enabled = false;
             if (droneCamera != null) droneCamera.SetActive(false);
             if (droneCamera_cam != null) droneCamera_cam.enabled = false;
+            if (droneAudioListener != null) droneAudioListener.enabled = false;
             if (droneRigidbody != null) droneRigidbody.isKinematic = true;
         }
 
         if (playerRoot != null)
         {
             observerMode = playerRoot.GetComponent<PlayerObserverMode>();
-            originalPlayerCamera = playerRoot.GetComponentInChildren<Camera>();
+            originalPlayerCamera = playerRoot.GetComponentInChildren<Camera>(true);
+            playerAudioListener = playerRoot.GetComponentInChildren<AudioListener>(true);
             fpsController = playerRoot.GetComponent<FirstPersonController>();
+            playerInput = playerRoot.GetComponentInChildren<PlayerInput>(true);
+            CapturePlayerInputBehaviours(playerRoot);
 
             // Try to find FPSPackagePlayerMotion by name (avoid hard reference)
             var motion = playerRoot.GetComponent("FPSPackagePlayerMotion") as MonoBehaviour;
@@ -78,6 +136,8 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
     /// <summary>Requests a player/drone mode toggle.</summary>
     public void RequestToggle()
     {
+        if (GameStartMenu.BlocksPlayerCursor || TrapSelectionMenu.CursorOwned) return;
+
         if (State == DroneControlState.Player)
         {
             if (CanEnterDrone())
@@ -99,11 +159,12 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
     {
         // Check drone readiness
         if (droneRoot == null || !droneRoot.activeInHierarchy) return false;
-        if (droneCamera == null || droneController == null) return false;
+        if (droneCamera == null || droneController == null || droneCamera_cam == null
+            || droneRigidbody == null) return false;
         if (observerMode == null) return false;
 
         // Guard: reject if menu has cursor ownership
-        if (GameStartMenu.CursorOwned)
+        if (GameStartMenu.BlocksPlayerCursor)
         {
             Debug.Log("Drone toggle blocked: GameStartMenu owns cursor");
             return false;
@@ -130,6 +191,23 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
     {
         State = DroneControlState.Drone;
 
+        if (playerInput != null)
+        {
+            playerInputWasEnabled = playerInput.enabled;
+            playerInput.enabled = false;
+        }
+
+        if (playerInputBehaviours != null)
+        {
+            for (int i = 0; i < playerInputBehaviours.Length; i++)
+            {
+                MonoBehaviour behaviour = playerInputBehaviours[i];
+                if (behaviour == null) continue;
+                playerInputBehavioursWereEnabled[i] = behaviour.enabled;
+                behaviour.enabled = false;
+            }
+        }
+
         // 1. Record player component states before disabling
         if (fpsController != null)
         {
@@ -147,6 +225,12 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
         {
             playerCameraWasEnabled = originalPlayerCamera.enabled;
             originalPlayerCamera.enabled = false;
+        }
+
+        if (playerAudioListener != null)
+        {
+            playerAudioListenerWasEnabled = playerAudioListener.enabled;
+            playerAudioListener.enabled = false;
         }
 
         // 2. Enable drone flight and camera
@@ -169,6 +253,8 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
         {
             droneCamera_cam.enabled = true;
         }
+
+        if (droneAudioListener != null) droneAudioListener.enabled = true;
 
         // 3. Lock cursor if no menu owns it
         if (!GameStartMenu.CursorOwned && !TrapSelectionMenu.CursorOwned)
@@ -207,6 +293,8 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
             droneCamera_cam.enabled = false;
         }
 
+        if (droneAudioListener != null) droneAudioListener.enabled = false;
+
         // 3. Restore player components to recorded state
         if (fpsController != null)
         {
@@ -222,6 +310,20 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
         {
             originalPlayerCamera.enabled = playerCameraWasEnabled;
         }
+
+        if (playerAudioListener != null)
+            playerAudioListener.enabled = playerAudioListenerWasEnabled;
+
+        if (playerInputBehaviours != null)
+        {
+            for (int i = 0; i < playerInputBehaviours.Length; i++)
+            {
+                if (playerInputBehaviours[i] != null)
+                    playerInputBehaviours[i].enabled = playerInputBehavioursWereEnabled[i];
+            }
+        }
+
+        if (playerInput != null) playerInput.enabled = playerInputWasEnabled;
 
         // 4. Return cursor control to player/menu system
         // Don't directly unlock here; let player controller handle it
@@ -280,6 +382,12 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
         }
 
         SceneManager.sceneUnloaded -= OnSceneUnloaded;
+
+        if (droneRoot != null)
+        {
+            if (Application.isPlaying) Destroy(droneRoot);
+            else DestroyImmediate(droneRoot);
+        }
     }
 
     // ── Boundary Event Handlers ────────────────────────────────
@@ -295,17 +403,54 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
 
     private void OnSceneUnloaded(Scene scene)
     {
+        if (droneRoot != null && droneRoot.scene != scene) return;
+        if (State == DroneControlState.Drone) ExitDroneMode();
+
         // Clean up references without calling Exit (objects may already be destroyed)
         State = DroneControlState.Player;
+        if (playerRoot != null)
+        {
+            PlayerHealth health = playerRoot.GetComponent<PlayerHealth>();
+            if (health != null) health.Died -= OnPlayerDied;
+        }
         playerRoot = null;
         droneRoot = null;
         droneCamera = null;
         droneController = null;
         droneRigidbody = null;
+        droneCamera_cam = null;
         observerMode = null;
         originalPlayerCamera = null;
+        playerAudioListener = null;
+        droneAudioListener = null;
         fpsController = null;
         fpsPackageMotion = null;
+        playerInput = null;
+        playerInputBehaviours = null;
+        playerInputBehavioursWereEnabled = null;
+        SceneManager.sceneUnloaded -= OnSceneUnloaded;
+    }
+
+    private void CapturePlayerInputBehaviours(GameObject root)
+    {
+        var components = root.GetComponentsInChildren<MonoBehaviour>(true);
+        var controls = new List<MonoBehaviour>();
+        foreach (MonoBehaviour component in components)
+        {
+            if (component == null) continue;
+            string typeName = component.GetType().Name;
+            for (int i = 0; i < PlayerInputComponentNames.Length; i++)
+            {
+                if (typeName == PlayerInputComponentNames[i])
+                {
+                    controls.Add(component);
+                    break;
+                }
+            }
+        }
+
+        playerInputBehaviours = controls.ToArray();
+        playerInputBehavioursWereEnabled = new bool[playerInputBehaviours.Length];
     }
 
     private void Update()
@@ -317,25 +462,28 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
             ExitDroneMode();
         }
 
-        // Stop drone input if menu takes cursor ownership
+        // Stop drone controls while a menu owns the cursor.
         if (State == DroneControlState.Drone)
         {
-            if (GameStartMenu.CursorOwned || TrapSelectionMenu.CursorOwned)
+            bool menuOwnsCursor = GameStartMenu.BlocksPlayerCursor || TrapSelectionMenu.CursorOwned;
+            if (menuOwnsCursor)
             {
-                // Disable drone controller input temporarily
-                // Controller will resume when menu closes
                 if (droneController != null && droneController.enabled)
                 {
+                    droneController.ResetVelocity();
                     droneController.enabled = false;
                 }
+
+                if (droneCamera != null) droneCamera.enabled = false;
             }
             else
             {
-                // Re-enable if it was disabled
                 if (droneController != null && !droneController.enabled)
                 {
                     droneController.enabled = true;
                 }
+
+                if (droneCamera != null && !droneCamera.enabled) droneCamera.enabled = true;
             }
         }
     }

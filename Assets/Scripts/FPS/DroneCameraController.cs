@@ -8,7 +8,7 @@ using UnityEngine.InputSystem;
 ///
 /// 层级约定（与 QuadcopterDroneAuthoring 一致）：
 ///   QuadcopterDrone（此组件所在根）
-///     └─ Camera_Gimbal（旧资源兼容 Camera_Lens）← 摄像头俯仰枢轴，赋给 cameraPivot
+///     └─ DroneCameraPivot（旧资源兼容 Camera_Gimbal / Camera_Lens）← 独立的摄像头俯仰枢轴
 ///         └─ Camera（可选，挂 Unity Camera 组件）
 ///
 /// </summary>
@@ -16,7 +16,7 @@ using UnityEngine.InputSystem;
 public sealed class DroneCameraController : MonoBehaviour
 {
     [Header("References")]
-    [Tooltip("摄像头枢轴节点，绕本地 X 轴俯仰。通常是模型里的 Camera_Gimbal 节点。")]
+    [Tooltip("摄像头枢轴节点，绕本地 X 轴俯仰。优先使用 DroneCameraPivot。")]
     [SerializeField] private Transform cameraPivot;
 
     [Header("Sensitivity")]
@@ -24,7 +24,10 @@ public sealed class DroneCameraController : MonoBehaviour
 
     [Header("Pitch Limits")]
     [SerializeField, Range(1f, 89f)] private float maxPitchUp   = 60f;
-    [SerializeField, Range(1f, 89f)] private float maxPitchDown = 45f;
+    [SerializeField, Range(1f, 89f)] private float maxPitchDown = 85f;
+
+    [Tooltip("无人机进入控制模式时的默认俯角（正值为向下）。")]
+    [SerializeField, Range(0f, 89f)] private float initialPitchDown = 30f;
 
     // 当前 pitch 积累值（度），向上为负（绕 +X 轴）
     private float pitch;
@@ -38,18 +41,22 @@ public sealed class DroneCameraController : MonoBehaviour
         // 若 Inspector 未赋值，尝试按约定名称在子树中自动找
         if (cameraPivot == null)
         {
-            cameraPivot = FindDeep(transform, "Camera_Gimbal") ?? FindDeep(transform, "Camera_Lens");
+            cameraPivot = FindDeep(transform, "DroneCameraPivot")
+                          ?? FindDeep(transform, "Camera_Gimbal")
+                          ?? FindDeep(transform, "Camera_Lens");
             if (cameraPivot == null)
             {
-                Debug.LogError("[DroneCameraController] 未找到 Camera_Gimbal 或 Camera_Lens 节点，" +
+            Debug.LogError("[DroneCameraController] 未找到 DroneCameraPivot、Camera_Gimbal 或 Camera_Lens 节点，" +
                                "请在 Inspector 里手动赋值 Camera Pivot。", this);
             }
         }
 
-        // 从当前枢轴旋转恢复初始 pitch，防止启动时跳变
+        // 模型的 Camera_Lens 可能带有向上的导入姿态。相机视线应由云台
+        // 的运行时俯仰控制，而不是继承这个会把镜头抬过地平线的姿态。
         if (cameraPivot != null)
         {
-            pitch = WrapAngle(cameraPivot.localEulerAngles.x);
+            pitch = Mathf.Clamp(initialPitchDown, -maxPitchUp, maxPitchDown);
+            cameraPivot.localRotation = Quaternion.Euler(pitch, 0f, 0f);
         }
     }
 
@@ -106,17 +113,6 @@ public sealed class DroneCameraController : MonoBehaviour
     // ──────────────────────────────────────────────
     //  工具方法
     // ──────────────────────────────────────────────
-
-    /// <summary>把 Unity 的 0–360 欧拉角转成 -180–180，方便与 Clamp 配合。</summary>
-    static float WrapAngle(float angle)
-    {
-        if (angle > 180f)
-        {
-            angle -= 360f;
-        }
-
-        return angle;
-    }
 
     static Transform FindDeep(Transform root, string targetName)
     {

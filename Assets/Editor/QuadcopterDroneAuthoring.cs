@@ -9,12 +9,12 @@ using UnityEngine;
 /// <summary>
 /// 四轴无人机模型（Assets/Models/QuadcopterDrone/QuadcopterDrone.fbx）的导入校验与预制体生成。
 /// 模型由 Blender 脚本生成，中间件在桌面「陷阱素材文件夹\QuadcopterDrone」。
-/// 本类只负责「资产是否正确接进 Unity」，不包含任何飞行/玩法逻辑。
+/// 负责无人机模型验证，以及生成带有运行时飞控与相机的游戏预制体。
 /// </summary>
 public static class QuadcopterDroneAuthoring
 {
     public const string ModelPath = "Assets/Models/QuadcopterDrone/QuadcopterDrone.fbx";
-    public const string PrefabPath = "Assets/Prefabs/QuadcopterDrone.prefab";
+    public const string PrefabPath = "Assets/Resources/QuadcopterDrone.prefab";
 
     /// <summary>旋翼枢轴节点名，飞行逻辑应绕这些节点的本地 up 轴自转。</summary>
     public static readonly string[] RotorNames = { "Rotor_FL", "Rotor_FR", "Rotor_RL", "Rotor_RR" };
@@ -84,6 +84,36 @@ public static class QuadcopterDroneAuthoring
 
         try
         {
+            var runtimeBody = instance.GetComponent<Rigidbody>();
+            var runtimeFlight = instance.GetComponent<TowerDefense.QuadcopterFlightController>();
+            var runtimeCamera = instance.GetComponent<DroneCameraController>();
+            var camera = instance.GetComponentInChildren<Camera>(true);
+            var audioListener = instance.GetComponentInChildren<AudioListener>(true);
+            Check("runtime Rigidbody exists", runtimeBody != null, runtimeBody != null ? runtimeBody.mass.ToString("0.##") : "missing");
+            Check("runtime flight controller exists", runtimeFlight != null, runtimeFlight != null ? runtimeFlight.GetType().Name : "missing");
+            Check("runtime camera controller exists", runtimeCamera != null, runtimeCamera != null ? runtimeCamera.GetType().Name : "missing");
+            Check("runtime camera exists", camera != null, camera != null ? camera.name : "missing");
+            Check("runtime audio listener exists", audioListener != null, audioListener != null ? audioListener.name : "missing");
+            Check("camera starts looking toward ground", camera != null && camera.transform.forward.y < -0.49f,
+                camera != null ? "forward.y=" + F(camera.transform.forward.y) : "missing");
+            var cameraLens = FindDeep(instance.transform, "Camera_Lens")
+                             ?? FindDeep(instance.transform, "Camera_Gimbal");
+            Check("camera is positioned 5 cm ahead of model lens", camera != null && cameraLens != null
+                  && Mathf.Abs(Vector3.Distance(camera.transform.position, cameraLens.position) - 0.05f) < 0.005f,
+                camera != null && cameraLens != null
+                    ? "offset=" + F(Vector3.Distance(camera.transform.position, cameraLens.position))
+                    : "camera or lens missing");
+            if (runtimeCamera != null)
+            {
+                var cameraSettings = new SerializedObject(runtimeCamera);
+                var maxPitchDown = cameraSettings.FindProperty("maxPitchDown");
+                var initialPitchDown = cameraSettings.FindProperty("initialPitchDown");
+                Check("camera can pitch down 85 degrees", maxPitchDown != null && maxPitchDown.floatValue >= 85f,
+                    maxPitchDown != null ? F(maxPitchDown.floatValue) : "missing");
+                Check("camera starts at 30 degree downward pitch", initialPitchDown != null && Mathf.Abs(initialPitchDown.floatValue - 30f) < 0.01f,
+                    initialPitchDown != null ? F(initialPitchDown.floatValue) : "missing");
+            }
+
             var renderers = instance.GetComponentsInChildren<Renderer>(true);
             Check("renderer count", renderers.Length > 100, renderers.Length.ToString());
 
@@ -362,6 +392,62 @@ public static class QuadcopterDroneAuthoring
 
             renderer.sharedMaterials = target;
         }
+
+        // Runtime flight/session components belong on the generated prefab so
+        // the player bootstrap can load a playable drone from Resources.
+        if (instance.GetComponent<Rigidbody>() == null)
+        {
+            var body = instance.AddComponent<Rigidbody>();
+            body.mass = 0.8f;
+            body.interpolation = RigidbodyInterpolation.Interpolate;
+        }
+
+        var flightController = instance.GetComponent<TowerDefense.QuadcopterFlightController>();
+        if (flightController == null)
+            flightController = instance.AddComponent<TowerDefense.QuadcopterFlightController>();
+        flightController.enabled = false;
+        var cameraController = instance.GetComponent<DroneCameraController>();
+        if (cameraController == null) cameraController = instance.AddComponent<DroneCameraController>();
+        cameraController.enabled = false;
+        var cameraControllerData = new SerializedObject(cameraController);
+        cameraControllerData.FindProperty("maxPitchDown").floatValue = 85f;
+        cameraControllerData.FindProperty("initialPitchDown").floatValue = 30f;
+        cameraControllerData.ApplyModifiedPropertiesWithoutUndo();
+
+        var cameraMount = FindDeep(instance.transform, "Camera_Gimbal")
+                          ?? FindDeep(instance.transform, "Camera_Lens");
+        if (cameraMount == null)
+        {
+            Object.DestroyImmediate(instance);
+            throw new System.InvalidOperationException("Quadcopter model has no Camera_Gimbal or Camera_Lens node.");
+        }
+
+        // The imported model mount has a baked-upward axis. Place a clean runtime
+        // gimbal at the same position but align it to the drone's +Z forward axis.
+        var cameraPivot = FindDeep(instance.transform, "DroneCameraPivot");
+        if (cameraPivot == null)
+        {
+            var pivotObject = new GameObject("DroneCameraPivot");
+            pivotObject.transform.SetParent(instance.transform, false);
+            cameraPivot = pivotObject.transform;
+        }
+        cameraPivot.SetParent(instance.transform, false);
+        cameraPivot.localPosition = instance.transform.InverseTransformPoint(cameraMount.position)
+                                   + Vector3.forward * 0.05f;
+        cameraPivot.localRotation = Quaternion.Euler(30f, 0f, 0f);
+        cameraPivot.localScale = Vector3.one;
+
+        cameraControllerData.FindProperty("cameraPivot").objectReferenceValue = cameraPivot;
+        cameraControllerData.ApplyModifiedPropertiesWithoutUndo();
+
+        var droneCamera = cameraPivot.GetComponent<Camera>();
+        if (droneCamera == null) droneCamera = cameraPivot.gameObject.AddComponent<Camera>();
+        droneCamera.gameObject.tag = "Untagged";
+        droneCamera.nearClipPlane = 0.03f;
+        droneCamera.enabled = false;
+        var audioListener = cameraPivot.GetComponent<AudioListener>();
+        if (audioListener == null) audioListener = cameraPivot.gameObject.AddComponent<AudioListener>();
+        audioListener.enabled = false;
 
         var dir = Path.GetDirectoryName(PrefabPath);
         if (!string.IsNullOrEmpty(dir))

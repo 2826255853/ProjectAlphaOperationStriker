@@ -996,16 +996,25 @@ MonoBehaviour:
     enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
+    alternateEnemyPrefab: {fileID: 923835401758357671, guid: 6ff5a3e7968ef9a4da80f94d1d06f1ed, type: 3}
+    alternateShare: 0.5
+    alternateMoveSpeed: 4
   - enabled: 1
     enemyCount: 10
     enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
+    alternateEnemyPrefab: {fileID: 923835401758357671, guid: 6ff5a3e7968ef9a4da80f94d1d06f1ed, type: 3}
+    alternateShare: 0.5
+    alternateMoveSpeed: 4
   - enabled: 1
     enemyCount: 10
     enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
+    alternateEnemyPrefab: {fileID: 923835401758357671, guid: 6ff5a3e7968ef9a4da80f94d1d06f1ed, type: 3}
+    alternateShare: 0.5
+    alternateMoveSpeed: 4
   initialWaveDelay: 2
   waveTransitionDelays:
   - 5
@@ -5228,16 +5237,25 @@ MonoBehaviour:
     enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
+    alternateEnemyPrefab: {fileID: 923835401758357671, guid: 6ff5a3e7968ef9a4da80f94d1d06f1ed, type: 3}
+    alternateShare: 0.5
+    alternateMoveSpeed: 4
   - enabled: 1
     enemyCount: 10
     enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
+    alternateEnemyPrefab: {fileID: 923835401758357671, guid: 6ff5a3e7968ef9a4da80f94d1d06f1ed, type: 3}
+    alternateShare: 0.5
+    alternateMoveSpeed: 4
   - enabled: 1
     enemyCount: 10
     enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
+    alternateEnemyPrefab: {fileID: 923835401758357671, guid: 6ff5a3e7968ef9a4da80f94d1d06f1ed, type: 3}
+    alternateShare: 0.5
+    alternateMoveSpeed: 4
   initialWaveDelay: 2
   waveTransitionDelays:
   - 5
@@ -6246,16 +6264,25 @@ MonoBehaviour:
     enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
+    alternateEnemyPrefab: {fileID: 923835401758357671, guid: 6ff5a3e7968ef9a4da80f94d1d06f1ed, type: 3}
+    alternateShare: 0.5
+    alternateMoveSpeed: 4
   - enabled: 1
     enemyCount: 10
     enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
+    alternateEnemyPrefab: {fileID: 923835401758357671, guid: 6ff5a3e7968ef9a4da80f94d1d06f1ed, type: 3}
+    alternateShare: 0.5
+    alternateMoveSpeed: 4
   - enabled: 1
     enemyCount: 10
     enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
+    alternateEnemyPrefab: {fileID: 923835401758357671, guid: 6ff5a3e7968ef9a4da80f94d1d06f1ed, type: 3}
+    alternateShare: 0.5
+    alternateMoveSpeed: 4
   initialWaveDelay: 2
   waveTransitionDelays:
   - 5

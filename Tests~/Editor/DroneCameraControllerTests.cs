@@ -88,6 +88,34 @@ public class DroneCameraControllerTests
     //  测试用例
     // ──────────────────────────────────────────────
 
+    /// <summary>首次接管无人机时，摄像机应朝地面而不是仰向地平线以上。</summary>
+    [Test]
+    public void Awake_StartsWithCameraPointingDownward()
+    {
+        Assert.That(controller.CurrentPitch, Is.EqualTo(-30f).Within(0.01f),
+            "默认姿态应为向下 30°");
+        Assert.That(pivotGo.transform.forward.y, Is.LessThan(-0.49f),
+            "相机视线应明显朝向地面");
+    }
+
+    /// <summary>Awake 应优先使用独立运行时云台，避免继承模型节点的错误轴向。</summary>
+    [Test]
+    public void Awake_PrefersDedicatedCameraPivot()
+    {
+        var dedicatedPivot = new GameObject("DroneCameraPivot");
+        dedicatedPivot.transform.SetParent(droneGo.transform, worldPositionStays: false);
+        pivotGo.transform.localRotation = Quaternion.Euler(-60f, 0f, 0f);
+        typeof(DroneCameraController)
+            .GetField("cameraPivot", BindingFlags.NonPublic | BindingFlags.Instance)
+            .SetValue(controller, null);
+        StepAwake(controller);
+
+        var cameraPivotField = typeof(DroneCameraController)
+            .GetField("cameraPivot", BindingFlags.NonPublic | BindingFlags.Instance);
+        Assert.That(cameraPivotField.GetValue(controller), Is.EqualTo(dedicatedPivot.transform));
+        Assert.That(dedicatedPivot.transform.forward.y, Is.LessThan(-0.49f));
+    }
+
     /// <summary>Awake 应从子树中找到约定的 Camera_Gimbal 节点。</summary>
     [Test]
     public void Awake_FindsNestedCameraGimbal()
@@ -127,7 +155,7 @@ public class DroneCameraControllerTests
         controller = droneGo.AddComponent<DroneCameraController>();
 
         LogAssert.Expect(LogType.Error,
-            "[DroneCameraController] 未找到 Camera_Gimbal 或 Camera_Lens 节点，请在 Inspector 里手动赋值 Camera Pivot。");
+            "[DroneCameraController] 未找到 DroneCameraPivot、Camera_Gimbal 或 Camera_Lens 节点，请在 Inspector 里手动赋值 Camera Pivot。");
         StepAwake(controller);
     }
 
@@ -159,15 +187,15 @@ public class DroneCameraControllerTests
             "Yaw 应随鼠标 X delta 增加");
     }
 
-    /// <summary>鼠标向上推 100 单位，摄像头 Pitch 应升高约 12°。</summary>
+    /// <summary>鼠标向上推 100 单位，摄像头应从默认俯视姿态抬高约 12°。</summary>
     [Test]
     public void Pitch_IncreasesByMouseYTimesSensitivity()
     {
         SetDelta(new Vector2(0f, 100f));
         StepUpdate(controller);
 
-        Assert.That(controller.CurrentPitch, Is.EqualTo(12f).Within(0.5f),
-            "鼠标向上移 Pitch 应为正（摄像头抬头）");
+        Assert.That(controller.CurrentPitch, Is.EqualTo(-18f).Within(0.5f),
+            "鼠标向上移应让俯视角减少 12°");
     }
 
     /// <summary>超大正 delta.y：Pitch 不得超过 maxPitchUp（默认 60°）。</summary>
@@ -181,15 +209,15 @@ public class DroneCameraControllerTests
             "Pitch 上限应被夹到 maxPitchUp = 60°");
     }
 
-    /// <summary>超大负 delta.y：CurrentPitch 不得低于 -maxPitchDown（默认 -45°）。</summary>
+    /// <summary>超大负 delta.y：CurrentPitch 不得低于 -maxPitchDown（默认 -85°）。</summary>
     [Test]
     public void Pitch_ClampsAtMaxPitchDown()
     {
         SetDelta(new Vector2(0f, -10_000f));
         StepUpdate(controller);
 
-        Assert.That(controller.CurrentPitch, Is.EqualTo(-45f).Within(0.01f),
-            "Pitch 下限应被夹到 -maxPitchDown = -45°");
+        Assert.That(controller.CurrentPitch, Is.EqualTo(-85f).Within(0.01f),
+            "Pitch 下限应被夹到 -maxPitchDown = -85°");
     }
 
     /// <summary>ResetPitch 应把 Pitch 精确归零并重置枢轴旋转。</summary>

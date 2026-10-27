@@ -22,6 +22,16 @@ public sealed class EnemySpawnPoint : MonoBehaviour
 
         public MonsterType monsterType = MonsterType.Ground;
         [Min(0f)] public float flightHeight = 3f;
+
+        [Header("混刷（同一波两种怪）")]
+        [Tooltip("混刷用的第二种怪物预制体（例如快速小怪）。留空时整波只用主预制体。")]
+        public GameObject alternateEnemyPrefab;
+
+        [Range(0f, 1f), Tooltip("第二种怪物在本波中的占比。0.5 表示一半主预制体、一半第二种；按生成顺序均匀交错，不会扎堆。")]
+        public float alternateShare = 0.5f;
+
+        [Min(0f), Tooltip("第二种怪物使用的移动速度；0 表示沿用出怪口的移动速度。")]
+        public float alternateMoveSpeed;
     }
 
     [Header("Spawn Settings")]
@@ -316,15 +326,41 @@ public sealed class EnemySpawnPoint : MonoBehaviour
         timeUntilNextSpawn = transitionDelay;
     }
 
+    /// <summary>
+    /// 混刷判定：本波第 <paramref name="indexInWave"/> 只（从 1 开始）是否使用第二种怪物。
+    /// 用 floor(index * share) 的增量判断，整波正好生成 floor(总数 * share) 只，且在波内均匀交错。
+    /// </summary>
+    public static bool UseAlternatePrefab(int indexInWave, float share)
+    {
+        if (indexInWave < 1) return false;
+        share = Mathf.Clamp01(share);
+        if (share <= 0f) return false;
+        if (share >= 1f) return true;
+        return Mathf.FloorToInt(indexInWave * share) > Mathf.FloorToInt((indexInWave - 1) * share);
+    }
+
+    /// <summary>本波中第二种怪物的数量；用于 UI/测试核对占比。</summary>
+    public static int GetAlternateCount(int waveCount, float share)
+    {
+        if (waveCount <= 0) return 0;
+        return Mathf.Clamp(Mathf.FloorToInt(waveCount * Mathf.Clamp01(share)), 0, waveCount);
+    }
+
     private EnemyInstance CreateEnemy(int waveNumber, int indexInWave)
     {
+        WaveSpawnSettings settings = GetWaveSettings(waveNumber);
         MonsterType selectedType = flyingEntrance
             ? MonsterType.Flying
-            : (GetWaveSettings(waveNumber)?.monsterType ?? monsterType);
+            : (settings?.monsterType ?? monsterType);
         // Reject invalid configuration before creating a partially initialized enemy.
         GetKillReward(selectedType);
         spawnSequence++;
-        GameObject selectedPrefab = GetWaveSettings(waveNumber)?.enemyPrefab;
+        // 混刷只作用于地面波次；飞行波次的怪物种类由飞行出怪口决定，不混地面怪。
+        bool useAlternate = selectedType == MonsterType.Ground
+            && settings != null
+            && settings.alternateEnemyPrefab != null
+            && UseAlternatePrefab(indexInWave, settings.alternateShare);
+        GameObject selectedPrefab = useAlternate ? settings.alternateEnemyPrefab : settings?.enemyPrefab;
         if (selectedPrefab == null) selectedPrefab = enemyPrefab;
         if (selectedPrefab == null && flyingEntrance) selectedPrefab = GetFlyingMonsterPrefab();
         Vector3 spawnPosition = GetSpawnPosition();
@@ -337,21 +373,25 @@ public sealed class EnemySpawnPoint : MonoBehaviour
         instance.MonsterType = selectedType;
         instance.Initialize(this, spawnSequence, waveNumber, indexInWave);
         follower.enabled = true;
-        float selectedHeight = GetWaveSettings(waveNumber)?.flightHeight ?? flightHeight;
+        float selectedHeight = settings?.flightHeight ?? flightHeight;
+        // 第二种怪物可以带自己的速度（快速小怪 = 4），0 表示沿用出怪口速度。
+        float selectedSpeed = useAlternate && settings.alternateMoveSpeed > 0f
+            ? settings.alternateMoveSpeed
+            : moveSpeed;
         Vector3 direction = travelDirection.sqrMagnitude > 0.001f ? travelDirection : transform.forward;
         Transform destinationPoint = core != null ? core.transform : targetPoint;
         Vector3 destination = destinationPoint != null ? destinationPoint.position : targetPosition;
         if (selectedType == MonsterType.Flying)
         {
-            follower.InitializeFlying(destinationPoint, destination, moveSpeed, selectedHeight, core);
+            follower.InitializeFlying(destinationPoint, destination, selectedSpeed, selectedHeight, core);
         }
         else if (core != null && useTargetWaypoint)
         {
-            follower.InitializeViaWaypoint(pathGrid, targetPoint, targetPosition, direction, moveSpeed, core);
+            follower.InitializeViaWaypoint(pathGrid, targetPoint, targetPosition, direction, selectedSpeed, core);
         }
         else
         {
-            follower.Initialize(pathGrid, destinationPoint, destination, direction, moveSpeed, core);
+            follower.Initialize(pathGrid, destinationPoint, destination, direction, selectedSpeed, core);
         }
         instance.PathFollower = follower;
         if (instance.Resolution == EnemyInstance.ResolutionState.Alive
@@ -397,6 +437,8 @@ public sealed class EnemySpawnPoint : MonoBehaviour
             if (waveSpawnSettings[i] == null) waveSpawnSettings[i] = new WaveSpawnSettings();
             waveSpawnSettings[i].enemyCount = Mathf.Max(0, waveSpawnSettings[i].enemyCount);
             waveSpawnSettings[i].flightHeight = Mathf.Max(0f, waveSpawnSettings[i].flightHeight);
+            waveSpawnSettings[i].alternateShare = Mathf.Clamp01(waveSpawnSettings[i].alternateShare);
+            waveSpawnSettings[i].alternateMoveSpeed = Mathf.Max(0f, waveSpawnSettings[i].alternateMoveSpeed);
         }
     }
 

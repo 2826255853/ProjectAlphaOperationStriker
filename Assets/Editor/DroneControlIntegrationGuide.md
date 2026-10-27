@@ -1,20 +1,20 @@
 # 无人机控制系统游戏接入指南
 
-本文是后续把现有四轴无人机接入 FPS + 塔防主流程的实施路线。第一版假设每局开局提供一架无人机，玩家通过切换键接管飞行，再切回第一人称角色；不包含购买、解锁、地图终端或任务系统。
+本文记录四轴无人机接入 FPS + 塔防主流程的当前实现和原始实施路线。第一版每局开局提供一架无人机，玩家通过切换键接管飞行，再切回第一人称角色；不包含购买、解锁、地图终端或任务系统。
 
 ## 当前状态与前置条件
 
-- 资源已就绪：`Assets/Models/QuadcopterDrone/QuadcopterDrone.fbx`、URP 材质与 `Assets/Prefabs/QuadcopterDrone.prefab`。通过 `Tools/塔防/生成无人机预制体` 生成或更新资源，通过对应模型/预制体探针检查资源。
-- 运行时代码仍是独立原型：`Assets/Scripts/FPS/DroneCameraController.cs` 控制鼠标视角，`Assets/Scripts/TowerDefense/QuadcopterFlightController.cs` 直接读取键盘并驱动 Rigidbody；二者没有玩家模式、菜单或游戏流程接线。
-- 两个运行时脚本、`Assets/Editor/QuadcopterDroneAuthoring.cs` 均包在 `#if ENABLE_DRONE_CODE` 中。当前默认编译不会包含它们。准备接入时，先在 Unity Player Settings 的 Scripting Define Symbols 为目标配置启用此符号，并确认 Editor 与 Player 均能编译；不要在尚未验证时把符号加到发布配置。
-- **摄像头节点名称不一致**：模型约定节点是 `Camera_Gimbal`，`DroneCameraController` 自动查找的是 `Camera_Lens`。优先在接线时序列化显式 `cameraPivot` 引用；若该字段不可从接入组件设置，则统一脚本查找名与资源契约并补探针断言。不要依赖自动查找成功。
-- 飞行控制器要求同一根对象上有 Rigidbody，并在 `Awake` 中关闭重力、设置阻尼及冻结 Roll/Pitch。模型导入不带 Collider；若玩法要求防撞或落地判定，由运行时/Prefab 接线阶段单独添加合适碰撞体。
-- `DroneCameraController.OnEnable/OnDisable` 当前直接锁定/释放全局光标。集成前应移除这项全局副作用，让会话协调器统一管理光标，避免切换时与 `GameStartMenu`、`TrapSelectionMenu` 争夺所有权。
-- `DroneCameraControllerTests` 目前在测试运行器中未被发现（历史运行结果为 0 个用例）。恢复功能前先解决测试发现/程序集配置，再将该测试扩展为可运行的控制器测试；编译成功不能视作测试通过。
+- 资源已接入运行时：`Assets/Models/QuadcopterDrone/QuadcopterDrone.fbx`、URP 材质与 `Assets/Resources/QuadcopterDrone.prefab`。通过 `Tools/塔防/生成无人机预制体` 生成或更新预制体；生成器会写入 Rigidbody、飞控、无人机相机与音频监听器，并将飞控/相机/监听器初始设为禁用。
+- `FirstPersonPlayerBootstrap` 在玩家创建/复用后加载 Resources 预制体；`DroneControlSession` 使用新 Input System 的 V 动作管理 Player/Drone 状态，飞控与相机控制器仅在无人机模式工作。
+- 无人机脚本仍由 `#if ENABLE_DRONE_CODE` 控制。Standalone 配置已启用该符号；运行前应确认目标构建配置也启用，并按需验证 Editor 与 Player 编译。
+- 云台节点查找兼容 `Camera_Gimbal` 与旧资源名 `Camera_Lens`；预制体生成器将 Camera 和 AudioListener 添加到找到的云台节点。
+- 飞行控制器要求无人机根对象有 Rigidbody；生成器会创建并设置插值。FBX 不提供碰撞体，本版本保持无碰撞飞行。
+- `DroneCameraController` 只处理鼠标观察，不管理全局光标；`DroneControlSession` 根据菜单光标所有权统一暂停/恢复无人机控制。
+- 旧 `DroneCameraControllerTests` 的测试发现问题仍属历史记录；当前接入回归放在 `Tests~/Editor/DroneGameplayIntegrationTests.cs`，通过项目 runner 临时复制到 `Assets/Editor` 后执行。
 
-## 目标结构与状态
+## 当前结构与状态
 
-新增一个运行时接入协调器，例如 `DroneControlSession`，由它独占模式切换、输入上下文和相机启停。它应在 `FirstPersonPlayerBootstrap` 完成玩家复用或生成后取得玩家根对象，避免依赖固定的场景玩家实现。玩家或无人机被销毁/禁用、必需引用缺失时，协调器要报告可定位的错误，并在仍可行时安全切回玩家模式。
+`DroneControlSession` 由 `FirstPersonPlayerBootstrap` 在玩家复用/生成后绑定，统一管理 V 切换、模式状态、相机与输入启停。无人机销毁、玩家死亡或所属场景卸载时恢复玩家状态；Resources 预制体或必要组件缺失时不允许进入无人机模式并输出诊断日志。
 
 采用两个明确状态：
 
@@ -25,7 +25,9 @@
 
 模式转换要成对恢复相机启用状态、输入启用状态、Rigidbody 运行状态和光标状态。退出无人机时先将飞行命令归零并让 Rigidbody 停稳/保持位置，再关闭无人机输入；再次进入时不应出现沿用上次速度的突然移动。协调器记录并恢复进入前的状态，不用硬编码“所有东西原先都启用”。
 
-## 分阶段接入
+## 原始分阶段接入路线
+
+以下步骤保留为设计背景；当前完成情况见本指南末尾的“已完成的游戏内接入”。
 
 ### 1. 启用并验证原型
 
@@ -54,6 +56,14 @@
 在 `Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity` 接入协调器与无人机 Prefab，优先由可重复的 Bootstrap/Authoring 流程接线，不手工修改生成器管理的对象。确保每局只创建一架、出生位置不与玩家/地图几何重叠、玩家回切位置不变。首版 HUD 至少显示当前控制模式和切换提示；无人机损坏/失效、玩家死亡/复活、场景卸载时都要终止或重置 Drone 状态，不能遗留锁定相机、输入或光标。
 
 场景或 Prefab 改动前先备份/提交，遵守 Unity YAML 局部定位规则。若无人机仅需要悬停而不参与碰撞，可先使用明确的无碰撞 MVP；若加入碰撞，需验证不会卡在场景几何中，并定义碰撞后能否继续操控或如何退出。
+
+## 已完成的游戏内接入（2026-10-26）
+
+- `FirstPersonPlayerBootstrap` 监听后续场景加载，并对现有绑定做幂等检查；同一玩家不会重复生成无人机、会话或 HUD。无人机与 HUD 作为本局对象随场景/玩家生命周期清理。
+- V 键绑定到 `DroneControlSession` 自有的 `<Keyboard>/v` `InputAction`，会话禁用或销毁时释放动作。进入无人机模式会停用玩家 `PlayerInput`、移动/武器输入、第一人称相机与音频监听器；返回时恢复此前状态，并冻结无人机及清零速度。
+- 主菜单/暂停或陷阱菜单持有光标时拒绝切换；菜单打开期间无人机飞控和鼠标观察输入暂停。玩家死亡、无人机销毁、场景卸载时恢复玩家视角与输入。
+- 生成器将原预制体迁移到 `Assets/Resources/QuadcopterDrone.prefab`，保留原 `.meta` GUID；预制体探针现在也检查 Rigidbody、飞控、相机控制器、Camera 与 AudioListener。
+- EditMode/PlayMode 验证：`DroneGameplayIntegrationTests` 2/2 通过，覆盖 Resources 组件、主地图 V 键往返、重复 Bootstrap、菜单拦截、玩家死亡与无人机销毁。XML：`%TEMP%/DroneGameplayIntegration/20261026-222914-470/editmode-results.xml`。尚未在其他含玩家的场景单独执行 PlayMode 验收，也未验证关闭 `ENABLE_DRONE_CODE` 的完整 Unity 编译。
 
 ## 验收标准
 
