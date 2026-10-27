@@ -45,6 +45,15 @@ public sealed class TrapInstance : MonoBehaviour
         if (OwnerGrid == null || !OwnerGrid.RemoveTrap(this)) Destroy(gameObject);
     }
 
+    /// <summary>Restores a living trap's health without emitting damage/destruction events.</summary>
+    public float Repair(float amount)
+    {
+        if (IsDestroyed || amount <= 0f || float.IsNaN(amount) || float.IsInfinity(amount)) return 0f;
+        float previous = CurrentHealth;
+        CurrentHealth = Mathf.Min(maxHealth, CurrentHealth + amount);
+        return CurrentHealth - previous;
+    }
+
     internal void Initialize(TrapDefinition definition, Vector2Int originCell)
     {
         this.definition = definition;

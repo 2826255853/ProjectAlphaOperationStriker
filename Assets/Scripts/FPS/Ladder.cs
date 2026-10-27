@@ -9,13 +9,20 @@ public sealed class Ladder : MonoBehaviour
     [SerializeField, Min(0.2f)] private float depth = 0.8f;
     [SerializeField, Tooltip("Distance from top to trigger auto-dismount")]
     private float topDismountThreshold = 0.3f;
+    [SerializeField, Tooltip("Local horizontal direction pushed when auto-dismounting at the top. " +
+                             "Zero keeps the original transform.forward behaviour. " +
+                             "Wall ladders use (0,0,-1) so the player steps toward the upper platform.")]
+    private Vector3 topDismountDirection = Vector3.zero;
 
     private BoxCollider trigger;
 
     public float Bottom => transform.position.y;
-    public float Top => transform.position.y + height;
+    public float Top => transform.position.y + height * Mathf.Abs(transform.lossyScale.y);
     public float TopDismountThreshold => topDismountThreshold;
     public Vector3 Forward => transform.forward;
+    public Vector3 DismountDirection => topDismountDirection.sqrMagnitude > 1e-4f
+        ? transform.TransformDirection(topDismountDirection.normalized)
+        : transform.forward;
 
     private void Awake() => EnsureTrigger();
     private void OnValidate() => EnsureTrigger();
@@ -76,8 +83,10 @@ public sealed class LadderClimbing : MonoBehaviour
         if (transform.position.y >= ladder.Top - ladder.TopDismountThreshold && ReadVerticalInput() > 0.01f)
         {
             ExitClimb();
-            // Push player slightly forward to clear the ladder
-            controller.Move(ladder.Forward * 0.5f);
+            // Push the player slightly clear of the ladder. Free-standing ladders
+            // keep pushing along transform.forward; wall ladders override this so
+            // the player steps onto the platform behind the wall instead of falling.
+            controller.Move(ladder.DismountDirection * 0.5f);
             return;
         }
 

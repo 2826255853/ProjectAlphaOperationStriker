@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 584def4af644b0c4fbbf59b658cc2acd, type: 3}
+  m_Name: RepairStation
+  m_EditorClassIdentifier: Assembly-CSharp::TrapDefinition
+  trapId: repair-station
+  displayName: "\u7EF4\u4FEE\u7AD9"
+  prefab: {fileID: 907794229865304067, guid: 4eb480eee93e8894e90861ac691da741, type: 3}
+  cost: 40
+  footprintWidth: 2
+  footprintHeight: 2
+  localRotation: {x: 0, y: 0, z: 0}
+  walkableFloorTrap: 0
+  worldFootprint: {x: 2, y: 2}
+  mountType: 0
+  installBoundsCenter: {x: 0, y: 0.625, z: 0}
+  installBoundsSize: {x: 1.9, y: 1.25, z: 1.9}
+  skipMonsterClearanceCheck: 0

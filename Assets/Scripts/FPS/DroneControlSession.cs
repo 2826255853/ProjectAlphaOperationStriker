@@ -1,4 +1,5 @@
 #if ENABLE_DRONE_CODE
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -16,6 +17,10 @@ public enum DroneControlState
 public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
 {
     public DroneControlState State { get; private set; } = DroneControlState.Player;
+    public static DroneControlSession ActiveSession { get; private set; }
+    public static event Action<DroneControlSession> ControlModeChanged;
+    public Camera ControlCamera => State == DroneControlState.Drone ? droneCamera_cam : originalPlayerCamera;
+    public bool IsDroneControlled => State == DroneControlState.Drone;
 
     private GameObject playerRoot;
     private GameObject droneRoot;
@@ -131,6 +136,8 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
 
         // Subscribe to scene unload
         SceneManager.sceneUnloaded += OnSceneUnloaded;
+        ActiveSession = this;
+        ControlModeChanged?.Invoke(this);
     }
 
     /// <summary>Requests a player/drone mode toggle.</summary>
@@ -256,6 +263,8 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
 
         if (droneAudioListener != null) droneAudioListener.enabled = true;
 
+        ControlModeChanged?.Invoke(this);
+
         // 3. Lock cursor if no menu owns it
         if (!GameStartMenu.CursorOwned && !TrapSelectionMenu.CursorOwned)
         {
@@ -268,6 +277,11 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
 
     private void ExitDroneMode()
     {
+        // A placement session belongs to the view that started it. Returning to
+        // the player clears its preview and restores the normal weapon.
+        TrapPlacementController placement = FindAnyObjectByType<TrapPlacementController>();
+        if (placement != null && placement.PlacementMode) placement.ExitPlacementMode();
+
         State = DroneControlState.Player;
 
         // 1. Reset drone velocity and freeze
@@ -324,6 +338,8 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
         }
 
         if (playerInput != null) playerInput.enabled = playerInputWasEnabled;
+
+        ControlModeChanged?.Invoke(this);
 
         // 4. Return cursor control to player/menu system
         // Don't directly unlock here; let player controller handle it
@@ -383,6 +399,12 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
 
         SceneManager.sceneUnloaded -= OnSceneUnloaded;
 
+        if (ActiveSession == this)
+        {
+            ActiveSession = null;
+            ControlModeChanged?.Invoke(null);
+        }
+
         if (droneRoot != null)
         {
             if (Application.isPlaying) Destroy(droneRoot);
@@ -429,6 +451,11 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
         playerInputBehaviours = null;
         playerInputBehavioursWereEnabled = null;
         SceneManager.sceneUnloaded -= OnSceneUnloaded;
+        if (ActiveSession == this)
+        {
+            ActiveSession = null;
+            ControlModeChanged?.Invoke(null);
+        }
     }
 
     private void CapturePlayerInputBehaviours(GameObject root)

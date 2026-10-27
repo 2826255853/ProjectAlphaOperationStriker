@@ -18,7 +18,7 @@ public sealed class GroundEnemyCombat : MonoBehaviour
 
     [Header("Trap targeting")]
     [SerializeField, Min(0f)] private float trapDetectionDistance = 8f;
-    [SerializeField, Tooltip("允许主动攻击地刺。普通怪物默认关闭；仅为需要此能力的特殊怪物开启，不影响地刺受到其他来源的伤害。")]
+    [SerializeField, Tooltip("允许主动攻击地刺和贝蒂7号。普通怪物默认关闭；仅为需要此能力的特殊怪物开启，不影响这些陷阱受到其他来源的伤害。")]
     private bool allowAttackGroundSpikes;
 
     [Header("Melee attack")]
@@ -156,7 +156,9 @@ public sealed class GroundEnemyCombat : MonoBehaviour
     private bool CanTargetTrap(TrapInstance trap)
     {
         if (trap == null || !trap.isActiveAndEnabled || trap.IsDestroyed) return false;
-        if (!allowAttackGroundSpikes && trap.GetComponent<GroundSpikeTrap>() != null) return false;
+        // Betty7 is a pass-through floor trap, just like ground spikes.
+        if (!allowAttackGroundSpikes && (trap.GetComponent<GroundSpikeTrap>() != null
+            || trap.GetComponent<Betty7JumpMineTrap>() != null)) return false;
         Vector3 position = trap.transform.position;
         return PlanarDistance(transform.position, position) <= trapDetectionDistance
             && Mathf.Abs(position.y - transform.position.y) <= roadHeightTolerance;

@@ -135,6 +135,69 @@ public sealed class Betty7JumpMineSlotTests
     // ──────────────────────────────────────────────
 
     [Test]
+    public void PlacementPreviewNeverAttacksAfterBeingShownAgain()
+    {
+        var definition = UnityEditor.AssetDatabase.LoadAssetAtPath<TrapDefinition>("Assets/Resources/Betty7.asset");
+        Assert.IsNotNull(definition);
+        Assert.IsNotNull(definition.Prefab);
+        var controllerObject = new GameObject("Betty7 Preview Test Controller");
+        GameObject preview = null;
+        const BindingFlags fields = BindingFlags.Instance | BindingFlags.NonPublic;
+        FieldInfo previewField = typeof(TrapPlacementController).GetField("preview", fields);
+        try
+        {
+            var controller = controllerObject.AddComponent<TrapPlacementController>();
+            typeof(TrapPlacementController).GetField("selectedTrap", fields).SetValue(controller, definition);
+            typeof(TrapPlacementController).GetField("placementMode", fields).SetValue(controller, true);
+            // Runtime previews intentionally clone renderer materials. In EditMode,
+            // Unity logs this warning as an error; cleanup below releases the clones.
+            foreach (Renderer renderer in definition.Prefab.GetComponentsInChildren<Renderer>())
+                foreach (Material material in renderer.sharedMaterials)
+                    if (material != null)
+                        UnityEngine.TestTools.LogAssert.Expect(LogType.Error,
+                            "Instantiating material due to calling renderer.material during edit mode. " +
+                            "This will leak materials into the scene. You most likely want to use renderer.sharedMaterial instead.");
+            InvokeLifecycle(controller, "RebuildPreview");
+            preview = (GameObject)previewField.GetValue(controller);
+            Assert.IsNotNull(preview);
+            Assert.IsNotNull(preview.GetComponent<TrapPlacementPreview>());
+            var trap = preview.GetComponent<Betty7JumpMineTrap>();
+            Assert.IsNotNull(trap);
+            // EditMode does not automatically initialize these runtime components.
+            InvokeLifecycle(preview.GetComponent<TrapInstance>(), "Awake");
+            InvokeLifecycle(trap, "Awake");
+            EnemyHealth health = BuildEnemy(preview.transform.position + Vector3.forward * 1.2f, flying: false);
+            float before = health.CurrentHealth;
+
+            for (int show = 0; show < 2; show++)
+            {
+                preview.SetActive(true);
+                Assert.IsFalse(trap.enabled, "showing a placement ghost must not enable its attack component");
+                Run(trap, 3f);
+                Assert.AreEqual(Betty7JumpMineTrap.AttackState.Ready, trap.State);
+                Assert.AreEqual(-1, trap.LastLaunchedMineIndex);
+                Assert.AreEqual(0, trap.DetonationCount);
+                Assert.AreEqual(before, health.CurrentHealth, 0.001f);
+                preview.SetActive(false);
+            }
+            Assert.IsTrue(definition.Prefab.GetComponent<Betty7JumpMineTrap>().enabled,
+                "disabling the preview must leave the actual prefab ready to attack");
+        }
+        finally
+        {
+            var controller = controllerObject.GetComponent<TrapPlacementController>();
+            if (controller != null)
+            {
+                // Avoid runtime Destroy calls when cleaning up an EditMode preview.
+                previewField.SetValue(controller, null);
+                InvokeLifecycle(controller, "ReleasePreviewMaterials");
+            }
+            if (preview != null) UnityEngine.Object.DestroyImmediate(preview);
+            UnityEngine.Object.DestroyImmediate(controllerObject);
+        }
+    }
+
+    [Test]
     public void TargetInFrontLaunchesTheCanisterOnThatSide()
     {
         Betty7JumpMineTrap trap = BuildTrap();

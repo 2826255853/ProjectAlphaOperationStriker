@@ -23,6 +23,7 @@ public sealed class TrapPlacementProjectionGunController : MonoBehaviour
     private bool weaponVisualsSuppressed;
     private bool missingPrefabWarningIssued;
     private bool subscribed;
+    private bool droneControlSubscribed;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void EnsureRuntimeController()
@@ -41,6 +42,15 @@ public sealed class TrapPlacementProjectionGunController : MonoBehaviour
     private void OnEnable()
     {
         TryBindPlacement();
+#if ENABLE_DRONE_CODE
+        if (!droneControlSubscribed)
+        {
+            DroneControlSession.ControlModeChanged += OnDroneControlModeChanged;
+            droneControlSubscribed = true;
+        }
+        if (DroneControlSession.ActiveSession != null && DroneControlSession.ActiveSession.IsDroneControlled)
+            OnDroneControlModeChanged(DroneControlSession.ActiveSession);
+#endif
     }
 
     private void Update()
@@ -93,8 +103,13 @@ public sealed class TrapPlacementProjectionGunController : MonoBehaviour
     {
         if (!enabled)
         {
-            if (projectionGunInstance != null) projectionGunInstance.SetActive(false);
-            SetNormalWeaponVisualsVisible(true);
+            HideProjectionGunAndRestoreWeapon();
+            return;
+        }
+
+        if (IsDroneModeActive())
+        {
+            HideProjectionGunAndRestoreWeapon();
             return;
         }
 
@@ -103,6 +118,30 @@ public sealed class TrapPlacementProjectionGunController : MonoBehaviour
 
         ShowResolvedProjectionGun(projectionGunPrefab);
     }
+
+    private static bool IsDroneModeActive()
+    {
+#if ENABLE_DRONE_CODE
+        return DroneControlSession.ActiveSession != null && DroneControlSession.ActiveSession.IsDroneControlled;
+#else
+        return false;
+#endif
+    }
+
+    private void HideProjectionGunAndRestoreWeapon()
+    {
+        if (projectionGunInstance != null) projectionGunInstance.SetActive(false);
+        SetNormalWeaponVisualsVisible(true);
+    }
+
+#if ENABLE_DRONE_CODE
+    private void OnDroneControlModeChanged(DroneControlSession session)
+    {
+        if (placement == null) TryBindPlacement();
+        if (placement != null && placement.PlacementMode)
+            OnPlacementModeChanged(true);
+    }
+#endif
 
     // Keep resource lookup separate from presentation so the genuine missing-resource
     // fallback can be verified without moving or deleting the shipped Resources asset.
@@ -163,10 +202,16 @@ public sealed class TrapPlacementProjectionGunController : MonoBehaviour
 
     private void OnDisable()
     {
+#if ENABLE_DRONE_CODE
+        if (droneControlSubscribed)
+        {
+            DroneControlSession.ControlModeChanged -= OnDroneControlModeChanged;
+            droneControlSubscribed = false;
+        }
+#endif
         if (placement != null && subscribed) placement.PlacementModeChanged -= OnPlacementModeChanged;
         subscribed = false;
-        if (projectionGunInstance != null) projectionGunInstance.SetActive(false);
-        SetNormalWeaponVisualsVisible(true);
+        HideProjectionGunAndRestoreWeapon();
     }
 
     private static bool TryGetTrapSlotPressed(out int slot)

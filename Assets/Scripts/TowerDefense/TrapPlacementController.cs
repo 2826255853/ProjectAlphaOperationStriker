@@ -45,6 +45,11 @@ public sealed class TrapPlacementController : MonoBehaviour
     private readonly List<Material> previewMaterials = new List<Material>();
     private float failureVisibleUntil;
     private GUIStyle placementHintStyle;
+#if ENABLE_DRONE_CODE
+    private Camera playerPlacementCamera;
+    private bool droneControlSubscribed;
+    private bool placementCameraWasConfigured;
+#endif
 
     public TrapDefinition SelectedTrap
     {
@@ -67,6 +72,7 @@ public sealed class TrapPlacementController : MonoBehaviour
     public bool HasValidPreview => placementMode && hasHoveredCell && activeGrid != null &&
         selectedTrap != null && CanPurchaseAt(activeGrid, hoveredCell);
     public TrapPlacementGrid ActiveGrid => activeGrid;
+    public Camera PlacementCamera => placementCamera;
     public string LastPlacementFailure { get; private set; } = string.Empty;
     public string PurchaseHint => economy.PurchaseHint(selectedTrap);
     public static bool IsPlacementModeActive { get; private set; }
@@ -193,7 +199,18 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     private void Awake()
     {
+#if ENABLE_DRONE_CODE
+        placementCameraWasConfigured = placementCamera != null;
+        if (placementCamera == null)
+        {
+            DroneControlSession activeSession = DroneControlSession.ActiveSession;
+            placementCamera = activeSession != null && activeSession.ControlCamera != null
+                ? activeSession.ControlCamera : Camera.main;
+        }
+        playerPlacementCamera = placementCamera;
+#else
         if (placementCamera == null) placementCamera = Camera.main;
+#endif
         InitializeTrapSlots();
         RefreshGrids();
         SelectTrapSlot(selectedSlot);
@@ -205,6 +222,24 @@ public sealed class TrapPlacementController : MonoBehaviour
         IsPlacementModeActive = placementMode;
         economy.Changed += RefreshPurchaseFeedback;
         economy.Enable();
+#if ENABLE_DRONE_CODE
+        if (!droneControlSubscribed)
+        {
+            DroneControlSession.ControlModeChanged += OnDroneControlModeChanged;
+            droneControlSubscribed = true;
+        }
+        DroneControlSession activeSession = DroneControlSession.ActiveSession;
+        if (activeSession != null && activeSession.ControlCamera != null)
+        {
+            if (activeSession.IsDroneControlled)
+                placementCamera = activeSession.ControlCamera;
+            else if (!placementCameraWasConfigured || playerPlacementCamera == null)
+            {
+                placementCamera = activeSession.ControlCamera;
+                playerPlacementCamera = placementCamera;
+            }
+        }
+#endif
     }
 
     private void Update()
@@ -212,7 +247,15 @@ public sealed class TrapPlacementController : MonoBehaviour
         economy.Refresh();
         if (TrapSelectionMenu.CursorOwned || GameStartMenu.CursorOwned) return;
         if (placementMode) SetWeaponInputSuppressed(true);
+#if ENABLE_DRONE_CODE
+        DroneControlSession activeSession = DroneControlSession.ActiveSession;
+        if (activeSession != null && activeSession.IsDroneControlled && activeSession.ControlCamera != null)
+            placementCamera = activeSession.ControlCamera;
+        else if (placementCamera == null)
+            placementCamera = Camera.main;
+#else
         if (placementCamera == null) placementCamera = Camera.main;
+#endif
         if (grids.Count == 0) RefreshGrids();
         if (grids.Count == 0 || placementCamera == null) return;
         UpdateHover();
@@ -678,6 +721,9 @@ public sealed class TrapPlacementController : MonoBehaviour
         MissileLauncherWeapon launcherWeapon = preview.GetComponent<MissileLauncherWeapon>();
         if (launcherWeapon != null) launcherWeapon.enabled = false;
         foreach (GroundSpikeTrap spikes in preview.GetComponentsInChildren<GroundSpikeTrap>(true)) spikes.enabled = false;
+        foreach (Betty7JumpMineTrap mines in preview.GetComponentsInChildren<Betty7JumpMineTrap>(true)) mines.enabled = false;
+        foreach (RepairStationTrap station in preview.GetComponentsInChildren<RepairStationTrap>(true)) station.enabled = false;
+        foreach (ThroatLampTrap lamp in preview.GetComponentsInChildren<ThroatLampTrap>(true)) lamp.enabled = false;
         foreach (TrapInstance trap in preview.GetComponentsInChildren<TrapInstance>(true)) trap.enabled = false;
         foreach (Collider collider in preview.GetComponentsInChildren<Collider>()) collider.enabled = false;
         foreach (Renderer renderer in preview.GetComponentsInChildren<Renderer>())
@@ -834,6 +880,13 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     private void OnDisable()
     {
+#if ENABLE_DRONE_CODE
+        if (droneControlSubscribed)
+        {
+            DroneControlSession.ControlModeChanged -= OnDroneControlModeChanged;
+            droneControlSubscribed = false;
+        }
+#endif
         SetPlacementMode(false);
         economy.Changed -= RefreshPurchaseFeedback;
         economy.Dispose();
@@ -842,4 +895,23 @@ public sealed class TrapPlacementController : MonoBehaviour
         preview = null;
         ClearGridMarkers();
     }
+
+#if ENABLE_DRONE_CODE
+    private void OnDroneControlModeChanged(DroneControlSession session)
+    {
+        if (session != null && session.IsDroneControlled && session.ControlCamera != null)
+        {
+            if (placementCamera != null && placementCamera != session.ControlCamera)
+                playerPlacementCamera = placementCamera;
+            placementCamera = session.ControlCamera;
+            return;
+        }
+
+        if (session != null && session.ControlCamera != null
+            && (!placementCameraWasConfigured || playerPlacementCamera == null))
+            playerPlacementCamera = session.ControlCamera;
+        placementCamera = playerPlacementCamera != null ? playerPlacementCamera
+            : session != null && session.ControlCamera != null ? session.ControlCamera : Camera.main;
+    }
+#endif
 }

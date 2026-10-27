@@ -53,9 +53,30 @@
 - `GameStartMenu`（`Assets/Scripts/FPS/GameStartMenu.cs`）负责开始/暂停状态、输入禁用、Esc、光标和设置值；界面由 `GameStartMenuView` 构建。运行时优先加载 `Assets/Resources/UI/GameStartMenu.prefab`，预制体壳缺少已序列化布局时会自行构建 Canvas，并从 `Assets/Resources/UI/MainMenuBackground.png` 读取背景。正式视觉源图为 `Assets/UI/MainMenuBackground.png`；现有项目编译正常时，可运行 `Tools/行动打击/生成战术主菜单`（`GameStartMenuAuthoring.Generate`）将完整 Canvas 烘焙到同一 Prefab 路径，`验证战术主菜单` 用于资源接线检查。
 - `PlayerHealth` 提供生命事件；`PlayerLifeStateController` 负责死亡后暂停控制、隐藏模型、进入 `PlayerObserverMode` 并延时复活；默认复活延迟 3 秒，优先指定/场景命名出生点，否则回到初始位置。它使用真实时间等待，不等同于塔防失败。
 - `PlayerSprintAimBridge` 桥接冲刺与瞄准；`Ladder.cs` 同时定义梯子与攀爬行为；`WeaponDamageProfile` / `WeaponDamageAuthoring` 管武器伤害配置。
+- 梯子地面修复（2026-10-27）：`GameplayLadder.fbx` 导入后长轴沿世界 -Z（包围盒中心约 Z=-1.63），不能直接把 FBX 根节点当作竖直梯子。`GenerateLadderPrefab.Generate` 用独立玩法根节点和 Visual 包装层，将模型长轴转向 +Y，再按真实 Renderer 包围盒归一到 Y=0..3.2；触发区和 Ladder 高度使用同一范围。`PlaceGameplayLadders.Place` 先重建该预制体，再按既有 8 个对称点和朝向缩放到 Y=0..2，已更新主场景。`PlaceGameplayLadders.ValidateAndPreview` 检查长轴竖直、模型/触发区/攀爬上下界、脚下实际地面，并渲染预览；批处理修复入口 `RepairAndPreviewBatch` 需带 `-WithGraphics`。Unity 编译及 8/8 数值探针通过，目视确认竖直贴地；未做人工 Play Mode 攀爬。预览、报告、日志和修改前场景/预制体备份位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\GameplayLadder\ground-fix-20261027\`。
+
+- 贴墙垂直梯子 WallLadder（2026-10-27 新增）：这是与 `GameplayLadder`（斜靠/独立式、占 1.35×0.5 m 触发区）**不同的模型**，两者都能用；主场景已按用户要求改用本模型（见下方「主场景梯子替换为贴墙梯子」）。
+  - 模型 `Assets/Models/WallLadder/WallLadder.fbx`（Blender 源与全部中间态在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\WallLadder\`），单网格 1248 顶点 / 2368 三角面 / 3 材质槽。
+  - **轴与原点约定**：长轴竖直，脚底在本地 Y=0，安装面（背面）在本地 Z=0，梯身朝 **+Z** 伸出，前进方向 +Z 背离墙面。因此摆放时根节点的 +Z 必须是“玩家所站的一侧”，墙体在 -Z 后方；相机/预览若放到 -Z 会被墙挡住。
+  - 尺寸：可攀爬高度 3.20 m、导轨外缘 0.60 m、**含两侧墙面法兰总宽 0.66 m**、进深仅 **0.07 m**（10 mm 安装板 + 60 mm 导轨），这就是“贴合墙壁”的量化判据；`WallLadderAuthoring.MaxDepth = 0.12` 是上限。
+  - 细节：10 根横档（间距 0.30 m，从 0.25 m 起）、3 组墙面安装板 + 12 颗螺栓、顶部深色端帽。材质 `WL_SafetyYellow` / `WL_SteelDark` / `WL_ZincBolt`。
+  - 生成器 `Assets/Editor/WallLadderAuthoring.cs`：`CreateAssetsBatch`（生成 `Assets/Models/WallLadder/Materials/M_WL_*.mat` 三个 URP/Lit 材质 + `Assets/Prefabs/WallLadder.prefab`）、`ValidateBatch`（16 项数值探针）、`RenderPreviewBatch`（需 `-WithGraphics`，4 张 PNG）。菜单在 `Tools/塔防/贴墙梯子/`。
+  - 预制体结构：`WallLadder`（`Ladder` + `BoxCollider` 触发区）→ `Visual`（按包围盒归零到 Y=0 / Z=0 / X 居中）→ FBX 实例。触发区 0.80 × 3.20 × 0.60，比模型宽，因为模型只有 7 cm 厚。
+  - **`Ladder.cs` 新增 `topDismountDirection`（本地向量，零值 = 沿用 `transform.forward`）**：贴墙梯子设为 `(0,0,-1)`，顶部自动下梯时把玩家推向墙内上层平台，而不是推离墙面掉下去。默认零值让 `GameplayLadder` 等既有梯子行为完全不变；`Ladder.DismountDirection` 是唯一读取点，`LadderClimbing` 的自动下梯用它。
+  - 校验结论：Blender 复导入 15/15（高度/宽度/进深/贴地/贴墙共面/竖直/居中/材质/三角面预算），Unity 预制体 16/16（含长轴、脚底、安装面 Z=0、进深上限、下梯方向、触发区、唯一碰撞体、全 URP 材质）。**未做人工 Play Mode 攀爬验收**。
+  - 两个踩过的坑：① 横档端面与导轨内侧面**完全共面**会产生 z-fighting 虚线，横档要嵌入导轨 5 mm；端帽也要略大于导轨并吞掉其顶面。② Cycles 预览里导轨的“台阶状条纹”是金属高光 + 降噪的噪点，不是几何问题（`diagnose.py` 证明 928 面、0 退化面、0 重复顶点，导轨正面是单个平面四边形）；降金属度后完全干净。
+
+- 主场景梯子替换为贴墙梯子（2026-10-27）：主场景里原有的 8 根 `GameplayLadder_*` 已全部换成贴墙梯子 `WallLadder_*`，分组从 `GameplayLadders_Symmetric` 改为 `WallLadders_Symmetric`（点位仍是 ±6/±22 的 X、z=±40 与 z=-8 共 8 处，左右对称）。
+  - 入口 `Assets/Editor/ReplaceGameplayLaddersWithWallLadder.cs`：菜单 `Tools/Map/用贴墙梯子替换原有梯子`，批处理 `ReplaceGameplayLaddersWithWallLadder.RunBatch`（预览需 `-WithGraphics`）。**不要**再跑 `PlaceGameplayLadders.Place`：它会重新生成旧式 `GameplayLadder`，跑完就变成新旧并存。
+  - 摆放规则（唯一一套，别在别处另写）：先从旧梯子脚点沿“朝平台方向”打水平射线取真实墙面；再在墙面**内侧** 0.6 m 处向下取最高水平面得平台顶面（探针方向写反会打到外侧地面，把梯子压成最小 0.9 m，这是本次踩过的坑）；根节点落在墙面上、沿背离墙方向退 5 mm（`WallGap`，防安装板与墙面共面 z-fighting）；旋转 = `LookRotation(-towardsPlatform)`，使本地 +Z 朝玩家、本地 -Z 朝平台内侧（与 `topDismountDirection` 一致）；等比缩放 `(平台顶面 − 地面) / ModelHeight`，顶端与平台顶面齐平，与旧梯子的攀爬上界完全一致，因此玩法可达性不变。
+  - 当前实测：8 个点平台顶面都是 2.00 m、地面 -0.02 m，缩放 0.631、梯高 2.02 m、贴墙间隙 5 mm、触发区 0.50×2.02×0.38。校验 82/82 通过（长轴竖直、脚底贴地、顶端对齐平台、贴合墙面、攀爬上界=模型顶端、下梯朝平台内侧、触发区覆盖、唯一碰撞体、旧梯子清空、数量=8）。
+  - 可重复运行：场景里没有 `GameplayLadder_*` 时脚本改以现有 `WallLadder_*` 为基准重算（朝平台方向取 `-forward`），所以改参数后直接重跑即可，不必回滚场景；每次运行前把场景副本写到输出目录。
+  - 产物：场景备份、`validation.txt`、9 张预览在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\WallLadder\scene-replace-20261027-231250\`（修改前场景与 `GameplayLadder.prefab` 备份在同级 `scene-replace-backup\`）。**未做人工 Play Mode 攀爬验收**（自动下梯能否真站上平台仍待实测）。
+
 
 ## 出怪、战斗与胜负
 
+- Betty7 选靶规则（2026-10-27）：`GroundEnemyCombat.CanTargetTrap` 对 `Betty7JumpMineTrap` 和 `GroundSpikeTrap` 使用同一排除规则；普通怪物默认不追击、不近战攻击这两类可通行陷阱，继续任务路径。保留序列化字段 `allowAttackGroundSpikes`，仅特殊怪物显式开启时允许攻击两者；不改 `TrapInstance.TakeDamage` 的通用受伤能力。回归入口 `Tests~/Editor/Betty7GroundEnemyCombatTests.cs`（真实 Betty7 预制体、路过/站在陷阱上、普通陷阱照常攻击、已有 Betty7 目标即时失效）；Unity EditMode **3/3 通过，无 C# 编译错误**，结果 `C:\Users\ASUS\Desktop\陷阱素材文件夹\Betty7\combat-tests\20261027-210423-405\editmode-results.xml`。临时导入的测试源码及 `.meta` 已清理；未做手动 PlayMode 验收。
 - `WaveManager` 管总波数；`EnemySpawnPoint` 管每个入口的波配置、间隔、地面/飞行生成与奖励参数。入口可能多份，不能假设只有一个。
 - `EnemySpawnPoint` → `EnemyInstance`（入口/波次/类型/本次击杀奖励）→ `EnemyHealth` 与 `MonsterPathFollower`。到达和死亡各有结算路径，避免重复结算。
 - 地面移动复用 `MonsterPathGrid`；`GroundEnemyCombat` 管追击玩家/陷阱及返回任务路径。飞行走 `InitializeFlying`，不做网格寻路或地面投影，不附加 `GroundEnemyCombat`。
@@ -579,6 +600,7 @@
 - 回归测试：为 `Tests~/Editor/DroneCameraControllerTests.cs` 加入默认朝下与独立枢轴优先用例，并更新俯仰预期。第一次运行暴露测试夹具再次调用 `Awake` 时没有清空已缓存枢轴，测试代码已修正。后续重跑被另一项目已运行的 Unity Editor 拒绝；没有终止该实例，修正后的 EditMode 全套仍待复验。临时复制到 `Assets/Editor` 的测试源码及 `.meta` 已在 runner 结束后清理。
 
 ## 贝蒂7号跳雷地面陷阱（2026-10-27）
+- 放置预览攻击隔离：`TrapPlacementController.RebuildPreview` 必须停用预览层级里的全部 `Betty7JumpMineTrap`（含未激活子物体）；此前遗漏该类型，导致预览显示时 `LateUpdate → Tick` 也会侦测、发射和结算真实伤害。沿用其他陷阱的组件停用方式，`Tick` 已有 `isActiveAndEnabled` 门控，正式放置仍使用原预制体的启用组件。`Tests~/Editor/Betty7JumpMineSlotTests.cs` 新增真实预制体预览显示/隐藏/再次显示不攻击、不伤害的回归，Unity EditMode **13/13 通过、无编译错误**：`C:\Users\ASUS\Desktop\陷阱素材文件夹\Betty7\preview-tests\20261027-202018-106\editmode-results.xml`。临时测试源码及 `.meta` 已清理；未做手动 PlayMode 放置验收。
 - 依据参考图（四角跳雷 ×4 + 中央侦测器 + 低矮装甲底座，即 `贝蒂7号 / 地面陷阱`）新建的可行走地面陷阱。模型脚本 `C:\Users\ASUS\Desktop\陷阱素材文件夹\Betty7\build_betty7.py`（Blender 5.2 无头运行，自动备份 .blend 并渲染 6 张预览），定稿 FBX 在 `Assets/Models/Betty7/Betty7.fbx`。
 - 几何契约（Blender 名 → Unity 名字驱动，改名字会断线）：`Betty7_Base`（底座+四角插槽+橙色警示条+中央基座）、`Detector_Dome`（青色发光半球）、`Mine_01..Mine_04`（四角跳雷筒，静止时坐进插槽、沿 +Z 竖直上跳）。整机 2.0×2.0 m、高约 0.51 m，底面在 y=0。
 - 生成链（不要手改生成物）：`Assets/Editor/Betty7TrapAuthoring.cs` —— `CreateAssets`（菜单 `Tools/塔防/接入贝蒂7号陷阱预制体`）从 FBX 搭 `Assets/Prefabs/Betty7.prefab`（根 `Betty7` 挂 `TrapInstance` + `Betty7JumpMineTrap`，跳雷统一放进 `Mines` 空节点），按 Blender 材质名生成 `Assets/Models/Betty7/Materials/*.mat`（URP/Lit，橙色与青色带自发光）并写入 `Assets/Resources/Betty7.asset`（trapId `betty7`、显示名 `贝蒂7号`、2×2、`walkableFloorTrap`、Ground、首版价 60）。`ProbePrefab` 打印层级/材质/shader，`RenderPreview`（需 `-WithGraphics`）出 `preview_unity_hero/top/launch.png`。
@@ -586,3 +608,69 @@
 - 起爆特效是运行时自建：四发加法亮球 + 点光，`Destroy` 在非 PlayMode 下自动换成 `DestroyImmediate`（否则编辑期测试/预览会刷 `Destroy may not be called from edit mode` 错误）。
 - 验证：回归用例 `Tests~\Editor\Betty7JumpMineSlotTests.cs`（**12 例**，不进 `Assets/`，运行时临时复制到 `Assets/Editor` 后用 `Assets/Editor/RunEnemyDamageResistanceTests.ps1 -Fixtures Betty7JumpMineSlotTests` 跑）覆盖：+Z/−Z/+X 三个方位各选对应侧的跳雷、同时只有一颗启用、单次发射只起爆一次、只有起爆的那颗进入装填、两个槽位的剩余装填时间差等于发射间隔、装填完毕后同一颗能再次发射、飞行怪不触发、侦测圈内但爆破圈外不掉血、跳雷回插槽，以及**真实 `Assets/Prefabs/Betty7.prefab` 四个 `mineRoots` 全部接线**。Unity `6000.6.7f1` EditMode 结果 **12/12 通过、0 失败、0 跳过、无 `error CS`**：`C:\Users\ASUS\Desktop\陷阱素材文件夹\Betty7\slot-tests\20261027-154704-418\editmode-results.xml`。用例夹具给怪物 100000 血：`EnemyHealth` 死亡时走 `Destroy`，编辑期会报错并留下待销毁对象污染后续 TearDown。早期旧用例（齐爆版 4/4）已归档为同目录 `Betty7JumpMineTrapTests.cs.bak`，仅作历史对照。
 - 未做：PlayMode 实机放置/战斗验收、贴图与 UV（纯材质色块）、受击/销毁表现、对飞行怪的任何攻击（设计上刻意不做）。
+
+## 扼喉之灯（天花板等离子陷阱）模型（2026-10-27）
+
+- 依据 `C:\Users\ASUS\Desktop\陷阱素材文件夹\ThroatLamp\ThroatLamp_Orthographic_v01_prompt.txt`（三视图设计说明）制作的**天花板**陷阱模型。本轮**只做模型、URP 材质与预制体**：没有攻击/瞄准逻辑，没有 `TrapDefinition`，没有放进任何场景。
+- 中间态全部在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\ThroatLamp\`：`build_throat_lamp.py`（唯一建模脚本）、`ThroatLamp.blend`、`ThroatLamp.fbx`、`previews\`（6 张 Cycles 图）、`unity-previews\`（5 张 URP 图）、`validation_report.json`、`material_parameters.json`、`backups\<时间戳>\`。定稿资源：`Assets/Models/ThroatLamp/ThroatLamp.fbx`、`Assets/Models/ThroatLamp/Materials/TL_*.mat`（8 个）、`Assets/Prefabs/ThroatLamp.prefab`。
+- **坐标契约（关键，容易做错）**：天花板网格旋转来自 `CeilingTrapGridAuthoring.TryFit` 的 `LookRotation(-support.up, support.forward)`，即预制体**局部 +Z = 世界向下**；`TrapPlacementGrid.GetTrapWorldRotation` 对挂装面再乘 `definition.LocalRotation`。所以模型必须沿 **+Z 下垂**，Blender 侧因此**沿 −Y 建模**（`(bx,by,bz) → (bx, bz, −by)`）。按地面陷阱的习惯沿 −Y 出模会让装配横向伸出。接玩法时 `TrapDefinition.localRotation` 保持零即可。
+- FBX 导出固定 `apply_scale_options="FBX_SCALE_ALL"`、`bake_space_transform=False`、`mesh_smooth_type="FACE"`、`axis_forward="-Z"`、`axis_up="Y"`；Blender 5.x 的 FBX 导出器**没有** `export_animations/export_cameras/export_lights` 参数，用了会直接 `TypeError`。
+- 生成链只有一个入口 `Assets/Editor/ThroatLampAuthoring.cs`：`CreateAssetsBatch`（配置 `ModelImporter` + 生成材质 + 建预制体 + 探针；菜单 `Tools/塔防/扼喉之灯/配置导入并生成材质与预制体`）、`ProbePrefabBatch`、`RenderPreviewBatch`（**必须 `-WithGraphics`**，输出到桌面 `unity-previews\`，含两帧预热）。**先建材质再配置导入器**，否则 `AddRemap` 找不到材质、FBX 槽会退回内嵌 Standard（URP 下品红）。
+- 预制体层级（生成器按名字前缀分组，**改名会断线**）：根 `ThroatLamp` → `Ceiling Mount`（`Mount_*`，z=0）/ `Yaw Pivot`（本地 z=0.075，`Yaw_*` `Yoke_*`）→ `Pitch Pivot`（本地 z=0.195，世界 z=0.270，`Head_*`）→ `Nozzle` 空节点（本地 z=0.130，世界 z=0.400，朝 +Z）。预制体**只有 Transform/MeshFilter/MeshRenderer 与两个空节点**：无 `TrapInstance`、无 Collider、无脚本，探针会断言这些为空。
+- 尺寸与面数：72 个网格、9,616 三角面；包围盒 0.456（宽）× 0.410（下垂）× 0.456 m；安装板直径 0.456 m ≈ 2× 发射筒直径 0.20 m，符合设计稿比例。
+- **发射口必须用开口圆环**：`build_throat_lamp.py` 的 `annulus()` 用 bmesh 建双层环（外壁/内壁/两端环面）。早期用实心 `cyl()` 时，最外那圈端面把约束环和白热核心整个遮住，预览只剩一块平板（本轮踩过）。沿 −Y 的正确层序：`Head_Nozzle_Rim`(0.104/0.086) → `Shoulder` → `Bowl`(0.086/0.064) → `Throat`(0.064/0.050) → `Head_Containment_Ring` torus(major 0.057) → `Head_Lens`(r 0.05，弱发光) → `Head_Plasma_Core`(r 0.017，白热)。
+- 材质由 `ThroatLampAuthoring.Palette` 统一提供（改配色只改这里再重跑，**不要手改 `.mat`**）。Blender 与 Unity 的金属度/发光强度是**分别调过的两套数**：Unity 侧金属度 0.2–0.6、约束环发光 2.0、核心 5.5。原因：**URP 没有反射探针时金属几乎全黑**，早期 0.85 金属度在批处理预览里整机发黑；`RenderPreviewBatch` 另设 `RenderSettings.ambientMode = AmbientMode.Flat` 打底并在结束时恢复。
+- 验收：Blender 侧 10 项结构断言 PASS + 6 张 Cycles 预览；Unity `6000.6.7f1` 批处理 `THROAT_LAMP_ASSETS_PASS`，探针 **24/24 PASS**（pivot 深度 0.075/0.270、Nozzle 世界 0.400 且 forward=(0,0,1)、72 个 renderer、8 个材质全 URP、无 Collider/Rigidbody/脚本/灯光相机、bounds minZ=0 maxZ=0.410），5 张 URP 预览目视确认无品红、发射口为橙红约束环 + 白热核心。日志：`%TEMP%\alpha-striker-unity\20261027-204405-throatlampauthoring-createassetsbatch.log`。
+- 未做：攻击/瞄准/伤害、`TrapDefinition` 与 `TrapMountType.Ceiling` 接线、场景放置、PlayMode 验收、贴图与 UV（纯材质色块）、LOD。俯仰/水平旋转与等离子发光动画已在下一节补齐。
+
+### 扼喉之灯：材质收尾与动画（2026-10-27）
+
+- 材质收尾（`CreateOrUpdateMaterials` 内，改配色仍只改 `Palette`）：8 个 `TL_*.mat` 现在显式写 URP 表面开关——`_SpecularHighlights=1`、`_EnvironmentReflections=1`、禁用 `_SPECULARHIGHLIGHTS_OFF` / `_ENVIRONMENTREFLECTIONS_OFF`、`_Cull=Back`、`_AlphaClip=0`、`RenderType=Opaque`，等离子/镜片按玻璃金属读，不再像死板涂料。
+- 动画由同一个生成器产出，资产在 `Assets/Models/ThroatLamp/Animations/`：`TL_IdleScan.anim`（6 s 循环）、`TL_Charge.anim`（1.4 s）、`TL_Discharge.anim`（0.9 s）、`ThroatLamp.controller`。**不要手改这些 `.anim` / `.controller`**：重跑 `CreateAssetsBatch` 会先 `ClearCurves` 再重建，控制器每次整份删除重建。
+- 三条 clip 的曲线全部由编辑器按数学函数采样生成（`Sampled(length, f)`，默认 15 Hz，逐关键帧写入数值切线），不依赖 Unity 的自动切线策略（跨版本会变）。写曲线统一走 `AddCurve` / `AddEmission` / `AddLensScale`：
+  - 旋转：`Transform.localEulerAnglesRaw.y`（yaw ±26° 扫视）、`.x`（pitch 4°±3.2° 点头、Discharge 时 −7° 后坐）。
+  - 发光：`MeshRenderer.material._EmissionColor.r/g/b/a`（基准 约束环 2.0 / 核心 5.5 / 镜片 0.25；Charge 拉到 22 / 5.5 / 0.95，Discharge 再叠 `+12` / `+3` 指数闪光）。
+  - 镜片呼吸：`m_LocalScale.x/y/z`（1.0↔1.12）。
+- 控制器是**自播放循环**：`Idle →(exitTime 1.0, 0.12 s)→ Charge →(0.05 s)→ Discharge →(0.25 s)→ Idle`，默认态 `Idle`。另有 `Charge` / `Fire` 两个 Trigger 的 AnyState 转移留给后续玩法强制起爆；本轮没有任何脚本触发它们，接玩法时优先用这两个 Trigger。
+- 预制体根新增唯一组件 `Animator`（`applyRootMotion=false`、`cullingMode=AlwaysAnimate`、`updateMode=Normal`），**仍然没有任何 MonoBehaviour**，`no_scripts` 探针依旧通过。
+- 探针从 24 项扩到 36 项，新增 12 项动画断言：`animator_component` / `animator_controller` / `animator_no_root_motion` / `animator_always_animate` / `animation_clips`(3) / `animation_bindings_resolve`（每条 curve 的 path 必须能在预制体里解析，`MeshRenderer` 绑定还要真有 renderer）/ `yaw_animated`(>20°) / `pitch_animated`(>4°) / `emission_animated`(≥12 条) / `animation_states`(3) / `idle_loops` / `clip_lengths`。改层级名字会先在这几项炸掉。
+- 动画姿态预览：`RenderAnimationPreviewBatch`（菜单 `Tools/塔防/扼喉之灯/渲染动画姿态预览（需图形）`，**必须 `-WithGraphics`**）按 clip 里的数值手工摆三个姿态（yaw ±26°、charge 三倍发光 + 镜片 1.10）渲染到 `unity-previews\anim\`。刻意不用 `AnimationMode` 采样：材质曲线在编辑期采样不可靠，手工摆姿态才能真看到发光变化。
+- 验收：Unity `6000.6.7f1` 批处理 `THROAT_LAMP_ASSETS_PASS` + 探针 **36/36 PASS**、无编译错误无异常；静态 5 张与动画 3 张预览均目视确认（头部绕 X 左右摆、mount 不动、charge 帧白热核心与约束环明显变亮）。日志 `%TEMP%\alpha-striker-unity\20261027-210714-throatlampauthoring-createassetsbatch.log`、动画预览 `...\20261027-210742-throatlampauthoring-renderanimationpreviewbatch.log`；预览图 `C:\Users\ASUS\Desktop\陷阱素材文件夹\ThroatLamp\unity-previews\anim\`。
+- 回滚点：改前把 `ThroatLamp.prefab` 与 `Materials\` 备份到 `C:\Users\ASUS\Desktop\陷阱素材文件夹\ThroatLamp\backups\anim-20261027-210639\`。
+- 仍未验证：Animator 的真实运行（运行时是否生成材质实例、过渡混合手感）只有结构性断言，**未进 PlayMode**；也没接 `TrapDefinition` / 场景放置。
+- 顺带修复（阻塞编译）：`Assets/Scripts/TowerDefense/RepairStationTrap.cs` 的 `IsBetter` 用了 Unity 6.7 已升级为错误的 `GetInstanceID()`，改用 `RuntimeHelpers.GetHashCode` 做稳定 tie-break。不修整个工程无法编译。
+
+## 维修站（Repair Station）地面陷阱模型（2026-10-27）
+
+- 依据桌面 `陷阱素材文件夹\RepairStation\维修站设计图.jpg` 与 `RepairStation_Design_v01.txt` 制作。初始交付只有模型；2026-10-27 已补充 URP 材质、Prefab、TrapDefinition 和四臂维修逻辑，接入说明见下节。
+- 中间态全部在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\RepairStation\`：`build_repair_station.py`（唯一建模脚本，含材质/导出/统计）、`RepairStation.blend`、`RepairStation.fbx`、`render_previews.py`、`validate_repair_station.py`、5 张 Cycles 预览、`materials.json`（9 个材质的 PBR 参数，供后续建 URP 材质）、`HANDOFF.md`、`build_report.json`、`validation_report.json`。定稿模型：`Assets/Models/RepairStation/RepairStation.fbx`。
+- 几何契约：整体 1.902 × 1.902 m（底座八边形 1.90，蓝饰带外凸 1 mm），静止高 1.2495 m，底面 z=0，原点在底座中心；朝前为 Blender -Y（Unity +Z）。34 网格 / 55,564 三角面 / 28,272 顶点 / 9 材质。
+- 层级（名字即契约，改名会断层级）：`RepairStation` →（`Base`、`Housing`）与四条臂 `Arm_Front|Right|Back|Left`（空节点，绕 Z 转 0/90/180/270）→ `Shoulder_Yaw` → `Shoulder_Pitch` →（`ShoulderJoint`/`UpperArm`/`Cable_A`）→ `Elbow` →（`ElbowJoint`/`Forearm`/`Cable_B`）→ `Wrist` →（`Torch`、`WeldAxis`）。顶点已按枢轴原点烘进网格，枢轴局部位移归零，接动画直接给旋转即可。
+- 四向同构是硬要求：四条臂网格数、臂心半径/高度、包围盒 90° 旋转关系都由校验断言，改一条臂要四臂一起改并重跑校验。
+- 校验入口：`blender -b --factory-startup --python validate_repair_station.py`，会把 FBX 重新导入空场景跑 36 项断言，当前 36/36 PASS（尺寸、居中、贴地、四向同构、21 个枢轴、无非单位缩放/镜像、无退化三角面）。
+- 预览：`render_previews.py` 出 `preview_three_quarter / front / top / arm_detail / deployed`；`deployed` 是临时旋转枢轴的展臂姿态，**不写回模型**，用来核对枢轴向。
+- 踩过的坑：`prim_oct` 造的是实心八边形，用它做“细饰线/凹槽”会整面盖住下层（曾把底座顶面整片染蓝）；这类环形装饰要用 `prim_oct_ring`（八边形环），且环高只有几毫米时 bevel 必须给到 ≤0.001，否则 bevel 会压出退化三角面（校验会报 degenerate）。
+- 后续仍未做：焊弧/火花/烟雾粒子与声音、主场景预放置、UV/贴图/LOD。现有陷阱血条直接读取统一 TrapInstance 血量，无需另加血量 UI。
+
+### RepairStation 游戏接入（2026-10-27）
+
+- 运行时：`Assets/Scripts/TowerDefense/RepairStationTrap.cs`；`TrapInstance.Repair(float)` 返回实际恢复值，拒绝非正数/NaN/无穷/已死亡，不触发 Damaged 或 Destroyed。每臂独立 CD=4 秒、每次 25 点，发现有效目标立即回血；换目标、组件开关不重置 CD。时间走 `Time.time` / `deltaTime`，暂停不触发首次维修，也不推进动作。
+- 选靶：`TrapPlacementGeometry.TryGetGroundFootprint` / `FindSharedGroundSide` 使用网格占格矩形的世界共边，不用模型 AABB；同高度、跨网格、旋转网格均可，排除斜角、自身、墙面/天花板、未放置、禁用、已死亡、移出网格记录位置的对象和 `TrapPlacementPreview`。优先血量比例最低，再按距离、实例 ID 稳定决胜；共边最长的方向唯一归属，平手前/右/后/左，单站不会用两臂重复修同目标。
+- 生成入口：`RepairStationAuthoring.CreateAssetsBatch`（菜单 `Tools/塔防/维修站/生成材质、Prefab 与陷阱定义`）；九种 URP/Lit 材质在 `Assets/Models/RepairStation/Materials/`，参数直接保留于生成器字典。最终资源为 `Assets/Resources/RepairStation.prefab` 与 `Assets/Resources/RepairStation.asset`，菜单自动加载；默认 40 金币、100 血、固定 2×2 米占格，走现有购买/出售链。重复生成保留资产 GUID，已有定义价格不覆盖。
+- FBX 的 **实际 Unity 导入** 与初始交接坐标描述不同：空节点本地 Z 坐标翻转、祖先有 X=90°；生成器给 visual 额外 Y=180°，令 Front 朝 Unity +Z。保留原始四臂命名，按实际表面法线绑定前右后左索引；不要按名字数组直接认定 Unity 方向。Blender 参考角 yaw Z=-90 / pitch Y=-52 / elbow Y=-72 / wrist Y=55，对应导入关节本地 Z=-90 / Y=52 / Y=72 / Y=-55。
+- 动作：0.3 秒展开 + 0.4 秒停留 + 0.3 秒收回，不缩放网格；枪口仅通过 MaterialPropertyBlock 在工作时显示已有青色自发光，无新增粒子/声音/IK。目标移走、禁用、售出或摧毁时动作复位；放置预览显式禁用维修组件，组件另有真实放置检查。
+- 结构校验入口：`RepairStationAuthoring.ValidateBatch`；完整生成+图形预览：`RepairStationAuthoring.GenerateAndPreviewBatch`（运行器带 `-WithGraphics`），独立预览 `RenderPreviewBatch`。三张图、资源探针、购买维修出售集成报告在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\RepairStation\unity-previews\`，备份在同级 `unity-backup-20261027-210633\`。不修改主场景或 MapForge。
+- 集成探针已验证：500 金币购买后剩 460，四个目标 40→65，3.99 秒仍 65，4 秒到 90，出售返 20 后 480；预览图已检查四臂工作姿态与 Blender 参考相符。
+- 持久测试在 `Tests~/Editor/RepairStationTests.cs`，临时复制至 `Assets/Editor` 后以 `RunEnemyDamageResistanceTests.ps1 -Fixtures RepairStationTests` 执行。必须在 finally 移除临时源码与 `.meta` 再正常编译；Play Mode 测试可能让新版编辑器重序列化 TimeManager.asset，测试前备份并于结束后恢复该文件。
+- 验收：Unity 6000.6.7f1 **17/17 PASS，0 失败、0 跳过**（含真实 Play Mode 暂停与恢复）；结果 `C:\Users\ASUS\Desktop\陷阱素材文件夹\RepairStation\unity-tests\20261027-211932-392\editmode-results.xml`。测试源码及 meta 已清理，TimeManager.asset 已还原；之后正常编译/资源校验日志 `unity-previews\final-compile.log`，无 C# 编译错误或方法异常。未做主场景人工键鼠验收或完整 Player 构建。
+
+### 扼喉之灯游戏接入（2026-10-27，覆盖上方美术阶段的未接入说明）
+
+- 生成入口仍为 `ThroatLampAuthoring.CreateAssetsBatch`：生成现有 `Assets/Prefabs/ThroatLamp.prefab`、新增 `Assets/Prefabs/ThroatLampPlasma.prefab` 和 `Assets/Resources/ThroatLamp.asset`。定义 ID=`throat-lamp`，天花板安装、固定 2×2 米占用、默认40金币；安装包围盒来自模型实际尺寸，模型保持原有0.456米宽度，不按占格放大。重复生成保留定义价格和玩法组件的 Inspector 数值。
+- `ThroatLampTrap` 负责地面选敌、持续锁定、提前量瞄准及蓄能发射。复用 `MissileAimSolver` / `MissileVelocityTracker`；默认射程18米、弹速20米/秒、首次蓄能1.4秒、两次发射间隔4秒（包含后续蓄能）。目标失效/遮挡取消蓄能，不补发；预测点超出弹体射程时不发射。只允许安装法线朝向的0~85度锥内目标，飞行敌人不参与。
+- 坐标：安装根局部+Z映射世界向下，运行时 yaw 绕局部Z、pitch绕局部X。`LateUpdate` 最终写入转轴，确保 Animator 不覆盖自动瞄准；保留原发光、镜片、位移后坐，无目标时原待机扫描。控制器不再自动循环攻击，仅 Charge/Fire 触发攻击，Discharge 自动回 Idle。运行时旋转覆盖原clip的旋转，安装板不动。
+- `PlasmaProjectile` 冻结发射方向，逐帧扫掠比较场景障碍和地面敌人身体包围盒（无 Collider 时使用 renderer / 小型回退包围盒）。直接80点电伤害，命中点2米内其他地面敌人40点电伤害，不重复结算、不伤飞行敌人/玩家/陷阱、不附带控制；超出18米直接销毁。弹体模型和 TrailRenderer 引用 URP 材质。
+- 菜单、购买、出售、血条沿用原流程。`TrapPlacementController` 显式禁用虚影的 `ThroatLampTrap`，组件自身也拒绝推进带 `TrapPlacementPreview` 的对象，防止预览开火。不改主场景或 MapForge。
+- 探针已由“无脚本”改为检查 TrapInstance+ThroatLampTrap、炮口/Animator/弹体引用和2×2米天花板定义，**38/38 PASS**。图形预览入口 `ThroatLampAuthoring.RenderGameplayPreviewBatch`（运行器带 `-WithGraphics`），使用独立预览场景及运行时同一 `AimAt`，生成 `aim-and-charge.png` 与 `plasma-shot.png`，已检查朝向、材质和弹体可见性。
+- 持久测试 `Tests~/Editor/ThroatLampTests.cs`，临时复制至 `Assets/Editor` 后跑 `RunEnemyDamageResistanceTests.ps1 -Fixtures ThroatLampTests`。**13/13 PASS，0失败、0跳过**，包括真实 Play Mode 购买扣40、占用与越界拒绝且不扣钱、Animator蓄能/放电、实际命中、血条近射线选靶、出售返20及释放占格；另覆盖3种安装朝向、4秒间隔、提前量/停止/转向、遮挡/失效/重选蓄能、虚影禁攻、超程预测、电抗性、范围边界、无碰撞体与高速扫掠。
+- 验收产物统一在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\ThroatLamp\gameplay-validation\`，13项测试 XML 为 `tests\20261027-214103-149\editmode-results.xml`。临时测试源码与 `.meta` 已移至其 `test-staging\`；Play Mode 造成的 TimeManager 重序列化在结束后恢复。原 Authoring/Prefab/动画备份在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\ThroatLamp\backups\gameplay-20261027-213128\`。未做主场景人工键鼠验收或完整 Player 构建。
