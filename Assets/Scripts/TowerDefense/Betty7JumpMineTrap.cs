@@ -239,11 +239,10 @@ public sealed class Betty7JumpMineTrap : MonoBehaviour
                 break;
             case AttackState.Detonating:
                 slot.State = AttackState.Recovering;
-                SetMineVisible(slot, true);
                 break;
             case AttackState.Recovering:
-                // Only this slot starts reloading; the other canisters keep
-                // their own timers untouched.
+                // Reload starts after the original recovery interval, while the
+                // consumed canister remains hidden from the socket.
                 slot.State = AttackState.Cooldown;
                 break;
             case AttackState.Cooldown:
@@ -272,7 +271,7 @@ public sealed class Betty7JumpMineTrap : MonoBehaviour
                 SetMineRise(slot, 1f - fraction);
                 break;
             default:
-                // Ready / Arming / Cooldown all sit down in the slot.
+                // Loaded canisters sit in the slot; reloading ones are hidden.
                 SetMineRise(slot, 0f);
                 break;
         }

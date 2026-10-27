@@ -282,14 +282,18 @@ public sealed class Betty7JumpMineSlotTests
         // 起爆后立刻清场，避免第二颗紧接着开始启用。
         RunUntil(trap, () => trap.DetonationCount > 0, CycleSeconds);
         int fired = trap.LastLaunchedMineIndex;
+        Assert.IsFalse(MineAt(trap, fired).gameObject.activeSelf,
+            "the detonated canister must disappear immediately");
         foreach (GameObject enemy in enemies) UnityEngine.Object.DestroyImmediate(enemy);
         enemies.Clear();
 
-        Run(trap, CycleSeconds);
+        Run(trap, HoldSeconds + RecoverSeconds + 0.1f);
 
         Assert.AreEqual(Betty7JumpMineTrap.AttackState.Cooldown, trap.GetMineState(fired),
             "the fired canister must be reloading");
         Assert.Greater(trap.GetMineReloadRemaining(fired), 4f, "reload timer should be running");
+        Assert.IsFalse(MineAt(trap, fired).gameObject.activeSelf,
+            "the slot stays empty throughout reload");
         Assert.AreEqual(3, ReadySlotCount(trap), "the other three canisters keep their load");
     }
 
@@ -304,7 +308,7 @@ public sealed class Betty7JumpMineSlotTests
         foreach (GameObject enemy in enemies) UnityEngine.Object.DestroyImmediate(enemy);
         enemies.Clear();
         // 等第二颗走完起爆/回收，两个槽位同时处于装填，才能比较各自的剩余时间。
-        Run(trap, HoldSeconds + RecoverSeconds + 0.2f);
+        Run(trap, HoldSeconds + RecoverSeconds + 0.1f);
 
         var reloading = new System.Collections.Generic.List<int>();
         for (int i = 0; i < trap.MineSlotCount; i++)
@@ -396,7 +400,7 @@ public sealed class Betty7JumpMineSlotTests
     }
 
     [Test]
-    public void LaunchedCanisterReturnsToItsSocket()
+    public void DetonatedCanisterStaysAbsentUntilReloadCompletes()
     {
         Betty7JumpMineTrap trap = BuildTrap();
         BuildEnemy(new Vector3(0f, 0f, 1.2f), flying: false);
@@ -404,11 +408,14 @@ public sealed class Betty7JumpMineSlotTests
         Vector3 rest = mine.localPosition;
 
         Run(trap, 0.75f);
-        Assert.Greater(mine.localPosition.y, rest.y + 0.5f, "mine should be airborne mid-cycle");
+        Assert.IsFalse(mine.gameObject.activeSelf, "detonated mine should disappear");
 
         foreach (GameObject enemy in enemies) UnityEngine.Object.DestroyImmediate(enemy);
         enemies.Clear();
-        Run(trap, 12f, 0.05f);
+        Run(trap, 5f, 0.05f);
+        Assert.IsFalse(mine.gameObject.activeSelf, "mine must remain absent during reload");
+        Run(trap, 2f, 0.05f);
+        Assert.IsTrue(mine.gameObject.activeSelf, "mine returns when reload completes");
         Assert.AreEqual(rest.y, mine.localPosition.y, 0.01f, "mine should be back in its socket");
     }
 }
