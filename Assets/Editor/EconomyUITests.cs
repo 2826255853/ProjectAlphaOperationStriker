@@ -3,13 +3,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEditor;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 public sealed class EconomyUITests
@@ -208,14 +211,53 @@ public sealed class EconomyUITests
             Invoke(menu, "SetOpen", true);
             Assert.That(TrapSelectionMenu.CursorOwned, Is.True);
             Assert.That(Cursor.lockState, Is.EqualTo(CursorLockMode.None));
+            TrapSelectionMenuView menuCanvas = (TrapSelectionMenuView)Get(menu, "view");
+            Assert.That(menuCanvas, Is.Not.Null);
+            Assert.That(menuCanvas.GetComponentsInChildren<TrapSelectionMenuCardView>(true).Length, Is.EqualTo(54));
+            menuCanvas.transform.Find("Menu Panel/Filter 墙面").GetComponent<Button>().onClick.Invoke();
+            var filtered = (List<TrapDefinition>)Get(menu, "filtered");
+            Assert.That(filtered.Count, Is.GreaterThan(0));
+            Assert.That(filtered.All(trap => trap.MountType == TrapMountType.Wall), Is.True);
+            menuCanvas.transform.Find("Menu Panel/Filter 天花板").GetComponent<Button>().onClick.Invoke();
+            Assert.That(filtered.All(trap => trap.MountType == TrapMountType.Ceiling), Is.True);
+            menuCanvas.transform.Find("Menu Panel/Filter 全部").GetComponent<Button>().onClick.Invoke();
             // Show a controlled price in the real menu without changing any definition asset.
             var available = (List<TrapDefinition>)Get(menu, "available");
             available.Insert(0, definition);
-            Set(menu, "styledCellSize", -1f);
+            filtered.Insert(0, definition);
+            menuCanvas.Refresh();
+            var menuCards = menuCanvas.GetComponentsInChildren<TrapSelectionMenuCardView>(true);
+            Assert.That(((TextMeshProUGUI)Get(menuCards[0], "nameLabel")).text, Is.EqualTo("测试陷阱"));
+            Assert.That(((TextMeshProUGUI)Get(menuCards[0], "statusLabel")).text, Is.EqualTo("金币不足"));
             Assert.That(controller.AssignTrapToSlot(1, definition), Is.True);
             Assert.That(wallet.Balance, Is.Zero);
             yield return CapturePreview("menu-insufficient.png");
-            Invoke(menu, "SetOpen", false);
+            var nextPage = menuCanvas.transform.Find("Menu Panel/Next Page").GetComponent<Button>();
+            var previousPage = menuCanvas.transform.Find("Menu Panel/Previous Page").GetComponent<Button>();
+            for (int i = 0; i < 54; i++)
+            {
+                available.Add(definition);
+                filtered.Add(definition);
+            }
+            menuCanvas.Refresh();
+            Assert.That(nextPage.interactable, Is.True, "A second page must appear when more than 54 traps are available.");
+            nextPage.onClick.Invoke();
+            Assert.That(((TextMeshProUGUI)Get(menuCanvas, "pageLabel")).text, Is.EqualTo("2 / 2"));
+            previousPage.onClick.Invoke();
+            Assert.That(((TextMeshProUGUI)Get(menuCanvas, "pageLabel")).text, Is.EqualTo("1 / 2"));
+            available.RemoveRange(available.Count - 54, 54);
+            filtered.RemoveRange(filtered.Count - 54, 54);
+            menuCanvas.Refresh();
+            menuCanvas.transform.Find("Menu Panel/Slot 5").GetComponent<Button>().onClick.Invoke();
+            menuCanvas.GetComponentsInChildren<TrapSelectionMenuCardView>(true)[0].GetComponent<Button>().onClick.Invoke();
+            Assert.That(controller.GetTrapSlot(1), Is.SameAs(definition), "Picking a card must assign it to the selected hotbar slot.");
+            Assert.That(wallet.Balance, Is.Zero, "Choosing a trap does not spend currency.");
+            Assert.That(TrapSelectionMenu.CursorOwned, Is.True, "The menu close frame must still own the cursor.");
+            Invoke(menu, "SetOpen", true);
+            menuCanvas.transform.Find("Menu Panel/Slot 5").GetComponent<Button>().onClick.Invoke();
+            menuCanvas.transform.Find("Menu Panel/Clear Selected Slot").GetComponent<Button>().onClick.Invoke();
+            Assert.That(controller.GetTrapSlot(1), Is.Null, "Clear must remove only the selected slot's trap.");
+            Assert.That(wallet.Balance, Is.Zero, "Clearing a slot does not spend currency.");
             Assert.That(TrapSelectionMenu.CursorOwned, Is.True, "The close frame must still own the cursor.");
             int count = ListenerCount(wallet);
             hud.enabled = false;

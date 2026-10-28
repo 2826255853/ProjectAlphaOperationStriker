@@ -15,6 +15,7 @@ MonoBehaviour:
   trapId: flamethrower
   displayName: "\u706B\u7130\u55B7\u5C04\u5668"
   prefab: {fileID: 8147082356432118594, guid: da5a86d832ddc2c41aedfd54a7b5a9f5, type: 3}
+  menuIcon: {fileID: 21300000, guid: 26bb9b52316968f42a1ed5c339110599, type: 3}
   cost: 40
   footprintWidth: 2
   footprintHeight: 2

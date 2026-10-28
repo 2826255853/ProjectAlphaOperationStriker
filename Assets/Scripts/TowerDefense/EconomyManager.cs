@@ -16,6 +16,11 @@ public sealed class EconomyManager : MonoBehaviour
     public bool IsInitialized { get; private set; }
     public Guid RunId { get; private set; }
     public event Action<int> BalanceChanged;
+    /// <summary>Raised after the new wallet state is installed, before balance/UI notifications.</summary>
+    public event Action<Guid> RunStarted;
+    internal event Action WalletDestroyed;
+    internal TrapUpgradeService UpgradeService { get; set; }
+    internal bool IsBeginningRun { get; private set; }
     private int reservedMoney;
     public int AvailableBalance => Balance - reservedMoney;
 
@@ -33,6 +38,9 @@ public sealed class EconomyManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        WalletDestroyed?.Invoke();
+        WalletDestroyed = null;
+        RunStarted = null;
         BalanceChanged = null;
         if (Instance == this) Instance = null;
     }
@@ -42,11 +50,25 @@ public sealed class EconomyManager : MonoBehaviour
     {
         if (initialMoney < 0) throw new ArgumentOutOfRangeException(nameof(initialMoney));
 
-        RunId = Guid.NewGuid();
-        reservedMoney = 0;
-        Balance = initialMoney;
-        IsInitialized = true;
-        BalanceChanged?.Invoke(Balance);
+        bool previous = IsBeginningRun;
+        IsBeginningRun = true;
+        try
+        {
+            RunId = Guid.NewGuid();
+            reservedMoney = 0;
+            Balance = initialMoney;
+            IsInitialized = true;
+            Guid startedRun = RunId;
+            if (RunStarted != null)
+                foreach (Action<Guid> listener in RunStarted.GetInvocationList())
+                {
+                    if (RunId != startedRun) break;
+                    try { listener(startedRun); }
+                    catch (Exception exception) { Debug.LogException(exception, this); }
+                }
+            if (RunId == startedRun) NotifyBalanceChanged();
+        }
+        finally { IsBeginningRun = previous; }
     }
 
     public bool CanAfford(int amount) => IsInitialized && amount >= 0 && amount <= AvailableBalance;
@@ -74,14 +96,15 @@ public sealed class EconomyManager : MonoBehaviour
             this.amount = amount;
         }
 
-        internal bool Commit()
+        internal bool Commit(bool notify = true)
         {
             EconomyManager owner = wallet;
-            if (owner == null || !owner.IsInitialized || owner.RunId != runId) return false;
+            if (owner == null || !owner.IsInitialized || owner.RunId != runId ||
+                owner.reservedMoney < amount || owner.Balance < amount) return false;
             wallet = null;
             owner.reservedMoney -= amount;
             owner.Balance -= amount;
-            if (amount != 0) owner.NotifyBalanceChanged();
+            if (notify && amount != 0) owner.NotifyBalanceChanged();
             return true;
         }
 
@@ -92,13 +115,16 @@ public sealed class EconomyManager : MonoBehaviour
         }
     }
 
-    private void NotifyBalanceChanged()
+    internal void NotifyBalanceChanged()
     {
         if (BalanceChanged == null) return;
+        Guid notifyingRun = RunId;
+        int balance = Balance;
         // A broken HUD listener must not turn a committed purchase into a rollback.
         foreach (Action<int> listener in BalanceChanged.GetInvocationList())
         {
-            try { listener(Balance); }
+            if (RunId != notifyingRun) break;
+            try { listener(balance); }
             catch (Exception exception) { Debug.LogException(exception, this); }
         }
     }
@@ -148,13 +174,18 @@ public sealed class EconomyManager : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetRuntimeState()
     {
+        TrapUpgradeRuntime.ResetRuntimeState();
         // Also reset when both domain reload and scene reload are disabled.
         if (Instance != null)
         {
             Instance.BalanceChanged = null;
+            Instance.RunStarted = null;
+            Instance.WalletDestroyed?.Invoke();
+            Instance.WalletDestroyed = null;
             Instance.IsInitialized = false;
             Instance.Balance = 0;
             Instance.reservedMoney = 0;
+            Instance.IsBeginningRun = false;
             Instance.RunId = Guid.Empty;
         }
         Instance = null;

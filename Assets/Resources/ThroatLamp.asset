@@ -15,6 +15,7 @@ MonoBehaviour:
   trapId: throat-lamp
   displayName: "\u627C\u5589\u4E4B\u706F"
   prefab: {fileID: 5125702734372428124, guid: 57e9e338ef815214ca6999b0b4819eea, type: 3}
+  menuIcon: {fileID: 21300000, guid: c1b9d2884c061154daf3daef8d8c4cf0, type: 3}
   cost: 40
   footprintWidth: 2
   footprintHeight: 2

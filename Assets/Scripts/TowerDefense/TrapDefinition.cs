@@ -9,6 +9,8 @@ public sealed class TrapDefinition : ScriptableObject
     [SerializeField] private string trapId = "trap";
     [SerializeField] private string displayName = "Trap";
     [SerializeField] private GameObject prefab;
+    [SerializeField, Tooltip("陷阱选择菜单的卡片图标；留空时显示安装类别占位标识。")]
+    private Sprite menuIcon;
     [SerializeField, Min(0), Tooltip("放置价格（金币）；0 表示明确配置的免费陷阱。")]
     private int cost = DefaultCost;
     [SerializeField, Min(1)] private int footprintWidth = 1;
@@ -30,6 +32,7 @@ public sealed class TrapDefinition : ScriptableObject
     public string TrapId => trapId;
     public string DisplayName => displayName;
     public GameObject Prefab => prefab;
+    public Sprite MenuIcon => menuIcon;
     public int Cost => cost;
     public Vector2Int Footprint => new Vector2Int(Mathf.Max(1, footprintWidth), Mathf.Max(1, footprintHeight));
     public Quaternion LocalRotation => Quaternion.Euler(localRotation);

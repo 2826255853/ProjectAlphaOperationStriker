@@ -2,20 +2,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>Runtime trap picker. Press N to assign available traps to the five hotbar slots.
-/// Traps are listed in a fixed 6 rows x 9 columns grid of square buttons.</summary>
+/// <summary>Runtime state and input owner for the editor-authored trap selection Canvas.</summary>
 public sealed class TrapSelectionMenu : MonoBehaviour
 {
+    private const string ViewPrefabPath = "UI/TrapSelectionMenu";
     [SerializeField] private KeyCode toggleKey = KeyCode.N;
     [SerializeField] private string resourcesFolder = "";
     private readonly List<TrapDefinition> available = new List<TrapDefinition>();
     private readonly List<TrapDefinition> filtered = new List<TrapDefinition>();
-    private int mountFilter;
     private static readonly string[] MountFilters = { "全部", "地面", "墙面", "天花板" };
-
-    public static bool MatchesMountFilter(TrapDefinition definition, int filter)
-        => definition != null && (filter == 0 || (int)definition.MountType == filter - 1);
     private TrapPlacementController placement;
+    private TrapSelectionMenuView view;
+    private int mountFilter;
+    private int currentPage;
     private bool open;
     private CursorLockMode previousLock;
     private bool previousVisible;
@@ -23,14 +22,26 @@ public sealed class TrapSelectionMenu : MonoBehaviour
     private bool restoreWeaponInputPending;
     private static int cursorReleasedFrame = -1;
     private readonly EconomyUIState economy = new EconomyUIState();
+
     public string BalanceText => economy.BalanceText;
-
     public static bool IsOpen { get; private set; }
-
-    /// <summary>True while the menu owns the cursor. It also stays true for the
-    /// frame the menu closes, so the player controller cannot re-lock the view
-    /// with the very Escape press that closed this menu.</summary>
+    /// <summary>True while the menu owns the cursor, including its closing frame.</summary>
     public static bool CursorOwned => IsOpen || cursorReleasedFrame == Time.frameCount;
+    internal IReadOnlyList<TrapDefinition> VisibleTraps => filtered;
+    internal int FilterIndex => mountFilter;
+    internal int CurrentPage => currentPage;
+    internal TrapPlacementController Placement => GetPlacement();
+    internal TrapDefinition SelectedTrap
+    {
+        get
+        {
+            TrapPlacementController target = GetPlacement();
+            return target != null ? target.GetTrapSlot(target.SelectedSlot) : null;
+        }
+    }
+
+    public static bool MatchesMountFilter(TrapDefinition definition, int filter)
+        => definition != null && (filter == 0 || (int)definition.MountType == filter - 1);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void EnsureMenu()
@@ -41,16 +52,57 @@ public sealed class TrapSelectionMenu : MonoBehaviour
         host.AddComponent<TrapSelectionMenu>();
     }
 
-    private void Awake() { Refresh(); }
-    private void OnEnable() => economy.Enable();
-    private void OnDestroy() => economy.Dispose();
+    private void Awake()
+    {
+        GameObject prefab = Resources.Load<GameObject>(ViewPrefabPath);
+        if (prefab == null)
+        {
+            Debug.LogError($"Trap selection Canvas prefab missing: Assets/Resources/{ViewPrefabPath}.prefab", this);
+            enabled = false;
+            return;
+        }
+        GameObject instance = Instantiate(prefab, transform);
+        instance.name = "Trap Selection Menu Canvas";
+        view = instance.GetComponent<TrapSelectionMenuView>();
+        if (view == null)
+        {
+            Debug.LogError($"Trap selection Canvas prefab has no {nameof(TrapSelectionMenuView)} component.", prefab);
+            Destroy(instance);
+            enabled = false;
+            return;
+        }
+        view.Initialize(this);
+        view.SetVisible(false);
+        Refresh();
+    }
+
+    private void OnEnable()
+    {
+        economy.Enable();
+        economy.Changed += RefreshPresentation;
+    }
+
+    private void OnDisable()
+    {
+        economy.Changed -= RefreshPresentation;
+        economy.Dispose();
+        if (open) SetOpen(false);
+        restoreWeaponInputPending = false;
+        SetWeaponInputSuppressed(false);
+        IsOpen = false;
+    }
+
+    private void OnDestroy()
+    {
+        economy.Changed -= RefreshPresentation;
+        economy.Dispose();
+    }
 
     private void Update()
     {
         economy.Refresh();
         UpdatePendingWeaponInputRestore();
-        if (GameStartMenu.CursorOwned) return;
-        if (Keyboard.current == null) return;
+        if (GameStartMenu.CursorOwned || Keyboard.current == null) return;
         if (toggleKey == KeyCode.N && Keyboard.current.nKey.wasPressedThisFrame) SetOpen(!open);
         if (open && Keyboard.current.escapeKey.wasPressedThisFrame) SetOpen(false);
     }
@@ -58,15 +110,28 @@ public sealed class TrapSelectionMenu : MonoBehaviour
     private void Refresh()
     {
         available.Clear();
-        foreach (var definition in Resources.LoadAll<TrapDefinition>(resourcesFolder))
-            if (definition != null && !available.Contains(definition)) available.Add(definition);
+        foreach (TrapDefinition definition in Resources.LoadAll<TrapDefinition>(resourcesFolder))
+        {
+            // This authoring-only fixture lives under Resources for placement tests, not in the player catalog.
+            if (definition == null || string.Equals(definition.TrapId, "ceiling_test", System.StringComparison.Ordinal)) continue;
+            if (!available.Contains(definition)) available.Add(definition);
+        }
         available.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName, System.StringComparison.Ordinal));
-        styledCellSize = -1f;
+        RebuildFiltered();
+    }
+
+    private void RebuildFiltered()
+    {
+        filtered.Clear();
+        foreach (TrapDefinition definition in available)
+            if (MatchesMountFilter(definition, mountFilter)) filtered.Add(definition);
+        currentPage = Mathf.Clamp(currentPage, 0, Mathf.Max(0, Mathf.CeilToInt(filtered.Count / 54f) - 1));
     }
 
     private void SetOpen(bool value)
     {
         if (open == value) return;
+        if (view == null) return;
         open = value;
         IsOpen = value;
         if (open)
@@ -78,22 +143,21 @@ public sealed class TrapSelectionMenu : MonoBehaviour
             Cursor.visible = true;
             restoreWeaponInputPending = false;
             SetWeaponInputSuppressed(true);
+            view.Refresh();
+            view.SetVisible(true);
         }
         else
         {
-            // A click that picks a trap is still held down on this frame. Re-enabling
-            // the weapon actions right now makes the input system treat that held
-            // click as a fresh trigger, so the player fires the instant the menu
-            // closes. Defer the restore until the button is actually released.
+            // Do not re-enable a weapon action while the menu-picking mouse click is still held.
             restoreWeaponInputPending = true;
             UpdatePendingWeaponInputRestore();
             cursorReleasedFrame = Time.frameCount;
             Cursor.lockState = previousLock;
             Cursor.visible = previousVisible;
+            view.SetVisible(false);
         }
     }
 
-    /// <summary>Re-enables the weapon actions once the pick-up click has been released.</summary>
     private void UpdatePendingWeaponInputRestore()
     {
         if (!restoreWeaponInputPending) return;
@@ -111,186 +175,81 @@ public sealed class TrapSelectionMenu : MonoBehaviour
             suppressedWeaponActions.Clear();
             return;
         }
-
         foreach (PlayerInput input in FindObjectsByType<PlayerInput>())
         {
             if (input.actions == null) continue;
             foreach (InputAction action in input.actions)
             {
                 string name = action.name.ToLowerInvariant();
-                if (!name.Contains("attack") && !name.Contains("fire") &&
-                    !name.Contains("shoot") && !name.Contains("aim") &&
-                    !name.Contains("reload") && !name.Contains("look")) continue;
-                if (action.enabled)
-                {
-                    action.Disable();
-                    suppressedWeaponActions.Add(action);
-                }
+                if (!name.Contains("attack") && !name.Contains("fire") && !name.Contains("shoot")
+                    && !name.Contains("aim") && !name.Contains("reload") && !name.Contains("look")) continue;
+                if (!action.enabled) continue;
+                action.Disable();
+                suppressedWeaponActions.Add(action);
             }
         }
     }
 
-    private void OnDisable()
+    internal void SelectSlot(int slot)
     {
-        economy.Dispose();
-        if (open) SetOpen(false);
-        restoreWeaponInputPending = false;
-        SetWeaponInputSuppressed(false);
-        IsOpen = false;
-    }
-
-    private const int GridColumns = 9;
-    private const int GridRows = 6;
-
-    private GUIStyle cellStyle;
-    private GUIStyle emptyCellStyle;
-    private float styledCellSize = -1f;
-
-    private void EnsureCellStyles(float cellSize)
-    {
-        if (cellStyle != null && Mathf.Approximately(styledCellSize, cellSize)) return;
-        styledCellSize = cellSize;
-
-        // Trap names can be long, so the font is shrunk until the wrapped name
-        // plus the cost line is guaranteed to fit inside the square cell. The
-        // 4px padding on every side is subtracted before measuring.
-        const float cellPadding = 4f;
-        float textWidth = Mathf.Max(1f, cellSize - cellPadding * 2f);
-        float textHeight = Mathf.Max(1f, cellSize - cellPadding * 2f);
-        int longestName = 1;
-        for (int i = 0; i < available.Count; i++)
-            if (available[i] != null) longestName = Mathf.Max(longestName, available[i].DisplayName.Length);
-
-        int fontSize = Mathf.Clamp(Mathf.RoundToInt(cellSize * 0.18f), 8, 22);
-        while (fontSize > 8)
-        {
-            int charsPerLine = Mathf.Max(1, Mathf.FloorToInt(textWidth / fontSize));
-            int nameLines = Mathf.CeilToInt(longestName / (float)charsPerLine);
-            float needed = (nameLines + 2) * fontSize * 1.2f;
-            if (needed <= textHeight) break;
-            fontSize--;
-        }
-        cellStyle = new GUIStyle(GUI.skin.button)
-        {
-            wordWrap = true,
-            alignment = TextAnchor.MiddleCenter,
-            fontSize = fontSize,
-            padding = new RectOffset((int)cellPadding, (int)cellPadding, (int)cellPadding, (int)cellPadding)
-        };
-        emptyCellStyle = new GUIStyle(cellStyle)
-        {
-            normal = { textColor = new Color(1f, 1f, 1f, 0.18f) }
-        };
-    }
-
-    private void OnGUI()
-    {
-        if (!open) return;
-        economy.Refresh();
         TrapPlacementController target = GetPlacement();
-        int targetSlot = target != null ? target.SelectedSlot : 0;
-        TrapDefinition currentSlotTrap = target != null ? target.GetTrapSlot(targetSlot) : null;
-
-        // The trap list is laid out as a fixed 6 rows x 9 columns grid whose
-        // cells are always square. The cell size is derived from the screen so
-        // the whole panel keeps fitting, then clamped to a readable range.
-        const float pad = 24f, gap = 8f, headerHeight = 176f, footerHeight = 112f;
-        float cell = Mathf.Floor(Mathf.Min(
-            (Screen.width * 0.92f - pad * 2f - gap * (GridColumns - 1)) / GridColumns,
-            (Screen.height * 0.9f - headerHeight - footerHeight - gap * (GridRows - 1)) / GridRows));
-        cell = Mathf.Clamp(cell, 44f, 150f);
-
-        float gridWidth = GridColumns * cell + gap * (GridColumns - 1);
-        float panelWidth = Mathf.Max(gridWidth + pad * 2f, 600f);
-        float panelHeight = headerHeight + GridRows * cell + gap * (GridRows - 1) + footerHeight;
-        Rect panel = new Rect((Screen.width - panelWidth) * .5f, (Screen.height - panelHeight) * .5f, panelWidth, panelHeight);
-        GUI.Box(panel, "陷阱选择");
-        GUI.Label(new Rect(panel.x + pad, panel.y + 30f, panelWidth - pad * 2f, 24f), "先选择目标槽位，再点击陷阱分配（N 或 Esc 关闭）");
-        GUI.Label(new Rect(panel.x + pad, panel.y + 62f, 80f, 28f), "目标槽位");
-        const float slotButtonWidth = 94f;
-        const float slotButtonGap = 3f;
-        for (int i = 0; i < 5; i++)
-        {
-            TrapDefinition slotTrap = target != null ? target.GetTrapSlot(i) : null;
-            string label = $"{i + 4}: {(slotTrap != null ? slotTrap.DisplayName : "空")}";
-            GUI.backgroundColor = i == targetSlot ? new Color(0.55f, 0.9f, 1f) : Color.white;
-            if (GUI.Button(new Rect(panel.x + pad + 84f + i * (slotButtonWidth + slotButtonGap), panel.y + 58f, slotButtonWidth, 34f), label))
-            {
-                targetSlot = i;
-                currentSlotTrap = slotTrap;
-                if (target != null) target.SelectTrapSlot(i);
-            }
-        }
-        GUI.backgroundColor = Color.white;
-
-        GUI.Label(new Rect(panel.x + pad, panel.y + 100f, panelWidth - pad * 2f, 26f),
-            BalanceText + "    选择不扣款，确认放置时支付");
-
-        EnsureCellStyles(cell);
-        mountFilter = GUI.Toolbar(new Rect(panel.x + pad, panel.y + 132f, panelWidth - pad * 2f, 30f), mountFilter, MountFilters);
-        filtered.Clear();
-        foreach (var definition in available)
-            if (MatchesMountFilter(definition, mountFilter)) filtered.Add(definition);
-        float gridX = panel.x + (panelWidth - gridWidth) * .5f;
-        float gridTop = panel.y + headerHeight;
-        Vector2 mouse = Event.current != null ? Event.current.mousePosition : new Vector2(-1f, -1f);
-        TrapDefinition hoveredTrap = null;
-        int cellCount = GridColumns * GridRows;
-        for (int i = 0; i < cellCount; i++)
-        {
-            int col = i % GridColumns;
-            int row = i / GridColumns;
-            Rect rect = new Rect(gridX + col * (cell + gap), gridTop + row * (cell + gap), cell, cell);
-            if (i >= filtered.Count)
-            {
-                // Filler cells keep the requested 6x9 shape visible without
-                // pretending they are clickable.
-                GUI.enabled = false;
-                GUI.Button(rect, GUIContent.none, emptyCellStyle);
-                GUI.enabled = true;
-                continue;
-            }
-
-            TrapDefinition trap = filtered[i];
-            bool isCurrent = currentSlotTrap == trap;
-            bool affordable = economy.CanAfford(trap);
-            if (rect.Contains(mouse)) hoveredTrap = trap;
-            GUI.backgroundColor = !affordable ? new Color(1f, 0.58f, 0.52f)
-                : isCurrent ? new Color(0.55f, 0.9f, 1f) : Color.white;
-            string mountLabel = trap.MountType.DisplayName();
-            string status = affordable ? string.Empty : trap.Cost < 0 ? "价格无效"
-                : economy.IsReady ? "金币不足" : "金币暂不可用";
-            // Unaffordable traps remain selectable for inspection and later placement.
-            if (GUI.Button(rect, trap.DisplayName + "\n" + mountLabel + "  花费 " + trap.Cost + "\n" + status, cellStyle))
-            {
-                if (target != null)
-                {
-                    target.AssignTrapToSlot(targetSlot, trap);
-                    target.SelectTrapSlot(targetSlot);
-                }
-                GUI.backgroundColor = Color.white;
-                SetOpen(false);
-                return;
-            }
-        }
-        GUI.backgroundColor = Color.white;
-
-        // Cell labels are short, so the full name and footprint of the hovered
-        // trap (or of the selected slot) are spelled out here.
-        TrapDefinition described = hoveredTrap != null ? hoveredTrap : currentSlotTrap;
-        string description = described != null
-            ? $"{described.DisplayName}   {described.MountType.DisplayName()}   花费 {described.Cost}   {(described.MountType != TrapMountType.Ground ? "占格" : "占地")} {described.Footprint.x}x{described.Footprint.y}"
-            : "将鼠标移到陷阱上查看详情";
-        GUI.Label(new Rect(panel.x + pad, panel.y + panelHeight - footerHeight + 8f, panelWidth - pad * 2f, 24f), description);
-        GUI.Label(new Rect(panel.x + pad, panel.y + panelHeight - footerHeight + 32f, panelWidth - pad * 2f, 24f),
-            economy.PurchaseHint(described));
-
-        if (GUI.Button(new Rect(panel.x + pad, panel.y + panelHeight - footerHeight + 60f, panelWidth - pad * 2f, 38f), "取消已选陷阱"))
-        {
-            if (target != null) target.AssignTrapToSlot(targetSlot, null);
-            SetOpen(false);
-        }
+        if (target == null) return;
+        target.SelectTrapSlot(slot);
+        RefreshPresentation();
     }
+
+    internal void SelectFilter(int filter)
+    {
+        view?.ResetHoveredTrap();
+        mountFilter = Mathf.Clamp(filter, 0, MountFilters.Length - 1);
+        currentPage = 0;
+        RebuildFiltered();
+        RefreshPresentation();
+    }
+
+    internal void ChangePage(int delta)
+    {
+        view?.ResetHoveredTrap();
+        int pages = Mathf.Max(1, Mathf.CeilToInt(filtered.Count / 54f));
+        currentPage = Mathf.Clamp(currentPage + delta, 0, pages - 1);
+        RefreshPresentation();
+    }
+
+    internal void ClampPage(int pageCount) => currentPage = Mathf.Clamp(currentPage, 0, Mathf.Max(0, pageCount - 1));
+
+    internal void AssignTrap(TrapDefinition trap)
+    {
+        TrapPlacementController target = GetPlacement();
+        if (target == null || trap == null) return;
+        int slot = target.SelectedSlot;
+        if (!target.AssignTrapToSlot(slot, trap)) return;
+        target.SelectTrapSlot(slot);
+        SetOpen(false);
+    }
+
+    internal void ClearSelectedSlot()
+    {
+        TrapPlacementController target = GetPlacement();
+        if (target == null) return;
+        target.AssignTrapToSlot(target.SelectedSlot, null);
+        SetOpen(false);
+    }
+
+    internal void CloseMenu() => SetOpen(false);
+    internal bool CanAfford(TrapDefinition trap) => economy.CanAfford(trap);
+    internal string StatusFor(TrapDefinition trap)
+    {
+        if (trap.Cost < 0) return "价格无效";
+        if (!economy.IsReady) return "金币未就绪";
+        return economy.CanAfford(trap) ? string.Empty : "金币不足";
+    }
+    internal string DetailHintFor(TrapDefinition trap)
+    {
+        string hint = economy.PurchaseHint(trap);
+        return string.IsNullOrEmpty(hint) ? "已就绪 · 选择不扣款，放置时支付" : hint;
+    }
+
+    private void RefreshPresentation() => view?.Refresh();
 
     private TrapPlacementController GetPlacement()
     {

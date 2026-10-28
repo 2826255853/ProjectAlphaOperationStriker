@@ -15,9 +15,14 @@ MonoBehaviour:
   trapId: ground-spike
   displayName: "\u5730\u523A\u9677\u9631"
   prefab: {fileID: 9100048451872316266, guid: df7ce5d20c91d6349a216cec78ffc496, type: 3}
+  menuIcon: {fileID: 21300000, guid: e4b818b48a7c6134783c1a39299c2a6d, type: 3}
   cost: 40
   footprintWidth: 2
   footprintHeight: 2
   localRotation: {x: 0, y: 0, z: 0}
   walkableFloorTrap: 1
   worldFootprint: {x: 2, y: 2}
+  mountType: 0
+  installBoundsCenter: {x: 0, y: 0, z: 0}
+  installBoundsSize: {x: 0, y: 0, z: 0}
+  skipMonsterClearanceCheck: 0

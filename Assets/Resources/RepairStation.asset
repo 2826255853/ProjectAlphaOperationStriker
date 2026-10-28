@@ -15,6 +15,7 @@ MonoBehaviour:
   trapId: repair-station
   displayName: "\u7EF4\u4FEE\u7AD9"
   prefab: {fileID: 907794229865304067, guid: 4eb480eee93e8894e90861ac691da741, type: 3}
+  menuIcon: {fileID: 21300000, guid: 74c95de1acf9b1c4b91756d1fadd1856, type: 3}
   cost: 40
   footprintWidth: 2
   footprintHeight: 2

@@ -674,3 +674,42 @@
 - 探针已由“无脚本”改为检查 TrapInstance+ThroatLampTrap、炮口/Animator/弹体引用和2×2米天花板定义，**38/38 PASS**。图形预览入口 `ThroatLampAuthoring.RenderGameplayPreviewBatch`（运行器带 `-WithGraphics`），使用独立预览场景及运行时同一 `AimAt`，生成 `aim-and-charge.png` 与 `plasma-shot.png`，已检查朝向、材质和弹体可见性。
 - 持久测试 `Tests~/Editor/ThroatLampTests.cs`，临时复制至 `Assets/Editor` 后跑 `RunEnemyDamageResistanceTests.ps1 -Fixtures ThroatLampTests`。**13/13 PASS，0失败、0跳过**，包括真实 Play Mode 购买扣40、占用与越界拒绝且不扣钱、Animator蓄能/放电、实际命中、血条近射线选靶、出售返20及释放占格；另覆盖3种安装朝向、4秒间隔、提前量/停止/转向、遮挡/失效/重选蓄能、虚影禁攻、超程预测、电抗性、范围边界、无碰撞体与高速扫掠。
 - 验收产物统一在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\ThroatLamp\gameplay-validation\`，13项测试 XML 为 `tests\20261027-214103-149\editmode-results.xml`。临时测试源码与 `.meta` 已移至其 `test-staging\`；Play Mode 造成的 TimeManager 重序列化在结束后恢复。原 Authoring/Prefab/动画备份在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\ThroatLamp\backups\gameplay-20261027-213128\`。未做主场景人工键鼠验收或完整 Player 构建。
+
+## 陷阱升级系统 · 第 1 步基线（2026-10-28）
+
+- 计划：`docs/陷阱升级系统设计.md`（陷阱默认 1 级、最高 4 级，按 `TrapDefinition.TrapId` 共享等级，三级升四级选普通/分支方向）。第 1 步只做接入点核对，**未改功能代码**；完整基线记录在 `docs/陷阱升级系统-第1步基线.md`，计划各步骤已补「核对调整」。
+- 代码基线 `main @ a7d82d7`（工作区干净），Unity `6000.6.7f1`。本次未启动 Unity、未编译、未跑测试。
+- 七类正式陷阱的 `TrapId`：`auto_sentry_turret` / `ground-spike` / `dual_missile_launcher_loaded` / `flamethrower` / `betty7` / `throat-lamp` / `repair-station`。定义资产都在 `Assets/Resources/*.asset`（贝蒂7号 60 金币，其余 40），菜单 `Resources.LoadAll<TrapDefinition>("")` 只加载这里。
+- **`auto_sentry_turret` 与 `dual_missile_launcher_loaded` 在 `Assets/TrapDefinitions/` 还有一份同名定义**，被 `SentryMachineGunTests`、`SentryTrapPrefabRepair`、`MissileLauncherTurretAuthoring`、`EconomyAcceptanceTests` 引用。升级配置以 `TrapId` 为键时要同时扫描两个目录并核对基础价格，不能只认 `Assets/Resources`。
+- 血量口径：`TrapInstance.maxHealth`（序列化在预制体上，当前七类均为 100）就是「一级基础血量」；`TrapDefinition` 没有任何血量字段。`TrapInstance.Awake` 直接满血、`Repair` 以 `maxHealth` 封顶，升级改造要同时改这两处。
+- **`Assets/Prefabs/DualMissileLauncher.prefab` 没有 `TrapInstance` 组件**，放置时由 `TrapPlacementGrid.TryPlaceTrap`（`TrapPlacementGrid.cs:776`）`AddComponent<TrapInstance>()` 补上，新放置实例的等级/满血逻辑必须覆盖这条分支。
+- 伤害/维修的单点读取位置（升级只需在此乘倍率，不在弹体或状态里二次乘）：机枪 `AutoSentryTurret.FireAtTarget`（`damagePerShot` 12）；地刺 `GroundSpikeTrap.HasContact`（`damage` 40）；导弹 `MissileLauncherWeapon.LaunchOneMissile → ConfigureTuning`（`damagePerMissile` 45，溅射按 `damage × splashDamageRatio`）；喷火器 `FlamethrowerTrap.ApplyBurstDamage`（`directDamage` 20 + `FireStatusEffect.Ignite(dps)` 5）；贝蒂7号 `Betty7JumpMineTrap.DamageAround`（`damage` 55，需改为槽位在 `Arming → Launching` 采样）；扼喉之灯 `ThroatLampTrap.Advance → PlasmaProjectile.Initialize`（直击 80 / 溅射 40）；维修站 `RepairStationTrap.Tick → target.Repair(repairAmount)`（25）。
+- **陷阱选择菜单现为 Canvas 预制体**：布局与卡片分别保存在 `Assets/Resources/UI/TrapSelectionMenu.prefab` / `TrapSelectionMenuCard.prefab`，由 `TrapSelectionMenuView` 绑定数据；54 张可编辑卡片组成 6×9 网格，保留 5 槽位、安装类别筛选、分页、详情和金币提示。`TrapSelectionMenuAuthoring.CreatePrefabIfMissing` 只创建缺失资产，只有显式 `RebuildPrefab` 才覆盖布局；缩略图生成入口 `GenerateMissingIcons` 只补缺失图片，`RegenerateAllIcons` 才覆盖。正式七类陷阱图标位于 `Assets/Models/TrapMenu/Icons/`，资源定义以 `TrapId` 共用同一 Sprite；`ceiling_test` 是 Resources 下的测试夹具，运行时目录不展示它。中文字体复用 `MenuChinese SDF`，EventSystem 复用现存对象并确保只使用 `InputSystemUIInputModule`。持久结构回归放在 `Tests~/Editor/TrapSelectionMenuCanvasTests.cs`，经济 UI 回归在 `EconomyUITests`；Unity 6000.6.7f1 预制体验证/生成器编译通过，结构与经济 UI 用例 **10/10 PASS**，含筛选、分页、卡片分配和清空。独立主场景投影枪集成用例在 N 键菜单步骤前因 Digit4 放置模式断言失败，故该用例未验证 N/Esc。1920×1080、1366×768、1280×720、2560×1080 预览及完整图标、日志、测试结果位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapSelectionMenu\`。
+- 光标所有权判据只有 `TrapSelectionMenu.CursorOwned`（含关闭当帧）与 `GameStartMenu.CursorOwned`；新增弹窗的状态必须并入这两处，并同步检查 `FirstPersonController` 与 `FPSPackagePlayerMotion` 两份 `UpdateCursor`。
+- 可复用的现成机制：`EconomyManager.SpendReservation.Commit` 已校验 `RunId`（换局后提交失败），`BeginRun` 是唯一新局边界；`ResetRuntimeState`（`SubsystemRegistration`）负责关闭域重载时清状态，升级状态也要在这里清。`TrapSaleService.RefundFor` 只按 `Cost × ratio` 计算，天然不含升级费用，无需改。
+- 验证入口（本步未执行）：`Assets/Editor/RunEnemyDamageResistanceTests.ps1 -Fixtures <类名>`（临时 `UNITY_INCLUDE_TESTS`、无 `-quit`、必须查 XML 用例数）、`RunSentryMachineGunTests.ps1 -ExpectedCases 18`、`.agents/skills/alpha-striker-unity/scripts/run-unity-method.ps1`；持久测试放 `Tests~/Editor/`（已有 `Betty7JumpMineSlotTests`、`ThroatLampTests`、`RepairStationTests`）。
+
+## 陷阱升级系统 · 第 2 步（2026-10-28）
+
+- 规则核心：`Assets/Scripts/TowerDefense/TrapUpgradeState.cs`（1-4 级、None/Normal/Branch 方向、绝对倍率结构）、`TrapUpgradeCatalog.cs`（可空覆盖项；默认 1.00/1.25/1.50/2.00，维修量可独立覆盖；费用 ceil、至少 1 金币）、`TrapUpgradeService.cs`（按注入的 `Func<Guid>`/RunId 隔离 TrapId 状态，纯报价/状态转换与通知）。`GetQuote` 校验负放置价、同 TrapId 报价基础价冲突；`TryUpgrade` 防跨服务、换局、配置变化、重复报价和事件重入。四级分支需配置 `integrated` 且由调用者提供分支效果适配判定；没有适配器时不可用。
+- 生产配置入口 `TrapUpgradeCatalogAuthoring.CreateDefaultIfMissing` 创建 `Assets/Resources/TrapUpgradeCatalog.asset`；若该资产已存在不会覆盖。`ValidateAll` 同时扫描 `Assets/Resources` 与 `Assets/TrapDefinitions`，重复 TrapId 仅允许基础放置价格一致。默认 catalog 含七类正式 TrapId。
+- **范围边界：** 这是无扣款的规则核心，禁止把 `TryUpgrade` 直接暴露为正式付费升级入口；钱包新局通知/生命周期/安全扣款只在第 3 步接入。未接入菜单、`TrapInstance`、伤害、维修及战斗运行状态。菜单目前是用户修改中的 Canvas 预制体；后续仅增量改 `TrapSelectionMenuView` / `TrapSelectionMenuCardView`，不得覆盖预制体布局、卡片、字体和图标。
+- 持久测试 `Tests~/Editor/TrapUpgradeRulesTests.cs`（49 个用例）；`Assets/Editor/RunTrapUpgradeRulesTests.ps1` 在运行时暂存 `TrapUpgradeRulesTests` 与 Canvas 结构回归类到 `Assets/Editor`，调用既有 `RunEnemyDamageResistanceTests.ps1` 并在 finally 清理源码及 `.meta`。Unity `6000.6.7f1` EditMode **51/51 PASS**（规则 49、Canvas 菜单 2），无跳过；XML `C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step2\20261028-164319-622\editmode-results.xml`。日志确认两份定义目录均扫描通过。后续应先单独实施第 3 步支付与换局生命周期，再进入陷阱属性接入。
+
+## 陷阱升级系统 · 第 3 步（2026-10-28）
+
+- 付费入口：`TrapUpgradeRuntime.GetOrCreate()` 懒加载 Resources catalog 并绑定当前钱包；显式依赖可用 `TrapUpgradeService.ForWallet(wallet, catalog, branchAdapter)`，同钱包强制复用唯一服务，配置不一致会拒绝。该服务的 `TryUpgrade` 已付费；原 `new TrapUpgradeService(Func<Guid>, ...)` 仍是无副作用规则测试入口，正式玩法不可使用。
+- 延迟确认：`TryReserveUpgrade(quote, out UpgradeReservation, out failure)` 预约可用余额，`Commit(out failure)` 重验 RunId、等级/方向、报价版本、价格、倍率、分支配置/效果可用性；`Dispose` 取消，重复提交无效。成功先静默提交钱包与等级，再刷新所有同 TrapId 场景实例，最后余额/`Upgraded` 通知。失败不扣款、不改等级；事件异常隔离，整个支付与新局通知期间拒绝重入升级。回调中换局会停止旧局通知。
+- `EconomyManager.BeginRun` 新增 `RunStarted(Guid)`，在余额通知前同步清升级状态、取消旧预约并刷新仍存在（含 inactive）的陷阱，随后发 `RunReset(Guid)`。`SubsystemRegistration` 显式释放运行服务和钱包绑定，钱包销毁也会释放；正常波次不调用 BeginRun。
+- `TrapInstance.UpgradeStateChanged(TrapInstance, TrapUpgradeState)` 仅是本步的刷新钩子，耐久/伤害/维修属性尚未应用，留待第 4 步。刷新查找场景实例，不依赖关闭 scene/domain reload 时可能为空的 ActiveTraps 集合；监听者间也核对 RunId，避免回调换局后收到旧状态。菜单与所有美术预制体保留当前用户修改。
+- 持久用例 `Tests~/Editor/TrapUpgradePaymentTests.cs`；运行 `Assets/Editor/RunTrapUpgradeRulesTests.ps1 -IncludePayments` 自动暂存/清理 3 份测试源码和 `.meta`。Unity `6000.6.7f1` EditMode **92/92 PASS**（支付/生命周期 31、规则 49、钱包 10、Canvas 结构 2），无失败/跳过。XML：`C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step3\20261028-170058-808\editmode-results.xml`。关闭域/场景重载按 reset 方法与 surviving/inactive 实例的 EditMode 场景模拟验收，未做真实 PlayMode 菜单操作。下一步为第 4 步耐久与有效属性接口。
+- 测试隔离后的正常 Unity 编译与 `TrapUpgradeCatalogAuthoring.ValidateAll` 通过：10 definitions / 8 TrapIds / one catalog，两份目录均检查，日志确认成功退出且无 C# 编译错误。日志 `C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step3\normal-compile.log`。
+
+## 陷阱升级系统 · 第 4 步（2026-10-28）
+
+- `TrapInstance.maxHealth` 仍保存一级基础血量；新增 `BaseMaxHealth`、有效 `MaxHealth`、只读等级/方向/倍率及伤害/维修换算接口。实例等级或倍率变化时按原血量比例调整当前血量；已摧毁实例保持 0。`Repair` 现在封顶到有效最大血量。
+- 通过 `Awake`、`OnEnable` 和放置用 `Initialize` 同步本局状态；增加血量初始化标志，避免服务在场景对象 `Awake` 前刷新时把未初始化的 0 误认为摧毁。服务刷新直接传入其权威倍率；运行时懒加载会复用钱包已绑定的 service，保留显式 catalog 配置。
+- **范围边界：** 本步只提供 `DamageMultiplier`、`RepairMultiplier`、`MaxHealthMultiplier`、`UpgradeMultipliers` 与 `GetEffectiveDamage(baseDamage)` / `GetEffectiveRepair(baseRepair)` 接口，供第 5/6/7 步读取。七类攻击/维修组件保持一级基值及原有结算逻辑，后续步骤再接入；本步不修改菜单、预制体、地图或模型。
+- `Tests~/Editor/TrapUpgradeDurabilityTests.cs` 新增 19 个用例：七类 TrapId 的 1→4 级与同类共享/异类隔离、各级受伤比例、自定义一级血量、三项独立倍率、维修封顶、摧毁后不复活、换局降级、反复启停，以及真实 `TryPlaceTrap` 在预制体有/无 TrapInstance 两种分支的满血继承。`TrapUpgradePaymentTests` 另新增 3 个生命周期用例（现共 34）。运行 `Assets/Editor/RunTrapUpgradeRulesTests.ps1 -IncludeDurability`，Unity EditMode **114/114 PASS**（耐久 19、支付/实例 34、规则 49、钱包 10、Canvas 2），无失败/跳过；四份临时测试源码及 `.meta` 均已清理，持久源码留在 `Tests~/Editor/`。XML：`C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step4\20261028-174517-824\editmode-results.xml`。
+- 测试清理后，正常 Unity 编译与 `TrapUpgradeCatalogAuthoring.ValidateAll` **通过**，日志确认方法完成且无 C# 编译错误/异常：`C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step4\normal-compile.log`。未做真实 PlayMode 菜单操作或完整 Player 构建。
+- 辅助 `dotnet build C:\MapForge\.validation-build\UnityCompile.csproj` 未通过：其局部导入器编译缺失 `WallTrapGridAuthoring`（两处）和 `MaskedSoldierAuthoring` 类型；该工程不包含本步 TowerDefense 运行时代码。未扩修无关导入器，以后续成功的正式 Unity 编译为本步编译结论。
