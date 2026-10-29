@@ -1,33 +1,24 @@
 ---
 name: alpha-striker-unity
-description: 在 ProjectAlphaOperationStriker（Unity FPS + 塔防）及配套 MapForge 地图编辑器里改代码、改地图、生成或调整模型时使用。涵盖 Unity 批处理执行与校验、MapForge JSON 导入与「Send to Unity」实时同步、怪物路径与陷阱网格联动、空中出怪口（飞行怪物）、双联导弹发射器对空陷阱、陷阱菜单视角锁定与陷阱血条等近期能力、以及图形改动的预览与撤回要求。不适用于与该工程无关的通用 Unity 问题。
+description: 在 ProjectAlphaOperationStriker（Unity FPS + 塔防）及配套 MapForge 地图编辑器中修改代码、地图、陷阱升级、菜单或模型时使用，提供项目特有的数据流、资产生成、测试隔离与预览约定。不适用于其他 Unity 工程的通用问题。
 ---
 
 # Alpha Striker Unity / MapForge
 
 本工程是 Unity 6 的第一人称射击 + 塔防项目，地图由浏览器编辑器 MapForge（`C:\MapForge`）产出：要么导出 JSON 再由 Unity 编辑器脚本全量导入成场景，要么点「Send to Unity」让编辑器把增量修订直接应用到当前场景（`MapForgeSync/` 文件夹协议）。改地图和改代码是同一件事的两半，通常需要同时动 `C:\Unity Project\ProjectAlphaOperationStriker` 和 `C:\MapForge`。
 
-工作节奏、只读范围和探索预算见工程根目录的 `AGENTS.md`，本 skill 不重复。这里只讲**这个工程特有的、容易做错的做法**。
+工作节奏、只读范围和探索预算见工程根目录的 `AGENTS.md`，本 skill 不重复。编辑前先读 `Assets/Editor/PROJECT_MEMORY.md`；当前源码与配置优先于带日期的历史记录。这里只讲**这个工程特有的、容易做错的做法**。
 
 ## Plan 制作规范与近期经验
 
-涉及多个脚本、编辑器工具、场景或资源的任务，开始实现前必须先写出可执行的分步 Plan。Plan 不能只写“实现功能并测试”，至少要明确以下内容：
+多文件或跨工具任务先给简短分步 Plan，说明可观察行为、目标文件、依赖顺序、每步最小产物及对应验证。涉及资产覆盖时补充备份/撤回入口，跨仓库任务说明两边字段如何一致。
 
-1. **目标与边界**：说明用户可观察到的行为、涉及的运行时/编辑器/MapForge边界，以及明确不改的部分。
-2. **依赖与数据流**：列出入口、核心状态、数据来源、生成或保存位置，并说明运行时对象如何从编辑器资产获得配置。
-3. **按依赖顺序拆步**：先改数据结构/公共接口，再改生产或导入链路，再改运行时逻辑，最后补 UI、资源生成和回归测试；每步都写出目标文件、最小产物和验证方式。
-4. **每步可独立验收**：每个步骤应能在不依赖后续步骤的情况下完成编译、结构检查或单元测试；跨仓库改动要明确两边分别修改什么以及协议/字段如何保持一致。
-5. **风险与回滚**：涉及场景、预制体、FBX、Blender 或全量导入时，先写备份/提交点、预览入口和撤回方式；涉及生成器时，说明生成结果而不是手工修改生成物。
-6. **完成标准**：列出必须通过的编译、编辑期测试、运行时检查和视觉预览，注明哪些测试因第三方包缺失或环境限制只能做替代验证。
-
-推荐的 Plan 步骤格式：
+Plan 不增加探索预算，也不要求先完成全部设计：按 `AGENTS.md` 的节奏，在确认首个目标文件后立即写入最小可用改动，再细化后续步骤。只做小改动时直接说明目标与验证即可。步骤按实际依赖选择，不必凑齐固定阶段。例如：
 
 ```text
-Step 1 - 契约/数据：文件、字段或方法签名；验证：编译或结构断言。
-Step 2 - 生成/导入：编辑器入口、资产路径、场景接线；验证：批处理或局部 YAML 检查。
-Step 3 - 运行时：状态转换、目标筛选、边界退化；验证：EditMode/PlayMode 用例。
-Step 4 - 交互/显示：菜单、HUD、输入锁定；验证：场景运行与遮挡/焦点检查。
-Step 5 - 回归：受影响旧功能、预览图、git diff 与最终文件清单。
+Step 1 - 数据/接口：目标文件与最小实现；验证：编译或结构断言。
+Step 2 - 生产/运行：生成器、引用和状态转换；验证：受影响的编辑期或运行时用例。
+Step 3 - 交互/验收：需要的 UI、预览和旧功能回归；注明未覆盖的操作。
 ```
 
 近期项目经验应作为 Plan 的默认检查项：
@@ -42,9 +33,9 @@ Step 5 - 回归：受影响旧功能、预览图、git diff 与最终文件清�
 
 ## Unity 编辑器版本
 
-- 后续尽量使用 Unity 最新正式发行版（含正式 Update / LTS 版本），不默认使用 Alpha、Beta 或其他预发布版本，也不固定在某个旧版本。
-- 每次运行 Unity 前，读取 `ProjectSettings/ProjectVersion.txt` 的 `m_EditorVersion`，再核对本机实际安装位置。本机 Unity **不在** Unity Hub 目录，而是 `C:\Program Files\Unity 6000.6.5f1\Editor\Unity.exe`（2026-10-13 核对）。版本号随升级不定期变化，因此**任何文档、脚本、`.csproj` 都不要写死版本号**：以项目记录的版本 + `C:\Program Files\Unity *` 下的实际目录为准，脚本会自动探测。旧文档或生成的 `.csproj` 中的历史版本不能作为当前版本依据。
-- 日常执行与校验优先使用项目记录的正式版；升级时优先选择最新正式发行版并检查包兼容性。若该版本尚未安装，说明缺失情况，不擅自降级或用预发布版替代；普通代码任务不顺带安装编辑器或迁移项目。
+- 执行本项目时使用 `ProjectSettings/ProjectVersion.txt` 记录的版本，不自行换成机器上更新的编辑器。升级项目版本是单独的迁移任务；不默认使用 Alpha、Beta 或其他预发布版。
+- 每次运行 Unity 前，读取 `ProjectSettings/ProjectVersion.txt` 的 `m_EditorVersion`，再在 `C:\Program Files\Unity *\Editor\Unity.exe` 下核实对应安装；本机使用直接安装布局，脚本也兼容 Hub。文档、脚本、`.csproj` 不固定历史版本号，旧日志或生成文件不作为当前版本依据。
+- 若项目记录的版本未安装，说明缺失，不擅自用其他版本代跑或迁移项目。`run-unity-method.ps1` 在精确路径缺失时可能回退到另一已安装版本；先核对它报告的路径/版本，若与项目记录不一致就停止，不把该次结果当作本项目验证。
 - 批处理命令使用核实后的路径，不硬编码历史版本号；具体执行方式见 [references/unity-editor.md](references/unity-editor.md)。
 
 ## 四条工程规范怎么落地
@@ -53,7 +44,7 @@ Step 5 - 回归：受影响旧功能、预览图、git diff 与最终文件清�
 
 1. **只用新版输入系统。** 新增输入代码写 `using UnityEngine.InputSystem`，不要用 `Input.GetKey` / `Input.GetAxis`。工程启用了 `ENABLE_INPUT_SYSTEM`，`Packages/manifest.json` 已带 `com.unity.inputsystem`。
 2. **图形类编辑必须能预览、能撤回。** 三类改动各自的撤回手段不同：
-   - Blender 建模：脚本常直接 `save_as_mainfile` 覆盖同一个 `.blend`。改之前先把 `.blend` 复制一份到 `C:\Users\Origami\Desktop\陷阱素材文件夹\<陷阱名>\` 下的备份副本，结束时用 `bpy.ops.render.render(write_still=True)` 出 PNG 预览（示例脚本 `C:\Users\Origami\Desktop\陷阱素材文件夹\FlyingMonster\create_flying_monster_plane.py`）。
+   - Blender 建模：脚本常直接 `save_as_mainfile` 覆盖同一个 `.blend`。改之前先把 `.blend` 复制一份到 `C:\Users\ASUS\Desktop\陷阱素材文件夹\<陷阱名>\` 下的备份副本，结束时用 `bpy.ops.render.render(write_still=True)` 出 PNG 预览。
    - MapForge 改地图：编辑器有 80 步内存内撤销，但**关闭页面即丢失**。改前把 `Assets/mapforge-world.json` 备份或提交，改后重新导出。
    - Unity 改场景：**全量导入**（`MapForgeWorldImporter.Import`）会**覆盖**目标场景文件，所以导入前先 `git stash` 或提交，之后用 `git diff` 回滚。MapForge 的「Send to Unity」增量同步只就地改写变过的对象、且不动 `MapForgeWorld` 之外的手工对象（见[下文](#mapforgesend-to-unity实时同步2026-09-新增)），但同样要先把场景提交一份再动手。
 3. **地图不能遮挡怪物前进道路。** 平台/陷阱网格的可放置格必须排除怪物通道格，这条由 `TrapGridAuthoring` 的掩码函数保证——不要手写一套新的格子逻辑，见 [references/mapforge-pipeline.md](references/mapforge-pipeline.md)。
@@ -75,7 +66,7 @@ Step 5 - 回归：受影响旧功能、预览图、git diff 与最终文件清�
 
 陷阱（建模 / 贴图 / 导出 / 预览）过程中的**一切中间态文件**都写在桌面素材文件夹，**不进仓库**：
 
-`C:\Users\Origami\Desktop\陷阱素材文件夹`
+`C:\Users\ASUS\Desktop\陷阱素材文件夹`
 
 - 写什么：Blender 源文件与自动备份（`*.blend` / `*.blend1` / `*.blend2`）、临时导出的 `*.fbx` / `*.obj` / `*.glb`、贴图与烘焙结果、预览图与试渲染、一次性清单/日志，以及只为这次陷阱写的一次性脚本（含 Blender 的 `*.py`）。
 - 怎么放：按陷阱名建子目录（如 `陷阱素材文件夹\Flamethrower\`），同一陷阱的源文件、导出件、预览图都放这个子目录里；目录不存在就直接创建，**不要**退而写到仓库根目录或 `Temp`。
@@ -85,7 +76,7 @@ Step 5 - 回归：受影响旧功能、预览图、git diff 与最终文件清�
 
 ## 近期改动的约定（2026-09 新增）
 
-以下是近期新加的能力（2026-09），改代码时**必须沿用，不要另起一套**。
+以下整理了 2026-09 至 2026-10 的能力不变量，改代码时**必须沿用，不要另起一套**。里程碑测试记录与未覆盖范围以 `Assets/Editor/PROJECT_MEMORY.md` 为准；不要把某次 EditMode 通过等同于真实 PlayMode、完整构建或人工场景验收。
 
 ### 空中出怪口（飞行怪物）（2026-09 新增）
 
@@ -167,13 +158,15 @@ Step 5 - 回归：受影响旧功能、预览图、git diff 与最终文件清�
 - 增量修订只带「这次真的改过的对象」，Unity 就地把它们重写：新增的建、改过的原地改写、删掉的移除。只有 MapForge 要求时才整图重建（首次发送、地图改名、`gameplay`/场景级映射变了、或改动量过大）；重建也是**原地重建**场景资产，所以 scene 的路径、GUID 以及地图之外的手工对象都保住。整图修订的 world 文件先落到 `Assets/MapForgeSync/sync-world.json` 再交给导入器。
 - **只动 `MapForgeWorld` 生成的层级**，这就是它和 `MapForgeWorldImporter.Import` 的关键区别：手工加的空中出怪口等对象**不会**像全量导入那样被删掉。保留机制在 `Assets/Editor/MapForgeWorldImporter.Authored.cs`（`MapForgeWorldImporter` 现在是 **partial**，两个文件都要在），它把上次生成过的直接子对象名记在 **EditorPrefs**（机器本地、不进版本库），据此把工程自制的对象搬出去再搬回来。
 - 手动/批处理入口：菜单 `MapForge/应用待同步版本 (Apply pending revision)` = `MapForgeLiveSync.ApplyPendingFromMenu`，菜单 `MapForge/下次发送时完整重建 (Request full rebuild)` = `MapForgeLiveSync.RequestFullRebuild`；批处理直接调 `MapForgeLiveSync.ApplyPending()`（public，无待同步修订时返回 null，不算失败）。
-- 两侧各自的测试：浏览器/服务端在 `C:\MapForge\tests\unity-sync.test.js`（`node --test`）；Unity 侧没有独立用例，改完先跑 `dotnet build "C:\MapForge\.validation-build\UnityCompile.csproj"` 做编译检查，再手动点一次「Send to Unity」看 `status.json` 的回执。
+- 两侧各自的测试：浏览器/服务端在 `C:\MapForge\tests\unity-sync.test.js`（`node --test`）；Unity 侧当前无独立自动化用例。先确认任何辅助 `.csproj` 覆盖了此次改动，再将其作为局部编译检查；它缺少导入器依赖时不能作为 Unity 编译结论。之后用正式 Unity 编译验证，并手动点一次「Send to Unity」检查 `status.json` 回执。
 - 新增按 `id` 关联的运行时组件也是这批改动的一部分：`Assets/Scripts/MapForgePathNode.cs`（`MapForgePathNode.All` / `Find(objectId)`，`role` / `waitTime` / `links`）与 `Assets/Scripts/MapForgeTrigger.cs`（`MapForgeTrigger.Fired` 事件 + `FindTarget(objectId)`，支持 `spawn/damage/goal/message/enable/disable`）。导入时它们由 `MapForgeSceneOrganization` 从 JSON 的 `unity.pathNode` / `unity.trigger` 段建立并做合法性校验；改 JSON 键名要同步这两处。
 
 ## 路由
 
 - 要在 Unity 里跑编辑器脚本、批处理导入或校验，读 [references/unity-editor.md](references/unity-editor.md)，并优先用 `scripts/run-unity-method.ps1`，因为 Unity 的退出码**不能**用来判断成败。
 - 要改地图、改 MapForge 导出格式、或调整格子/路径联动，读 [references/mapforge-pipeline.md](references/mapforge-pipeline.md)。
+- 要改陷阱升级规则、付费预约、换局生命周期或有效属性，读 [references/trap-upgrades.md](references/trap-upgrades.md)；该文档区分已验证能力与尚未接入的步骤。
+- 要运行 Unity 编辑期测试，读 [references/unity-editor.md](references/unity-editor.md) 中的测试隔离流程；持久测试放在 `Tests~/`，运行器临时暂存到 `Assets/` 的测试源码应在后续 Unity 编译前清理。
 - 两边都要动的地图改动，有两条路：日常改动走**实时同步**（MapForge 点「Send to Unity」→ 编辑器轮询应用），整图重排或换了地图名走**导入**（导出 JSON → MapForgeWorldImporter.ImportDefault → Validate Trap Grids）。两条路都会写场景文件，动手前先提交。
 - 改空中出怪口、飞行怪物移动、或陷阱菜单的视角/准星锁定，读上面的[近期改动的约定](#近期改动的约定2026-09-新增)；这几处都各有一份以上的复制实现，别只改一处。
 - 改双联导弹发射器（炮塔两轴、拦截点预测、齐射/装填、对空过滤、预制体生成），读上面的[双联导弹发射器](#双联导弹发射器对空陷阱2026-09-新增)。
@@ -183,12 +176,14 @@ Step 5 - 回归：受影响旧功能、预览图、git diff 与最终文件清�
 
 ## 已知会造成误判的情况
 
+项目经验是带日期的状态记录，不是永久规则：修改前以当前源码、配置和对应测试为准。记录验收时区分已通过、未执行和替代验证；辅助工程或局部 `.csproj` 的结果只覆盖其实际编入的文件，不能代替完整 Unity 编译或运行时验收。
+
 - `Assets/KINEMATION`、`Assets/TextMesh Pro` 被 `.gitignore` 排除。缺失时 C# 会报缺类型，属于预期，不要为此反复排查。
 - 根目录的 `*.log`、`*.blend1`、`*.csproj` 都被忽略；`Assets/Models/*.blend` 和 `.fbx` 是被跟踪的。
 - 仓库根目录的中间态文件（`/*.py`、`/*.blend`、`/*.blend1`、`/*.blend2`、`/*.png`、`/*.fbx`）已被 `.gitignore` 忽略：陷阱中间态按规范放在桌面「陷阱素材文件夹」，在仓库根目录找不到它们是**预期**，不要用 `git add -f` 硬塞回去。
 - `Assets/FlyingMonsterPlane_preview.png` 这类预览图已迁出仓库（GUID 无任何引用）；要预览图去桌面「陷阱素材文件夹」对应子目录拿。
 - 同一时刻只允许一个 Unity 实例持有 `Library/`。开编辑器时批处理会卡住或失败，先确认没有 Unity 在跑。
 - `MapForgeSync/` 整个目录被 `.gitignore` 忽略，里面是每次同步都会改写的运行时状态（`mail/pending.json`、`revision.txt`、`status.json`）：它出现在工作区是**预期**，不要提交、也不要为它回滚场景。
-- `Assets/Editor` 的编辑期测试类（`FlyingSpawnPointTests`、`GroundEnemyCombatTests`、`TrapHealthBarUITests`、`MissileLauncherTurretTests`、`MissileLauncherWeaponTests`）都被 `#if UNITY_INCLUDE_TESTS` 包住：`-executeMethod` 不会执行它们，必须用 `-runTests`；只想验证编译就走 `dotnet build "C:\MapForge\.validation-build\UnityCompile.csproj"`。
+- 一些旧的 `Assets/Editor` 编辑期测试类用 `#if UNITY_INCLUDE_TESTS` 条件编译，不能靠 `-executeMethod` 运行；按测试入口选择 Unity Test Framework runner，并确认 XML 实际包含预期用例。不要把某个局部 `.csproj` 当成全工程编译结论。
 - `Assets/Models/<TrapName>/`（如 `Assets/Models/DualMissileExhaust/DualMissileExhaust.fbx`）就是「定稿模型」该待的仓库位置，别为了「归位」把它挪到桌面素材文件夹。
 - 场景与预制体是体量很大的 YAML，用 `Select-String` 定位行号后只读局部片段。

@@ -713,3 +713,10 @@
 - `Tests~/Editor/TrapUpgradeDurabilityTests.cs` 新增 19 个用例：七类 TrapId 的 1→4 级与同类共享/异类隔离、各级受伤比例、自定义一级血量、三项独立倍率、维修封顶、摧毁后不复活、换局降级、反复启停，以及真实 `TryPlaceTrap` 在预制体有/无 TrapInstance 两种分支的满血继承。`TrapUpgradePaymentTests` 另新增 3 个生命周期用例（现共 34）。运行 `Assets/Editor/RunTrapUpgradeRulesTests.ps1 -IncludeDurability`，Unity EditMode **114/114 PASS**（耐久 19、支付/实例 34、规则 49、钱包 10、Canvas 2），无失败/跳过；四份临时测试源码及 `.meta` 均已清理，持久源码留在 `Tests~/Editor/`。XML：`C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step4\20261028-174517-824\editmode-results.xml`。
 - 测试清理后，正常 Unity 编译与 `TrapUpgradeCatalogAuthoring.ValidateAll` **通过**，日志确认方法完成且无 C# 编译错误/异常：`C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step4\normal-compile.log`。未做真实 PlayMode 菜单操作或完整 Player 构建。
 - 辅助 `dotnet build C:\MapForge\.validation-build\UnityCompile.csproj` 未通过：其局部导入器编译缺失 `WallTrapGridAuthoring`（两处）和 `MaskedSoldierAuthoring` 类型；该工程不包含本步 TowerDefense 运行时代码。未扩修无关导入器，以后续成功的正式 Unity 编译为本步编译结论。
+
+## Unity skill 文档更新（2026-10-29）
+
+- `.agents/skills/alpha-striker-unity/SKILL.md` 与 `references/unity-editor.md` 已清理旧用户目录和固定 Unity 版本实例；执行版本以 `ProjectSettings/ProjectVersion.txt` 为准，辅助 `.csproj` 按其实际编入范围解释结果。
+- 测试指南补充 `Tests~/Editor/` 持久测试、临时暂存 `.cs` 与 `.meta` 的清理、XML 用例数核对及测试后正常 Unity 编译；不把 `#if UNITY_INCLUDE_TESTS` 当作隔离。
+- 新增 `references/trap-upgrades.md`，记录已完成的升级规则、付费预约、换局与有效生命接口，以及七类陷阱战斗属性仍待后续接入的边界。修改升级系统时先核对当前源码与本记忆中的最新阶段记录。
+- 多文件 Plan 调整为不延迟首个最小文件写入；验收记录区分已通过、未执行和局部替代验证。

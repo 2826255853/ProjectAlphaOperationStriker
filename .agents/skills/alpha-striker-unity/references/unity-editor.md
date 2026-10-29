@@ -2,14 +2,14 @@
 
 ## 编辑器路径
 
-版本策略见 [SKILL.md 的 Unity 编辑器版本](../SKILL.md#unity-编辑器版本)：后续尽量跟进最新正式发行版；日常批处理使用 `ProjectSettings/ProjectVersion.txt` 的 `m_EditorVersion`，不因执行脚本而自动迁移项目。
+版本策略见 [SKILL.md 的 Unity 编辑器版本](../SKILL.md#unity-编辑器版本)：本项目始终使用 `ProjectSettings/ProjectVersion.txt` 的 `m_EditorVersion`，更换项目版本属于独立迁移，不因运行脚本而自动升级。
 
 ```
-C:\Program Files\Unity <m_EditorVersion>\Editor\Unity.exe                      <- 本机实际布局（2026-10-13 核对：6000.6.5f1）
-C:\Program Files\Unity\Hub\Editor\Unity <m_EditorVersion>\Editor\Unity.exe    <- Hub 布局，脚本兼容
+C:\Program Files\Unity <m_EditorVersion>\Editor\Unity.exe
+C:\Program Files\Unity\Hub\Editor\Unity <m_EditorVersion>\Editor\Unity.exe
 ```
 
-本机**不是** Hub 布局：Unity 直接装在 `C:\Program Files\Unity 6000.6.5f1\Editor\Unity.exe`。版本号随升级不定期变化，所以两处路径都别写死——文档只写 `<m_EditorVersion>` 占位，`scripts/run-unity-method.ps1` 先按项目记录版本在上述两种布局里精确查找，找不到就扫描 `C:\Program Files\Unity *\Editor\Unity.exe` 与 Hub 目录，取**最高版本的正式发行版（`f`）**，并在日志里说明实际用了哪个；本机只有预发布版时才会退回并打印警告。自定义安装位置用 `-UnityPath` 指向已核实的编辑器。升级完成后按更新后的项目记录运行，不读取 `Library/` 或历史日志推断版本。
+版本号和安装目录不要写死。`scripts/run-unity-method.ps1` 先按项目记录版本在常见直接安装与 Hub 路径查找，找不到时会扫描并选择另一已安装版本、报告实际路径；只有预发布版时会明确告警。此回退不等于项目版本验证：如果报告版本与 `ProjectVersion.txt` 不一致，停止，不把结果当作本项目通过。自定义位置可用 `-UnityPath` 指向已核实的编辑器。不要读取 `Library/` 或历史日志推断版本。
 
 ## 批处理模板
 
@@ -89,7 +89,7 @@ Unity.exe -batchmode -nographics -quit `
 
 ## 更快的编译检查（不进 Unity）
 
-改完 `Assets/Editor` 里的 C# 后，先用这个 csproj 做秒级编译检查，别每次都花几分钟起 Unity：
+`C:\MapForge\.validation-build\UnityCompile.csproj` 是局部辅助编译器，只能检查其 `<Compile Include>` 实际列出的文件及其引用；未列入的运行时代码、编辑器代码不会被检查。改完后可用它快速发现覆盖范围内的编译问题：
 
 ```powershell
 dotnet build "C:\MapForge\.validation-build\UnityCompile.csproj"
@@ -104,9 +104,9 @@ UnityEngine 引用已改成 glob（`C:\Program Files\Unity *\Editor\Data\Managed
 - `Assets/Scripts/MapForgePathNode.cs`
 - `Assets/Scripts/MapForgeTrigger.cs`
 
-改了别的文件就顺手往 csproj 的 `<Compile Include>` 里加一条，否则检查会**静默漏掉**改动。编译时的 `CS0436` 警告（UnityEngine 类型被 Assembly-CSharp 重复引入）是良性的，可以忽略。
+改了别的文件先确认它确实在 `<Compile Include>` 中；否则检查会**静默漏掉**改动。编译时的 `CS0436` 警告（UnityEngine 类型被 Assembly-CSharp 重复引入）是良性的，可以忽略。若辅助工程缺少其导入清单以外的项目类型，这个失败不能直接判定 Unity 工程编译失败；以项目版本对应的正式 Unity 编译为准。不要为让局部辅助工程通过而扩修无关导入器。
 
-注意这只覆盖 `Assets/Editor` 那一侧：`Assets/Scripts/FPS`、`Assets/Scripts/TowerDefense` 的运行时脚本改完还是得靠 Unity 编译（或加进上面的 csproj）。
+尤其要注意，单独的辅助构建不能替代完整工程编译、PlayMode 行为或场景验收。报告结果时写明实际覆盖范围与未执行的验证。
 
 ## 场景与预制体怎么读
 
@@ -120,7 +120,7 @@ Select-String -Path "Assets\Scenes\THREE_ROUTE_MERGE_MAP.unity" -Pattern 'Monste
 
 ## 跑编辑期测试（导弹发射器 / 陷阱血条 / 飞行出怪口 / 地面近战）
 
-`Assets/Editor` 下的测试类都用 `#if UNITY_INCLUDE_TESTS` 包住，默认编译下不进程序集，因此**批处理必须带 `-runTests`**（套 `run-unity-method.ps1` 的普通模板不会执行它们）：
+下列当前位于 `Assets/Editor` 的测试类用 `#if UNITY_INCLUDE_TESTS` 包住，普通 `-executeMethod` 不会运行测试，必须使用 Unity Test Framework 的 `-runTests`。测试源码如果从 `Tests~/` 临时暂存，按 [测试源码隔离与收尾](#测试源码隔离与收尾) 清理：
 
 - `FlyingSpawnPointTests.cs` / `GroundEnemyCombatTests.cs`：空中出怪口的回归网，断言飞行怪出生在 `DefaultEntranceAltitude` 高度、`IsFlying` 为真且**没有** `GroundEnemyCombat`，同时校验普通出怪口仍留在地面。
 - `TrapHealthBarUITests.cs`：陷阱血条选靶、身后/被遮挡过滤、低血比例。
@@ -131,7 +131,16 @@ Select-String -Path "Assets\Scenes\THREE_ROUTE_MERGE_MAP.unity" -Pattern 'Monste
 Unity.exe -batchmode -nographics -projectPath "C:\Unity Project\ProjectAlphaOperationStriker" `
   -runTests -testPlatform EditMode -testFilter MissileLauncher `
   -testResults "$env:TEMP\missile.xml" `
-  -logFile "C:\Users\Origami\Desktop\陷阱素材文件夹\missile-tests.log"
+  -logFile "$env:TEMP\missile-tests.log"
 ```
 
-判定看日志里的 `Exiting batchmode successfully now!` 与测试汇总，**不要**看退出码（见上文实测数据）。只想确认编译通过、不跑断言，就用 [更快的编译检查](#更快的编译检查不进-unity) 的 `dotnet build`，前提是把对应测试文件加进 csproj 的 `<Compile Include>`。
+判定要检查 XML 里的预期 fixture 和用例数、失败数、跳过数，以及日志中的 Unity 编译状态；不要只看进程退出码或成功退出标记。局部辅助 `.csproj` 的覆盖范围有限，见[更快的编译检查](#更快的编译检查不进-unity)。
+
+## 测试源码隔离与收尾
+
+- 持久 Unity 测试源码放 `Tests~/Editor/`，不放进 Unity 会导入的 `Assets/`。Unity 忽略 `~` 后缀目录，runner 可在测试期间按需暂存。
+- `RunTrapUpgradeRulesTests.ps1` 会把所选 fixture 临时复制到 `Assets/Editor`，调用现有 runner，并在 `finally` 清除暂存 `.cs` 与对应 `.meta`。其他临时 fixture runner 也须保证失败、超时路径会清理。
+- 测试是否通过以 XML 中实际执行的用例数、失败数和跳过数为准；确认每个预期 fixture 都运行，不能只看 Unity 进程退出码或成功退出标记。
+- 测试结束后确认临时源码和 `.meta` 已不存在，再启动正常 Unity 编译、打开编辑器或执行其他导入验证。不要依赖 `#if UNITY_INCLUDE_TESTS` 让完成的测试源码留在 `Assets/`。
+- PlayMode / EditMode 夹具需避免意外销毁对象：`EnemyHealth` 进入死亡路径会调用 `Destroy`，在 EditMode 清理时可能报错并污染后续用例；需要聚焦其他行为时给夹具足够高的血量。
+- 测试能证明其覆盖的契约，不自动证明完整玩家构建、主场景人工操作或视觉效果。最终记录已执行的验证与明确未执行的项目。
