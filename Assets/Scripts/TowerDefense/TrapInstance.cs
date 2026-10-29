@@ -10,7 +10,8 @@ public sealed class TrapInstance : MonoBehaviour
     [SerializeField] private TrapDefinition definition;
     [SerializeField] private Vector2Int originCell;
     // Keep this serialized field as the authored level-one value; never write upgraded health into it.
-    [SerializeField, Min(1f)] private float maxHealth = 100f;
+    public const float DefaultBaseMaxHealth = 100f;
+    [SerializeField, Min(1f)] private float maxHealth = DefaultBaseMaxHealth;
 
     private TrapUpgradeState upgradeState = TrapUpgradeState.Initial;
     private TrapUpgradeMultipliers upgradeMultipliers = TrapUpgradeCatalog.DefaultMultipliers(1);

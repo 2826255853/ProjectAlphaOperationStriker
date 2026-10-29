@@ -14,6 +14,9 @@ public sealed class TrapSelectionMenuCardView : MonoBehaviour, IPointerEnterHand
     [SerializeField] private TextMeshProUGUI mountLabel;
     [SerializeField] private TextMeshProUGUI costLabel;
     [SerializeField] private TextMeshProUGUI statusLabel;
+    [SerializeField] private Button upgradeButton;
+    [SerializeField] private TextMeshProUGUI upgradeLabel;
+    private System.Action<TrapDefinition> upgradeClicked;
     [SerializeField] private Color selectedColor = new Color(.09f, .36f, .41f, .98f);
     [SerializeField] private Color unaffordableColor = new Color(.32f, .12f, .12f, .96f);
     [SerializeField] private Color emptyColor = new Color(.075f, .16f, .20f, .85f);
@@ -80,6 +83,48 @@ public sealed class TrapSelectionMenuCardView : MonoBehaviour, IPointerEnterHand
     private void HandleClick()
     {
         if (definition != null) clicked?.Invoke(definition);
+    }
+
+    public void ConfigureUpgrade(System.Action<TrapDefinition> onUpgrade)
+    {
+        EnsureUpgradeUI();
+        upgradeClicked = onUpgrade;
+        if (upgradeButton == null) return;
+        upgradeButton.onClick.RemoveListener(HandleUpgradeClick);
+        if (onUpgrade != null) upgradeButton.onClick.AddListener(HandleUpgradeClick);
+    }
+
+    public void EnsureUpgradeUI()
+    {
+        if (upgradeButton == null)
+        {
+            upgradeButton = TrapUpgradeMenuUI.Button(transform, "Upgrade Arrow", nameLabel,
+                new Vector2(1, 0), new Vector2(1, 0), new Vector2(-2, 2), new Vector2(28, 28), "↑", out upgradeLabel);
+            upgradeLabel.fontSize = 20;
+            upgradeButton.gameObject.SetActive(false);
+        }
+        if (upgradeButton.transform.Find("Arrow Ring") == null)
+        {
+            var ring = TrapUpgradeMenuUI.Rect(upgradeButton.transform, "Arrow Ring", new Vector2(.5f, .5f),
+                new Vector2(.5f, .5f), Vector2.zero, new Vector2(27, 27)).gameObject.AddComponent<TrapUpgradeArrowRing>();
+            ring.raycastTarget = false;
+            ring.color = new Color(.22f, .92f, 1f, .9f);
+            ring.transform.SetAsFirstSibling();
+        }
+    }
+
+    public void SetUpgradeState(bool visible, int level)
+    {
+        if (upgradeButton == null) return;
+        upgradeButton.gameObject.SetActive(visible && definition != null);
+        upgradeButton.interactable = level < 4;
+        if (upgradeLabel != null) upgradeLabel.text = level >= 4 ? "已满级" : "↑";
+        if (upgradeLabel != null) upgradeLabel.fontSize = level >= 4 ? 8 : 20;
+    }
+
+    private void HandleUpgradeClick()
+    {
+        if (definition != null) upgradeClicked?.Invoke(definition);
     }
 
     private static string MountGlyph(TrapMountType mount)

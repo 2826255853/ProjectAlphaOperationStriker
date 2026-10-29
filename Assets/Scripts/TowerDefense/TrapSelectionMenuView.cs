@@ -7,7 +7,7 @@ using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 /// <summary>Serialized Canvas view for TrapSelectionMenu; layout is authored in its prefab.</summary>
-public sealed class TrapSelectionMenuView : MonoBehaviour
+public sealed partial class TrapSelectionMenuView : MonoBehaviour
 {
     private const int PageCapacity = 54;
     [SerializeField] private TrapSelectionMenuCardView[] cards = Array.Empty<TrapSelectionMenuCardView>();
@@ -46,7 +46,12 @@ public sealed class TrapSelectionMenuView : MonoBehaviour
         if (cards == null || cards.Length != PageCapacity)
             cards = GetComponentsInChildren<TrapSelectionMenuCardView>(true);
         for (int i = 0; i < cards.Length; i++)
-            if (cards[i] != null) cards[i].Configure(HandleTrapClick, HandleHover);
+            if (cards[i] != null)
+            {
+                cards[i].Configure(HandleTrapClick, HandleHover);
+                cards[i].ConfigureUpgrade(OpenUpgrade);
+            }
+        InitializeUpgrades();
         for (int i = 0; i < slotButtons.Length; i++)
         {
             int slot = i;
@@ -67,6 +72,7 @@ public sealed class TrapSelectionMenuView : MonoBehaviour
 
     public void SetVisible(bool visible)
     {
+        if (!visible) CancelUpgrade();
         if (canvasGroup == null) canvasGroup = GetComponent<CanvasGroup>();
         if (canvasGroup == null) return;
         canvasGroup.alpha = visible ? 1f : 0f;
@@ -77,6 +83,7 @@ public sealed class TrapSelectionMenuView : MonoBehaviour
     public void Refresh()
     {
         if (owner == null) return;
+        BindUpgradeService();
         IReadOnlyList<TrapDefinition> items = owner.VisibleTraps;
         int pageCount = Mathf.Max(1, Mathf.CeilToInt(items.Count / (float)PageCapacity));
         owner.ClampPage(pageCount);
@@ -90,6 +97,9 @@ public sealed class TrapSelectionMenuView : MonoBehaviour
             bool affordable = trap == null || owner.CanAfford(trap);
             string status = trap == null ? string.Empty : owner.StatusFor(trap);
             cards[i]?.SetCard(trap, trap == current, affordable, status);
+            int level = trap != null && TrapUpgradeCatalog.IsValidId(trap.TrapId)
+                ? upgradeService.GetState(trap.TrapId).Level : 1;
+            cards[i]?.SetUpgradeState(upgradePage, level);
         }
         for (int i = 0; i < slotLabels.Length; i++)
         {
@@ -103,6 +113,7 @@ public sealed class TrapSelectionMenuView : MonoBehaviour
         if (instructionLabel != null)
             instructionLabel.text = placement == null
                 ? "未检测到陷阱放置控制器，当前无法分配"
+                : upgradePage ? "点击卡片右下角 ↑ 查看升级 · 升级影响本局同类陷阱 · 战斗继续运行"
                 : "选择目标槽位，再点选陷阱分配 · 选择陷阱不扣款，放置时支付 · N / Esc 关闭";
         for (int i = 0; i < filterLabels.Length; i++)
             if (filterLabels[i] != null) filterLabels[i].color = owner.FilterIndex == i
@@ -112,6 +123,7 @@ public sealed class TrapSelectionMenuView : MonoBehaviour
         if (nextPageButton != null) nextPageButton.interactable = owner.CurrentPage + 1 < pageCount;
         if (clearButton != null) clearButton.interactable = placement != null;
         ShowDetails(hovered != null ? hovered : current);
+        RefreshUpgradeDialog();
     }
 
     public void ResetHoveredTrap() => hovered = null;
@@ -134,7 +146,12 @@ public sealed class TrapSelectionMenuView : MonoBehaviour
         ShowDetails(detail);
     }
 
-    private void HandleTrapClick(TrapDefinition trap) => owner?.AssignTrap(trap);
+    private void HandleTrapClick(TrapDefinition trap)
+    {
+        if (UpgradeDialogOpen) return;
+        if (upgradePage) HandleHover(trap);
+        else owner?.AssignTrap(trap);
+    }
 
     private void HandleHover(TrapDefinition trap)
     {
@@ -166,8 +183,10 @@ public sealed class TrapSelectionMenuView : MonoBehaviour
 
     private void OnDestroy()
     {
+        UnbindUpgradeService();
         if (!initialized) return;
-        for (int i = 0; i < cards.Length; i++) if (cards[i] != null) cards[i].Configure(null, null);
+        for (int i = 0; i < cards.Length; i++) if (cards[i] != null)
+        { cards[i].Configure(null, null); cards[i].ConfigureUpgrade(null); }
     }
 
     private static void EnsureEventSystem()
@@ -182,6 +201,6 @@ public sealed class TrapSelectionMenuView : MonoBehaviour
         }
         if (system.GetComponent<InputSystemUIInputModule>() == null)
             system.gameObject.AddComponent<InputSystemUIInputModule>();
-        DontDestroyOnLoad(system.gameObject);
+        if (Application.isPlaying) DontDestroyOnLoad(system.gameObject);
     }
 }

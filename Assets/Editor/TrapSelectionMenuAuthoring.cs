@@ -147,6 +147,25 @@ public static class TrapSelectionMenuAuthoring
             CaptureResolution(view, camera, 1366, 768, "resolution-1366x768.png");
             CaptureResolution(view, camera, 1280, 720, "resolution-1280x720.png");
             CaptureResolution(view, camera, 2560, 1080, "resolution-ultrawide-2560x1080.png");
+            string upgrades = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+                "陷阱素材文件夹", "TrapUpgradeSystem", "step7");
+            Directory.CreateDirectory(upgrades);
+            using (var service = new TrapUpgradeService(() => new Guid("da7b5be8-c2d0-4b88-a521-c4ac690a7f21"),
+                Resources.Load<TrapUpgradeCatalog>(TrapUpgradeCatalog.ResourcePath)))
+            {
+                foreach (TrapDefinition definition in definitions)
+                {
+                    view.SetUpgradePreview(definitions, service, definition, "金币：1000");
+                    Canvas.ForceUpdateCanvases();
+                    foreach (TextMeshProUGUI label in view.GetComponentsInChildren<TextMeshProUGUI>(true)) label.ForceMeshUpdate();
+                    camera.Render();
+                    camera.Render();
+                    RenderTexture.active = target;
+                    pixels.ReadPixels(new Rect(0, 0, 1920, 1080), 0, 0);
+                    pixels.Apply();
+                    File.WriteAllBytes(Path.Combine(upgrades, "upgrade-" + definition.TrapId + ".png"), pixels.EncodeToPNG());
+                }
+            }
         }
         finally
         {

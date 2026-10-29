@@ -163,6 +163,13 @@ public sealed class TrapPlacementController : MonoBehaviour
                 for (int i = 0; i < Mathf.Min(previous.Length, trapSlots.Length); i++) trapSlots[i] = previous[i];
         }
 
+        // The ceiling graybox is an editor test asset, not a playable default.
+        // Clear old serialized references so removing its scene object cannot leave
+        // the runtime hotbar selecting a stale test definition.
+        if (IsCeilingTestDefinition(selectedTrap)) selectedTrap = null;
+        for (int i = 0; i < trapSlots.Length; i++)
+            if (IsCeilingTestDefinition(trapSlots[i])) trapSlots[i] = null;
+
         bool hasAssignedSlot = false;
         for (int i = 0; i < trapSlots.Length; i++) hasAssignedSlot |= trapSlots[i] != null;
         if (!hasAssignedSlot && selectedTrap != null) trapSlots[0] = selectedTrap;
@@ -170,13 +177,14 @@ public sealed class TrapPlacementController : MonoBehaviour
 
         // Fill only empty slots so Inspector assignments remain authoritative.
         TrapDefinition[] available = Resources.LoadAll<TrapDefinition>("");
-        System.Array.Sort(available, (a, b) => string.Compare(a.DisplayName, b.DisplayName, System.StringComparison.Ordinal));
+        System.Array.Sort(available, (a, b) => string.Compare(a != null ? a.DisplayName : string.Empty,
+            b != null ? b.DisplayName : string.Empty, System.StringComparison.Ordinal));
         for (int i = 0; i < trapSlots.Length; i++)
         {
             if (trapSlots[i] != null) continue;
             for (int j = 0; j < available.Length; j++)
             {
-                if (available[j] == null) continue;
+                if (available[j] == null || IsCeilingTestDefinition(available[j])) continue;
                 bool alreadyUsed = false;
                 for (int k = 0; k < i; k++) alreadyUsed |= trapSlots[k] == available[j];
                 if (!alreadyUsed) { trapSlots[i] = available[j]; break; }
@@ -186,6 +194,12 @@ public sealed class TrapPlacementController : MonoBehaviour
         if (trapSlots[selectedSlot] == null)
             for (int i = 0; i < trapSlots.Length; i++)
                 if (trapSlots[i] != null) { selectedSlot = i; break; }
+    }
+
+    private static bool IsCeilingTestDefinition(TrapDefinition definition)
+    {
+        return definition != null && string.Equals(definition.TrapId, "ceiling_test",
+            System.StringComparison.OrdinalIgnoreCase);
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]

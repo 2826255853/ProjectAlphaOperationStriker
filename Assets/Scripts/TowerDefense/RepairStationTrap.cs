@@ -6,6 +6,7 @@ using UnityEngine;
 [RequireComponent(typeof(TrapInstance))]
 public sealed class RepairStationTrap : MonoBehaviour
 {
+    public float BaseRepairAmount => repairAmount;
     [Serializable]
     public sealed class ArmRig
     {

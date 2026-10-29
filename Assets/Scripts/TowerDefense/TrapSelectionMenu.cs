@@ -104,7 +104,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
         UpdatePendingWeaponInputRestore();
         if (GameStartMenu.CursorOwned || Keyboard.current == null) return;
         if (toggleKey == KeyCode.N && Keyboard.current.nKey.wasPressedThisFrame) SetOpen(!open);
-        if (open && Keyboard.current.escapeKey.wasPressedThisFrame) SetOpen(false);
+        if (open && Keyboard.current.escapeKey.wasPressedThisFrame && !view.BackFromUpgrade()) SetOpen(false);
     }
 
     private void Refresh()
@@ -192,6 +192,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
 
     internal void SelectSlot(int slot)
     {
+        if (view != null && view.UpgradeDialogOpen) return;
         TrapPlacementController target = GetPlacement();
         if (target == null) return;
         target.SelectTrapSlot(slot);
@@ -200,6 +201,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
 
     internal void SelectFilter(int filter)
     {
+        if (view != null && view.UpgradeDialogOpen) return;
         view?.ResetHoveredTrap();
         mountFilter = Mathf.Clamp(filter, 0, MountFilters.Length - 1);
         currentPage = 0;
@@ -209,6 +211,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
 
     internal void ChangePage(int delta)
     {
+        if (view != null && view.UpgradeDialogOpen) return;
         view?.ResetHoveredTrap();
         int pages = Mathf.Max(1, Mathf.CeilToInt(filtered.Count / 54f));
         currentPage = Mathf.Clamp(currentPage + delta, 0, pages - 1);
@@ -219,6 +222,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
 
     internal void AssignTrap(TrapDefinition trap)
     {
+        if (view != null && view.UpgradeDialogOpen) return;
         TrapPlacementController target = GetPlacement();
         if (target == null || trap == null) return;
         int slot = target.SelectedSlot;
@@ -229,6 +233,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
 
     internal void ClearSelectedSlot()
     {
+        if (view != null && view.UpgradeDialogOpen) return;
         TrapPlacementController target = GetPlacement();
         if (target == null) return;
         target.AssignTrapToSlot(target.SelectedSlot, null);

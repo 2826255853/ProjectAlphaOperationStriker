@@ -7,6 +7,8 @@ using UnityEngine;
 [DefaultExecutionOrder(1000)]
 public sealed class FlamethrowerTrap : MonoBehaviour
 {
+    public float BaseDirectDamage => directDamage;
+    public float BaseBurnDps => burnDamagePerSecond;
     public enum AttackState { Ready, Delay, Spraying, Cooldown }
 
     // 0.01 mm absorbs floating-point roundoff at closed faces after wall rotation.

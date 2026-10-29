@@ -7,6 +7,7 @@ using UnityEngine;
 [DefaultExecutionOrder(1000)]
 public sealed class GroundSpikeTrap : MonoBehaviour
 {
+    public float BaseDamage => damage;
     public enum AttackState { Ready, Extending, Holding, Retracting, Cooldown }
 
     [SerializeField] private Transform spikeGroup;

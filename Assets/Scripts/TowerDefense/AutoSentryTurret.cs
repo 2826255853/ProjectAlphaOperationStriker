@@ -55,6 +55,7 @@ public sealed class AutoSentryTurret : MonoBehaviour
     /// <summary>Raised once when the turret transitions from no valid target to a valid target.</summary>
     public event System.Action<EnemyInstance> TargetAcquired;
 
+    public float BaseDamagePerShot => damagePerShot;
     public float DetectionRange => detectionRange;
     public float BurstDuration => burstDuration;
     public float CooldownDuration => cooldownDuration;

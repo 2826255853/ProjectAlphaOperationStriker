@@ -1,5 +1,15 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 陷阱升级系统 · 第 7 步（2026-10-29）
+
+- `TrapSelectionMenuView.Upgrades.cs` 增量扩展已有 Canvas，增加选择/升级页签、模态确认和普通四级方向步骤；`TrapSelectionMenuCardView` 添加独立圆框箭头回调。选择页保留原槽位分配并关闭菜单；升级页复用分类/分页，卡片点击查看、箭头打开确认，满级入口禁用。三级确认进入普通方向选择，再次确认才付款；完整分支选项仍留待第 8 步。
+- `TrapUpgradeMenuSession` 仅持有报价快照/选中定义/弹窗导航，确认参数为 TrapId、预期等级和报价版本，调用既有付费 service 重验不可变报价（含 RunId、配置与费用）。成功结果页拒绝重复确认；失败刷新报价并要求重新确认。取消不预约资金、不扣款；余额、升级和换局事件刷新界面，换局关闭旧弹窗。
+- 七类属性预览从 `TrapDefinition.Prefab` 的实际基础字段读取，新增只读基础值 getter；最大血量使用预制体的 `BaseMaxHealth` 或与放置时一致的 `TrapInstance.DefaultBaseMaxHealth`。维修与伤害独立倍率、扼喉双伤害、贝蒂爆炸、火焰直伤/燃烧及导弹直伤/溅射均按报价倍率显示，不实例化战斗组件。
+- 弹窗为现有 Canvas 的独立顶层遮罩；背景 CanvasGroup 禁止点击和导航，菜单操作也显式拒绝弹窗期间的分配/清空/筛选。Esc 返回一级；N 关闭菜单并清空弹窗。沿用 `TrapSelectionMenu.CursorOwned` 和松开鼠标后恢复武器机制，两份玩家 `UpdateCursor` 已核对，均位于 `FirstPersonController.cs`，无需改动。`EnsureEventSystem` 仅在运行模式调用 DontDestroyOnLoad，允许编辑期初始化菜单验证。
+- 编辑器入口 `TrapUpgradeMenuAuthoring.AddMissingControlsAndPreview` 仅补缺失控件，不重建现有 Canvas/卡片/图标/字体；首次预制体备份在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step7\prefab-backup\`，七类确认预览在同级 `upgrade-<TrapId>.png`。工具可重复调用，已有控件与字体/布局保留；`TrapUpgradeArrowRing` 用网格绘圆框，无额外贴图。
+- 新增持久测试 `Tests~/Editor/TrapUpgradeMenuTests.cs`（24 例）；`RunTrapUpgradeRulesTests.ps1 -IncludeStep7` 包含前六步回归。最终 EditMode **204/204 通过，0 失败、0 跳过**，其中菜单 24、前六步 180；报告：`C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step7\20261029-233524-610\editmode-results.xml`。四个界面用例初始化真实 Canvas 和放置控制器，验证独立箭头、底层隔离、原槽位分配、余额事件/成功结果/重复确认、换局关闭、满级禁用及重复补齐不改布局/字体。测试中定位并修复 Unity 组件不能用 `??` 判空的问题，背景 CanvasGroup 使用 Unity 的显式 null 判定补齐。
+- 已确认 8 份临时测试源码及 `.meta` 全部清理；随后正常 Unity 编译、`AddMissingControlsAndPreview`、菜单及升级目录校验通过，无 C# 编译错误或方法异常。日志：`C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step7\normal-compile.log`。七类预览已重新生成；预览时动态字体产生的自动缓存变化恢复到原资产，未替换用户字体。未做真实 PlayMode 人工键鼠操作或完整 Player 构建。
+
 重建日期：2026-10-16（系统重装后）。本文件保存可随工程保留的项目知识；以当前代码与配置为准，历史路径须重新核实。
 
 ## 项目定位与可信来源

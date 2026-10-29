@@ -17,6 +17,7 @@ using UnityEngine.Rendering;
 [DefaultExecutionOrder(1000)]
 public sealed class Betty7JumpMineTrap : MonoBehaviour
 {
+    public float BaseDamage => damage;
     public enum AttackState { Ready, Arming, Launching, Detonating, Recovering, Cooldown }
 
     private const string MineNamePrefix = "Mine_";

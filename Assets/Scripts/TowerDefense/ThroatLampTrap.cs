@@ -6,6 +6,8 @@ public enum ThroatLampState { Idle, Charging, Discharging, CoolingDown }
 [DisallowMultipleComponent]
 public sealed class ThroatLampTrap : MonoBehaviour
 {
+    public float BaseDirectDamage => directDamage;
+    public float BaseSplashDamage => splashDamage;
     [SerializeField] private Transform yawPivot;
     [SerializeField] private Transform pitchPivot;
     [SerializeField] private Transform nozzle;
