@@ -109,6 +109,13 @@ public static class TrapSelectionMenuAuthoring
     [MenuItem("Tools/行动打击/陷阱菜单/生成 Canvas 预览")]
     public static void RenderPreviewBatch()
     {
+        string upgrades = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+            "陷阱素材文件夹", "TrapUpgradeSystem", "step7");
+        RenderPreviewBatch(upgrades);
+    }
+
+    public static void RenderPreviewBatch(string upgradePreviewDirectory)
+    {
         GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(MenuPath);
         if (prefab == null) throw new InvalidOperationException("Generate the trap-menu prefab first.");
         Directory.CreateDirectory(OutputDirectory);
@@ -147,25 +154,33 @@ public static class TrapSelectionMenuAuthoring
             CaptureResolution(view, camera, 1366, 768, "resolution-1366x768.png");
             CaptureResolution(view, camera, 1280, 720, "resolution-1280x720.png");
             CaptureResolution(view, camera, 2560, 1080, "resolution-ultrawide-2560x1080.png");
-            string upgrades = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-                "陷阱素材文件夹", "TrapUpgradeSystem", "step7");
-            Directory.CreateDirectory(upgrades);
-            using (var service = new TrapUpgradeService(() => new Guid("da7b5be8-c2d0-4b88-a521-c4ac690a7f21"),
-                Resources.Load<TrapUpgradeCatalog>(TrapUpgradeCatalog.ResourcePath)))
+            Directory.CreateDirectory(upgradePreviewDirectory);
+            TrapUpgradeCatalog previewCatalog = CreateDirectionPreviewCatalog();
+            try
             {
-                foreach (TrapDefinition definition in definitions)
+                using (var service = new TrapUpgradeService(() => new Guid("da7b5be8-c2d0-4b88-a521-c4ac690a7f21"), previewCatalog))
                 {
-                    view.SetUpgradePreview(definitions, service, definition, "金币：1000");
-                    Canvas.ForceUpdateCanvases();
-                    foreach (TextMeshProUGUI label in view.GetComponentsInChildren<TextMeshProUGUI>(true)) label.ForceMeshUpdate();
-                    camera.Render();
-                    camera.Render();
-                    RenderTexture.active = target;
-                    pixels.ReadPixels(new Rect(0, 0, 1920, 1080), 0, 0);
-                    pixels.Apply();
-                    File.WriteAllBytes(Path.Combine(upgrades, "upgrade-" + definition.TrapId + ".png"), pixels.EncodeToPNG());
+                    foreach (TrapDefinition definition in definitions)
+                    {
+                        view.SetUpgradePreview(definitions, service, definition, "金币：1000");
+                        CapturePreview(view, camera, target, pixels, Path.Combine(upgradePreviewDirectory, "upgrade-" + definition.TrapId + ".png"));
+                        for (int level = 1; level < 3; level++)
+                            if (!service.TryUpgrade(service.GetQuote(definition), out TrapUpgradeFailure failure))
+                                throw new InvalidOperationException("Could not prepare level-three direction preview: " + failure);
+                        view.SetUpgradeDirectionPreview(definitions, service, definition, "金币：1000");
+                        CapturePreview(view, camera, target, pixels, Path.Combine(upgradePreviewDirectory, "directions-" + definition.TrapId + ".png"));
+                        Button[] options = view.GetComponentsInChildren<Button>(true)
+                            .Where(option => option.gameObject.name == "Direction Option").ToArray();
+                        if (options.Length > 1)
+                        {
+                            options[1].onClick.Invoke();
+                            CapturePreview(view, camera, target, pixels,
+                                Path.Combine(upgradePreviewDirectory, "branch-unavailable-" + definition.TrapId + ".png"));
+                        }
+                    }
                 }
             }
+            finally { Object.DestroyImmediate(previewCatalog); }
         }
         finally
         {
@@ -175,6 +190,55 @@ public static class TrapSelectionMenuAuthoring
             target.Release();
             Object.DestroyImmediate(target);
         }
+    }
+
+    private static void CapturePreview(TrapSelectionMenuView view, Camera camera, RenderTexture target,
+        Texture2D pixels, string path)
+    {
+        Canvas.ForceUpdateCanvases();
+        foreach (TextMeshProUGUI label in view.GetComponentsInChildren<TextMeshProUGUI>(true)) label.ForceMeshUpdate();
+        camera.Render();
+        camera.Render();
+        RenderTexture.active = target;
+        pixels.ReadPixels(new Rect(0, 0, 1920, 1080), 0, 0);
+        pixels.Apply();
+        File.WriteAllBytes(path, pixels.EncodeToPNG());
+    }
+
+    private static TrapUpgradeCatalog CreateDirectionPreviewCatalog()
+    {
+        TrapUpgradeCatalog source = Resources.Load<TrapUpgradeCatalog>(TrapUpgradeCatalog.ResourcePath);
+        if (source == null) throw new InvalidOperationException("Trap upgrade catalog is missing.");
+        TrapUpgradeCatalog preview = Object.Instantiate(source);
+        preview.name = "TrapUpgradeCatalog Direction Preview (Temporary)";
+        var serialized = new SerializedObject(preview);
+        SerializedProperty entries = serialized.FindProperty("entries");
+        for (int i = 0; i < entries.arraySize; i++)
+        {
+            SerializedProperty entry = entries.GetArrayElementAtIndex(i);
+            if (!OfficialTrapIds.Contains(entry.FindPropertyRelative("trapId").stringValue)) continue;
+            SerializedProperty branches = entry.FindPropertyRelative("branches");
+            string previewBranchId = "preview-only";
+            int suffix = 2;
+            while (Enumerable.Range(0, branches.arraySize).Any(index =>
+                branches.GetArrayElementAtIndex(index).FindPropertyRelative("branchId").stringValue == previewBranchId))
+                previewBranchId = "preview-only-" + suffix++;
+            int index = branches.arraySize++;
+            SerializedProperty branch = branches.GetArrayElementAtIndex(index);
+            branch.FindPropertyRelative("branchId").stringValue = previewBranchId;
+            branch.FindPropertyRelative("displayName").stringValue = "未来分支示例";
+            branch.FindPropertyRelative("description").stringValue = "仅用于预览：该分支效果尚未接入。";
+            branch.FindPropertyRelative("integrated").boolValue = false;
+            branch.FindPropertyRelative("overrideDamage").boolValue = true;
+            branch.FindPropertyRelative("damage").floatValue = 2.25f;
+            branch.FindPropertyRelative("overrideRepair").boolValue = true;
+            branch.FindPropertyRelative("repair").floatValue = 2.25f;
+            branch.FindPropertyRelative("overrideMaxHealth").boolValue = true;
+            branch.FindPropertyRelative("maxHealth").floatValue = 2.25f;
+        }
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+        preview.Validate();
+        return preview;
     }
 
     private static void CaptureSample(TrapSelectionMenuView view, Camera camera, RenderTexture target, Texture2D pixels,

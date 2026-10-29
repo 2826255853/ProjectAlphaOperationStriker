@@ -14,6 +14,7 @@ public sealed class TrapUpgradeMenuTests
 {
     private EconomyManager wallet;
     private TrapUpgradeService service;
+    private TrapUpgradeCatalog testCatalog;
     private GameObject menuHost, placementHost;
     private static readonly string[] Ids = { "auto_sentry_turret", "ground-spike", "dual_missile_launcher_loaded", "flamethrower", "betty7", "throat-lamp", "repair-station" };
 
@@ -29,6 +30,7 @@ public sealed class TrapUpgradeMenuTests
         if (menuHost != null) Object.DestroyImmediate(menuHost);
         if (placementHost != null) Object.DestroyImmediate(placementHost);
         if (wallet != null) Object.DestroyImmediate(wallet.gameObject);
+        if (testCatalog != null) Object.DestroyImmediate(testCatalog);
         foreach (var system in Object.FindObjectsByType<EventSystem>(FindObjectsSortMode.None)) Object.DestroyImmediate(system.gameObject);
     }
 
@@ -263,6 +265,108 @@ public sealed class TrapUpgradeMenuTests
         var card = Field<TrapSelectionMenuCardView[]>(view, "cards").First(c => Field<TrapDefinition>(c, "definition") == definition);
         Assert.That(Field<Button>(card, "upgradeButton").interactable, Is.False);
         Assert.That(Field<TextMeshProUGUI>(card, "upgradeLabel").text, Is.EqualTo("已满级"));
+    }
+
+    [TestCase(false, false)]
+    [TestCase(false, true)]
+    [TestCase(true, false)]
+    [TestCase(true, true)]
+    public void DirectionWindowListsConfiguredBranchesAndRequiresBothReadinessGates(bool integrated, bool effectReady)
+    {
+        service.Dispose();
+        testCatalog = ScriptableObject.CreateInstance<TrapUpgradeCatalog>();
+        var definition = Definition("repair-station");
+        var branch = new TrapUpgradeCatalog.Branch
+        {
+            branchId = "future-repair",
+            displayName = "强化维修",
+            description = "提升每次维修量",
+            integrated = integrated,
+            overrideRepair = true,
+            repair = 3f
+        };
+        var entry = new TrapUpgradeCatalog.Entry { trapId = definition.TrapId };
+        entry.branches.Add(branch);
+        typeof(TrapUpgradeCatalog).GetField("entries", BindingFlags.NonPublic | BindingFlags.Instance)
+            .SetValue(testCatalog, new System.Collections.Generic.List<TrapUpgradeCatalog.Entry> { entry });
+        service = TrapUpgradeService.ForWallet(wallet, testCatalog, (_, __) => effectReady);
+        for (int i = 0; i < 2; i++)
+            Assert.That(service.TryUpgrade(service.GetQuote(definition), out _), Is.True);
+
+        var view = MakeMenu();
+        view.SetUpgradePreview(new[] { definition }, service, definition, $"金币：{wallet.Balance}");
+        view.ConfirmUpgrade();
+        var session = Field<TrapUpgradeMenuSession>(view, "upgradeSession");
+        Assert.That(session.Step, Is.EqualTo(TrapUpgradeMenuSession.DialogStep.Direction));
+        var options = Field<GameObject>(view, "directionOptionsPanel");
+        var optionButtons = options.GetComponentsInChildren<Button>(true);
+        Assert.That(optionButtons.Length, Is.EqualTo(2));
+        StringAssert.Contains("普通四级", optionButtons[0].GetComponentInChildren<TextMeshProUGUI>().text);
+        StringAssert.Contains("强化维修", optionButtons[1].GetComponentInChildren<TextMeshProUGUI>().text);
+        StringAssert.Contains("每次维修量：37.5 → 75", optionButtons[1].GetComponentInChildren<TextMeshProUGUI>().text);
+
+        int balance = wallet.Balance;
+        optionButtons[1].onClick.Invoke();
+        Assert.That(session.Step, Is.EqualTo(TrapUpgradeMenuSession.DialogStep.Branch));
+        Assert.That(view.BackFromUpgrade(), Is.True);
+        Assert.That(session.Step, Is.EqualTo(TrapUpgradeMenuSession.DialogStep.Direction));
+        Assert.That(view.BackFromUpgrade(), Is.True);
+        Assert.That(session.Step, Is.EqualTo(TrapUpgradeMenuSession.DialogStep.Confirm));
+        Assert.That(service.GetState(definition.TrapId).Level, Is.EqualTo(3));
+        Assert.That(wallet.Balance, Is.EqualTo(balance));
+        view.ConfirmUpgrade();
+        Assert.That(session.Step, Is.EqualTo(TrapUpgradeMenuSession.DialogStep.Direction));
+        optionButtons[1].onClick.Invoke();
+        Assert.That(session.Step, Is.EqualTo(TrapUpgradeMenuSession.DialogStep.Branch));
+        var confirm = Field<Button>(view, "confirmUpgradeButton");
+        bool branchAvailable = integrated && effectReady;
+        Assert.That(confirm.interactable, Is.EqualTo(branchAvailable));
+        if (!branchAvailable)
+        {
+            StringAssert.Contains(integrated ? "效果适配尚未接入" : "尚未接入", session.Feedback);
+            view.ConfirmUpgrade();
+            Assert.That(service.GetState(definition.TrapId).Level, Is.EqualTo(3));
+            Assert.That(wallet.Balance, Is.EqualTo(balance));
+            return;
+        }
+
+        int expectedCost = session.Quote.Cost;
+        view.ConfirmUpgrade();
+        TrapUpgradeState state = service.GetState(definition.TrapId);
+        Assert.That(state.Level, Is.EqualTo(4));
+        Assert.That(state.Direction, Is.EqualTo(TrapUpgradeDirection.Branch));
+        Assert.That(state.BranchId, Is.EqualTo("future-repair"));
+        Assert.That(wallet.Balance, Is.EqualTo(balance - expectedCost));
+    }
+
+    [Test] public void NormalFourDirectionRequiresSelectionAndConfirmationWithoutChargingOnBack()
+    {
+        var definition = Definition("betty7");
+        for (int i = 0; i < 2; i++)
+            Assert.That(service.TryUpgrade(service.GetQuote(definition), out _), Is.True);
+        var view = MakeMenu();
+        view.SetUpgradePreview(new[] { definition }, service, definition, $"金币：{wallet.Balance}");
+        int balance = wallet.Balance;
+        view.ConfirmUpgrade();
+        Assert.That(view.UpgradeDialogOpen, Is.True);
+        Assert.That(Field<TrapUpgradeMenuSession>(view, "upgradeSession").Step,
+            Is.EqualTo(TrapUpgradeMenuSession.DialogStep.Direction));
+        var panel = Field<GameObject>(view, "directionOptionsPanel");
+        Button normal = panel.GetComponentInChildren<Button>(true);
+        normal.onClick.Invoke();
+        var session = Field<TrapUpgradeMenuSession>(view, "upgradeSession");
+        Assert.That(session.Step, Is.EqualTo(TrapUpgradeMenuSession.DialogStep.ConfirmNormal));
+        Assert.That(session.Quote.Target.Direction, Is.EqualTo(TrapUpgradeDirection.Normal));
+        Assert.That(view.BackFromUpgrade(), Is.True);
+        Assert.That(session.Step, Is.EqualTo(TrapUpgradeMenuSession.DialogStep.Direction));
+        Assert.That(wallet.Balance, Is.EqualTo(balance));
+        view.ConfirmUpgrade();
+        normal.onClick.Invoke();
+        int cost = session.Quote.Cost;
+        view.ConfirmUpgrade();
+        Assert.That(service.GetState(definition.TrapId).Direction, Is.EqualTo(TrapUpgradeDirection.Normal));
+        Assert.That(service.GetState(definition.TrapId).Level, Is.EqualTo(4));
+        Assert.That(wallet.Balance, Is.EqualTo(balance - cost));
     }
 }
 #endif

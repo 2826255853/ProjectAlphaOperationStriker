@@ -1,17 +1,23 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
 /// <summary>Only a pending quote and dialog navigation; levels and money belong to the paid service.</summary>
 public sealed class TrapUpgradeMenuSession
 {
-    public enum DialogStep { Closed, Confirm, Direction, ConfirmNormal, Result }
+    public enum DialogStep { Closed, Confirm, Direction, Branch, ConfirmNormal, Result }
     private readonly TrapUpgradeService service;
     public TrapDefinition Definition { get; private set; }
     public TrapUpgradeQuote Quote { get; private set; }
     public DialogStep Step { get; private set; }
     public string Feedback { get; private set; } = string.Empty;
     public bool IsOpen => Step != DialogStep.Closed;
+    public IReadOnlyList<TrapUpgradeCatalog.Branch> Branches =>
+        Definition == null ? Array.Empty<TrapUpgradeCatalog.Branch>() : service.GetBranches(Definition.TrapId);
+    public TrapUpgradeCatalog.Branch SelectedBranch { get; private set; }
+    public bool SelectedBranchAvailable => SelectedBranch != null && Quote != null && Quote.CanUpgrade;
+    public string SelectedBranchUnavailableReason => SelectedBranch == null || Quote == null ? string.Empty : Quote.Message;
 
     public TrapUpgradeMenuSession(TrapUpgradeService service)
         => this.service = service ?? throw new ArgumentNullException(nameof(service));
@@ -20,8 +26,15 @@ public sealed class TrapUpgradeMenuSession
         => service.GetQuote(definition, definition != null && TrapUpgradeCatalog.IsValidId(definition.TrapId)
             && service.GetState(definition.TrapId).Level == 3 ? TrapUpgradeDirection.Normal : TrapUpgradeDirection.None);
 
+    public TrapUpgradeQuote QuoteForNormalDirection() =>
+        Definition == null ? null : service.GetQuote(Definition, TrapUpgradeDirection.Normal);
+
+    public TrapUpgradeQuote QuoteForBranch(string branchId) =>
+        Definition == null ? null : service.GetQuote(Definition, TrapUpgradeDirection.Branch, branchId);
+
     public void Open(TrapDefinition definition)
     {
+        SelectedBranch = null;
         Definition = definition;
         Quote = QuoteFor(definition);
         Feedback = Quote.CanUpgrade ? string.Empty : Quote.Message;
@@ -33,26 +46,50 @@ public sealed class TrapUpgradeMenuSession
         Step = DialogStep.Closed;
         Definition = null;
         Quote = null;
+        SelectedBranch = null;
         Feedback = string.Empty;
     }
 
     public void Back()
     {
         if (Step == DialogStep.ConfirmNormal) Step = DialogStep.Direction;
-        else if (Step == DialogStep.Direction) Step = DialogStep.Confirm;
+        else if (Step == DialogStep.Branch)
+        {
+            SelectedBranch = null;
+            Quote = QuoteForNormalDirection();
+            Feedback = string.Empty;
+            Step = DialogStep.Direction;
+        }
+        else if (Step == DialogStep.Direction) { Quote = QuoteFor(Definition); Step = DialogStep.Confirm; }
         else Cancel();
+    }
+
+    public void SelectBranch(string branchId)
+    {
+        if (Step != DialogStep.Direction || string.IsNullOrWhiteSpace(branchId)) return;
+        SelectedBranch = null;
+        foreach (TrapUpgradeCatalog.Branch branch in Branches)
+            if (string.Equals(branch.branchId, branchId, StringComparison.Ordinal)) { SelectedBranch = branch; break; }
+        if (SelectedBranch == null) return;
+        Quote = QuoteForBranch(branchId);
+        Step = DialogStep.Branch;
+        Feedback = Quote.CanUpgrade ? string.Empty : SelectedBranchUnavailableReason;
     }
 
     public void ChooseNormal()
     {
-        if (Step == DialogStep.Direction) Step = DialogStep.ConfirmNormal;
+        if (Step != DialogStep.Direction) return;
+        Quote = QuoteForNormalDirection();
+        Feedback = Quote.CanUpgrade ? string.Empty : Quote.Message;
+        Step = DialogStep.ConfirmNormal;
     }
 
     // The view submits identity/version only. Never accept a price or multiplier from a UI control.
     public bool Confirm(string trapId, int expectedLevel, long quoteVersion)
     {
-        if (Quote == null || (Step != DialogStep.Confirm && Step != DialogStep.ConfirmNormal)) return false;
+        if (Quote == null || (Step != DialogStep.Confirm && Step != DialogStep.ConfirmNormal && Step != DialogStep.Branch)) return false;
         if (Quote.TrapId != trapId || Quote.Current.Level != expectedLevel || Quote.Version != quoteVersion) return false;
+        if (!Quote.CanUpgrade) { Feedback = Quote.Message; return false; }
         if (Step == DialogStep.Confirm && Quote.Current.Level == 3)
         {
             Step = DialogStep.Direction;
@@ -67,7 +104,11 @@ public sealed class TrapUpgradeMenuSession
         Feedback = FailureText(failure);
         // Replace a rejected snapshot only after the failure is shown, requiring a fresh confirmation.
         Quote = QuoteFor(Definition);
-        if (Quote.Current.Level == 3) Step = DialogStep.Confirm;
+        if (Quote.Current.Level == 3)
+        {
+            Step = DialogStep.Direction;
+            SelectedBranch = null;
+        }
         return false;
     }
 

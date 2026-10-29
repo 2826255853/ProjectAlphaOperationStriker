@@ -180,6 +180,13 @@ public sealed class TrapUpgradeCatalog : ScriptableObject
 
     public Branch GetBranch(string trapId, string branchId) => FindBranch(FindEntry(trapId), branchId);
 
+    /// <summary>Returns the configured four-level branches for menu presentation.</summary>
+    public IReadOnlyList<Branch> GetBranches(string trapId)
+    {
+        Entry entry = FindEntry(trapId);
+        return entry == null ? Array.Empty<Branch>() : entry.branches.AsReadOnly();
+    }
+
     private static Branch FindBranch(Entry entry, string branchId) =>
         entry?.branches.Find(value => string.Equals(value.branchId, branchId, StringComparison.Ordinal));
 

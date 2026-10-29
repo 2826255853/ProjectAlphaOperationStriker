@@ -186,6 +186,9 @@ public sealed class TrapUpgradeService : IDisposable
         return states.TryGetValue(trapId, out TrapUpgradeState state) ? state : TrapUpgradeState.Initial;
     }
 
+    public IReadOnlyList<TrapUpgradeCatalog.Branch> GetBranches(string trapId) =>
+        catalog != null ? catalog.GetBranches(trapId) : Array.Empty<TrapUpgradeCatalog.Branch>();
+
     public TrapUpgradeMultipliers GetMultipliers(string trapId) => ResolveMultipliers(trapId, GetState(trapId));
 
     private TrapUpgradeMultipliers ResolveMultipliers(string trapId, TrapUpgradeState state) =>
@@ -217,18 +220,23 @@ public sealed class TrapUpgradeService : IDisposable
         try
         {
             if (catalog != null) catalog.Validate();
-            if (direction == TrapUpgradeDirection.Branch)
-            {
-                TrapUpgradeCatalog.Branch branch = catalog != null ? catalog.GetBranch(id, branchId) : null;
-                if (branch == null || !branch.integrated || branchEffectAvailable == null || !branchEffectAvailable(id, branchId))
-                    return Reject(TrapUpgradeFailure.BranchUnavailable, "该四级分支尚未接入。");
-            }
+            TrapUpgradeCatalog.Branch branch = direction == TrapUpgradeDirection.Branch && catalog != null
+                ? catalog.GetBranch(id, branchId) : null;
+            if (direction == TrapUpgradeDirection.Branch && branch == null)
+                return Reject(TrapUpgradeFailure.BranchUnavailable, "该四级分支尚未配置。");
+
             var target = new TrapUpgradeState(current.Level + 1, direction, branchId);
             int cost = catalog != null ? catalog.GetCost(id, definition.Cost, target) :
                 TrapUpgradeCatalog.CalculateCost(definition.Cost, TrapUpgradeCatalog.DefaultCostMultiplier(target.Level));
             versions.TryGetValue(id, out long version);
+            TrapUpgradeMultipliers currentMultipliers = ResolveMultipliers(id, current);
+            TrapUpgradeMultipliers targetMultipliers = ResolveMultipliers(id, target);
+            if (branch != null && (!branch.integrated || branchEffectAvailable == null || !branchEffectAvailable(id, branchId)))
+                return new TrapUpgradeQuote(this, definition, runId, current, target, currentMultipliers,
+                    targetMultipliers, cost, version, TrapUpgradeFailure.BranchUnavailable,
+                    !branch.integrated ? "该四级分支尚未接入。" : "该四级分支的效果适配尚未接入。");
             return new TrapUpgradeQuote(this, definition, runId, current, target,
-                ResolveMultipliers(id, current), ResolveMultipliers(id, target), cost, version);
+                currentMultipliers, targetMultipliers, cost, version);
         }
         catch (Exception exception) when (exception is ArgumentException || exception is InvalidOperationException || exception is OverflowException)
         {

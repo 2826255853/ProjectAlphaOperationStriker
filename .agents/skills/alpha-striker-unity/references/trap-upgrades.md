@@ -10,6 +10,14 @@
 - `TrapUpgradeService` 的 `Func<Guid>` 构造器是无扣款规则/测试入口。正式玩法使用 `TrapUpgradeRuntime.GetOrCreate()` 或 `TrapUpgradeService.ForWallet(...)`，一个钱包只允许一个付费服务，配置不一致会拒绝复用。
 - 分支升级同时要求 catalog 中 `integrated` 和调用者提供的分支效果适配器；缺任一条件都保持不可用，不要为了显示菜单而放开提交。
 
+## 四级方向 Canvas（第 7/8 步）
+
+- 现有菜单采用 Canvas；`TrapSelectionMenuView.Upgrades.cs` 通过 `EnsureUpgradeUI` 增量创建方向滚动列表与分支详情，不得重建 Canvas 或覆写现有卡片、图标、字体和布局。
+- 方向数据由 `TrapUpgradeService.GetBranches` 转发 catalog；普通四级和 catalog 中每个分支都显示名称、说明、报价、目标属性及可用状态。选中分支后仍从 service 获取报价，失败报价保留目标属性供只读预览，但 `CanUpgrade == false` 必须禁用确认。
+- 付款入口仍只接受 `TrapUpgradeQuote` 中的 TrapId/目标/版本快照；按钮状态不能取代 `TryUpgrade` / reservation commit 的双门槛重验。未配置、`integrated == false`、缺少效果适配器或报价过期均不得扣款。
+- `TrapUpgradeMenuSession` 只持有报价、所选定义/分支与导航状态。返回/Esc 逐层回到方向页和三级确认，不改变等级；弹窗期间继续使用现有 `CanvasGroup` 阻断底层 UI。若更改焦点目标，记得同步验证 EventSystem 返回焦点。
+- 方向预览工具只在内存 catalog 加入临时分支；不得把演示分支写入正式 `TrapUpgradeCatalog.asset`。UI 改动需要图形模式渲染预览，`run-unity-method.ps1` 调用时传 `-WithGraphics`；`-nographics` 会得到空白图像。
+
 ## 付费与换局不变量
 
 - 正式升级先 `GetQuote`，再 `TryReserveUpgrade`，最后由 reservation `Commit` 完成。提交时重新校验 `RunId`、目标等级/方向、报价版本、价格、倍率和分支可用性；报价过期、换局或服务销毁都不能扣款。

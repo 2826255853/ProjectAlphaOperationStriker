@@ -11,7 +11,7 @@ public static class TrapUpgradeMenuAuthoring
     public static void AddMissingControls()
     {
         string backup = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-            "陷阱素材文件夹", "TrapUpgradeSystem", "step7", "prefab-backup");
+            "陷阱素材文件夹", "TrapUpgradeSystem", "step8", "prefab-backup");
         Directory.CreateDirectory(backup);
         string[] paths = { Root + "TrapSelectionMenuCard.prefab", Root + "TrapSelectionMenu.prefab" };
         foreach (string path in paths)
@@ -36,6 +36,8 @@ public static class TrapUpgradeMenuAuthoring
     public static void AddMissingControlsAndPreview()
     {
         AddMissingControls();
-        TrapSelectionMenuAuthoring.RenderPreviewBatch();
+        string output = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+            "陷阱素材文件夹", "TrapUpgradeSystem", "step8");
+        TrapSelectionMenuAuthoring.RenderPreviewBatch(output);
     }
 }

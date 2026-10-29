@@ -10,6 +10,15 @@
 - 新增持久测试 `Tests~/Editor/TrapUpgradeMenuTests.cs`（24 例）；`RunTrapUpgradeRulesTests.ps1 -IncludeStep7` 包含前六步回归。最终 EditMode **204/204 通过，0 失败、0 跳过**，其中菜单 24、前六步 180；报告：`C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step7\20261029-233524-610\editmode-results.xml`。四个界面用例初始化真实 Canvas 和放置控制器，验证独立箭头、底层隔离、原槽位分配、余额事件/成功结果/重复确认、换局关闭、满级禁用及重复补齐不改布局/字体。测试中定位并修复 Unity 组件不能用 `??` 判空的问题，背景 CanvasGroup 使用 Unity 的显式 null 判定补齐。
 - 已确认 8 份临时测试源码及 `.meta` 全部清理；随后正常 Unity 编译、`AddMissingControlsAndPreview`、菜单及升级目录校验通过，无 C# 编译错误或方法异常。日志：`C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step7\normal-compile.log`。七类预览已重新生成；预览时动态字体产生的自动缓存变化恢复到原资产，未替换用户字体。未做真实 PlayMode 人工键鼠操作或完整 Player 构建。
 
+## 陷阱升级系统 · 第 8 步（2026-10-30）
+
+- `TrapUpgradeCatalog.GetBranches` / `TrapUpgradeService.GetBranches` 提供方向列表唯一读取入口；`TrapUpgradeService.GetQuote` 对分支同时校验 catalog `integrated` 与 `branchEffectAvailable`，报价和提交均拒绝未接入分支，不能只靠界面开关收款。
+- `TrapUpgradeMenuSession` 新增 `Branch` 导航状态、选中分支和方向报价快照。三级确认进入方向页；普通四级进入二次确认；分支进入独立详情页，未接入时确认按钮不可用。返回/Esc 依次回到方向页、三级确认，状态与余额不变；成功后仍拒绝重复确认。
+- `TrapSelectionMenuView.Upgrades.cs` 在用户现有 Canvas 中增量创建滚动方向列表，普通四级和每个 catalog 分支分别展示说明、费用、属性和状态；底层 CanvasGroup 继续阻断点击，方向页、分支详情页返回时恢复 EventSystem 焦点。`TrapSelectionMenu.CursorOwned`、玩家两份 `UpdateCursor` 无需新增副本。
+- `TrapUpgradeMenuAuthoring.AddMissingControlsAndPreview` 的备份目录为 `C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step8\prefab-backup\`。预览工具创建临时内存 catalog 示例分支，不写正式资源；方向/禁用详情预览写入 `C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step8\`。
+- `RunTrapUpgradeRulesTests.ps1 -IncludeStep8` 最终 **209/209 PASS，0 FAIL，0 SKIP**：菜单 29、规则 49、支付 34、耐久 19、战斗接入 13、延迟伤害 21、Betty7 13、导弹 13、燃烧 6、经济 10、Canvas 2。XML：`C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step8\20261030-005143-601\editmode-results.xml`。临时源码及 `.meta` 已清理。
+- `TrapUpgradeCatalogAuthoring.ValidateAll` 与图形模式 `TrapUpgradeMenuAuthoring.AddMissingControlsAndPreview` 均通过，使用项目记录 Unity `6000.6.7f1`，无 C# 编译错误或方法异常。未做真实 PlayMode 人工键鼠操作或完整 Player 构建；方向页/禁用详情 PNG 已用 `view_image` 检查可见性。
+
 重建日期：2026-10-16（系统重装后）。本文件保存可随工程保留的项目知识；以当前代码与配置为准，历史路径须重新核实。
 
 ## 项目定位与可信来源
