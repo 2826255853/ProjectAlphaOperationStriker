@@ -406,7 +406,10 @@ public sealed class MissileLauncherWeapon : MonoBehaviour
 
         if (missile == null) return;
 
-        missile.ConfigureTuning(damagePerMissile, splashRadius, splashDamageRatio, projectileSpeed,
+        // Placement can add TrapInstance after Awake; resolve it at launch time.
+        TrapInstance trap = GetComponent<TrapInstance>();
+        float shotDamage = trap != null ? trap.GetEffectiveDamage(damagePerMissile) : damagePerMissile;
+        missile.ConfigureTuning(shotDamage, splashRadius, splashDamageRatio, projectileSpeed,
             turnRateDegrees, maxFlightRange, guidanceMode, leadRefreshSeconds);
         missile.Initialize(turret, target, interceptPoint, direction);
 

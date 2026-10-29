@@ -100,7 +100,11 @@ public sealed class ThroatLampTrap : MonoBehaviour
         if (chargeElapsed + 0.0001f < chargeSeconds || clock + 0.0001f < nextShotTime) return;
 
         PlasmaProjectile shot = Instantiate(projectilePrefab, nozzle.position, nozzle.rotation);
-        shot.Initialize(nozzle.forward, projectileSpeed, detectionRange, directDamage, splashDamage, splashRadius, transform);
+        // Charging keeps its progress; only the emitted projectile samples the current level.
+        TrapInstance trap = GetComponent<TrapInstance>();
+        float shotDirect = trap != null ? trap.GetEffectiveDamage(directDamage) : directDamage;
+        float shotSplash = trap != null ? trap.GetEffectiveDamage(splashDamage) : splashDamage;
+        shot.Initialize(nozzle.forward, projectileSpeed, detectionRange, shotDirect, shotSplash, splashRadius, transform);
         ShotCount++;
         nextShotTime = clock + Mathf.Max(fireInterval, chargeSeconds);
         dischargeUntil = clock + 0.9f;

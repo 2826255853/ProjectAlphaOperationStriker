@@ -243,7 +243,11 @@ public sealed class AutoSentryTurret : MonoBehaviour
             target = null;
             return;
         }
-        health.TakeDamage(damagePerShot, TrapDamageType.Bullet);
+        TrapInstance trap = GetComponent<TrapInstance>();
+        float effectiveDamage = trap != null
+            ? trap.GetEffectiveDamage(damagePerShot)
+            : damagePerShot;
+        health.TakeDamage(effectiveDamage, TrapDamageType.Bullet);
         ShotFired?.Invoke(muzzle != null ? muzzle.position : transform.position);
 
         // A short debug tracer makes the weapon readable in a gray-box scene

@@ -714,9 +714,26 @@
 - 测试清理后，正常 Unity 编译与 `TrapUpgradeCatalogAuthoring.ValidateAll` **通过**，日志确认方法完成且无 C# 编译错误/异常：`C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step4\normal-compile.log`。未做真实 PlayMode 菜单操作或完整 Player 构建。
 - 辅助 `dotnet build C:\MapForge\.validation-build\UnityCompile.csproj` 未通过：其局部导入器编译缺失 `WallTrapGridAuthoring`（两处）和 `MaskedSoldierAuthoring` 类型；该工程不包含本步 TowerDefense 运行时代码。未扩修无关导入器，以后续成功的正式 Unity 编译为本步编译结论。
 
+## 陷阱升级系统 · 第 5 步（2026-10-29）
+
+- `AutoSentryTurret.FireAtTarget` 每发以一级 `damagePerShot` 调用所属 `TrapInstance.GetEffectiveDamage`；缺少 `TrapInstance` 时保留一级伤害。`GroundSpikeTrap.HasContact` 在 `hitThisAttack` 去重后的有效刺击处调用 `trap.GetEffectiveDamage(damage)`。两处均保留原有 `TrapDamageType`、抗性入口、目标筛选、攻击频率与状态机。
+- `RepairStationTrap.Tick` 每臂调用 `target.Repair` 前以一级 `repairAmount` 调用 `self.GetEffectiveRepair`；不改写序列化基础值，不重置 `readyAt` 或动画动作。满血封顶、死亡拒绝、共边邻接、四臂独立冷却、目标优先级与暂停规则保持原样。
+- 持久测试 `Tests~/Editor/TrapUpgradeCombatIntegrationTests.cs` 共 13 个用例，覆盖机枪/地刺一级与 1.25/1.5/2 倍倍率、同类 TrapId 共享、异类隔离、反复启停、机枪无 TrapInstance 兼容、维修站 25/31.25/37.5/50 点维修、独立维修覆盖、满血封顶、不复活、四臂选靶和升级不提前完成冷却。运行器新增 `-IncludeStep5`，执行时临时暂存并清理测试源码。
+- `Assets/Editor/RunTrapUpgradeRulesTests.ps1 -IncludeStep5`（Unity `6000.6.7f1`）EditMode **127/127 PASS**，无失败/跳过；第 5 步 13、耐久 19、支付/实例 34、规则 49、钱包 10、Canvas 2。XML：`C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step5\20261029-215904-264\editmode-results.xml`。测试清理后 `TrapUpgradeCatalogAuthoring.ValidateAll` 正常 Unity 编译通过，日志：`C:\Users\ASUS\AppData\Local\Temp\alpha-striker-unity\20261029-220027-trapupgradecatalogauthoring-validateall.log`。
+- 未进行真实 PlayMode 菜单操作或完整 Player 构建；第 6 步延迟/持续伤害接入仍待实施。
+
 ## Unity skill 文档更新（2026-10-29）
 
 - `.agents/skills/alpha-striker-unity/SKILL.md` 与 `references/unity-editor.md` 已清理旧用户目录和固定 Unity 版本实例；执行版本以 `ProjectSettings/ProjectVersion.txt` 为准，辅助 `.csproj` 按其实际编入范围解释结果。
 - 测试指南补充 `Tests~/Editor/` 持久测试、临时暂存 `.cs` 与 `.meta` 的清理、XML 用例数核对及测试后正常 Unity 编译；不把 `#if UNITY_INCLUDE_TESTS` 当作隔离。
 - 新增 `references/trap-upgrades.md`，记录已完成的升级规则、付费预约、换局与有效生命接口，以及七类陷阱战斗属性仍待后续接入的边界。修改升级系统时先核对当前源码与本记忆中的最新阶段记录。
 - 多文件 Plan 调整为不延迟首个最小文件写入；验收记录区分已通过、未执行和局部替代验证。
+
+## 陷阱升级系统 · 第 6 步（2026-10-29）
+
+- `MissileLauncherWeapon.LaunchOneMissile` 每发用 `TrapInstance.GetEffectiveDamage(damagePerMissile)` 写入 `MissileProjectile.ConfigureTuning`；放置可能在武器 Awake 后补 `TrapInstance`，因此发射时查找组件，无组件时保留一级行为。溅射仍只乘原 `splashDamageRatio`，在途弹体不读取新等级。
+- `FlamethrowerTrap.ApplyBurstDamage` 对每个新命中的目标分别采样有效直伤与燃烧 DPS，再调用原有 Fire 分类入口及 `FireStatusEffect.Ignite`；已施加燃烧保持其 DPS，后续重新点燃沿用「刷新时长 + 取较高 DPS」。升级不清空本轮命中去重集合或重启喷射。
+- `Betty7JumpMineTrap.MineSlot.LaunchDamage` 在每槽 `Arming → Launching` 以一级 `damage` 采样有效伤害；`Detonate → DamageAround(center, launchDamage)` 只读该快照。每次升空同时重置该槽 `DamageApplied`，修复原先槽位装填后再次起爆被旧去重标记阻止伤害的问题。升级不调用 `ResetToReady`，不改变各槽进度；下一次升空重新采样。
+- `ThroatLampTrap.Advance` 在实际发射时分别采样一级 `directDamage` / `splashDamage` 后写入 `PlasmaProjectile.Initialize`；升级不重启蓄能，旧弹保持采样值。弹体保持原有地面筛选、遮挡、无 Collider 结算、电抗性与直击目标不重复溅射逻辑。
+- 新增持久夹具 `Tests~/Editor/TrapUpgradeDelayedDamageTests.cs`（21 例）。`RunTrapUpgradeRulesTests.ps1 -IncludeStep6` 暂存前五步测试、本步测试及 `Betty7JumpMineSlotTests`，并运行既有 `MissileLauncherWeaponTests` / `FireStatusEffectTests`，finally 清理暂存源码及 `.meta`。Unity EditMode **180/180 PASS，0 失败、0 跳过**：本步 21、贝蒂 13、导弹 13、燃烧 6、前五步 127。报告与实际 Unity 版本见 `C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step6\20261029-221033-883\summary.json`，XML 在同目录 `editmode-results.xml`。
+- 已确认 7 份临时测试源码及其 `.meta` 清理完成；随后正常 Unity 编译与 `TrapUpgradeCatalogAuthoring.ValidateAll` 通过，无 C# 编译错误或方法异常，日志归档 `C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step6\normal-compile.log`。未进行真实 PlayMode 人工键鼠操作或完整 Player 构建。本步完成七类陷阱普通伤害/维修倍率接入；第 7 步菜单升级及之后步骤仍待实施。升级 skill 参考中的「战斗属性待接入」属于第 4 步历史边界，以本节及当前代码为准。

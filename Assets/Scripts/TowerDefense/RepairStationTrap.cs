@@ -115,7 +115,7 @@ public sealed class RepairStationTrap : MonoBehaviour
             TrapInstance target = targets[i];
             if (now >= readyAt[i] && target != null && target.isActiveAndEnabled
                 && TrapPlacementGeometry.FindSharedGroundSide(self, target, sourceCorners, targetCorners) == i
-                && target.Repair(repairAmount) > 0f)
+                && target.Repair(self.GetEffectiveRepair(repairAmount)) > 0f)
             {
                 readyAt[i] = now + Mathf.Max(0.01f, cooldownSeconds);
                 animationAt[i] = now;

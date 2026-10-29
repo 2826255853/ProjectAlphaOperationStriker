@@ -231,6 +231,9 @@ public sealed class Betty7JumpMineTrap : MonoBehaviour
         switch (slot.State)
         {
             case AttackState.Arming:
+                // Freeze this slot's damage at lift-off, independently of other reloads.
+                slot.LaunchDamage = trap.GetEffectiveDamage(damage);
+                slot.DamageApplied = false;
                 slot.State = AttackState.Launching;
                 break;
             case AttackState.Launching:
@@ -376,7 +379,7 @@ public sealed class Betty7JumpMineTrap : MonoBehaviour
         if (!slot.DamageApplied)
         {
             slot.DamageApplied = true;
-            DamageAround(MineBlastCenter(slot));
+            DamageAround(MineBlastCenter(slot), slot.LaunchDamage);
         }
         SetMineVisible(slot, false);
         SpawnFlash(MineBlastCenter(slot));
@@ -393,7 +396,7 @@ public sealed class Betty7JumpMineTrap : MonoBehaviour
     /// tolerance filter so monsters on an upper platform are not hit; the damage
     /// never depends on a collider, mirroring MissileProjectile.
     /// </summary>
-    private void DamageAround(Vector3 center)
+    private void DamageAround(Vector3 center, float launchDamage)
     {
         EnemyHealth[] enemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         foreach (EnemyHealth enemy in enemies)
@@ -401,7 +404,7 @@ public sealed class Betty7JumpMineTrap : MonoBehaviour
             if (enemy == null || !enemy.isActiveAndEnabled || enemy.IsDead) continue;
             if (IsFlying(enemy)) continue;
             if (!IsInsideBlast(center, enemy)) continue;
-            enemy.TakeDamage(damage, TrapDamageType.Explosive);
+            enemy.TakeDamage(launchDamage, TrapDamageType.Explosive);
         }
     }
 
@@ -537,6 +540,7 @@ public sealed class Betty7JumpMineTrap : MonoBehaviour
 
         public AttackState State = AttackState.Ready;
         public float Elapsed;
+        public float LaunchDamage;
         public bool DamageApplied;
         public int DetonationCount;
 

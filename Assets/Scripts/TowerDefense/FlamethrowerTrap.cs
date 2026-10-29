@@ -123,8 +123,11 @@ public sealed class FlamethrowerTrap : MonoBehaviour
         {
             EnemyHealth enemy = attackTargets[i];
             if (!IsInAttackVolume(enemy) || !hitThisBurst.Add(enemy)) continue;
-            enemy.TakeDamage(directDamage, TrapDamageType.Fire);
-            FireStatusEffect.Ignite(enemy, burnDuration, burnDamagePerSecond);
+            // Sample on application; the independent burn retains this DPS after upgrades.
+            float effectiveDirectDamage = trap.GetEffectiveDamage(directDamage);
+            float effectiveBurnDps = trap.GetEffectiveDamage(burnDamagePerSecond);
+            enemy.TakeDamage(effectiveDirectDamage, TrapDamageType.Fire);
+            FireStatusEffect.Ignite(enemy, burnDuration, effectiveBurnDps);
         }
     }
 
