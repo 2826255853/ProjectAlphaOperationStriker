@@ -28,6 +28,14 @@
 - 图形编辑器进入空白预览场景的 PlayMode，复用实际 `EnsureStyles` / `DrawPanel` 生成七类 × 五种状态的 IMGUI 检查图（含低血量），已用 `view_image` 检查中文与布局：`C:/Users/ASUS/Desktop/陷阱素材文件夹/TrapUpgradeSystem/step9/healthbar-levels.png`（2560×1440）。临时脚本和编辑器恢复场景留档在同目录，项目内临时脚本及 `.meta` 已清理；内存示例分支不写正式 catalog。批处理模式截屏未生成，最终通过图形编辑器捕获；这不是主场景人工输入验收。
 - 清理全部暂存测试/预览源码后，正常 Unity 编译及 `TrapUpgradeCatalogAuthoring.ValidateAll` 通过：`TRAP_UPGRADE_CATALOG_PASS: 10 definitions, 8 TrapIds, one catalog`，无 C# 编译错误或方法异常。日志：同目录 `normal-compile.log`。测试自动产生的 TMP 字体缓存变化已恢复，未修改正式字体、场景或预制体。
 
+## 陷阱升级系统 · 第 10 步（2026-10-30）
+
+- `TrapUpgradeCatalogAuthoring` 继续以 `Assets/Resources/TrapUpgradeCatalog.asset` 为唯一正式配置入口；默认创建只补缺失资产，不覆盖已有 catalog。`ValidateAll` 同时扫描 `Assets/Resources` 与 `Assets/TrapDefinitions`，拒绝重复 TrapId 的冲突基础价格，并新增七类正式 TrapId 定义与七条默认升级配置的完整性检查。
+- `TrapUpgradeRuntime` 新增 `AfterSceneLoad` 自动初始化，优先复用当前钱包绑定的服务；缺少 catalog 时 `TrapUpgradeService` 继续使用普通等级成长，方向列表保持为空，分支不会被隐式启用。
+- 既有生成链的兼容修复：`Betty7TrapAuthoring` 只在新建定义时写入首发价格；`ThroatLampAuthoring` 重建时保留既有 `TrapInstance.maxHealth` 与原有战斗调参；`RepairStationAuthoring` 重建时保留既有基础血量、维修量及四臂时序参数，同时重新绑定模型引用和四臂 rig。未修改地图、MapForge 协议或陷阱模型。
+- 新增持久用例 `Tests~/Editor/TrapUpgradeStep10Tests.cs`，并扩展 `RunTrapUpgradeRulesTests.ps1 -IncludeStep10`。Step10 全量 EditMode **241/241 PASS，0 FAIL，0 SKIP**；新增兼容/缺省初始化用例 5 例。报告：`C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step10\20261030-131522-401\editmode-results.xml`。测试临时源码及 `.meta` 已清理，持久测试留在 `Tests~`。
+- 清理测试源码后，正式 Unity `6000.6.7f1` 编译及 `TrapUpgradeCatalogAuthoring.ValidateAll` 通过；日志：`C:\Users\ASUS\AppData\Local\Temp\alpha-striker-unity\20261030-131716-trapupgradecatalogauthoring-validateall.log`。`Betty7TrapAuthoring.ProbePrefab`、`ThroatLampAuthoring.ProbePrefabBatch`、`RepairStationAuthoring.ValidateBatch` 均通过；对应生成链重跑成功，运行产物备份在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step10\prefab-backup\`，随后恢复无关的材质/动画/预制体噪声。
+- 未执行主场景真实 PlayMode 人工键鼠升级、攻击/维修过程验收或完整 Player 构建；这些项目不能由本次 EditMode 与编辑器探针结果替代。
 重建日期：2026-10-16（系统重装后）。本文件保存可随工程保留的项目知识；以当前代码与配置为准，历史路径须重新核实。
 
 ## 项目定位与可信来源

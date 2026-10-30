@@ -118,10 +118,9 @@ public static class Betty7TrapAuthoring
     private static void WireDefinition()
     {
         TrapDefinition definition = AssetDatabase.LoadAssetAtPath<TrapDefinition>(DefinitionPath);
-        if (definition == null)
+        bool isNew = definition == null;
+        if (isNew)
         {
-            // A fresh definition inherits TrapDefinition.DefaultCost; rewiring an
-            // existing asset below keeps whatever price was authored.
             definition = ScriptableObject.CreateInstance<TrapDefinition>();
             AssetDatabase.CreateAsset(definition, DefinitionPath);
         }
@@ -135,12 +134,14 @@ public static class Betty7TrapAuthoring
         settings.FindProperty("worldFootprint").vector2Value = new Vector2(2f, 2f);
         settings.FindProperty("footprintWidth").intValue = 2;
         settings.FindProperty("footprintHeight").intValue = 2;
-        SerializedProperty cost = settings.FindProperty("cost");
-        // TODO(确认): 60 是首版平衡值。新建的定义会带着 TrapDefinition.DefaultCost(=40)，
-        // 所以只在“仍是默认价”时才写入，避免覆盖后续手调的价格。
-        if (cost.intValue == TrapDefinition.DefaultCost) cost.intValue = 60;
+        SetInitialDefinitionCost(settings, isNew, 60);
         settings.ApplyModifiedPropertiesWithoutUndo();
         EditorUtility.SetDirty(definition);
+    }
+
+    private static void SetInitialDefinitionCost(SerializedObject settings, bool isNew, int initialCost)
+    {
+        if (isNew) settings.FindProperty("cost").intValue = initialCost;
     }
 
     private static Dictionary<string, Material> EnsureMaterials()

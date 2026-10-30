@@ -89,6 +89,7 @@ public static class RepairStationAuthoring
 
         GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(ModelPath);
         if (model == null) throw new InvalidOperationException("Model import failed.");
+        GameObject existingPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
         GameObject root = new GameObject("RepairStation");
         try
         {
@@ -105,8 +106,12 @@ public static class RepairStationAuthoring
             var body = root.AddComponent<BoxCollider>();
             body.center = new Vector3(0f, .625f, 0f);
             body.size = new Vector3(1.90f, 1.25f, 1.90f);
-            root.AddComponent<TrapInstance>();
+            TrapInstance instance = root.AddComponent<TrapInstance>();
+            if (existingPrefab != null && existingPrefab.TryGetComponent(out TrapInstance previousInstance))
+                CopyManualFloat(previousInstance, instance, "maxHealth");
             var repair = root.AddComponent<RepairStationTrap>();
+            if (existingPrefab != null && existingPrefab.TryGetComponent(out RepairStationTrap previousRepair))
+                CopyManualRepairTuning(previousRepair, repair);
             repair.ConfigureArms(BindArms(root));
             if (PrefabUtility.SaveAsPrefabAsset(root, PrefabPath) == null)
                 throw new InvalidOperationException("Could not save RepairStation prefab.");
@@ -138,6 +143,26 @@ public static class RepairStationAuthoring
         AssetDatabase.SaveAssets();
         ValidateBatch();
         Debug.Log("REPAIR_STATION_ASSETS_PASS");
+    }
+
+    private static void CopyManualRepairTuning(RepairStationTrap source, RepairStationTrap destination)
+    {
+        foreach (string property in new[] { "repairAmount", "cooldownSeconds", "deploySeconds", "holdSeconds", "retractSeconds" })
+            CopyManualFloat(source, destination, property);
+    }
+
+    private static void CopyManualFloat(UnityEngine.Object source, UnityEngine.Object destination, string property)
+    {
+        if (source == null || destination == null) return;
+        var sourceSettings = new SerializedObject(source);
+        var destinationSettings = new SerializedObject(destination);
+        SerializedProperty sourceValue = sourceSettings.FindProperty(property);
+        SerializedProperty destinationValue = destinationSettings.FindProperty(property);
+        if (sourceValue == null || destinationValue == null || sourceValue.propertyType != SerializedPropertyType.Float ||
+            destinationValue.propertyType != SerializedPropertyType.Float)
+            throw new InvalidOperationException("Unable to preserve authored float property '" + property + "'.");
+        destinationValue.floatValue = sourceValue.floatValue;
+        destinationSettings.ApplyModifiedPropertiesWithoutUndo();
     }
 
     private static RepairStationTrap.ArmRig[] BindArms(GameObject root)

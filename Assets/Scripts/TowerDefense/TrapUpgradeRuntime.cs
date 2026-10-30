@@ -6,6 +6,12 @@ public static class TrapUpgradeRuntime
     private static EconomyManager wallet;
     private static TrapUpgradeService service;
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void InitializeAfterSceneLoad()
+    {
+        GetOrCreate();
+    }
+
     public static TrapUpgradeService GetOrCreate()
     {
         EconomyManager current = EconomyManager.GetOrCreate();

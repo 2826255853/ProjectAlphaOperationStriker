@@ -8,6 +8,8 @@ public static class TrapUpgradeCatalogAuthoring
 {
     public const string CatalogPath = "Assets/Resources/TrapUpgradeCatalog.asset";
     private static readonly string[] DefinitionFolders = { "Assets/Resources", "Assets/TrapDefinitions" };
+    private static readonly string[] OfficialTrapIds = { "auto_sentry_turret", "ground-spike", "dual_missile_launcher_loaded",
+        "flamethrower", "betty7", "throat-lamp", "repair-station" };
 
     [MenuItem("Tools/塔防/陷阱升级/创建缺失的默认配置")]
     public static void CreateDefaultIfMissing()
@@ -20,11 +22,9 @@ public static class TrapUpgradeCatalogAuthoring
             catalog = ScriptableObject.CreateInstance<TrapUpgradeCatalog>();
             var serialized = new SerializedObject(catalog);
             SerializedProperty entries = serialized.FindProperty("entries");
-            string[] ids = { "auto_sentry_turret", "ground-spike", "dual_missile_launcher_loaded",
-                "flamethrower", "betty7", "throat-lamp", "repair-station" };
-            entries.arraySize = ids.Length;
-            for (int i = 0; i < ids.Length; i++)
-                entries.GetArrayElementAtIndex(i).FindPropertyRelative("trapId").stringValue = ids[i];
+            entries.arraySize = OfficialTrapIds.Length;
+            for (int i = 0; i < OfficialTrapIds.Length; i++)
+                entries.GetArrayElementAtIndex(i).FindPropertyRelative("trapId").stringValue = OfficialTrapIds[i];
             serialized.ApplyModifiedPropertiesWithoutUndo();
             AssetDatabase.CreateAsset(catalog, CatalogPath);
             AssetDatabase.SaveAssets();
@@ -47,6 +47,13 @@ public static class TrapUpgradeCatalogAuthoring
         var ids = definitions.Select(value => value.TrapId).ToHashSet(StringComparer.Ordinal);
         foreach (TrapUpgradeCatalog.Entry entry in catalog.Entries)
             if (!ids.Contains(entry.trapId)) throw new InvalidOperationException($"Unknown catalog TrapId '{entry.trapId}'.");
+        foreach (string officialId in OfficialTrapIds)
+        {
+            if (!ids.Contains(officialId))
+                throw new InvalidOperationException($"Missing official TrapId definition '{officialId}'.");
+            if (!catalog.Entries.Any(entry => string.Equals(entry.trapId, officialId, StringComparison.Ordinal)))
+                throw new InvalidOperationException($"Missing default upgrade configuration for official TrapId '{officialId}'.");
+        }
         Debug.Log($"TRAP_UPGRADE_CATALOG_PASS: {definitions.Length} definitions, {ids.Count} TrapIds, one catalog; both definition folders checked.");
     }
 }

@@ -686,11 +686,14 @@ public static class ThroatLampAuthoring
 
     private static void WireGameplay(GameObject root)
     {
-        root.AddComponent<TrapInstance>();
+        TrapInstance instance = root.AddComponent<TrapInstance>();
         ThroatLampTrap trap = root.AddComponent<ThroatLampTrap>();
         var serialized = new SerializedObject(trap);
         GameObject previous = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+        TrapInstance previousInstance = previous != null ? previous.GetComponent<TrapInstance>() : null;
         ThroatLampTrap previousTrap = previous != null ? previous.GetComponent<ThroatLampTrap>() : null;
+        if (previousInstance != null)
+            CopyManualFloat(previousInstance, instance, "maxHealth");
         if (previousTrap != null)
         {
             var old = new SerializedObject(previousTrap);
@@ -706,6 +709,20 @@ public static class ThroatLampAuthoring
         serialized.FindProperty("animator").objectReferenceValue = root.GetComponent<Animator>();
         serialized.FindProperty("projectilePrefab").objectReferenceValue = CreateProjectile();
         serialized.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    private static void CopyManualFloat(UnityEngine.Object source, UnityEngine.Object destination, string property)
+    {
+        if (source == null || destination == null) return;
+        var sourceSettings = new SerializedObject(source);
+        var destinationSettings = new SerializedObject(destination);
+        SerializedProperty sourceValue = sourceSettings.FindProperty(property);
+        SerializedProperty destinationValue = destinationSettings.FindProperty(property);
+        if (sourceValue == null || destinationValue == null || sourceValue.propertyType != SerializedPropertyType.Float ||
+            destinationValue.propertyType != SerializedPropertyType.Float)
+            throw new InvalidOperationException("Unable to preserve authored float property '" + property + "'.");
+        destinationValue.floatValue = sourceValue.floatValue;
+        destinationSettings.ApplyModifiedPropertiesWithoutUndo();
     }
 
     private static PlasmaProjectile CreateProjectile()
