@@ -116,7 +116,15 @@ public sealed class TrapSelectionMenu : MonoBehaviour
             if (definition == null || string.Equals(definition.TrapId, "ceiling_test", System.StringComparison.Ordinal)) continue;
             if (!available.Contains(definition)) available.Add(definition);
         }
-        available.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName, System.StringComparison.Ordinal));
+        available.Sort((a, b) =>
+        {
+            // Group by Ground / Wall / Ceiling, then by the level-one deployment cost.
+            int mountOrder = a.MountType.CompareTo(b.MountType);
+            if (mountOrder != 0) return mountOrder;
+            int costOrder = a.Cost.CompareTo(b.Cost);
+            if (costOrder != 0) return costOrder;
+            return string.Compare(a.DisplayName, b.DisplayName, System.StringComparison.Ordinal);
+        });
         RebuildFiltered();
     }
 

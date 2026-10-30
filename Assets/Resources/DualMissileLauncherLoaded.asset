@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: DualMissileLauncherLoaded
   m_EditorClassIdentifier: 
   trapId: dual_missile_launcher_loaded
-  displayName: "\u53CC\u8054\u5BFC\u5F39\u53D1\u5C04\u5668\uFF08\u88C5\u586B\uFF09"
+  displayName: 防空导弹发射架
   prefab: {fileID: 715730210379081707, guid: 074e8dcb573abd946b27fcb09a54d381, type: 3}
   menuIcon: {fileID: 21300000, guid: 462e472530535294fb3b82bd81e93589, type: 3}
   cost: 40
