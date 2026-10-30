@@ -90,6 +90,10 @@ public static class MissileLauncherTurretAuthoring
 
         FitLauncherToFootprint(root, LauncherFootprintMeters);
 
+        // The FBX carries no usable material, so the body would render colourless in URP.
+        // Painted before the plumes are mounted so the flame layers are left alone.
+        ApplyLauncherMaterials(root);
+
         // The firing half lives next to the mount: it owns the lead solution, the
         // salvo cadence and the in-flight bookkeeping (see the air-attack plan).
         MissileLauncherWeapon weapon = root.AddComponent<MissileLauncherWeapon>();
@@ -257,6 +261,229 @@ public static class MissileLauncherTurretAuthoring
         material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
         material.DisableKeyword("_EMISSION");
         material.renderQueue = (int)RenderQueue.Transparent;
+    }
+
+    /// <summary>
+    /// URP body materials generated for the launcher. The imported FBX ships built-in
+    /// Standard materials (embedded sub-assets with no colour information), so URP drew
+    /// the whole turret flat and colourless; these assets are what the prefab references.
+    /// </summary>
+    public const string LauncherMaterialFolder = "Assets/Models/DualMissileLauncher/Materials";
+
+    /// <summary>
+    /// Colour scheme for the launcher body. The FBX material names already describe the
+    /// parts ("Trap Base Dark Metal", "Launcher Body Metal", "Launcher Rail",
+    /// "Missile Body", "Missile Nose", "Missile Details", "Missile Fins", "Warning Edge"),
+    /// but the embedded materials ship without any colour, which is why the turret used
+    /// to render flat and colourless. Order matters: earlier styles win, so
+    /// "Trap Base Dark Metal" resolves through "dark", "Missile_Nose" through "nose" and
+    /// "Missile_Rail_1" through "rail" before the generic missile token.
+    /// </summary>
+    private static readonly PartStyle[] LauncherPartStyles =
+    {
+        new PartStyle("M_DML_WarningEdge", new[] { "warning", "hazard", "radial_lock" },
+            new Color(0.92f, 0.48f, 0.07f), 0.15f, 0.45f),
+        new PartStyle("M_DML_InnerGroove", new[] { "groove", "inner" },
+            new Color(0.30f, 0.31f, 0.32f), 0.20f, 0.30f),
+        new PartStyle("M_DML_DarkMetal", new[] { "dark", "base" },
+            new Color(0.42f, 0.43f, 0.44f), 0.25f, 0.40f),
+        new PartStyle("M_DML_PylonMetal", new[] { "pylon" },
+            new Color(0.62f, 0.64f, 0.65f), 0.40f, 0.50f),
+        new PartStyle("M_DML_Rail", new[] { "rail", "stop", "clamp", "bolt" },
+            new Color(0.74f, 0.76f, 0.78f), 0.50f, 0.55f),
+        new PartStyle("M_DML_LauncherBody", new[] { "launcher", "housing" },
+            new Color(0.40f, 0.45f, 0.41f), 0.25f, 0.45f),
+        new PartStyle("M_DML_MissileNose", new[] { "nose", "warhead", "cone", "tip" },
+            new Color(0.74f, 0.22f, 0.12f), 0.10f, 0.38f),
+        new PartStyle("M_DML_MissileDetails", new[] { "detail", "band", "stripe" },
+            new Color(0.90f, 0.46f, 0.09f), 0.15f, 0.40f),
+        new PartStyle("M_DML_MissileFins", new[] { "fin" },
+            new Color(0.44f, 0.45f, 0.46f), 0.25f, 0.40f),
+        new PartStyle("M_DML_MissileBody", new[] { "missile", "rocket" },
+            new Color(0.93f, 0.92f, 0.88f), 0.05f, 0.40f),
+        new PartStyle("M_DML_ArmorLight", new[] { "armor", "shell", "plate", "mount", "cover", "body" },
+            new Color(0.78f, 0.78f, 0.74f), 0.20f, 0.45f)
+    };
+
+    private readonly struct PartStyle
+    {
+        public readonly string MaterialName;
+        public readonly string[] Tokens;
+        public readonly Color BaseColor;
+        public readonly float Metallic;
+        public readonly float Smoothness;
+        public readonly Color Emission;
+        public readonly float EmissionStrength;
+
+        public PartStyle(string materialName, string[] tokens, Color baseColor, float metallic, float smoothness,
+            Color emission = default, float emissionStrength = 0f)
+        {
+            MaterialName = materialName;
+            Tokens = tokens;
+            BaseColor = baseColor;
+            Metallic = metallic;
+            Smoothness = smoothness;
+            Emission = emission;
+            EmissionStrength = emissionStrength;
+        }
+    }
+
+    /// <summary>Creates (or refreshes) one URP/Lit material per part style and returns them by name.</summary>
+    public static Dictionary<string, Material> EnsureLauncherMaterials()
+    {
+        Shader lit = Shader.Find("Universal Render Pipeline/Lit");
+        if (lit == null) lit = Shader.Find("Standard");
+        if (lit == null)
+        {
+            Debug.LogError("找不到 URP/Lit 着色器，导弹发射架会继续沿用 FBX 自带材质（URP 下没有颜色）。");
+            return new Dictionary<string, Material>();
+        }
+
+        Directory.CreateDirectory(LauncherMaterialFolder);
+        var materials = new Dictionary<string, Material>();
+        for (int i = 0; i < LauncherPartStyles.Length; i++)
+        {
+            PartStyle style = LauncherPartStyles[i];
+            string path = $"{LauncherMaterialFolder}/{style.MaterialName}.mat";
+            Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null)
+            {
+                material = new Material(lit) { name = style.MaterialName };
+                AssetDatabase.CreateAsset(material, path);
+            }
+
+            ConfigurePartMaterial(material, lit, style);
+            EditorUtility.SetDirty(material);
+            materials[style.MaterialName] = material;
+        }
+        AssetDatabase.SaveAssets();
+        return materials;
+    }
+
+    private static void ConfigurePartMaterial(Material material, Shader shader, PartStyle style)
+    {
+        if (material.shader != shader) material.shader = shader;
+        if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", style.BaseColor);
+        if (material.HasProperty("_Color")) material.SetColor("_Color", style.BaseColor);
+        if (material.HasProperty("_Metallic")) material.SetFloat("_Metallic", style.Metallic);
+        if (material.HasProperty("_Smoothness")) material.SetFloat("_Smoothness", style.Smoothness);
+        if (material.HasProperty("_Glossiness")) material.SetFloat("_Glossiness", style.Smoothness);
+        if (material.HasProperty("_Surface")) material.SetFloat("_Surface", 0f); // opaque
+
+        bool emissive = style.EmissionStrength > 0f;
+        if (material.HasProperty("_EmissionColor"))
+            material.SetColor("_EmissionColor", emissive ? style.Emission * style.EmissionStrength : Color.black);
+        if (emissive) material.EnableKeyword("_EMISSION");
+        else material.DisableKeyword("_EMISSION");
+        material.renderQueue = -1;
+    }
+
+    /// <summary>
+    /// Replaces every body renderer's FBX material with a generated URP style. Runs before
+    /// the plumes are mounted so it never touches the flame layers.
+    /// </summary>
+    public static void ApplyLauncherMaterials(GameObject root)
+    {
+        Dictionary<string, Material> materials = EnsureLauncherMaterials();
+        if (materials.Count == 0) return;
+
+        var counts = new Dictionary<string, int>();
+        Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+        int touched = 0;
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer renderer = renderers[i];
+            if (renderer == null) continue;
+
+            Material[] current = renderer.sharedMaterials;
+            int slots = Mathf.Max(1, current.Length);
+            var updated = new Material[slots];
+            for (int s = 0; s < slots; s++)
+            {
+                Material source = s < current.Length ? current[s] : null;
+                string style = ResolveLauncherStyle(renderer, source);
+                updated[s] = materials[style];
+                counts.TryGetValue(style, out int seen);
+                counts[style] = seen + 1;
+            }
+            renderer.sharedMaterials = updated;
+            touched++;
+        }
+
+        var summary = new System.Text.StringBuilder();
+        foreach (KeyValuePair<string, int> pair in counts)
+        {
+            if (summary.Length > 0) summary.Append(", ");
+            summary.Append(pair.Key).Append('x').Append(pair.Value);
+        }
+        Debug.Log($"导弹发射架材质已指派：{touched} 个渲染器（{summary}）。");
+    }
+
+    /// <summary>
+    /// FBX material name first (the export carries readable part materials), then the
+    /// renderer name, then the neutral armour style.
+    /// </summary>
+    private static string ResolveLauncherStyle(Renderer renderer, Material source)
+    {
+        string sourceName = source != null ? source.name : null;
+        if (!IsGenericMaterialName(sourceName))
+        {
+            string fromMaterial = MatchStyleToken(sourceName);
+            if (fromMaterial != null) return fromMaterial;
+        }
+        string fromRenderer = MatchStyleToken(renderer != null ? renderer.name : null);
+        if (fromRenderer != null) return fromRenderer;
+        return LauncherPartStyles[LauncherPartStyles.Length - 1].MaterialName;
+    }
+
+    private static string MatchStyleToken(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return null;
+        string lower = name.ToLowerInvariant();
+        for (int i = 0; i < LauncherPartStyles.Length; i++)
+        {
+            string[] tokens = LauncherPartStyles[i].Tokens;
+            for (int t = 0; t < tokens.Length; t++)
+                if (lower.Contains(tokens[t])) return LauncherPartStyles[i].MaterialName;
+        }
+        return null;
+    }
+
+    /// <summary>"Material", "Material.001" and the model name carry no colour information.</summary>
+    private static bool IsGenericMaterialName(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return true;
+        if (name.StartsWith("Material", System.StringComparison.OrdinalIgnoreCase)) return true;
+        return name.StartsWith("Trap_Base", System.StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Read-only probe: prints what each body renderer would be painted with.</summary>
+    [MenuItem("Tools/塔防/探针：导弹发射架材质")]
+    public static void ProbeLauncherMaterials()
+    {
+        GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(LauncherModelPath);
+        if (model == null)
+        {
+            Debug.LogError($"找不到导弹发射器模型：{LauncherModelPath}");
+            return;
+        }
+
+        GameObject instance = (GameObject)Object.Instantiate(model);
+        Dictionary<string, Material> materials = EnsureLauncherMaterials();
+        Renderer[] renderers = instance.GetComponentsInChildren<Renderer>(true);
+        Debug.Log($"导弹发射架材质探针：{renderers.Length} 个渲染器，{materials.Count} 个 URP 材质");
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer renderer = renderers[i];
+            if (renderer == null) continue;
+            Material[] current = renderer.sharedMaterials;
+            var names = new List<string>();
+            for (int s = 0; s < current.Length; s++) names.Add(current[s] != null ? current[s].name : "无");
+            Debug.Log($"  {renderer.name} | {current.Length} 槽 [{string.Join(", ", names)}]" +
+                $" -> {ResolveLauncherStyle(renderer, current.Length > 0 ? current[0] : null)}");
+        }
+        Object.DestroyImmediate(instance);
+        Debug.Log("MISSILE_LAUNCHER_MATERIAL_PROBE_DONE");
     }
 
     /// <summary>Replaces each plume renderer's FBX material with the matching URP flame layer.</summary>

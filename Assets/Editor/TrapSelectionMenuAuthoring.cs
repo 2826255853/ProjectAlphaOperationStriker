@@ -58,6 +58,11 @@ public static class TrapSelectionMenuAuthoring
 
     public static void RegenerateXM777IconBatch() => GenerateIcons(false, "xm777");
 
+    /// <summary>Batch entry for the anti-air launcher: its icon is rendered from the prefab,
+    /// so it has to be refreshed whenever the launcher materials change.</summary>
+    public static void RegenerateDualMissileLauncherIconBatch() =>
+        GenerateIcons(false, "dual_missile_launcher_loaded");
+
     [MenuItem("Tools/行动打击/陷阱菜单/验证 Canvas 与图标")]
     public static void Validate()
     {

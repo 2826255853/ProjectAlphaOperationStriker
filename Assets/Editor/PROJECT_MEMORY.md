@@ -1,5 +1,17 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 防空导弹发射架 · 配色修复（2026-10-30）
+
+- 症状：游戏内发射架「没有颜色」。根因是 `Assets/Models/Trap_Base_Disc_Dual_Launcher_Loaded.fbx` 的 11 个材质全部是 **FBX 内嵌子资产**（`guid: a1b2c3d4e5f6478899aabbccddeeff01`，type 3），材质名有语义（`Trap Base Dark Metal` / `Launcher Body Metal` / `Launcher Rail` / `Missile Body` / `Missile Nose` / `Missile Details` / `Missile Fins` / `Launcher Pylon Metal` / `Inner Groove` / `Warning Edge`）但**颜色全白**，所以整机渲染成一片白色高光（像素对比：旧渲染 top50 平均值 255,255,255）。预制体 `Assets/Prefabs/DualMissileLauncher.prefab` 直接引用了这些内嵌材质。
+- 修复走生成器，不手改预制体：`MissileLauncherTurretAuthoring` 新增 `EnsureLauncherMaterials()` / `ApplyLauncherMaterials(root)` / `CreateLauncherPrefab` 里在 `FitLauncherToFootprint` 之后、挂尾焰之前调用。生成 `Assets/Models/DualMissileLauncher/Materials/M_DML_*.mat`（11 个 URP/Lit），按 **FBX 材质名 → 渲染器名 → 兜底装甲色** 三级解析（`ResolveLauncherStyle` / `MatchStyleToken` / `IsGenericMaterialName`），因此模型改名或换模型时只需改 `LauncherPartStyles` 表。
+- 实际绑定：`DarkMetal`x3（机座盘/踏板/内圈）、`InnerGroove`x1、`WarningEdge`x9（外警示圈 + 8 个 `Radial_Lock`）、`PylonMetal`x3、`LauncherBody`x1、`Rail`x4（导轨/限位）、`MissileBody`x2、`MissileNose`x2、`MissileDetails`x2（弹尾环带，橙色标识）、`MissileFins`x8；备料 `ArmorLight` 供未匹配部件回退。共 35 个机体渲染器，8 个尾焰渲染器仍走既有 `Exhaust_*` 加色材质。
+- **金属度全部压到 ≤0.55**：地图多为室内/半室内且没有反射探针，高金属度会让部件发黑；`WarningEdge` / `MissileDetails` 用橙色（#E87A12 / #E67517）、`MissileNose` 用红棕（#BD381F）、弹体近白（#EDEBE0），保证颜色可辨。
+- 菜单图标同源：`TrapSelectionMenuAuthoring` 的 `dual_missile_launcher_loaded` 图标渲染自该预制体，新增批处理入口 `RegenerateDualMissileLauncherIconBatch()`（`GenerateIcons(false, "dual_missile_launcher_loaded")`）刷新 `Assets/Models/TrapMenu/Icons/dual_missile_launcher_loaded.png`。**坑**：图标/预览类渲染必须带 `-WithGraphics`，无图形批处理会写出整张 192 灰的空白图。
+- 验证：`MissileLauncherTurretAuthoring.ProbeLauncherMaterials`（只读探针，打印 35 个渲染器的 FBX 材质名与解析结果）+ 预制体 YAML 静态核对（35/35 槽位绑定 `M_DML_*`、全部 `Universal Render Pipeline/Lit`，材质来自 `.mat` 而非 FBX 内嵌）；渲染对比 `MissileLauncherTurretPreview.RenderReloadStatePreview`。场景内没有预制体实例（运行时由 `TrapDefinition` 放置），无材质覆盖需要清理。
+- 预览亮度注意：`RenderReloadStatePreview` / 图标渲染把线性渲染值直接写进 PNG，**画面比游戏内暗/过曝**，别据此判断配色；配色以 `.mat` 数值 + 游戏内观感为准。配色板图 `launcher-palette.png` 由 `.mat` 数据生成。
+- 产物目录（含改动前预制体备份、探针/渲染日志、配色板、对比图）：`C:\Users\ASUS\Desktop\陷阱素材文件夹\DualMissileLauncher\material-fix-20261030\`。
+- 未做：主场景 PlayMode 实机观察发射架在真实光照下的观感，也未做完整 Player 构建。
+
 ## 防空导弹发射架 · 逐管装填表现（2026-10-30）
 
 - 需求：某一位置（导轨/发射管）的导弹发射后，**该位置变为空管**，直到装填完毕才重新出现导弹。
@@ -103,6 +115,9 @@
 - 图形批处理正常编译、预制体引用/表现校验及 **15/15 姿态预览通过**：`normal-validation-preview.log` 与 `preview\report.txt` 在上述目录；0/22.5/45° 三张代表图已用 `view_image` 检查。最终测试清理后再次执行正常编译与引用校验通过（`normal-validation-final.log`，`XM777_PRESENTATION_PASS`，无 C# 编译错误或方法异常）。未做主场景人工 PlayMode 炮击验收或完整 Player 构建。
 
 - 射速调整（2026-10-30）：`XM777Trap.FireInterval` 由 `6f` 改为 `3f`，仍是唯一冷却来源（`FireAt` 里 `nextShotTime = clock + FireInterval`），预制体不序列化该值，无需重建 `Assets/Prefabs/XM777.prefab`。持久用例 `FiresEveryThreeSecondsAndDoesNotCreateProjectileObjects` 同步改为 3 秒节奏并断言 `XM777Trap.FireInterval == 3f`；`RunXM777TrapTests.ps1` **38/38 PASS**，XML：`C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\tests\20261030-190959-384\editmode-results.xml`，临时测试源码与 `.meta` 已清理。未做主场景人工 PlayMode 炮击验收。
+- 稳定索敌（2026-10-30）：`XM777Trap.Tick` 在当前目标存活有效时保留锁定，不再每帧因更近怪物、暂时超出射程或视线遮挡而切换；仅目标死亡/失效或 `FireAt` 完成本次发射后重新选择，目标改变时重置速度估计。新增 `KeepsLivingTargetWhileCloserEnemyArrivesBeforeShot`，并更新越界用例以验证存活目标仍锁定；`RunXM777TrapTests.ps1` 使用 Unity `6000.6.7f1` **43/43 PASS**，XML：`C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\tests\20261030-222532-647\editmode-results.xml`。测试运行器已清除临时 `Assets/Editor/XM777TrapTests.cs` 与 `.meta`；未做主场景人工 PlayMode 炮击验收。
+- 实际开火俯仰射界（2026-10-30）：`XM777Trap` 新增硬边界 `MinimumFiringElevationDegrees = -15` / `MaximumFiringElevationDegrees = +75`，开火前按基座到预测落点的真实仰角调用 `IsWithinFiringElevation`；边界含 0.001° 浮点容差。模型炮管的距离映射仍保持 0°～45°，因此只改变“能否开火”，不改变模型俯仰姿态。`XM777TrapTests` 新增射界边界与越界开火门控用例，`RunXM777TrapTests.ps1` **52/52 PASS**；XML：`C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\tests\20261030-232726-509\editmode-results.xml`。未做主场景人工 PlayMode 炮击验收。
+- 射界再次调整（2026-10-30）：按最新要求将 XM777 实际开火俯仰射界改为 **-30°～+45°**；模型炮管原有距离映射仍保持 0°～45°不变。边界与越界门控用例同步更新，预期重新运行 XM777 测试。
 
 重建日期：2026-10-16（系统重装后）。本文件保存可随工程保留的项目知识；以当前代码与配置为准，历史路径须重新核实。
 
@@ -163,6 +178,7 @@
 - `PlayerHealth` 提供生命事件；`PlayerLifeStateController` 负责死亡后暂停控制、隐藏模型、进入 `PlayerObserverMode` 并延时复活；默认复活延迟 3 秒，优先指定/场景命名出生点，否则回到初始位置。它使用真实时间等待，不等同于塔防失败。
 - `PlayerSprintAimBridge` 桥接冲刺与瞄准；`Ladder.cs` 同时定义梯子与攀爬行为；`WeaponDamageProfile` / `WeaponDamageAuthoring` 管武器伤害配置。
 - 梯子地面修复（2026-10-27）：`GameplayLadder.fbx` 导入后长轴沿世界 -Z（包围盒中心约 Z=-1.63），不能直接把 FBX 根节点当作竖直梯子。`GenerateLadderPrefab.Generate` 用独立玩法根节点和 Visual 包装层，将模型长轴转向 +Y，再按真实 Renderer 包围盒归一到 Y=0..3.2；触发区和 Ladder 高度使用同一范围。`PlaceGameplayLadders.Place` 先重建该预制体，再按既有 8 个对称点和朝向缩放到 Y=0..2，已更新主场景。`PlaceGameplayLadders.ValidateAndPreview` 检查长轴竖直、模型/触发区/攀爬上下界、脚下实际地面，并渲染预览；批处理修复入口 `RepairAndPreviewBatch` 需带 `-WithGraphics`。Unity 编译及 8/8 数值探针通过，目视确认竖直贴地；未做人工 Play Mode 攀爬。预览、报告、日志和修改前场景/预制体备份位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\GameplayLadder\ground-fix-20261027\`。
+- 十字路口梯子（2026-10-30）：`IntersectionLadderAuthoring.Place` 在主场景中央路口的南北平台各放左右对称的两架 WallLadder，点位为 x=±6、z≈-20/-12，脚底道路高度 0.1、平台高度 2。入口以碰撞体探测平台及高度，保存前校验梯顶和下梯方向，独立分组 `IntersectionWallLadders_Symmetric`，可重复执行；场景备份和总览在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\WallLadder\intersection-20261030-221208\`。Unity 批处理通过；未做人工 Play Mode 攀爬验收。
 
 - 贴墙垂直梯子 WallLadder（2026-10-27 新增）：这是与 `GameplayLadder`（斜靠/独立式、占 1.35×0.5 m 触发区）**不同的模型**，两者都能用；主场景已按用户要求改用本模型（见下方「主场景梯子替换为贴墙梯子」）。
   - 模型 `Assets/Models/WallLadder/WallLadder.fbx`（Blender 源与全部中间态在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\WallLadder\`），单网格 1248 顶点 / 2368 三角面 / 3 材质槽。

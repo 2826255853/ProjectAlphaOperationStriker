@@ -13,6 +13,8 @@ public sealed class XM777Trap : MonoBehaviour
     public const float ShellSpeed = 500f;
     public const float MinimumRange = 10f;
     public const float MaximumRange = 100f;
+    public const float MinimumFiringElevationDegrees = -30f;
+    public const float MaximumFiringElevationDegrees = 45f;
     /// <summary>Seconds between the start of one shot and the next (3 s = one shell per 3 s).</summary>
     public const float FireInterval = 3f;
     public const float BaseExplosionDamage = 45f;
@@ -45,6 +47,7 @@ public sealed class XM777Trap : MonoBehaviour
     private readonly List<PendingImpact> pendingImpacts = new List<PendingImpact>();
     private TrapInstance trap;
     private EnemyInstance currentTarget;
+    private bool selectTargetAfterShot;
     private MissileVelocityTracker velocityTracker;
     private Quaternion restYawRotation;
     private Quaternion restPitchRotation;
@@ -149,6 +152,7 @@ public sealed class XM777Trap : MonoBehaviour
         ShotCount = 0;
         ExplosionCount = 0;
         currentTarget = null;
+        selectTargetAfterShot = false;
         HasInterceptPoint = false;
         InterceptPoint = default;
         TimeToImpact = 0f;
@@ -168,11 +172,17 @@ public sealed class XM777Trap : MonoBehaviour
         clock += step;
         AdvanceImpacts(step);
 
-        EnemyInstance selected = FindNearestVisibleGroundTarget();
-        if (selected != currentTarget)
+        // Commit to one living target through aiming and cooldown. A closer
+        // enemy must not restart the aim or velocity history before this shot.
+        if (selectTargetAfterShot || !IsLivingGroundEnemy(currentTarget))
         {
-            currentTarget = selected;
-            velocityTracker.Reset();
+            EnemyInstance selected = FindNearestVisibleGroundTarget();
+            if (selected != currentTarget)
+            {
+                currentTarget = selected;
+                velocityTracker.Reset();
+            }
+            selectTargetAfterShot = false;
         }
 
         HasInterceptPoint = false;
@@ -181,6 +191,7 @@ public sealed class XM777Trap : MonoBehaviour
 
         Vector3 targetPosition = PlasmaProjectile.AimPosition(currentTarget);
         Vector3 velocity = velocityTracker.Sample(targetPosition, clock, velocitySmoothingSeconds);
+        if (!IsInRange(HorizontalDistance(targetPosition))) return;
         if (!MissileAimSolver.TrySolveIntercept(muzzle.position, targetPosition, velocity,
                 ShellSpeed, out Vector3 predictedPoint, out _,
                 MaximumRange / ShellSpeed * 2f))
@@ -196,7 +207,8 @@ public sealed class XM777Trap : MonoBehaviour
         TimeToImpact = Vector3.Distance(muzzle.position, predictedPoint) / ShellSpeed;
 
         if (clock + 0.0001f < nextShotTime || !IsYawAligned(predictedPoint)
-            || Mathf.Abs(BarrelElevationDegrees - ElevationForDistance(targetDistance)) > aimToleranceDegrees) return;
+            || Mathf.Abs(BarrelElevationDegrees - ElevationForDistance(targetDistance)) > aimToleranceDegrees
+            || !IsWithinFiringElevation(predictedPoint)) return;
         FireAt(predictedPoint, TimeToImpact);
     }
 
@@ -291,6 +303,19 @@ public sealed class XM777Trap : MonoBehaviour
     public static float ElevationForDistance(float distance) =>
         Mathf.InverseLerp(MinimumRange, MaximumRange, distance) * 45f;
 
+    /// <summary>Whether a target's required ground-relative firing elevation is inside the real firing arc.</summary>
+    public static bool IsWithinFiringElevation(float elevationDegrees) =>
+        elevationDegrees >= MinimumFiringElevationDegrees - 0.001f
+        && elevationDegrees <= MaximumFiringElevationDegrees + 0.001f;
+
+    private bool IsWithinFiringElevation(Vector3 point)
+    {
+        Vector3 direction = point - transform.position;
+        Vector3 flat = Vector3.ProjectOnPlane(direction, yawAxisWorld);
+        float requiredElevation = Mathf.Atan2(Vector3.Dot(direction, yawAxisWorld), flat.magnitude) * Mathf.Rad2Deg;
+        return IsWithinFiringElevation(requiredElevation);
+    }
+
     private void AimAt(Vector3 point, float targetDistance, float deltaTime)
     {
         AimYawAt(point, deltaTime);
@@ -338,6 +363,7 @@ public sealed class XM777Trap : MonoBehaviour
         });
         ShotCount++;
         nextShotTime = clock + FireInterval;
+        selectTargetAfterShot = true;
     }
 
     private void AdvanceImpacts(float deltaTime)
@@ -395,6 +421,7 @@ public sealed class XM777Trap : MonoBehaviour
     private void OnDisable()
     {
         currentTarget = null;
+        selectTargetAfterShot = false;
         HasInterceptPoint = false;
         velocityTracker.Reset();
         pendingImpacts.Clear();

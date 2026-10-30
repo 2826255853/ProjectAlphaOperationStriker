@@ -34,6 +34,24 @@ public sealed class XM777TrapTests
     }
 
     [Test]
+    public void KeepsLivingTargetWhileCloserEnemyArrivesBeforeShot()
+    {
+        XM777Trap trap = CreateTrap(out _);
+        EnemyInstance original = CreateGroundEnemy(new Vector3(0f, 0f, 50f));
+        SetFloat(trap, "nextShotTime", 100f);
+        trap.Tick(0.1f);
+
+        EnemyInstance closer = CreateGroundEnemy(new Vector3(0f, 0f, 20f));
+        trap.Tick(0.1f);
+
+        Assert.That(trap.CurrentTarget, Is.SameAs(original));
+        Assert.That(trap.ShotCount, Is.Zero);
+        original.gameObject.SetActive(false);
+        trap.Tick(0.01f);
+        Assert.That(trap.CurrentTarget, Is.SameAs(closer), "A new target may be selected after the locked target is lost.");
+    }
+
+    [Test]
     public void PredictsLeadAndDerivesFlightTimeFromFiveHundredMetresPerSecond()
     {
         XM777Trap trap = CreateTrap(out Transform muzzle);
@@ -442,6 +460,35 @@ public sealed class XM777TrapTests
         Assert.That(XM777Trap.ElevationForDistance(distance), Is.EqualTo(expected).Within(0.0001f));
     }
 
+    [TestCase(-30f, true)]
+    [TestCase(0f, true)]
+    [TestCase(45f, true)]
+    [TestCase(-30.01f, false)]
+    [TestCase(45.01f, false)]
+    public void ActualFiringElevationUsesMinusThirtyToPlusFortyFiveArc(float elevation, bool expected)
+    {
+        Assert.That(XM777Trap.IsWithinFiringElevation(elevation), Is.EqualTo(expected));
+    }
+
+    [TestCase(-30f, true)]
+    [TestCase(45f, true)]
+    [TestCase(-30.1f, false)]
+    [TestCase(45.1f, false)]
+    public void ActualFireArcGatesTargetsWithoutChangingModelPitch(float elevation, bool canFire)
+    {
+        XM777Trap trap = CreateTrap(out _);
+        float horizontalDistance = 20f;
+        float targetHeight = Mathf.Tan(elevation * Mathf.Deg2Rad) * horizontalDistance;
+        CreateGroundEnemy(new Vector3(0f, targetHeight, horizontalDistance));
+
+        trap.Tick(1f);
+
+        Assert.That(trap.ShotCount, Is.EqualTo(canFire ? 1 : 0));
+        Assert.That(trap.BarrelElevationDegrees,
+            Is.EqualTo(XM777Trap.ElevationForDistance(horizontalDistance)).Within(0.01f),
+            "The visual barrel keeps its existing distance-based 0..45 degree pitch.");
+    }
+
     [TestCase(10f, 0f)]
     [TestCase(55f, 22.5f)]
     [TestCase(100f, 45f)]
@@ -472,7 +519,9 @@ public sealed class XM777TrapTests
         trap.Tick(1f);
         bool inRange = distance >= 10f && distance <= 100f;
         Assert.That(trap.CurrentTarget == enemy, Is.EqualTo(inRange));
-        Assert.That(trap.ShotCount, Is.EqualTo(inRange ? 1 : 0));
+        float requiredElevation = Mathf.Atan2(height, distance) * Mathf.Rad2Deg;
+        bool insideFiringArc = XM777Trap.IsWithinFiringElevation(requiredElevation);
+        Assert.That(trap.ShotCount, Is.EqualTo(inRange && insideFiringArc ? 1 : 0));
         if (inRange) Assert.That(trap.BarrelElevationDegrees,
             Is.EqualTo(XM777Trap.ElevationForDistance(distance)).Within(0.01f));
     }
@@ -563,7 +612,7 @@ public sealed class XM777TrapTests
         trap.Tick(0.1f);
         enemy.transform.position += Vector3.right * 20f;
         trap.Tick(0.1f);
-        Assert.That(trap.CurrentTarget, Is.Null, "The current enemy has already crossed the 100 metre circle.");
+        Assert.That(trap.CurrentTarget, Is.SameAs(enemy), "A living locked target remains selected outside the firing range.");
         enemy.transform.position = new Vector3(0f, 0f, 90f);
         trap.Tick(0.1f);
         enemy.transform.position += Vector3.right * 20f;
