@@ -410,7 +410,18 @@ public static class MissileLauncherTurretAuthoring
         if (muzzleB == null) muzzleB = FindDeepChild(root.transform, "Missile_02_Body");
         SetObjectReference(serialized, "muzzleA", muzzleA);
         SetObjectReference(serialized, "muzzleB", muzzleB);
+
+        // Reload art: each rail shows its own round, which disappears when that
+        // rail fires and comes back when the reload finishes. Wired here so the
+        // prefab keeps the component (the weapon also adds it at runtime when an
+        // older prefab / scene instance has none).
+        MissileLauncherReloadVisual reloadVisual = weapon.GetComponent<MissileLauncherReloadVisual>();
+        if (reloadVisual == null) reloadVisual = weapon.gameObject.AddComponent<MissileLauncherReloadVisual>();
+        SetObjectReference(serialized, "reloadVisual", reloadVisual);
         serialized.ApplyModifiedPropertiesWithoutUndo();
+
+        reloadVisual.SetTubes(muzzleA, muzzleB);
+        EditorUtility.SetDirty(reloadVisual);
 
         if (muzzleA == null || muzzleB == null)
             Debug.LogWarning("未能从模型识别出两个导弹发射口（Missile_01 / Missile_02），" +

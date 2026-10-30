@@ -95,6 +95,16 @@ Step 3 - 交互/验收：需要的 UI、预览和旧功能回归；注明未覆�
 
 覆盖这两点的编辑期测试：`Assets/Editor/FlyingSpawnPointTests.cs`、`Assets/Editor/GroundEnemyCombatTests.cs`（真机跑法见 [references/unity-editor.md](references/unity-editor.md)）。
 
+### 飓风无人机 = 第二种飞行怪物（2026-10-30 新增）
+
+无人机（`Assets/Models/HurricaneDrone/HurricaneDrone.fbx`，美术交付说明在 `Assets/Editor/HURRICANE_DRONE_HANDOFF.md`）现在既是表现预制体，也是一套**完整的飞行怪物**：
+
+- 表现件 `Assets/Prefabs/HurricaneDrone.prefab`（`HurricaneDroneUnit` 只管动画）；飞行怪物 `Assets/Resources/HurricaneDroneEnemy.prefab` = 表现件 + `EnemyHealth`(260) + `MonsterPathFollower`(flying, 速度 3.4, 高度 10) + `HurricaneDroneEnemy`。两者都由 `HurricaneDroneAuthoring.CreateAll` 重建，**手改预制体会被覆盖**。
+- `Assets/Scripts/TowerDefense/HurricaneDroneEnemy.cs` 是玩法层：按位移/偏航切 `FlyForward`/`BankTurn`/`Hover`（攻击态不抢），索敌后悬停播 `HD_Attack`，`OnGunFire` 动画事件逐发结算（陷阱 `TrapInstance.TakeDamage`、玩家 `PlayerHealth.TakeDamage`），不造弹丸、不套 `MissileAimSolver`。位移仍只有 `InitializeFlying` 一条分支。
+- **悬停开火必须 `follower.enabled = false`**：`CombatMovementPaused` 只在 `followingCombatPath` 时生效，对飞行分支无效；而 follower 的 Update 会朝航点转体，与开火朝向互相抢。
+- 出怪口由 `Assets/Editor/HurricaneDroneSpawnAuthoring.cs` 幂等维护（场景对象 `Enemy Spawn Flying Drone`，挂在 `MapForgeWorld` 下）。**坑**：`ApplyModifiedProperties` 会触发 `EnemySpawnPoint.OnValidate → EnsureWaveSpawnData`，用当时的 `enemiesPerWave`（默认 10）补默认逐波条目，所以逐波设置要在基础字段之后用第二遍 `SerializedObject` 重写。
+- 校验入口：`HurricaneDroneAuthoring.ProbeEnemyPrefabBatch`（`HURRICANE_DRONE_ENEMY_PASS`）、`HurricaneDroneSpawnAuthoring.ValidateBatch`（`HURRICANE_DRONE_SPAWN_PASS`）。当前主场景里没有旧的 `Enemy Spawn Flying`，空中出怪口只有无人机这一个。
+
 ### 陷阱菜单锁定玩家视角（2026-09 新增）
 
 打开陷阱选择菜单时玩家视角必须冻结（不能转视角、不能误射），这条靠**一处状态 + 两处尊重**实现：
@@ -135,7 +145,8 @@ Step 3 - 交互/验收：需要的 UI、预览和旧功能回归；注明未覆�
 - 尾焰的看图入口：`MissileExhaustPreview.RenderPreview`（菜单 `Tools/塔防/预览导弹发射器尾焰`），输出到 `%TEMP%\alpha-striker-unity\exhaust-preview`，渲染静止 / 全强度 / 半强度三张；确认挂载数值用 `MissileLauncherTurretAuthoring.ProbeExhaustMount`。回归用例 `Assets/Editor/MissileExhaustFxTests.cs`（两组尾焰各对一根导轨 + 只在开火时可见），跑法 `-runTests -testPlatform EditMode -testFilter MissileExhaustFxTests`。- 需要看图时跑 `MissileLauncherTurretPreview.RenderPreview`（菜单 `Tools/塔防/预览导弹发射器旋转`），它按 6 组 yaw/pitch 渲染预制体并把 PNG 写到 `%TEMP%\alpha-striker-unity\launcher-preview`（它读的是 `DualMissileLauncher.prefab`，找不到会报「请先生成」）。别靠场景视图肉眼判断；要留档的图按规范复制到桌面「陷阱素材文件夹」的对应子目录。
 - **玩家武器伤害按武器区分**：玩家侧命中结算在 `Assets/Scripts/FPS/FirstPersonController.cs` 的 `FPSHitscanShooter`（hitscan 桥，KINEMATION 只管射速/弹药/动画）。伤害公式是 `基础伤害 x 距离衰减 x 目标种类缩放 x 弱点倍率`，全部在纯结构体 `WeaponDamageStats`（`Assets/Scripts/FPS/WeaponDamageProfile.cs`）里算，所以不依赖 KINEMATION 预制体即可单测（用例 `Assets/Editor/WeaponDamageProfileTests.cs`，跑法 `-runTests -testPlatform EditMode -testFilter WeaponDamageProfileTests`）。武器分类两条路径：预制体上有 `WeaponDamageProfile` 组件就用手填值（菜单 `Tools/塔防/给武器预制体写入伤害档案` 会把随包武器的默认档案写进 `Assets/KINEMATION/FPSAnimationPack/Prefabs/*.prefab`）；没有组件就按**预制体名字**走 `WeaponDamageStats.DefaultsFor`，先查 `TryGetKnownClass` 的精确表（AK / ASVal / G3 / MX16A4、MPS5 / PDW90、Drake-12 / Striker-V / KXG12、Kar98k / L96X / SVD / Mk14EBR、M1911 / Kolibri / X18 / Viper-357、MGX5、RPG / DGL50），再退回子串启发式。`FPSPlayer_Settings_Utlimate.asset` 里那 20 把武器全部有精确分类——**新增武器要同步补 `TryGetKnownClass`，否则会掉进 Unknown 用回退伤害（默认 25，衰减曲线取 Unknown 档）**。改公式后同步改 `AmmoDisplayUI` 的 HUD 文案（它显示基础伤害与弱点倍率）。
 - 生成的预制体落在 `Assets/Prefabs/DualMissileLauncher.prefab`（**不是** `Assets/Resources/`）：它由 `TrapDefinition` 资产直接引用，不需要 `Resources.Load` 兜底；飞行怪物那套才必须待在 `Resources/`。新增陷阱按各自的引用方式选目录，别照抄。
-- 回归测试：`Assets/Editor/MissileLauncherTurretTests.cs`（两轴限位、预制体接线的旋转台、原始 FBX 能自建 rig、空中过滤）与 `Assets/Editor/MissileLauncherWeaponTests.cs`（选靶优先级、拦截点领先、齐射两发、装填阻塞、超程引爆、无 Collider 结算）。两者都在 `#if UNITY_INCLUDE_TESTS` 里，跑法 `-runTests -testPlatform EditMode`（可加 `-testFilter MissileLauncher`）。
+- **逐管装填表现（2026-10-30）**：某根管子发射后该位置**空管**，直到装填完毕才重新出现导弹。实现在 `Assets/Scripts/TowerDefense/MissileLauncherReloadVisual.cs`：按管维护 `tubeLoaded[]`，空管时只关该管导弹的 `Renderer.enabled`，**不要** `SetActive(false)`——`Missile_01/02` 同时是发射口和尾焰喷嘴基准，节点停用会丢位置。`MissileLauncherWeapon` 在 `Awake` 里 `ResolveReloadVisual()`（缺组件就自建，旧预制体/场景实例也能生效），发射时按 `NextTubeIndex()` 清空对应管，`reloadRemaining` 归零那一帧 `FinishReload()` 恢复两管；管序固定 `Missile_01` = 0、`Missile_02` = 1，轮换仍由 `missilesLaunchedInSalvo % 2` 决定。生成器 `WireWeapon` 把组件、`reloadVisual` 与 `tubeVisuals` 写进预制体，重生成后复查这两个引用。看图：`MissileLauncherTurretPreview.RenderReloadStatePreview`（菜单 `Tools/塔防/预览导弹装填状态`，批处理需 `-WithGraphics`）渲染两管满装 / 左管空 / 两管空三张 PNG。
+- 回归测试：`Assets/Editor/MissileLauncherTurretTests.cs`（两轴限位、预制体接线的旋转台、原始 FBX 能自建 rig、空中过滤）与 `Assets/Editor/MissileLauncherWeaponTests.cs`（选靶优先级、拦截点领先、齐射两发、装填阻塞、逐管空管与装填恢复、超程引爆、无 Collider 结算）。两者都在 `#if UNITY_INCLUDE_TESTS` 里，跑法 `-runTests -testPlatform EditMode`（可加 `-testFilter MissileLauncher`），或用 `Assets/Editor/RunEnemyDamageResistanceTests.ps1 -Fixtures MissileLauncherWeaponTests,MissileLauncherTurretTests`。
 
 ### 贝蒂7号跳雷（地面陷阱，2026-10 改为逐槽装填）
 

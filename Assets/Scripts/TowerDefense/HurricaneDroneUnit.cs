@@ -54,6 +54,12 @@ public class HurricaneDroneUnit : MonoBehaviour
 
     float attackEndsAt = -1f;
 
+    /// <summary>已经确认存在于控制器里的状态（hash），避免在拆机时刻重复校验。</summary>
+    readonly System.Collections.Generic.HashSet<int> knownStates = new System.Collections.Generic.HashSet<int>();
+
+    /// <summary>已经提示过的缺失状态，避免每个实例/每一帧刷同一条警告。</summary>
+    readonly System.Collections.Generic.HashSet<int> warnedMissingStates = new System.Collections.Generic.HashSet<int>();
+
     /// <summary>每打出一发时触发（由动画事件驱动，时机与模型后坐一致）。</summary>
     public event Action<HurricaneDroneUnit> ShotFired;
 
@@ -138,10 +144,25 @@ public class HurricaneDroneUnit : MonoBehaviour
 
         string stateName = StateNameOf(next);
         int hash = Animator.StringToHash(stateName);
-        if (!animator.HasState(0, hash))
+
+        if (!knownStates.Contains(hash))
         {
-            Debug.LogWarning($"[HurricaneDrone] Animator 里没有状态 {stateName}");
-            return;
+            // Animator 在对象被禁用/销毁的过程中会把运行时状态机拆掉，此时 HasState 恒返回 false。
+            // HurricaneDroneEnemy.OnDisable → StopAttack 正好走这条路径（无人机死亡、退场或停场景时），
+            // 那是「拆机时刻」而不是「控制器缺状态」，不校验也不报警；只有 Animator 还活着时才判定缺失。
+            if (!animator.isActiveAndEnabled)
+            {
+                return;
+            }
+            if (!animator.HasState(0, hash))
+            {
+                if (warnedMissingStates.Add(hash))
+                {
+                    Debug.LogWarning($"[HurricaneDrone] Animator 里没有状态 {stateName}（控制器 {animator.runtimeAnimatorController.name}）");
+                }
+                return;
+            }
+            knownStates.Add(hash);
         }
 
         if (immediate || crossFadeSeconds <= 0f)

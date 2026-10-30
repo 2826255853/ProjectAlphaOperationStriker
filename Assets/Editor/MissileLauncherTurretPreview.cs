@@ -102,4 +102,93 @@ public static class MissileLauncherTurretPreview
             Object.DestroyImmediate(root);
         }
     }
+
+    /// <summary>
+    /// Renders the reload art: a full rack, one empty rail and both empty, so the
+    /// "fired position is empty until the reload finishes" rule can be checked by eye.
+    /// Batch entry: <c>-executeMethod MissileLauncherTurretPreview.RenderReloadStatePreviewBatch -WithGraphics</c>.
+    /// </summary>
+    [MenuItem("Tools/塔防/预览导弹装填状态")]
+    public static void RenderReloadStatePreview()
+    {
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(MissileLauncherTurretAuthoring.LauncherPrefabPath);
+        if (prefab == null)
+        {
+            Debug.LogError($"找不到预制体：{MissileLauncherTurretAuthoring.LauncherPrefabPath}，请先生成。");
+            return;
+        }
+
+        string outputDirectory = Path.Combine(Path.GetTempPath(), "alpha-striker-unity", "launcher-reload-preview");
+        Directory.CreateDirectory(outputDirectory);
+
+        var root = (GameObject)Object.Instantiate(prefab);
+        root.transform.position = Vector3.zero;
+        try
+        {
+            MissileLauncherTurret turret = root.GetComponent<MissileLauncherTurret>();
+            MissileLauncherWeapon weapon = root.GetComponent<MissileLauncherWeapon>();
+            MissileLauncherReloadVisual visual = root.GetComponent<MissileLauncherReloadVisual>();
+            if (turret == null || visual == null)
+            {
+                Debug.LogError("预制体缺少 MissileLauncherTurret 或 MissileLauncherReloadVisual。");
+                return;
+            }
+            // Preview only: the components' real lifecycle is not running here.
+            turret.enabled = false;
+            if (weapon != null) weapon.enabled = false;
+            visual.EnsureResolved();
+
+            var cameraObject = new GameObject("Preview Camera");
+            Camera camera = cameraObject.AddComponent<Camera>();
+            camera.fieldOfView = 40f;
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = new Color(0.11f, 0.12f, 0.14f);
+            // Close-up on the rails: the whole point is seeing whether a missile
+            // is sitting on them, which the wide rotation preview cannot show.
+            camera.transform.position = new Vector3(2.6f, 2.1f, 2.6f);
+            camera.transform.LookAt(new Vector3(0f, 1.45f, 0f));
+
+            var lightObject = new GameObject("Preview Light");
+            Light light = lightObject.AddComponent<Light>();
+            light.type = LightType.Directional;
+            light.intensity = 1.15f;
+            lightObject.transform.rotation = Quaternion.Euler(45f, 35f, 0f);
+
+            RenderTexture renderTexture = new RenderTexture(Width, Height, 24);
+            camera.targetTexture = renderTexture;
+
+            RenderState(camera, renderTexture, visual, outputDirectory, "01-both-loaded", false, false);
+            RenderState(camera, renderTexture, visual, outputDirectory, "02-left-rail-empty", true, false);
+            RenderState(camera, renderTexture, visual, outputDirectory, "03-both-rails-empty", true, true);
+
+            camera.targetTexture = null;
+            Object.DestroyImmediate(renderTexture);
+            Object.DestroyImmediate(cameraObject);
+            Object.DestroyImmediate(lightObject);
+            Debug.Log($"装填状态预览已输出：{outputDirectory}");
+        }
+        finally
+        {
+            Object.DestroyImmediate(root);
+        }
+    }
+
+    private static void RenderState(Camera camera, RenderTexture renderTexture, MissileLauncherReloadVisual visual,
+        string outputDirectory, string name, bool emptyLeft, bool emptyRight)
+    {
+        visual.RestoreAll();
+        if (emptyLeft) visual.ClearTube(0);
+        if (emptyRight) visual.ClearTube(1);
+
+        camera.Render();
+        RenderTexture.active = renderTexture;
+        var texture = new Texture2D(Width, Height, TextureFormat.RGB24, false);
+        texture.ReadPixels(new Rect(0, 0, Width, Height), 0, 0);
+        texture.Apply();
+        File.WriteAllBytes(Path.Combine(outputDirectory, name + ".png"), texture.EncodeToPNG());
+        Object.DestroyImmediate(texture);
+        RenderTexture.active = null;
+
+        Debug.Log($"装填预览 {name}：管1已装填={visual.IsTubeLoaded(0)}，管2已装填={visual.IsTubeLoaded(1)}");
+    }
 }

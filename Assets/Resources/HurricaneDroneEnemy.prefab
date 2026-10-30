@@ -1,0 +1,220 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7688877202509177567
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3266102527711245274}
+  m_Layer: 0
+  m_Name: Muzzle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3266102527711245274
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7688877202509177567}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.000000069242205, y: 2.4199991, z: -0.2599995}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3114675162748453454}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &958869282630726564
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+      propertyPath: m_Name
+      value: HurricaneDroneEnemy
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 2771712711617573354, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3266102527711245274}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5859254123799934189}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4575905603094232158}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 946059312988057531}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9164026375970139800}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1241130464984085438}
+  m_SourcePrefab: {fileID: 100100000, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+--- !u!1 &112589276196228853 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+  m_PrefabInstance: {fileID: 958869282630726564}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &5859254123799934189
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 112589276196228853}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: fb6bd7ae1d6faf849845a2e6864c9521, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &4575905603094232158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 112589276196228853}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 302105ecf9231004c89d5ef75a6b1995, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HurricaneDroneUnit
+  animator: {fileID: 5859254123799934189}
+  muzzle: {fileID: 3266102527711245274}
+  mode: 0
+  crossFadeSeconds: 0.25
+  attackClipSeconds: 2.97
+  autoExitAttack: 1
+--- !u!114 &946059312988057531
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 112589276196228853}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79d9f4f8d7f64a7db6b5a1eb9e5f0f12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
+  maxHealth: 260
+  fireResistancePercent: 0
+  electricResistancePercent: 0
+  frostResistancePercent: 0
+  lightResistancePercent: 0
+  rangedPhysicalResistancePercent: 0
+  meleePhysicalResistancePercent: 0
+  explosiveResistancePercent: 0
+--- !u!114 &9164026375970139800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 112589276196228853}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d8c6b4e3f1a4b2ca9e7d6f801234567, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MonsterPathFollower
+  moveSpeed: 3.4
+  turnSpeed: 180
+  stoppingDistance: 0.05
+  flying: 1
+  flightHeight: 10
+--- !u!114 &1241130464984085438
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 112589276196228853}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e24155ef1d62d3a429abb179f6fe9999, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HurricaneDroneEnemy
+  attackRange: 45
+  aimConeDegrees: 40
+  targetRefreshInterval: 0.4
+  prioritizeAirDefense: 1
+  allowAttackPlayer: 1
+  damagePerShot: 6
+  burstCooldown: 3.2
+  muzzleHeightOffset: 0
+  forwardSpeedThreshold: 0.6
+  bankTurnDegreesPerSecond: 45
+  follower: {fileID: 9164026375970139800}
+  health: {fileID: 946059312988057531}
+  unit: {fileID: 4575905603094232158}
+--- !u!4 &3114675162748453454 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2771712711617573354, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+  m_PrefabInstance: {fileID: 958869282630726564}
+  m_PrefabAsset: {fileID: 0}

@@ -1,5 +1,37 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 防空导弹发射架 · 逐管装填表现（2026-10-30）
+
+- 需求：某一位置（导轨/发射管）的导弹发射后，**该位置变为空管**，直到装填完毕才重新出现导弹。
+- 新增运行时 `Assets/Scripts/TowerDefense/MissileLauncherReloadVisual.cs`：按管维护 `tubeLoaded[]`，空管时只把该管导弹的 **Renderer 关掉**（`Renderer.enabled = false`），**不** `SetActive(false)`——`Missile_01/02` 同时是 `MissileLauncherWeapon` 的发射口与尾焰喷嘴基准，节点一停就丢掉位置。
+- `MissileLauncherWeapon` 接线：`Awake` 里 `ResolveReloadVisual()`（找不到组件就 `AddComponent`，所以旧预制体/场景实例也能生效），把 `muzzleA/muzzleB` 通过 `SetTubes` 交给装填组件；发射时 `NextTubeIndex()` 决定这一发来自哪根管子并立刻 `ClearTube(index)`；`Advance` 顶部在 `reloadRemaining` 归零的那一帧调用 `FinishReload()` 恢复两管。目标中途消失也照常走完装填（否则会永久空管）。
+- 管序固定：`Missile_01` = 0（先发），`Missile_02` = 1；`NextTubeIndex` 仍是齐射轮换（`missilesLaunchedInSalvo % 2`），改轮换规则只改这一个函数。
+- 生成器 `MissileLauncherTurretAuthoring.WireWeapon` 现在会把组件挂进预制体并写 `reloadVisual` / `tubeVisuals`；`Assets/Prefabs/DualMissileLauncher.prefab` 已重新生成（阵位调参未变：`reloadTime 4`、`projectileSpeed 100`、`maxFlightRange 50`、`flightRangeFollowsDetection 0`）。改模型或重新生成后请复查这两个引用。
+- 回归：`Assets/Editor/MissileLauncherWeaponTests.cs` 新增 3 例——`FiredTubeStaysEmptyUntilTheReloadFinishes`（逐管清空 + 装填中仍为空 + 目标消失也恢复）、`EmptyTubeHidesOnlyThatRailsMissileMesh`（只关网格、节点与发射点位置保留）、`AuthoredPrefabWiresOneReloadVisualPerTube`（预制体两个位置绑定 `Missile_01/02`）。`RunEnemyDamageResistanceTests.ps1 -Fixtures MissileLauncherWeaponTests,MissileLauncherTurretTests` **24/24 PASS**（Unity `6000.6.7f1`），XML：`C:\Users\ASUS\Desktop\陷阱素材文件夹\DualMissileLauncher\reload-visual-20261030\tests\20261030-213722-439\editmode-results.xml`。预览/回滚备份同目录（含改动前的 `DualMissileLauncher.prefab`）。
+- 看图入口：`MissileLauncherTurretPreview.RenderReloadStatePreview`（菜单 `Tools/塔防/预览导弹装填状态`，批处理需 `-WithGraphics`），渲染「两管满装 / 左管空 / 两管空」三张 PNG 到 `%TEMP%\alpha-striker-unity\launcher-reload-preview`。
+- 未做：主场景 PlayMode 人工观察整轮齐射→空管→装填回满的完整节奏。
+
+## 防空导弹发射架射程调整（2026-10-30）
+
+- 探测半径 `MissileLauncherTurret.detectionRange` 由 **12 m 改为 40 m**（源码默认值与 `Assets/Prefabs/DualMissileLauncher.prefab` 序列化值同步），判定仍是发射架根节点到 `EnemyInstance` 枢轴的 **3D 球面距离**，且仍然只打空中目标（`targetFilter: AirOnly`）。
+- 弹体射程与探测解耦：`MissileLauncherWeapon.maxFlightRange` 由 18 m 改为 **50 m**，新增序列化开关 `flightRangeFollowsDetection`（默认 false）。`MissileLauncherWeapon.LaunchOneMissile` 在 `ConfigureTuning` 之后调用新增的 `MissileProjectile.SetFollowMountRange(bool)`，因此 `MissileProjectile.MaxFlightRange` 不再被发射架的 40 m 覆盖，自爆点按 50 m 飞行距离结算。
+- 之所以需要这个开关：预制体 `projectilePrefab` 为空，运行时走 `CreateFallbackMissile` 兜底弹体，其 `useTurretRangeAsMaxFlightRange` 默认 true 会把弹体射程强制改回探测半径——只改 `maxFlightRange` 数字无效，这是本次踩到的点。
+- 回归用例加在 `Assets/Editor/MissileLauncherWeaponTests.cs`：`AuthoredLauncherUsesFortyMetreDetectionAndFiftyMetreFlightRange`（预制体 40/50 + 开关为 false）与 `LaunchedMissileKeepsFiftyMetreFlightRangeWhenDetectionIsForty`（真实预制体发射链路断言 `MaxFlightRange == 50`）。入口 `Assets/Editor/RunEnemyDamageResistanceTests.ps1 -Fixtures MissileLauncherWeaponTests,MissileLauncherTurretTests`。
+- 弹速由 **60 m/s 提到 100 m/s**（`MissileLauncherWeapon.projectileSpeed` 默认值与预制体序列化值同步，`MissileProjectile.speed` 默认值一并对齐）；转向速率由 **180°/s 提到 360°/s**（`turnRateDegrees`，武器与弹体默认值及预制体同步）。100 m/s ÷ 360°/s 的转弯半径约 **15.9 m**，与 40 m 探测半径配合后横穿目标可被追上；再提弹速时必须同步检查该半径，否则会退化成直线弹。
+- 装填时间由 **6 s 压到 4 s**（`MissileLauncherWeapon.reloadTime` 默认值与预制体序列化值同步）；齐射仍是 2 发、间隔 0.25 s，因此持续输出从约 0.33 发/秒提升到约 0.5 发/秒。升级系统仍然只改导弹直击/溅射伤害，不提供射程分支；`TrapUpgradeMenuSession` 未新增射程预览。
+
+## 飓风无人机接入为飞行怪物（2026-10-30）
+
+- 无人机从「只有动画的表现预制体」变成**可接入出怪口的飞行怪物**。新增运行时 `Assets/Scripts/TowerDefense/HurricaneDroneEnemy.cs`（`[RequireComponent]` MonsterPathFollower + EnemyHealth + HurricaneDroneUnit）：按实际位移/偏航切 `FlyForward`/`BankTurn`/`Hover`（攻击状态不抢，交给 `HurricaneDroneUnit` 的 `attackClipSeconds` 收尾），索敌后悬停播 `HD_Attack`，`OnGunFire` 动画事件（6 发）逐发结算：陷阱走 `TrapInstance.TakeDamage`，玩家走 `PlayerHealth.TakeDamage`，不生成弹丸、不套 `MissileAimSolver`。
+- 选靶：`attackRange` 45 m 内陷阱，默认**优先打能对空的陷阱**（`MissileLauncherTurret`），其次最近陷阱/玩家（`allowAttackPlayer` 可关）。射界只看水平 `aimConeDegrees = 40°`，并用 `Physics.RaycastAll` 跳过自身与目标做视线检测。
+- 位移仍是**唯一一条**飞行分支 `MonsterPathFollower.InitializeFlying`，不新增寻路；悬停开火通过临时把 `follower.MoveSpeed` 置 0 实现（`CombatMovementPaused` 只在 `followingCombatPath` 时生效，对飞行无效，别再踩这个坑）。
+- 预制体由 `HurricaneDroneAuthoring.CreateAll` 生成：表现件 `Assets/Prefabs/HurricaneDrone.prefab`，飞行怪物 `Assets/Resources/HurricaneDroneEnemy.prefab`（`EnemyHealth` 260 血、`MonsterPathFollower` flying + 速度 3.4 + 飞行高度 10）。**不加 `GroundEnemyCombat`**（飞行怪必须在近战追击中缺席，`ProbeEnemyPrefabBatch` 会检查）。构建逻辑抽成 `CreateDroneInstance`，两个预制体共用同一套 Animator/Muzzle/Unit 装配。
+- 新增 `Assets/Editor/HurricaneDroneSpawnAuthoring.cs`：幂等创建/刷新主场景空中出怪口 `Enemy Spawn Flying Drone`（父节点 `MapForgeWorld`，位置 `(-60,16,-40)`，`entranceAltitude 16`、`flyingSpawnSpread 4`、每波 3 只、间隔 2 s、首波延迟 12 s）。**坑**：`ApplyModifiedProperties` 会触发 `EnemySpawnPoint.OnValidate → EnsureWaveSpawnData`，用当时的 `enemiesPerWave`（默认 10）补默认逐波条目，所以逐波设置必须在基础字段之后用第二遍 `SerializedObject` 显式重写（`ApplyWaveSettings`）。
+- 验证（Unity `6000.6.7f1`）：`dotnet build Assembly-CSharp-Editor.csproj` 0 错误（仅既有 warning）；`CreateAll` 成功（材质 8、动画 4、两个预制体）；`ProbeEnemyPrefabBatch` 12 项 OK → `HURRICANE_DRONE_ENEMY_PASS`；`CreateSpawnPointBatch` → `HURRICANE_DRONE_SPAWN_PASS`（16 项）；场景 diff 95 行新增、0 删除。场景/预制体改动前备份在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\HurricaneDrone\enemy-prefab-20261030\`。
+- 校验加强（2026-10-30）：`HurricaneDroneSpawnAuthoring.ValidateSpawnPoint` 现在对**每一波**都断言（启用、预制体=无人机、数量=3、类型=Flying、飞行高度=10、`GetEnemiesPerWave`=3），并断言逐波条目数 = `TotalWaves`，不再只看第 1 波。复跑 `ValidateBatch` **31/31 OK → `HURRICANE_DRONE_SPAWN_PASS`**（日志 `%TEMP%\alpha-striker-unity\drone-spawn2.log`）；同批 `ProbeEnemyPrefabBatch` → `HURRICANE_DRONE_ENEMY_PASS`。当前主场景 `WaveManager.totalWaves = 3`、出怪口 `enemiesPerWave = 3`、`initialWaveDelay = 12`、`waveTransitionDelays = [15, 30]`、`spawnInterval = 2`，即 3 波 × 每波 3 架 = 9 架。
+- 未做：主场景 PlayMode 实机出怪/飞行/机炮命中/被击落验收，开火特效、弹壳、音效、坠毁动画、对象池，以及完整 Player 构建。当前主场景里**没有**旧的 `Enemy Spawn Flying`，空中出怪口只有这一个。
+- 注意：本机 Unity 图形编辑器可能正开着（占用 `Library/`），但 `run-unity-method.ps1` 的批处理仍能正常跑完；判定仍以日志 `Exiting batchmode successfully now!` 为准。
+
 ## 陷阱升级系统 · 第 7 步（2026-10-29）
 
 - `TrapSelectionMenuView.Upgrades.cs` 增量扩展已有 Canvas，增加选择/升级页签、模态确认和普通四级方向步骤；`TrapSelectionMenuCardView` 添加独立圆框箭头回调。选择页保留原槽位分配并关闭菜单；升级页复用分类/分页，卡片点击查看、箭头打开确认，满级入口禁用。三级确认进入普通方向选择，再次确认才付款；完整分支选项仍留待第 8 步。
@@ -823,6 +855,7 @@
 - 生成链：Blender 脚本 `C:\Users\ASUS\Desktop\陷阱素材文件夹\HurricaneDrone\build_drone_v3.py` -> `HurricaneDroneAuthoring.CreateAll`（材质/导入设置/控制器/预制体，幂等）。菜单 `Tools/塔防/生成飓风无人机预制体`、`Tools/塔防/校验飓风无人机预制体`、`Tools/塔防/预览飓风无人机`。
 - 运行时：`Assets/Scripts/TowerDefense/HurricaneDroneUnit.cs` **只管动画状态机**（Hover/FlyForward/BankTurn/Attack + ShotFired 事件），不含位移、选靶、伤害。飞行控制/伤害结算/血量是留给程序员的部分，规格见 `Assets/Editor/HURRICANE_DRONE_HANDOFF.md`。
 - 两个已知坑：① `HD_Attack` 的 clip.length 被报成 5.34s（曲线数据其实只到 2.97s，FBX take 尾部有静止），`HurricaneDroneUnit.attackClipSeconds` 按 2.97s 计时收尾，别改成等 Animator 播完；② **本工程 batchmode 离屏渲染只出背景色** —— `Camera.Render()` 与 `RenderPipeline.SubmitRenderRequest` 都一样，现成的 `MissileLauncherTurretPreview` 同样如此，所以自动化视觉验收走 Blender 预览图，不要在 Unity 批处理里等截图。
+- 已知坑③ **`Animator.HasState` 在拆机时刻恒为 false**（2026-10-30 实测）：无人机在攻击态被 `Destroy`/`SetActive(false)` 时，`HurricaneDroneEnemy.OnDisable → HurricaneDroneUnit.StopAttack` 会在 Animator 已被禁用之后才跑到（`[DefaultExecutionOrder(-5)]` 让脚本的 OnDisable 排在默认顺序组件之后），此时 `HasState(0, HD_Hover)` 返回 false，虽然控制器里那条状态明明存在，于是打出「Animator 里没有状态 HD_Hover」的假警告。实测数据：激活实例 `hasHover=True / hasFly=True / hasAttack=True`，`SetActive(false)` 之后同一个 Animator 引用 `HasState=False`。`HurricaneDroneUnit.ApplyMode` 现在缓存已验证过的状态（`knownStates`）并在 `!animator.isActiveAndEnabled` 时直接跳过，缺失提示也按状态去重（`warnedMissingStates`），所以拆机时不再刷警告；真缺状态时仍会报一次并带上控制器名（用 `AC_W_MGX5` 换控制器实测：两个缺失状态各报 1 次，第三次同一状态静默）。
 - Blender 5.2 相关：`Action` 不再直接暴露 `fcurves`（改插值要走 `preferences.edit.keyframe_new_interpolation_type`）；`bake_anim_use_all_actions=True` 实测导不出任何 take，必须用 NLA 轨道导出；join 时要先建一个原点处的空对象当目标，否则会继承第一个部件的旋转/非等比缩放。
 - XM777 特效接入（2026-10-30）：新增 `Assets/Scripts/TowerDefense/XM777VfxPlayback.cs`，由 `XM777Trap.FireAt` 在实际炮口触发 `muzzleEffectPrefab`，由 `Detonate` 在预测落点触发 `impactEffectPrefab`；特效播放完成后自动销毁，放置预览因 `XM777Trap.enabled = false` 不会触发。伤害、待命中记录、3 秒射击间隔和目标筛选未改。
 - 特效生成器为 `Assets/Editor/XM777VfxAuthoring.cs`，菜单 `Tools/塔防/生成 XM777 特效预制体`；正式资源在 `Assets/Prefabs/Effects/XM777_Muzzle.prefab`、`XM777_Impact.prefab`，含火焰、烟雾与水平冲击波环。`XM777TrapAuthoring.CreateAssets` 会先生成/刷新特效并把两个预制体引用写入 `Assets/Prefabs/XM777.prefab`。

@@ -31,8 +31,8 @@ public sealed class MissileProjectile : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float splashDamageRatio = 0.5f;
 
     [Header("Flight")]
-    [SerializeField, Min(0.01f)] private float speed = 60f;
-    [SerializeField, Min(0f)] private float turnRateDegrees = 180f;
+    [SerializeField, Min(0.01f)] private float speed = 100f;
+    [SerializeField, Min(0f)] private float turnRateDegrees = 360f;
     [SerializeField, Min(0.01f)] private float proximityFuseRadius = 1.2f;
     [SerializeField, Min(0.01f)] private float maxFlightRange = 18f;
     [Tooltip("Safety net only: max range detonation is the primary end-of-flight path.")]
@@ -78,6 +78,16 @@ public sealed class MissileProjectile : MonoBehaviour
     /// <summary>Effective end-of-flight range: the mount's detection range when enabled, otherwise the authored value.</summary>
     public float MaxFlightRange =>
         useTurretRangeAsMaxFlightRange && turret != null ? turret.DetectionRange : maxFlightRange;
+
+    /// <summary>
+    /// Chooses where the range detonation takes its limit from. The weapon calls
+    /// this at launch, so a trap can keep a wide detection sphere while the
+    /// missile still flies its own (longer) flight range.
+    /// </summary>
+    public void SetFollowMountRange(bool followMountDetection)
+    {
+        useTurretRangeAsMaxFlightRange = followMountDetection;
+    }
 
     private void OnValidate()
     {

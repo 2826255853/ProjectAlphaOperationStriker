@@ -336,7 +336,160 @@ public sealed class MissileLauncherWeaponTests
         Assert.That(muzzleA, Is.Not.SameAs(muzzleB), "左右两管必须是不同节点。");
     }
 
+    [Test]
+    public void AuthoredLauncherUsesFortyMetreDetectionAndFiftyMetreFlightRange()
+    {
+        GameObject prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(
+            MissileLauncherTurretAuthoring.LauncherPrefabPath);
+        Assert.That(prefab, Is.Not.Null, "应先运行 Tools/塔防/生成导弹发射器预制体。");
+
+        var instance = (GameObject)Object.Instantiate(prefab);
+        objects.Add(instance);
+
+        MissileLauncherTurret turret = instance.GetComponent<MissileLauncherTurret>();
+        MissileLauncherWeapon weapon = instance.GetComponent<MissileLauncherWeapon>();
+        Assert.That(turret.DetectionRange, Is.EqualTo(40f).Within(0.001f), "对空探测半径应为 40 米。");
+        Assert.That(weapon.MaxFlightRange, Is.EqualTo(50f).Within(0.001f), "弹体射程应为 50 米。");
+        Assert.That(weapon.ProjectileSpeed, Is.EqualTo(100f).Within(0.001f), "弹速应为 100 m/s。");
+        Assert.That(weapon.TurnRateDegrees, Is.EqualTo(360f).Within(0.001f), "转向速率应为 360°/秒。");
+        Assert.That(weapon.ReloadTime, Is.EqualTo(4f).Within(0.001f), "装填时间应为 4 秒。");
+        Assert.That(weapon.FlightRangeFollowsDetection, Is.False, "弹体射程不应再跟随探测半径。");
+    }
+
+    [Test]
+    public void LaunchedMissileKeepsFiftyMetreFlightRangeWhenDetectionIsForty()
+    {
+        GameObject prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(
+            MissileLauncherTurretAuthoring.LauncherPrefabPath);
+        Assert.That(prefab, Is.Not.Null, "应先运行 Tools/塔防/生成导弹发射器预制体。");
+
+        var instance = (GameObject)Object.Instantiate(prefab);
+        objects.Add(instance);
+        instance.transform.position = Vector3.zero;
+
+        MissileLauncherTurret turret = instance.GetComponent<MissileLauncherTurret>();
+        MissileLauncherWeapon weapon = instance.GetComponent<MissileLauncherWeapon>();
+        InvokeLifecycle(turret, "Awake");
+        InvokeLifecycle(weapon, "Awake");
+        InvokeLifecycle(weapon, "OnEnable");
+
+        // Well inside the 40 m detection sphere, so the mount acquires and fires.
+        CreateFlyingEnemy(new Vector3(0f, 1f, 20f), new Vector3(0f, 1f, 20f), 0f);
+
+        List<MissileProjectile> launched = AdvanceUntilMissiles(weapon, 1, 600);
+        Assert.That(launched.Count, Is.EqualTo(1), "20 米内的飞行怪应触发一次发射。");
+        Assert.That(launched[0].MaxFlightRange, Is.EqualTo(50f).Within(0.001f),
+            "弹体射程必须固定为 50 米，不能被 40 米探测半径覆盖。");
+    }
+
+    // ------------------------------------------------------------- R7 ----
+
+    /// <summary>
+    /// A fired rail reads as empty until the reload finishes, and only that rail
+    /// empties: the unlaunched tube keeps its round.
+    /// </summary>
+    [Test]
+    public void FiredTubeStaysEmptyUntilTheReloadFinishes()
+    {
+        MissileLauncherTurret turret = CreateLauncher(Vector3.zero, out MissileLauncherWeapon weapon);
+        SetFloat(turret, "detectionRange", 40f);
+        SetFloat(weapon, "launchInterval", 0.05f);
+        SetFloat(weapon, "reloadTime", 2f);
+        SetFloat(weapon, "damagePerMissile", 1f);
+        SetFloat(weapon, "splashDamageRatio", 0f);
+        EnemyInstance enemy = CreateFlyingEnemy(new Vector3(0f, 1f, 10f), new Vector3(0f, 1f, 10f), 0f);
+
+        MissileLauncherReloadVisual visual = weapon.ReloadVisual;
+        Assert.That(visual, Is.Not.Null, "武器必须挂上装填表现组件。");
+        Assert.That(visual.TubeCount, Is.EqualTo(2), "双联发射架必须有两个独立位置。");
+        Assert.That(visual.IsTubeLoaded(0), Is.True);
+        Assert.That(visual.IsTubeLoaded(1), Is.True);
+
+        AdvanceUntilMissiles(weapon, 1, 200);
+        Assert.That(weapon.IsTubeEmpty(0), Is.True, "发射后该位置必须为空。");
+        Assert.That(weapon.IsTubeEmpty(1), Is.False, "未发射的另一管仍装着弹。");
+
+        for (int step = 0; step < 30 && weapon.IsTubeEmpty(1) == false; step++) weapon.Advance(1f / 60f);
+        Assert.That(weapon.IsTubeEmpty(0), Is.True);
+        Assert.That(weapon.IsTubeEmpty(1), Is.True, "齐射后两个位置都为空。");
+        Assert.That(weapon.IsReloading, Is.True, "打满齐射后进入装填。");
+
+        // 装填进行中还必须是空的。
+        weapon.Advance(1.5f);
+        Assert.That(weapon.IsReloading, Is.True);
+        Assert.That(visual.HasEmptyTube, Is.True, "装填未完成前位置不能重新出现导弹。");
+
+        // 目标消失也要把装填走完（否则装填中途脱靶会永久空管）。
+        Object.DestroyImmediate(enemy.gameObject);
+        weapon.Advance(0.6f);
+        Assert.That(weapon.IsReloading, Is.False, "2 秒装填在 2.1 秒后必须结束。");
+        Assert.That(visual.HasEmptyTube, Is.False, "装填完毕后两个位置都必须重新出现导弹。");
+        Assert.That(visual.IsTubeLoaded(0), Is.True);
+        Assert.That(visual.IsTubeLoaded(1), Is.True);
+    }
+
+    /// <summary>The empty state is a hidden mesh, not a deactivated node: the tube transforms are the muzzles.</summary>
+    [Test]
+    public void EmptyTubeHidesOnlyThatRailsMissileMesh()
+    {
+        var root = new GameObject("Reload Visual Rig");
+        objects.Add(root);
+        Transform railA = CreateRailWithMesh(root.transform, "Missile_01", LeftMuzzleX);
+        Transform railB = CreateRailWithMesh(root.transform, "Missile_02", RightMuzzleX);
+
+        MissileLauncherReloadVisual visual = root.AddComponent<MissileLauncherReloadVisual>();
+        visual.SetTubes(railA, railB);
+        InvokeLifecycle(visual, "Awake");
+
+        MeshRenderer bodyA = railA.Find("Missile_01_Body").GetComponent<MeshRenderer>();
+        MeshRenderer bodyB = railB.Find("Missile_02_Body").GetComponent<MeshRenderer>();
+        Assert.That(bodyA, Is.Not.Null);
+        Assert.That(bodyA.enabled, Is.True);
+
+        Assert.That(visual.ClearTube(0), Is.True);
+        Assert.That(bodyA.enabled, Is.False, "发射后该位置必须为空（导弹网格不可见）。");
+        Assert.That(bodyB.enabled, Is.True, "另一管不受影响。");
+        Assert.That(railA.gameObject.activeInHierarchy, Is.True, "只隐藏网格，节点仍要当发射点用。");
+        Assert.That(railA.position.x, Is.EqualTo(LeftMuzzleX).Within(0.001f), "发射点位置不能因为空管而丢失。");
+
+        Assert.That(visual.ClearTube(0), Is.False, "重复清空同一管不算状态变化。");
+        visual.RestoreAll();
+        Assert.That(bodyA.enabled, Is.True, "装填完毕后导弹重新出现。");
+        Assert.That(visual.IsTubeLoaded(0), Is.True);
+    }
+
+    /// <summary>The generated prefab must carry the reload art, wired to both rails.</summary>
+    [Test]
+    public void AuthoredPrefabWiresOneReloadVisualPerTube()
+    {
+        const string prefabPath = "Assets/Prefabs/DualMissileLauncher.prefab";
+        GameObject prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        Assert.That(prefab, Is.Not.Null, $"缺少预制体 {prefabPath}，先跑生成器。");
+
+        MissileLauncherWeapon weapon = prefab.GetComponent<MissileLauncherWeapon>();
+        Assert.That(weapon, Is.Not.Null, "预制体上必须有发射逻辑。");
+
+        MissileLauncherReloadVisual visual = prefab.GetComponent<MissileLauncherReloadVisual>();
+        Assert.That(visual, Is.Not.Null, "生成器必须把装填表现组件写进预制体。");
+        Assert.That(GetObject<MissileLauncherReloadVisual>(weapon, "reloadVisual"), Is.EqualTo(visual),
+            "武器的装填表现引用必须指向同一个组件。");
+        Assert.That(visual.TubeCount, Is.EqualTo(2), "双联发射架必须是两个位置。");
+        Assert.That(visual.GetTube(0).name, Does.StartWith("Missile_01"), "左管必须绑定 Missile_01。");
+        Assert.That(visual.GetTube(1).name, Does.StartWith("Missile_02"), "右管必须绑定 Missile_02。");
+    }
+
     // ------------------------------------------------------------ helpers ---
+
+    private Transform CreateRailWithMesh(Transform parent, string name, float x)
+    {
+        var rail = new GameObject(name);
+        rail.transform.SetParent(parent, false);
+        rail.transform.localPosition = new Vector3(x, PivotHeight, 0f);
+        var body = new GameObject(name + "_Body");
+        body.transform.SetParent(rail.transform, false);
+        body.AddComponent<MeshRenderer>();
+        return rail.transform;
+    }
 
     private MissileLauncherTurret CreateLauncher(Vector3 position, out MissileLauncherWeapon weapon)
     {

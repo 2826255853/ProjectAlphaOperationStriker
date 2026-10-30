@@ -36,19 +36,23 @@ public sealed class MissileLauncherWeapon : MonoBehaviour
     [Header("Salvo")]
     [SerializeField, Min(1)] private int missilesPerSalvo = 2;
     [SerializeField, Min(0f)] private float launchInterval = 0.25f;
-    [SerializeField, Min(0.01f)] private float reloadTime = 6f;
+    [SerializeField, Min(0.01f)] private float reloadTime = 4f;
 
     [Header("Projectile")]
     [SerializeField] private MissileProjectile projectilePrefab;
     [SerializeField] private Transform muzzleA;
     [SerializeField] private Transform muzzleB;
+    [Tooltip("Optional reload art: the tube's round disappears on launch and returns when the reload finishes. Added at runtime when missing.")]
+    [SerializeField] private MissileLauncherReloadVisual reloadVisual;
     [SerializeField, Min(0f)] private float damagePerMissile = 45f;
     [SerializeField, Min(0f)] private float splashRadius = 2.5f;
     [SerializeField, Range(0f, 1f)] private float splashDamageRatio = 0.5f;
-    [SerializeField, Min(0.01f)] private float projectileSpeed = 60f;
-    [SerializeField, Min(0f)] private float turnRateDegrees = 180f;
-    [Tooltip("Fallback flight range; the projectile prefers the mount's detection range when it tracks it.")]
-    [SerializeField, Min(0.01f)] private float maxFlightRange = 18f;
+    [SerializeField, Min(0.01f)] private float projectileSpeed = 100f;
+    [SerializeField, Min(0f)] private float turnRateDegrees = 360f;
+    [Tooltip("Flight range of one missile. It is independent of the mount's detection range by default.")]
+    [SerializeField, Min(0.01f)] private float maxFlightRange = 50f;
+    [Tooltip("True: the range detonation reuses the mount's detection range. False: the missile flies its own maxFlightRange, so it can still catch a target that left the detection sphere.")]
+    [SerializeField] private bool flightRangeFollowsDetection;
 
     [Header("Lead")]
     [SerializeField] private MissileGuidanceMode guidanceMode = MissileGuidanceMode.ContinuousLeadRefine;
@@ -83,9 +87,17 @@ public sealed class MissileLauncherWeapon : MonoBehaviour
     public float ProjectileSpeed => projectileSpeed;
     public float TurnRateDegrees => turnRateDegrees;
     public float MaxFlightRange => maxFlightRange;
+    public bool FlightRangeFollowsDetection => flightRangeFollowsDetection;
     public MissileGuidanceMode GuidanceMode => guidanceMode;
     public float LeadRefreshSeconds => leadRefreshSeconds;
     public MissileLauncherTurret Turret => turret;
+    /// <summary>Reload art driver: one loaded round per tube, empty while reloading.</summary>
+    public MissileLauncherReloadVisual ReloadVisual => reloadVisual;
+    /// <summary>True when this tube has no round on its rail right now.</summary>
+    public bool IsTubeEmpty(int tubeIndex)
+    {
+        return reloadVisual != null && !reloadVisual.IsTubeLoaded(tubeIndex);
+    }
     public EnemyInstance CurrentTarget => turret != null ? turret.CurrentTarget : trackedTarget;
     public Vector3 InterceptPoint => interceptPoint;
     /// <summary>True once a usable aim point exists (a lead solution or the enemy-position fallback).</summary>
@@ -97,6 +109,7 @@ public sealed class MissileLauncherWeapon : MonoBehaviour
     {
         if (turret == null) turret = GetComponent<MissileLauncherTurret>();
         ResolveMuzzles();
+        ResolveReloadVisual();
     }
 
     /// <summary>
@@ -122,17 +135,36 @@ public sealed class MissileLauncherWeapon : MonoBehaviour
         return null;
     }
 
+    /// <summary>
+    /// Finds (or adds) the reload art driver and hands it the same two tube
+    /// transforms the muzzles use, so "this tube is empty" and "fire from this
+    /// tube" always refer to the same rail.
+    /// </summary>
+    private void ResolveReloadVisual()
+    {
+        if (reloadVisual == null) reloadVisual = GetComponent<MissileLauncherReloadVisual>();
+        if (reloadVisual == null) reloadVisual = gameObject.AddComponent<MissileLauncherReloadVisual>();
+        reloadVisual.SetTubes(muzzleA, muzzleB);
+        reloadVisual.RestoreAll();
+    }
+
     private void OnEnable()
     {
         // Rule R3: the weapon owns the aiming so the mount does not fight it by
         // tracking the enemy's current position in its own Update.
         if (turret != null) turret.AimDrivenExternally = true;
+        // A freshly placed / re-enabled launcher starts with a full rack; an
+        // interrupted reload must not leave the rails empty.
+        if (reloadVisual != null) reloadVisual.RestoreAll();
     }
 
     private void OnDisable()
     {
         if (turret != null) turret.AimDrivenExternally = false;
         if (turret != null) turret.ClearCurrentAimPoint();
+        // Outside the enclosing object being torn down, put the rounds back so
+        // disabling the component never leaves a visibly empty rack.
+        if (reloadVisual != null && gameObject.activeInHierarchy) reloadVisual.RestoreAll();
         velocityTrackers.Clear();
         hasIntercept = false;
         usingLead = false;
@@ -168,7 +200,13 @@ public sealed class MissileLauncherWeapon : MonoBehaviour
         if (turret == null) turret = GetComponent<MissileLauncherTurret>();
         if (deltaTime < 0f) deltaTime = 0f;
 
-        if (reloadRemaining > 0f) reloadRemaining = Mathf.Max(0f, reloadRemaining - deltaTime);
+        if (reloadRemaining > 0f)
+        {
+            reloadRemaining = Mathf.Max(0f, reloadRemaining - deltaTime);
+            // "Loaded again" happens exactly when the timer runs out: the empty
+            // rails get their rounds back before anything else looks at them.
+            if (reloadRemaining <= 0f) FinishReload();
+        }
 
         EnemyInstance target = AcquireTarget();
         if (target == null)
@@ -212,6 +250,13 @@ public sealed class MissileLauncherWeapon : MonoBehaviour
             stateTimer = 0f;
             state = MissileLauncherState.Reloading;
         }
+    }
+
+    /// <summary>Called once when the reload timer reaches zero: the rack is full again.</summary>
+    private void FinishReload()
+    {
+        missilesLaunchedInSalvo = 0;
+        if (reloadVisual != null) reloadVisual.RestoreAll();
     }
 
     /// <summary>The mount's live target, falling back to the last one we tracked.</summary>
@@ -392,7 +437,8 @@ public sealed class MissileLauncherWeapon : MonoBehaviour
         EnemyHealth health = target.GetComponent<EnemyHealth>();
         if (health == null || health.IsDead) return;
 
-        Transform muzzle = NextMuzzle();
+        int tubeIndex = NextTubeIndex();
+        Transform muzzle = MuzzleAt(tubeIndex);
         Vector3 origin = muzzle != null ? muzzle.position : MuzzlePosition();
         // Rule R3: leave the tube along the barrel, which is already on the lead point.
         Vector3 direction = turret != null && turret.HasRig
@@ -411,20 +457,41 @@ public sealed class MissileLauncherWeapon : MonoBehaviour
         float shotDamage = trap != null ? trap.GetEffectiveDamage(damagePerMissile) : damagePerMissile;
         missile.ConfigureTuning(shotDamage, splashRadius, splashDamageRatio, projectileSpeed,
             turnRateDegrees, maxFlightRange, guidanceMode, leadRefreshSeconds);
+        // The mount's detection sphere and the missile's flight range are two
+        // different limits: the missile may keep chasing a target that already
+        // left the sphere, and detonates at its own range instead.
+        missile.SetFollowMountRange(flightRangeFollowsDetection);
         missile.Initialize(turret, target, interceptPoint, direction);
 
         missile.Destroyed += HandleMissileDestroyed;
         missilesInFlight++;
+
+        // The round physically left this rail, so the rail reads as empty from now
+        // on - until FinishReload puts a fresh round back.
+        if (tubeIndex >= 0 && reloadVisual != null) reloadVisual.ClearTube(tubeIndex);
     }
 
-    /// <summary>Round-robins the tubes so each salvo puts one missile on each rail.</summary>
-    private Transform NextMuzzle()
+    /// <summary>Index of the tube that fires next (0 or 1); -1 when no tube is wired.</summary>
+    private int NextTubeIndex()
     {
-        Transform first = muzzleA != null ? muzzleA : muzzleB;
-        Transform second = muzzleA != null ? muzzleB : muzzleA;
-        if (first == null) return null;
-        if (second == null) return first;
-        return missilesLaunchedInSalvo % 2 == 0 ? first : second;
+        bool hasA = muzzleA != null;
+        bool hasB = muzzleB != null;
+        if (!hasA && !hasB) return -1;
+        if (!hasA) return 1;
+        if (!hasB) return 0;
+        return missilesLaunchedInSalvo % 2;
+    }
+
+    /// <summary>The muzzle of one tube, falling back to the other rail when it is missing.</summary>
+    private Transform MuzzleAt(int tubeIndex)
+    {
+        if (tubeIndex == 1)
+        {
+            if (muzzleB != null) return muzzleB;
+            return muzzleA;
+        }
+        if (muzzleA != null) return muzzleA;
+        return muzzleB;
     }
 
     /// <summary>Builds a minimal missile when no prefab is assigned, mirroring the sentry gun's fallback art.</summary>

@@ -5961,6 +5961,100 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1523976145}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1528815475
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1528815476}
+  - component: {fileID: 1528815477}
+  m_Layer: 0
+  m_Name: Enemy Spawn Flying Drone
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1528815476
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1528815475}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -60, y: 16, z: -40}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1863323592}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1528815477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1528815475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3bbd9536e5c4c6ca22ce6ba44a34f2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemySpawnPoint
+  spawningEnabled: 1
+  spawnInterval: 2
+  overrideKillReward: 0
+  killRewardOverride: 10
+  totalWaves: 3
+  enemiesPerWave: 3
+  waveSpawnSettings:
+  - enabled: 1
+    enemyCount: 3
+    enemyPrefab: {fileID: 112589276196228853, guid: 6c36b564f2fa51444bc2fbd932ead285, type: 3}
+    monsterType: 1
+    flightHeight: 10
+    alternateEnemyPrefab: {fileID: 0}
+    alternateShare: 0
+    alternateMoveSpeed: 0
+  - enabled: 1
+    enemyCount: 3
+    enemyPrefab: {fileID: 112589276196228853, guid: 6c36b564f2fa51444bc2fbd932ead285, type: 3}
+    monsterType: 1
+    flightHeight: 10
+    alternateEnemyPrefab: {fileID: 0}
+    alternateShare: 0
+    alternateMoveSpeed: 0
+  - enabled: 1
+    enemyCount: 3
+    enemyPrefab: {fileID: 112589276196228853, guid: 6c36b564f2fa51444bc2fbd932ead285, type: 3}
+    monsterType: 1
+    flightHeight: 10
+    alternateEnemyPrefab: {fileID: 0}
+    alternateShare: 0
+    alternateMoveSpeed: 0
+  initialWaveDelay: 12
+  waveTransitionDelays:
+  - 15
+  - 30
+  timeBetweenWaves: -1
+  enemyPrefab: {fileID: 112589276196228853, guid: 6c36b564f2fa51444bc2fbd932ead285, type: 3}
+  enemyParent: {fileID: 0}
+  pathGrid: {fileID: 189873626}
+  core: {fileID: 1424268005}
+  useTargetWaypoint: 0
+  targetPoint: {fileID: 0}
+  targetPosition: {x: 0, y: 0, z: 0}
+  travelDirection: {x: 0, y: 0, z: 1}
+  moveSpeed: 3.4
+  monsterType: 1
+  flightHeight: 10
+  flyingEntrance: 1
+  entranceAltitude: 16
+  flyingSpawnSpread: 4
 --- !u!1 &1531197063
 GameObject:
   m_ObjectHideFlags: 0
@@ -7300,6 +7394,7 @@ Transform:
   - {fileID: 1691379012}
   - {fileID: 213259640}
   - {fileID: 711069684}
+  - {fileID: 1528815476}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1906485577

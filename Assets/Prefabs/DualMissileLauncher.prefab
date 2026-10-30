@@ -406,6 +406,7 @@ GameObject:
   - component: {fileID: 545085350819765176}
   - component: {fileID: 7833538148536264051}
   - component: {fileID: 5130555588950500952}
+  - component: {fileID: 7718179429025466212}
   - component: {fileID: 370996845635516679}
   m_Layer: 0
   m_Name: DualMissileLauncher
@@ -463,7 +464,7 @@ MonoBehaviour:
   targetPriority: 0
   tieBreakDistanceEpsilon: 0.25
   core: {fileID: 0}
-  detectionRange: 12
+  detectionRange: 40
   yawSpeedDegrees: 120
   pitchSpeedDegrees: 90
   minPitchDegrees: 0
@@ -490,19 +491,40 @@ MonoBehaviour:
   aimToleranceDegrees: 8
   missilesPerSalvo: 2
   launchInterval: 0.25
-  reloadTime: 6
+  reloadTime: 4
   projectilePrefab: {fileID: 0}
   muzzleA: {fileID: 328739328421969165}
   muzzleB: {fileID: 6431839320609496174}
+  reloadVisual: {fileID: 7718179429025466212}
   damagePerMissile: 45
   splashRadius: 2.5
   splashDamageRatio: 0.5
-  projectileSpeed: 60
-  turnRateDegrees: 180
-  maxFlightRange: 18
+  projectileSpeed: 100
+  turnRateDegrees: 360
+  maxFlightRange: 50
+  flightRangeFollowsDetection: 0
   guidanceMode: 0
   leadRefreshSeconds: 0.1
   velocitySmoothingSeconds: 0.2
+--- !u!114 &7718179429025466212
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 715730210379081707}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3de39b3068a2c244ca937f23a84ff47c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MissileLauncherReloadVisual
+  tubeVisuals:
+  - {fileID: 328739328421969165}
+  - {fileID: 6431839320609496174}
+  tubeVisualNames:
+  - Missile_01
+  - Missile_02
+  hideOnLaunch: 1
 --- !u!114 &370996845635516679
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -21,7 +21,20 @@ public static class HurricaneDroneAuthoring
     public const string MaterialDir = "Assets/Models/HurricaneDrone/Materials";
     public const string AnimDir = "Assets/Animations/HurricaneDrone";
     public const string ControllerPath = AnimDir + "/HurricaneDrone.controller";
+    /// <summary>纯表现预制体（菜单预览、装饰用）。</summary>
     public const string PrefabPath = "Assets/Prefabs/HurricaneDrone.prefab";
+    /// <summary>
+    /// 可接入出怪口的飞行怪物预制体：表现预制体 + EnemyHealth / MonsterPathFollower(飞行) / HurricaneDroneEnemy。
+    /// 放在 Resources 下，和 FlyingMonster 一样能被 <c>Resources.Load</c> 按名字取到。
+    /// </summary>
+    public const string EnemyPrefabPath = "Assets/Resources/HurricaneDroneEnemy.prefab";
+    /// <summary>Resources.Load 用的资源名。</summary>
+    public const string EnemyPrefabResourceName = "HurricaneDroneEnemy";
+
+    // 飞行怪物默认参数（与空中出怪口的飞行分支一致：不走 MonsterPathGrid）
+    public const float EnemyMaxHealth = 260f;
+    public const float EnemyMoveSpeed = 3.4f;
+    public const float EnemyFlightHeight = 10f;
 
     /// <summary>炮口在 Unity 坐标系下的本地位置（Blender 里机头朝 -Y，导出后朝 +Z）。</summary>
     public static readonly Vector3 MuzzleLocalPosition = new Vector3(0f, -1.18f, 2.42f);
@@ -101,10 +114,11 @@ public static class HurricaneDroneAuthoring
 
         var controller = BuildController(clips);
         var prefab = BuildPrefab(controller);
+        BuildEnemyPrefab(controller);
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log($"[HurricaneDrone] 完成：材质 {materials.Count} 个，动画 {clips.Count} 段，预制体 {PrefabPath}");
+        Debug.Log($"[HurricaneDrone] 完成：材质 {materials.Count} 个，动画 {clips.Count} 段，表现预制体 {PrefabPath}，飞行怪物预制体 {EnemyPrefabPath}");
     }
 
     // ---------------------------------------------------------------- 材质
@@ -325,9 +339,9 @@ public static class HurricaneDroneAuthoring
     }
 
     // ------------------------------------------------------------ 预制体
-    static GameObject BuildPrefab(AnimatorController controller)
+    /// <summary>从 FBX 建一个装配好 Animator / Muzzle / HurricaneDroneUnit 的实例（未存成资产）。</summary>
+    static GameObject CreateDroneInstance(AnimatorController controller)
     {
-        Directory.CreateDirectory("Assets/Prefabs");
         var model = AssetDatabase.LoadAssetAtPath<GameObject>(ModelPath);
         var instance = (GameObject)PrefabUtility.InstantiatePrefab(model);
         instance.name = "HurricaneDrone";
@@ -352,10 +366,57 @@ public static class HurricaneDroneAuthoring
         }
         unit.animator = animator;
         unit.muzzle = muzzle;
+        return instance;
+    }
 
+    static GameObject BuildPrefab(AnimatorController controller)
+    {
+        Directory.CreateDirectory("Assets/Prefabs");
+        var instance = CreateDroneInstance(controller);
         PrefabUtility.SaveAsPrefabAsset(instance, PrefabPath);
         Object.DestroyImmediate(instance);
         return AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+    }
+
+    /// <summary>
+    /// 生成可接入出怪口的飞行怪物预制体。
+    /// 组件组合：HurricaneDroneUnit（动画）+ EnemyHealth（血量）+ MonsterPathFollower（飞行分支）
+    /// + HurricaneDroneEnemy（索敌/机炮/动画驱动）。
+    /// **不加 GroundEnemyCombat**：近战追击依赖地面网格可达性，飞行怪必须缺席（见 FlyingSpawnPointTests）。
+    /// </summary>
+    static GameObject BuildEnemyPrefab(AnimatorController controller)
+    {
+        Directory.CreateDirectory("Assets/Resources");
+        var instance = CreateDroneInstance(controller);
+        instance.name = EnemyPrefabResourceName;
+
+        var health = instance.GetComponent<EnemyHealth>() ?? instance.AddComponent<EnemyHealth>();
+        var follower = instance.GetComponent<MonsterPathFollower>() ?? instance.AddComponent<MonsterPathFollower>();
+        var enemy = instance.GetComponent<HurricaneDroneEnemy>() ?? instance.AddComponent<HurricaneDroneEnemy>();
+
+        // 血量：EnemyHealth 的 maxHealth 是私有序列化字段
+        var healthSo = new SerializedObject(health);
+        healthSo.FindProperty("maxHealth").floatValue = EnemyMaxHealth;
+        healthSo.ApplyModifiedPropertiesWithoutUndo();
+
+        // 飞行移动：与 MonsterPathFollower.InitializeFlying 同一套字段，运行时由出怪口再次赋值
+        var followerSo = new SerializedObject(follower);
+        followerSo.FindProperty("moveSpeed").floatValue = EnemyMoveSpeed;
+        followerSo.FindProperty("flightHeight").floatValue = EnemyFlightHeight;
+        followerSo.FindProperty("flying").boolValue = true;
+        followerSo.FindProperty("turnSpeed").floatValue = 180f;
+        followerSo.ApplyModifiedPropertiesWithoutUndo();
+
+        // 显式接线，避免依赖运行时自动查找
+        var enemySo = new SerializedObject(enemy);
+        enemySo.FindProperty("follower").objectReferenceValue = follower;
+        enemySo.FindProperty("health").objectReferenceValue = health;
+        enemySo.FindProperty("unit").objectReferenceValue = instance.GetComponent<HurricaneDroneUnit>();
+        enemySo.ApplyModifiedPropertiesWithoutUndo();
+
+        PrefabUtility.SaveAsPrefabAsset(instance, EnemyPrefabPath);
+        Object.DestroyImmediate(instance);
+        return AssetDatabase.LoadAssetAtPath<GameObject>(EnemyPrefabPath);
     }
 
     static Transform EnsureMuzzle(GameObject instance)
@@ -439,5 +500,74 @@ public static class HurricaneDroneAuthoring
     public static void ProbePrefabBatch()
     {
         ProbePrefab();
+    }
+
+    /// <summary>
+    /// 探针：飞行怪物预制体的接线（组件齐全、飞行分支、没有 GroundEnemyCombat、Resources 路径可取）。
+    /// 失败时输出 <c>HURRICANE_DRONE_ENEMY_FAIL</c>，成功输出 <c>HURRICANE_DRONE_ENEMY_PASS</c>。
+    /// </summary>
+    [MenuItem("Tools/塔防/校验飓风无人机飞行怪物预制体")]
+    public static void ProbeEnemyPrefab()
+    {
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(EnemyPrefabPath);
+        if (prefab == null)
+        {
+            Debug.LogError($"[HurricaneDrone] 飞行怪物预制体不存在：{EnemyPrefabPath}，先跑 CreateAll。");
+            return;
+        }
+
+        var sb = new System.Text.StringBuilder();
+        var failures = new List<string>();
+        sb.AppendLine("[HurricaneDrone] 飞行怪物预制体校验");
+
+        Check(prefab.GetComponent<EnemyInstance>() == null, "EnemyInstance 由出怪口在运行时添加（预制体不需要）", sb, failures);
+        var health = prefab.GetComponent<EnemyHealth>();
+        Check(health != null, "EnemyHealth", sb, failures);
+        if (health != null)
+        {
+            sb.AppendLine($"  血量: {health.MaxHealth}");
+            Check(health.MaxHealth >= 100f, "血量 >= 100", sb, failures);
+        }
+
+        var follower = prefab.GetComponent<MonsterPathFollower>();
+        Check(follower != null, "MonsterPathFollower", sb, failures);
+        if (follower != null)
+        {
+            sb.AppendLine($"  移动速度: {follower.MoveSpeed}，飞行高度: {follower.FlightHeight}，IsFlying: {follower.IsFlying}");
+            Check(follower.IsFlying, "飞行分支已开启（IsFlying）", sb, failures);
+            Check(follower.MoveSpeed > 0f, "移动速度 > 0", sb, failures);
+        }
+
+        var enemy = prefab.GetComponent<HurricaneDroneEnemy>();
+        Check(enemy != null, "HurricaneDroneEnemy", sb, failures);
+        var unit = prefab.GetComponent<HurricaneDroneUnit>();
+        Check(unit != null, "HurricaneDroneUnit", sb, failures);
+        if (unit != null)
+        {
+            Check(unit.animator != null && unit.animator.runtimeAnimatorController != null,
+                "Animator + Controller", sb, failures);
+            Check(unit.muzzle != null, "Muzzle 挂点", sb, failures);
+        }
+
+        Check(prefab.GetComponent<GroundEnemyCombat>() == null, "没有 GroundEnemyCombat（飞行怪必须缺席近战追击）", sb, failures);
+        Check(Resources.Load<GameObject>(EnemyPrefabResourceName) != null,
+            $"Resources.Load(\"{EnemyPrefabResourceName}\") 可取到", sb, failures);
+
+        sb.AppendLine(failures.Count == 0 ? "HURRICANE_DRONE_ENEMY_PASS" : $"HURRICANE_DRONE_ENEMY_FAIL: {string.Join(" / ", failures)}");
+        Debug.Log(sb.ToString());
+    }
+
+    static void Check(bool condition, string label, System.Text.StringBuilder sb, List<string> failures)
+    {
+        sb.AppendLine($"  [{(condition ? "OK" : "FAIL")}] {label}");
+        if (!condition)
+        {
+            failures.Add(label);
+        }
+    }
+
+    public static void ProbeEnemyPrefabBatch()
+    {
+        ProbeEnemyPrefab();
     }
 }

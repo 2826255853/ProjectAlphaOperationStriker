@@ -83,6 +83,9 @@ Root
 
 ## 5. ç•™ç»™ç¨‹åºå‘˜çš„æ¥å…¥ç‚¹ï¼ˆæŒ‰ä¼˜å…ˆçº§ï¼‰
 
+> **2026-10-30 æ›´æ–°ï¼šP0ã€Œè®©å®ƒé£èµ·æ¥ã€ã€P0ã€Œå¼€ç«ä¸ä¼¤å®³ã€ã€P1ã€Œè¡€é‡ã€å·²ç”±ç¨‹åºä¾§å®ç°**ï¼Œ
+> è¯¦è§ä¸‹é¢ç¬¬ 8 èŠ‚ã€‚æœ¬èŠ‚ä¿ç•™åŸå§‹äº¤æ¥æè¿°ï¼Œä½œä¸ºè®¾è®¡æ„å›¾ä¸å¤‡é€‰æ–¹æ¡ˆè®°å½•ã€‚
+
 ### P0 Â· è®©å®ƒé£èµ·æ¥
 
 `HurricaneDroneUnit` åªç®¡åŠ¨ç”»ï¼Œ**ä¸å«ä»»ä½•ä½ç§»é€»è¾‘**ã€‚éœ€è¦æ–°å¢ä¸€ä¸ªé£è¡Œæ§åˆ¶ç»„ä»¶ï¼ˆå»ºè®®å `HurricaneDroneFlight`ï¼‰ï¼Œè´Ÿè´£ï¼š
@@ -153,3 +156,79 @@ Root
 3. è·‘ `Tools/å¡”é˜²/æ ¡éªŒé£“é£æ— äººæœºé¢„åˆ¶ä½“` çœ‹æ•°å€¼æ˜¯å¦ä»ç„¶å¯¹å¾—ä¸Šè®¾è®¡å›¾ã€‚
 
 **æ³¨æ„**ï¼šé¢„åˆ¶ä½“ã€æè´¨ã€æ§åˆ¶å™¨éƒ½æ˜¯ç”Ÿæˆç‰©ï¼Œæ‰‹æ”¹ä¼šåœ¨ä¸‹æ¬¡ `CreateAll` æ—¶è¢«è¦†ç›–ã€‚è¦æ”¹å¤–è§‚è¯·æ”¹ Blender è„šæœ¬æˆ– `HurricaneDroneAuthoring` é‡Œçš„å®šä¹‰ã€‚
+
+---
+
+## 8. ³ÌĞò²à½ÓÈë£º·ÉĞĞ¹ÖÎïÔ¤ÖÆÌå£¨2026-10-30 Íê³É£©
+
+ÎŞÈË»úÏÖÔÚÊÇÒ»Ì×**ÍêÕûµÄ·ÉĞĞ¹ÖÎï**£¬¿ÉÒÔÖ±½Ó·Å½ø¿ÕÖĞ³ö¹Ö¿Ú£¬ºÍ `FlyingMonster` ÊÇÍ¬Ò»Àà¶«Î÷¡£
+
+### 8.1 ĞÂÔöÄÚÈİ
+
+| ÓÃÍ¾ | Â·¾¶ |
+| --- | --- |
+| ·ÉĞĞ¹ÖÎïÔ¤ÖÆÌå£¨¿É½ÓÈë³ö¹Ö¿Ú£© | `Assets/Resources/HurricaneDroneEnemy.prefab` |
+| Íæ·¨²ã×é¼ş£¨Ë÷µĞ / »úÅÚ / ¶¯»­Çı¶¯£© | `Assets/Scripts/TowerDefense/HurricaneDroneEnemy.cs` |
+| ³ö¹Ö¿Ú½ÓÏß¹¤¾ß£¨½¨¿Ú / Ë¢ĞÂ / Ğ£Ñé£© | `Assets/Editor/HurricaneDroneSpawnAuthoring.cs` |
+| Ö÷³¡¾°¿ÕÖĞ³ö¹Ö¿Ú | ³¡¾°¶ÔÏó `Enemy Spawn Flying Drone`£¨¹ÒÔÚ `MapForgeWorld` ÏÂ£© |
+
+Ô¤ÖÆÌå×é¼ş×éºÏ£¨**ÓÉÉú³ÉÆ÷Ğ´Èë£¬ÊÖ¸Ä»á±»¸²¸Ç**£©£º
+
+```
+HurricaneDroneEnemy            £¨¸ù£¬HurricaneDroneEnemy.prefab£©
+©À©¤ Animator + HurricaneDroneUnit      ¶¯»­£¨HD_Hover / FlyForward / BankTurn / Attack£©
+©À©¤ EnemyHealth                        ÑªÁ¿ 260
+©À©¤ MonsterPathFollower                flying = true£¬ËÙ¶È 3.4£¬·ÉĞĞ¸ß¶È 10
+©¸©¤ Muzzle£¨ÔÚ Gun_Pitch ¹Ç÷ÀÏÂ£©       ÅÚ¿Ú
+```
+
+**Ã»ÓĞ `GroundEnemyCombat`**£º½üÕ½×·»÷ÒÀÀµµØÃæÍø¸ñ¿É´ïĞÔ£¬·ÉĞĞ¹Ö±ØĞëÔÚÕ½¶·ÖĞÈ±Ï¯
+£¨`FlyingSpawnPointTests` »á¶ÏÑÔÕâÒ»µã£¬`ProbeEnemyPrefabBatch` Ò²»á¼ì²é£©¡£
+
+### 8.2 ĞĞÎª
+
+- **·ÉĞĞ**£ºÍêÈ«¸´ÓÃ `MonsterPathFollower.InitializeFlying`£¨¿ÕÖĞ³ö¹Ö¿ÚÄÇÌõ·ÖÖ§£©£¬
+  ²»×ß `MonsterPathGrid`¡¢²»×öµØÃæÍ¶Ó°¡£Ä¿±êµã = ºËĞÄÎ»ÖÃ + `flightHeight`¡£
+- **¶¯»­**£º`HurricaneDroneEnemy` °´Êµ¼ÊÎ»ÒÆÓëÆ«º½½ÇËÙ¶ÈÇĞ `FlyForward` / `BankTurn` / `Hover`£»
+  ¹¥»÷ÆÚ¼ä²»ÇÀ×´Ì¬£¬ÓÉ `HurricaneDroneUnit` °´ `attackClipSeconds = 2.97` ÊÕÎ²¡£
+- **¿ª»ğ**£ºÑ¡°Ğ ¡ú Éä½ç£¨`aimConeDegrees`£¬Ö»¿´Ë®Æ½£©+ ÊÓÏß¼ì²â ¡ú ĞüÍ£²¢²¥ `HD_Attack`£»
+  `OnGunFire` ¶¯»­ÊÂ¼ş£¨6 ·¢£©Öğ·¢½áËã£¬Ã¿·¢ `damagePerShot = 6`¡£
+  - ÏİÚåÄ¿±ê£º`TrapInstance.TakeDamage`
+  - Íæ¼ÒÄ¿±ê£º`PlayerHealth.TakeDamage`
+  - **²»Éú³Éµ¯Íè¶ÔÏó¡¢²»Ì× `MissileAimSolver`**£¨40 mm »úÅÚÃ»ÓĞ×·×ÙÄÜÁ¦£©¡£
+- **Ñ¡°Ğ**£º`attackRange = 45 m` ÄÚµÄÏİÚå£»Ä¬ÈÏ**ÓÅÏÈ´òÄÜ¶Ô¿ÕµÄÏİÚå**£¨`MissileLauncherTurret`£©£¬
+  Æä´ÎÊÇ×î½üµÄÏİÚå/Íæ¼Ò£»`allowAttackPlayer` ¿É¹Øµô¶ÔÍæ¼Ò¹¥»÷¡£
+- **ËÀÍö**£º`EnemyHealth.Died` ºóÍ£»ğÍ£»ú£¨ËÙ¶È¹éÁã£©£¬Ïú»ÙÈÔ×ß `EnemyInstance` ¼ÈÓĞÁ÷³Ì£»
+  Ã»ÓĞ×ö×¹Âä¶¯»­£¨¼ûÔ­ P1 ËµÃ÷£¬ĞèÒªÃÀÊõ²¹ `HD_Crash`£©¡£
+
+### 8.3 ½ÓÈë·½Ê½
+
+1. Éú³ÉÔ¤ÖÆÌå£º`Tools/Ëş·À/Éú³Éì«·çÎŞÈË»úÔ¤ÖÆÌå`£¨= `HurricaneDroneAuthoring.CreateAll`£¬
+   »áÍ¬Ê±ÖØ½¨±íÏÖÔ¤ÖÆÌåÓë·ÉĞĞ¹ÖÎïÔ¤ÖÆÌå£©¡£
+2. Ğ£ÑéÔ¤ÖÆÌå£º`Tools/Ëş·À/Ğ£Ñéì«·çÎŞÈË»ú·ÉĞĞ¹ÖÎïÔ¤ÖÆÌå`
+   £¨= `HurricaneDroneAuthoring.ProbeEnemyPrefabBatch`£¬Êä³ö `HURRICANE_DRONE_ENEMY_PASS/FAIL`£©¡£
+3. ·ÅÖÃ³ö¹Ö¿Ú£º`Tools/Ëş·À/Ìí¼Óì«·çÎŞÈË»ú¿ÕÖĞ³ö¹Ö¿Ú`
+   £¨= `HurricaneDroneSpawnAuthoring.CreateSpawnPointBatch`£¬ÃİµÈ£¬ÖØ¸´ÅÜÖ»Ë¢ĞÂ½ÓÏß²¢±£´æ³¡¾°£©¡£
+4. Ğ£Ñé³ö¹Ö¿Ú£º`Tools/Ëş·À/Ğ£Ñéì«·çÎŞÈË»ú¿ÕÖĞ³ö¹Ö¿Ú`
+   £¨Êä³ö `HURRICANE_DRONE_SPAWN_PASS/FAIL`£©¡£
+
+µ±Ç°Ö÷³¡¾°³ö¹Ö¿Ú²ÎÊı£ºÎ»ÖÃ `(-60, 16, -40)`£¬`flyingEntrance = true`£¬`entranceAltitude = 16`£¬
+`flyingSpawnSpread = 4`£¬ËÙ¶È 3.4£¬`flightHeight = 10`£¬Ã¿²¨ 3 Ö»¡¢¼ä¸ô 2 s¡¢Ê×²¨ÑÓ³Ù 12 s¡£
+Öğ²¨ÉèÖÃ£¨`waveSpawnSettings`£©ÓÉ¹¤¾ßÏÔÊ½Ğ´Èë ¡ª¡ª ×¢Òâ `EnemySpawnPoint.OnValidate` »á×Ô¶¯²¹Ä¬ÈÏÌõÄ¿£¬
+ËùÒÔÖğ²¨Öµ±ØĞëÔÚ»ù´¡×Ö¶ÎÖ®ºóĞ´£¬·ñÔò»á±» 10 Ö»/²¨µÄÄ¬ÈÏÖµ¸²¸Ç¡£
+
+### 8.4 ÒÑÑéÖ¤ / Î´ÑéÖ¤
+
+**ÒÑÑéÖ¤£¨2026-10-30£¬Unity `6000.6.7f1`£©**
+
+- ±àÒë£º`dotnet build Assembly-CSharp-Editor.csproj` **0 ´íÎó**£¨Ö»ÓĞ¼ÈÓĞ warning£©¡£
+- `HurricaneDroneAuthoring.CreateAll` Åú´¦Àí³É¹¦£º²ÄÖÊ 8¡¢¶¯»­ 4 ¶Î¡¢Á½¸öÔ¤ÖÆÌå¶¼ÖØ½¨¡£
+- `ProbeEnemyPrefabBatch`£º12 ÏîÈ« OK£¬`HURRICANE_DRONE_ENEMY_PASS`¡£
+- `CreateSpawnPointBatch`£º³ö¹Ö¿ÚĞ´Èë³¡¾°£¬`ValidateSpawnPoint` 16 ÏîÈ« OK£¬`HURRICANE_DRONE_SPAWN_PASS`¡£
+- ³¡¾° diff Ö»ÓĞ 95 ĞĞĞÂÔö¡¢0 É¾³ı£¬¼ÈÓĞ¶ÔÏóÎ´±»¸Ä¶¯¡£
+
+**Î´ÑéÖ¤**
+
+- **Ö÷³¡¾° PlayMode Êµ»ú**£ºÃ»ÓĞÅÜ¹ıÕæÊµ³ö¹Ö / ·ÉĞĞ / »úÅÚÃüÖĞ / ±»Íæ¼Ò»÷ÂäµÄÍêÕûÁ÷³Ì£»
+- ¿ª»ğÌØĞ§¡¢µ¯¿Ç¡¢ÒôĞ§¡¢×¹»Ù¶¯»­¡¢¶ÔÏó³Ø¾ùÎ´½ÓÈë£»
+- ÍêÕû Player ¹¹½¨¡£
