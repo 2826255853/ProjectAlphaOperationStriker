@@ -19,6 +19,15 @@
 - `RunTrapUpgradeRulesTests.ps1 -IncludeStep8` 最终 **209/209 PASS，0 FAIL，0 SKIP**：菜单 29、规则 49、支付 34、耐久 19、战斗接入 13、延迟伤害 21、Betty7 13、导弹 13、燃烧 6、经济 10、Canvas 2。XML：`C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step8\20261030-005143-601\editmode-results.xml`。临时源码及 `.meta` 已清理。
 - `TrapUpgradeCatalogAuthoring.ValidateAll` 与图形模式 `TrapUpgradeMenuAuthoring.AddMissingControlsAndPreview` 均通过，使用项目记录 Unity `6000.6.7f1`，无 C# 编译错误或方法异常。未做真实 PlayMode 人工键鼠操作或完整 Player 构建；方向页/禁用详情 PNG 已用 `view_image` 检查可见性。
 
+## 陷阱升级系统 · 第 9 步（2026-10-30）
+
+- `TrapHealthBarUI.GetLevelLabel(TrapInstance)` 读取实例已提交的 `UpgradeState`：1～3 级显示“等级 N”，普通四级显示“等级 4 · 普通”，分支从当前 wallet 的升级 service 按 TrapId/BranchId 查配置名称，缺失配置时回退到 BranchId。HUD 不创建升级 service，也不持有第二份等级状态；升级、新实例和换局沿用实例同步机制。
+- IMGUI 面板默认 `(280, 82)`，等级使用独立蓝色样式行，长分支名称换行并按内容增高；名称和血量各用独立区域防止覆盖。`CanDrawPanel` 在绘制时检查 `TrapSelectionMenu.CursorOwned`，菜单开启与关闭当帧立即隐藏整块面板，解决原先只停止选靶却仍延迟显示的问题。原射线、遮挡、无 Collider 回退、移开延迟和世界锚点共用原实现。
+- 持久用例：`Tests~/Editor/TrapUpgradeHealthBarTests.cs`（23 例）；原 `Assets/Editor/TrapHealthBarUITests.cs` 已迁至 `Tests~/Editor/TrapHealthBarUITests.cs`（4 例）。统一入口 `Assets/Editor/RunTrapUpgradeRulesTests.ps1 -IncludeStep9`，包含前序 209 例并在 finally 清理临时源码和 `.meta`。最终 **236/236 PASS，0 FAIL，0 SKIP**，覆盖七类正式定义的等级/普通方向/内存测试分支名称、新实例与换局刷新、真实物理遮挡和 Collider 命中、无 Collider 选靶、移开延迟、菜单开启/关闭当帧/重新瞄准。
+- 报告：`C:/Users/ASUS/Desktop/陷阱素材文件夹/TrapUpgradeSystem/step9/20261030-113351-058/editmode-results.xml`。未执行主场景人工键鼠验收或完整 Player 构建；本步不制作分支技能，不推进第 10 步资产兼容与端到端验收。
+- 图形编辑器进入空白预览场景的 PlayMode，复用实际 `EnsureStyles` / `DrawPanel` 生成七类 × 五种状态的 IMGUI 检查图（含低血量），已用 `view_image` 检查中文与布局：`C:/Users/ASUS/Desktop/陷阱素材文件夹/TrapUpgradeSystem/step9/healthbar-levels.png`（2560×1440）。临时脚本和编辑器恢复场景留档在同目录，项目内临时脚本及 `.meta` 已清理；内存示例分支不写正式 catalog。批处理模式截屏未生成，最终通过图形编辑器捕获；这不是主场景人工输入验收。
+- 清理全部暂存测试/预览源码后，正常 Unity 编译及 `TrapUpgradeCatalogAuthoring.ValidateAll` 通过：`TRAP_UPGRADE_CATALOG_PASS: 10 definitions, 8 TrapIds, one catalog`，无 C# 编译错误或方法异常。日志：同目录 `normal-compile.log`。测试自动产生的 TMP 字体缓存变化已恢复，未修改正式字体、场景或预制体。
+
 重建日期：2026-10-16（系统重装后）。本文件保存可随工程保留的项目知识；以当前代码与配置为准，历史路径须重新核实。
 
 ## 项目定位与可信来源

@@ -3,7 +3,7 @@ using UnityEngine;
 /// <summary>
 /// Trap inspection HUD. While the player aims the view at a placed trap, the
 /// trap's health bar is drawn over that trap, labelled with the trap name and
-/// its current / maximum health.
+/// its current / maximum health and shared upgrade level/direction.
 ///
 /// The component bootstraps itself into every scene (see CreateForScene) and
 /// draws with IMGUI, so no canvas, prefab or scene wiring is required. Health
@@ -24,7 +24,7 @@ public sealed class TrapHealthBarUI : MonoBehaviour
     [SerializeField, Min(0f)] private float lingerAfterAimLost = 0.6f;
 
     [Header("Layout")]
-    [SerializeField] private Vector2 panelSize = new Vector2(280f, 58f);
+    [SerializeField] private Vector2 panelSize = new Vector2(280f, 82f);
     [Tooltip("血条相对陷阱中心的抬升高度，用来把面板放到模型上方。")]
     [SerializeField, Min(0f)] private float anchorHeight = 1.7f;
     [SerializeField, Min(6f)] private float barHeight = 14f;
@@ -46,6 +46,7 @@ public sealed class TrapHealthBarUI : MonoBehaviour
     private Vector2 anchorScreenPoint;
     private GUIStyle nameStyle;
     private GUIStyle valueStyle;
+    private GUIStyle levelStyle;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void CreateForScene()
@@ -67,6 +68,27 @@ public sealed class TrapHealthBarUI : MonoBehaviour
         else if (shownTrap != null && Time.unscaledTime >= hideAtTime) shownTrap = null;
 
         UpdateAnchor();
+    }
+
+    /// <summary>Reads the instance's committed state; inspecting never creates or upgrades a service.</summary>
+    public static string GetLevelLabel(TrapInstance trap)
+    {
+        if (trap == null) return string.Empty;
+        TrapUpgradeState state = trap.UpgradeState;
+        if (state.Level < 4) return $"等级 {state.Level}";
+        if (state.Direction == TrapUpgradeDirection.Normal) return "等级 4 · 普通";
+
+        string direction = state.BranchId;
+        EconomyManager wallet = EconomyManager.Instance;
+        TrapUpgradeService service = wallet != null ? wallet.UpgradeService : null;
+        if (trap.Definition != null && service != null && !service.IsDisposed)
+            foreach (TrapUpgradeCatalog.Branch branch in service.GetBranches(trap.Definition.TrapId))
+                if (branch.branchId == state.BranchId && !string.IsNullOrWhiteSpace(branch.displayName))
+                {
+                    direction = branch.displayName;
+                    break;
+                }
+        return $"等级 4 · {direction}";
     }
 
     private void showTrap(TrapInstance trap)
@@ -136,25 +158,39 @@ public sealed class TrapHealthBarUI : MonoBehaviour
     private void OnGUI()
     {
         TrapInstance trap = shownTrap;
-        if (trap == null || !anchorVisible || trap.MaxHealth <= 0f) return;
+        if (!CanDrawPanel) return;
         EnsureStyles();
 
-        float panelWidth = Mathf.Min(panelSize.x, Screen.width - ScreenEdgePadding * 2f);
-        float panelHeight = Mathf.Max(panelSize.y, barHeight + 28f);
+        string level = GetLevelLabel(trap);
+        float panelWidth = Mathf.Max(21f, Mathf.Min(panelSize.x, Screen.width - ScreenEdgePadding * 2f));
+        float levelHeight = Mathf.Max(20f, levelStyle.CalcHeight(new GUIContent(level), panelWidth - 20f));
+        float panelHeight = Mathf.Max(panelSize.y, barHeight + levelHeight + 40f);
         Rect panel = new Rect(
             Mathf.Clamp(anchorScreenPoint.x - panelWidth * 0.5f, ScreenEdgePadding, Mathf.Max(ScreenEdgePadding, Screen.width - panelWidth - ScreenEdgePadding)),
             Mathf.Clamp(anchorScreenPoint.y - panelHeight, ScreenEdgePadding, Mathf.Max(ScreenEdgePadding, Screen.height - panelHeight - ScreenEdgePadding)),
             panelWidth,
             panelHeight);
+        DrawPanel(trap, panel, level, levelHeight);
+    }
+
+    private bool CanDrawPanel => !TrapSelectionMenu.CursorOwned && shownTrap != null &&
+        anchorVisible && shownTrap.MaxHealth > 0f;
+
+    private void DrawPanel(TrapInstance trap, Rect panel, string level, float levelHeight)
+    {
 
         GUI.color = panelColor;
         GUI.DrawTexture(panel, Texture2D.whiteTexture);
         GUI.color = Color.white;
 
         string label = trap.Definition != null ? trap.Definition.DisplayName : trap.gameObject.name;
-        Rect titleRect = new Rect(panel.x + 10f, panel.y + 5f, panel.width - 20f, 20f);
+        string health = $"{trap.CurrentHealth:0} / {trap.MaxHealth:0}";
+        float contentWidth = panel.width - 20f;
+        float healthWidth = Mathf.Min(contentWidth, valueStyle.CalcSize(new GUIContent(health)).x);
+        Rect titleRect = new Rect(panel.x + 10f, panel.y + 5f, Mathf.Max(0f, contentWidth - healthWidth - 8f), 20f);
         GUI.Label(titleRect, label, nameStyle);
-        GUI.Label(titleRect, $"{trap.CurrentHealth:0} / {trap.MaxHealth:0}", valueStyle);
+        GUI.Label(new Rect(panel.xMax - 10f - healthWidth, titleRect.y, healthWidth, 20f), health, valueStyle);
+        GUI.Label(new Rect(panel.x + 10f, titleRect.yMax + 2f, contentWidth, levelHeight), level, levelStyle);
 
         Rect bar = new Rect(panel.x + 10f, panel.yMax - barHeight - 8f, panel.width - 20f, barHeight);
         GUI.color = trackColor;
@@ -186,7 +222,8 @@ public sealed class TrapHealthBarUI : MonoBehaviour
         {
             fontSize = 14,
             fontStyle = FontStyle.Bold,
-            alignment = TextAnchor.UpperLeft
+            alignment = TextAnchor.UpperLeft,
+            clipping = TextClipping.Clip
         };
         nameStyle.normal.textColor = Color.white;
         valueStyle = new GUIStyle(nameStyle)
@@ -195,5 +232,13 @@ public sealed class TrapHealthBarUI : MonoBehaviour
             alignment = TextAnchor.UpperRight
         };
         valueStyle.normal.textColor = new Color(0.85f, 0.9f, 0.95f, 1f);
+        levelStyle = new GUIStyle(nameStyle)
+        {
+            fontSize = 13,
+            fontStyle = FontStyle.Normal,
+            wordWrap = true,
+            richText = false
+        };
+        levelStyle.normal.textColor = new Color(0.65f, 0.85f, 1f, 1f);
     }
 }

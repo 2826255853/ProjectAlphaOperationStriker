@@ -9,24 +9,26 @@ param(
     [switch]$IncludeStep6,
     [switch]$IncludeStep7,
     [switch]$IncludeStep8,
+    [switch]$IncludeStep9,
     [ValidateRange(30, 1800)][int]$TimeoutSeconds = 600
 )
 
 $ErrorActionPreference = 'Stop'
 $ProjectPath = (Resolve-Path -LiteralPath $ProjectPath).Path
 if (!$OutputDirectory) {
-    $step = if ($IncludeStep8) { 'step8' } elseif ($IncludeStep7) { 'step7' } elseif ($IncludeStep6) { 'step6' } elseif ($IncludeStep5) { 'step5' } elseif ($IncludeDurability) { 'step4' } elseif ($IncludePayments) { 'step3' } else { 'step2' }
+    $step = if ($IncludeStep9) { 'step9' } elseif ($IncludeStep8) { 'step8' } elseif ($IncludeStep7) { 'step7' } elseif ($IncludeStep6) { 'step6' } elseif ($IncludeStep5) { 'step5' } elseif ($IncludeDurability) { 'step4' } elseif ($IncludePayments) { 'step3' } else { 'step2' }
     $OutputDirectory = Join-Path ([Environment]::GetFolderPath('Desktop')) "陷阱素材文件夹\TrapUpgradeSystem\$step"
 }
 $fixtures = @('TrapUpgradeRulesTests', 'TrapSelectionMenuCanvasTests')
-if ($IncludePayments -or $IncludeDurability -or $IncludeStep5 -or $IncludeStep6 -or $IncludeStep7 -or $IncludeStep8) { $fixtures += 'TrapUpgradePaymentTests' }
-if ($IncludeDurability -or $IncludeStep5 -or $IncludeStep6 -or $IncludeStep7 -or $IncludeStep8) { $fixtures += 'TrapUpgradeDurabilityTests' }
-if ($IncludeStep5 -or $IncludeStep6 -or $IncludeStep7 -or $IncludeStep8) { $fixtures += 'TrapUpgradeCombatIntegrationTests' }
-if ($IncludeStep6 -or $IncludeStep7 -or $IncludeStep8) { $fixtures += 'TrapUpgradeDelayedDamageTests', 'Betty7JumpMineSlotTests' }
-if ($IncludeStep7 -or $IncludeStep8) { $fixtures += 'TrapUpgradeMenuTests' }
+if ($IncludePayments -or $IncludeDurability -or $IncludeStep5 -or $IncludeStep6 -or $IncludeStep7 -or $IncludeStep8 -or $IncludeStep9) { $fixtures += 'TrapUpgradePaymentTests' }
+if ($IncludeDurability -or $IncludeStep5 -or $IncludeStep6 -or $IncludeStep7 -or $IncludeStep8 -or $IncludeStep9) { $fixtures += 'TrapUpgradeDurabilityTests' }
+if ($IncludeStep5 -or $IncludeStep6 -or $IncludeStep7 -or $IncludeStep8 -or $IncludeStep9) { $fixtures += 'TrapUpgradeCombatIntegrationTests' }
+if ($IncludeStep6 -or $IncludeStep7 -or $IncludeStep8 -or $IncludeStep9) { $fixtures += 'TrapUpgradeDelayedDamageTests', 'Betty7JumpMineSlotTests' }
+if ($IncludeStep7 -or $IncludeStep8 -or $IncludeStep9) { $fixtures += 'TrapUpgradeMenuTests' }
+if ($IncludeStep9) { $fixtures += 'TrapUpgradeHealthBarTests', 'TrapHealthBarUITests' }
 $runFixtures = @($fixtures)
-if ($IncludePayments -or $IncludeDurability -or $IncludeStep5 -or $IncludeStep6 -or $IncludeStep7 -or $IncludeStep8) { $runFixtures += 'EconomySystemTests' }
-if ($IncludeStep6 -or $IncludeStep7 -or $IncludeStep8) { $runFixtures += 'MissileLauncherWeaponTests', 'FireStatusEffectTests' }
+if ($IncludePayments -or $IncludeDurability -or $IncludeStep5 -or $IncludeStep6 -or $IncludeStep7 -or $IncludeStep8 -or $IncludeStep9) { $runFixtures += 'EconomySystemTests' }
+if ($IncludeStep6 -or $IncludeStep7 -or $IncludeStep8 -or $IncludeStep9) { $runFixtures += 'MissileLauncherWeaponTests', 'FireStatusEffectTests' }
 $staged = @()
 try {
     foreach ($fixture in $fixtures) {
