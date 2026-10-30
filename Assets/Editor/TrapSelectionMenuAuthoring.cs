@@ -26,7 +26,7 @@ public static class TrapSelectionMenuAuthoring
     private static readonly HashSet<string> OfficialTrapIds = new HashSet<string>(StringComparer.Ordinal)
     {
         "auto_sentry_turret", "ground-spike", "dual_missile_launcher_loaded", "flamethrower",
-        "betty7", "throat-lamp", "repair-station"
+        "betty7", "throat-lamp", "repair-station", "xm777"
     };
 
     [MenuItem("Tools/行动打击/陷阱菜单/创建 Canvas 预制体（缺失时）")]
@@ -55,6 +55,8 @@ public static class TrapSelectionMenuAuthoring
 
     [MenuItem("Tools/行动打击/陷阱菜单/重新生成全部模型缩略图")]
     public static void RegenerateAllIcons() => GenerateIcons(true);
+
+    public static void RegenerateXM777IconBatch() => GenerateIcons(false, "xm777");
 
     [MenuItem("Tools/行动打击/陷阱菜单/验证 Canvas 与图标")]
     public static void Validate()
@@ -487,13 +489,14 @@ public static class TrapSelectionMenuAuthoring
         finally { Object.DestroyImmediate(root); }
     }
 
-    private static void GenerateIcons(bool overwrite)
+    private static void GenerateIcons(bool overwrite, string onlyTrapId = null)
     {
         EnsureFolder("Assets/Models");
         EnsureFolder("Assets/Models/TrapMenu");
         EnsureFolder(IconFolder);
         Directory.CreateDirectory(Path.Combine(OutputDirectory, "icon-previews"));
-        var groups = LoadDefinitions().Where(d => OfficialTrapIds.Contains(d.TrapId)).GroupBy(d => d.TrapId).ToList();
+        var groups = LoadDefinitions().Where(d => OfficialTrapIds.Contains(d.TrapId)
+            && (string.IsNullOrEmpty(onlyTrapId) || d.TrapId == onlyTrapId)).GroupBy(d => d.TrapId).ToList();
         Scene scene = EditorSceneManager.NewPreviewScene();
         Camera camera = null;
         RenderTexture previous = RenderTexture.active;
@@ -526,7 +529,8 @@ public static class TrapSelectionMenuAuthoring
             {
                 string path = IconFolder + "/" + SafeName(group.Key) + ".png";
                 Sprite existing = AssetDatabase.LoadAssetAtPath<Sprite>(path);
-                if (!overwrite && existing != null)
+                bool regenerate = overwrite || group.Key == onlyTrapId;
+                if (!regenerate && existing != null)
                 {
                     AssignIcon(group, existing);
                     string previewPath = Path.Combine(OutputDirectory, "icon-previews", SafeName(group.Key) + ".png");
@@ -625,6 +629,7 @@ public static class TrapSelectionMenuAuthoring
             "betty7" => "Assets/Prefabs/Betty7.prefab",
             "throat-lamp" => "Assets/Models/ThroatLamp/ThroatLamp.fbx",
             "repair-station" => "Assets/Models/RepairStation/RepairStation.fbx",
+            "xm777" => "Assets/Prefabs/XM777.prefab",
             _ => null
         };
         GameObject model = string.IsNullOrEmpty(path) ? null : AssetDatabase.LoadAssetAtPath<GameObject>(path);

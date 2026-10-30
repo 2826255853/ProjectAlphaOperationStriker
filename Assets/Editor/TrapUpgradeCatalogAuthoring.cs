@@ -9,7 +9,7 @@ public static class TrapUpgradeCatalogAuthoring
     public const string CatalogPath = "Assets/Resources/TrapUpgradeCatalog.asset";
     private static readonly string[] DefinitionFolders = { "Assets/Resources", "Assets/TrapDefinitions" };
     private static readonly string[] OfficialTrapIds = { "auto_sentry_turret", "ground-spike", "dual_missile_launcher_loaded",
-        "flamethrower", "betty7", "throat-lamp", "repair-station" };
+        "flamethrower", "betty7", "throat-lamp", "repair-station", "xm777" };
 
     [MenuItem("Tools/塔防/陷阱升级/创建缺失的默认配置")]
     public static void CreateDefaultIfMissing()

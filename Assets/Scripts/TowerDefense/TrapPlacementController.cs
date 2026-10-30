@@ -722,6 +722,12 @@ public sealed class TrapPlacementController : MonoBehaviour
         if (!placementMode || selectedTrap == null) return;
         preview = selectedTrap.Prefab != null ? Instantiate(selectedTrap.Prefab) : GameObject.CreatePrimitive(PrimitiveType.Cube);
         preview.name = "Trap Preview";
+        // Imported model cameras must never render over the player/drone view
+        // when the ghost is activated over a placement grid. Include inactive
+        // children so showing the preview cannot reactivate a staging camera.
+        foreach (Camera camera in preview.GetComponentsInChildren<Camera>(true)) camera.enabled = false;
+        foreach (AudioListener listener in preview.GetComponentsInChildren<AudioListener>(true)) listener.enabled = false;
+        foreach (Light light in preview.GetComponentsInChildren<Light>(true)) light.enabled = false;
         // Ghost bodies are never solid entities, damageable targets or valid
         // backing geometry; the marker keeps validation and support probes honest.
         if (preview.GetComponent<TrapPlacementPreview>() == null) preview.AddComponent<TrapPlacementPreview>();
@@ -738,6 +744,7 @@ public sealed class TrapPlacementController : MonoBehaviour
         foreach (Betty7JumpMineTrap mines in preview.GetComponentsInChildren<Betty7JumpMineTrap>(true)) mines.enabled = false;
         foreach (RepairStationTrap station in preview.GetComponentsInChildren<RepairStationTrap>(true)) station.enabled = false;
         foreach (ThroatLampTrap lamp in preview.GetComponentsInChildren<ThroatLampTrap>(true)) lamp.enabled = false;
+        foreach (XM777Trap artillery in preview.GetComponentsInChildren<XM777Trap>(true)) artillery.enabled = false;
         foreach (TrapInstance trap in preview.GetComponentsInChildren<TrapInstance>(true)) trap.enabled = false;
         foreach (Collider collider in preview.GetComponentsInChildren<Collider>()) collider.enabled = false;
         foreach (Renderer renderer in preview.GetComponentsInChildren<Renderer>())

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 584def4af644b0c4fbbf59b658cc2acd, type: 3}
+  m_Name: XM777
+  m_EditorClassIdentifier: Assembly-CSharp::TrapDefinition
+  trapId: xm777
+  displayName: "XM777 \u91CD\u578B\u706B\u70AE"
+  prefab: {fileID: 1618872701264048800, guid: 90d088b3a01dd57419eb9932223e07c7, type: 3}
+  menuIcon: {fileID: 21300000, guid: 8918898a61c0d0248bc3b9380f50f576, type: 3}
+  cost: 40
+  footprintWidth: 1
+  footprintHeight: 1
+  localRotation: {x: 0, y: 0, z: 0}
+  walkableFloorTrap: 0
+  worldFootprint: {x: 4, y: 4}
+  mountType: 0
+  installBoundsCenter: {x: 0, y: 0, z: 0}
+  installBoundsSize: {x: 0, y: 0, z: 0}
+  skipMonsterClearanceCheck: 0

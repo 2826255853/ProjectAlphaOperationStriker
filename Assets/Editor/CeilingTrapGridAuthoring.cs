@@ -83,13 +83,20 @@ public static class CeilingTrapGridAuthoring
     }
 
     /// <summary>Adds the MapForge test panel to the current main scene without reimporting the map.</summary>
+    [MenuItem("Tools/塔防/恢复主地图测试天花板")]
     public static void AddTestPanelToMainScene()
     {
         const string scenePath = "Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity";
         const string objectId = "ceiling_test_panel_20261025";
         const string materialPath = "Assets/Resources/CeilingTrapTest/CeilingPanel.mat";
-        var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
-        var world = GameObject.Find("MapForgeWorld");
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            throw new InvalidOperationException("请先退出运行模式，再恢复测试天花板。");
+        var scene = UnityEngine.SceneManagement.SceneManager.GetSceneByPath(scenePath);
+        if (!scene.IsValid() || !scene.isLoaded)
+            scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+        GameObject world = null;
+        foreach (var root in scene.GetRootGameObjects())
+            if (root.name == "MapForgeWorld") { world = root; break; }
         if (world == null) throw new InvalidOperationException("当前场景缺少 MapForgeWorld 根对象。");
 
         GameObject panel = null;
@@ -103,6 +110,7 @@ public static class CeilingTrapGridAuthoring
         panel.transform.localPosition = new Vector3(0f, 4.1f, 0f);
         panel.transform.localRotation = Quaternion.identity;
         panel.transform.localScale = new Vector3(4f, .2f, 4f);
+        panel.SetActive(true);
         panel.isStatic = true;
         var propertiesComponent = panel.GetComponent<MapForgeObjectProperties>()
             ?? panel.AddComponent<MapForgeObjectProperties>();
@@ -126,8 +134,10 @@ public static class CeilingTrapGridAuthoring
         geometryObject.transform.localPosition = Vector3.zero;
         geometryObject.transform.localRotation = Quaternion.identity;
         geometryObject.transform.localScale = Vector3.one;
+        geometryObject.SetActive(true);
         geometryObject.isStatic = true;
         var support = geometryObject.GetComponent<BoxCollider>() ?? geometryObject.AddComponent<BoxCollider>();
+        support.enabled = true;
         support.isTrigger = false;
 
         if (!AssetDatabase.IsValidFolder(CeilingTrapTestPieceAuthoring.Directory))
@@ -141,13 +151,20 @@ public static class CeilingTrapGridAuthoring
             AssetDatabase.CreateAsset(material, materialPath);
         }
         var renderer = geometryObject.GetComponent<MeshRenderer>();
-        if (renderer != null) renderer.sharedMaterial = material;
+        if (renderer != null)
+        {
+            renderer.enabled = true;
+            renderer.sharedMaterial = material;
+        }
+        SceneVisibilityManager.instance.Show(panel, true);
 
         const string gridName = "CeilingTrapGrid_bottom";
         Transform gridTransform = panel.transform.Find(gridName);
         GameObject gridObject = gridTransform != null ? gridTransform.gameObject : new GameObject(gridName);
         if (gridTransform == null) gridObject.transform.SetParent(panel.transform, false);
+        gridObject.SetActive(true);
         var grid = gridObject.GetComponent<TrapPlacementGrid>() ?? gridObject.AddComponent<TrapPlacementGrid>();
+        grid.enabled = true;
         var marker = gridObject.GetComponent<MapForgeCeilingTrapGrid>() ?? gridObject.AddComponent<MapForgeCeilingTrapGrid>();
         var mapping = new MapForgeSceneOrganization.CeilingTrapGridMap
         {
@@ -159,6 +176,12 @@ public static class CeilingTrapGridAuthoring
         marker.gridId = mapping.id;
         marker.mappingJson = JsonUtility.ToJson(mapping);
         Configure(grid, support, mapping);
+        int supportedCells = 0;
+        for (int y = 0; y < mapping.rows; y++) for (int x = 0; x < mapping.columns; x++)
+            if (grid.HasSurfaceSupport(new Vector2Int(x, y), Vector2Int.one, null, out _)) supportedCells++;
+        if (renderer == null || !renderer.enabled || !panel.activeInHierarchy
+            || supportedCells != mapping.columns * mapping.rows)
+            throw new InvalidOperationException("测试天花板恢复校验失败：实体不可见或底面支撑不完整。");
         EditorUtility.SetDirty(panel);
         EditorUtility.SetDirty(propertiesComponent);
         EditorUtility.SetDirty(grid);
@@ -167,6 +190,7 @@ public static class CeilingTrapGridAuthoring
         EditorSceneManager.MarkSceneDirty(scene);
         if (!EditorSceneManager.SaveScene(scene, scenePath))
             throw new InvalidOperationException("保存主场景失败：" + scenePath);
-        Debug.Log("CEILING_MAIN_MAP_PANEL_PASS: " + objectId + " / " + gridName);
+        Debug.Log("CEILING_MAIN_MAP_PANEL_PASS: " + objectId + " / " + gridName
+            + "; visible=true; collider=true; supportedCells=" + supportedCells + "/16; bottomHeight=4m");
     }
 }

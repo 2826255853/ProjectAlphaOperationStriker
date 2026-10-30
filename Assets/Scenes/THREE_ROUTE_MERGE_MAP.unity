@@ -282,6 +282,118 @@ MonoBehaviour:
   monsterClearanceHeight: 2
   openCells: 01010101010101010101010101010101010101010101010101010101010101010101010101010101y
   walkableTrapsOnly: 0
+--- !u!1 &21750052
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 21750056}
+  - component: {fileID: 21750055}
+  - component: {fileID: 21750053}
+  - component: {fileID: 21750054}
+  m_Layer: 0
+  m_Name: Geometry
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!65 &21750053
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 21750052}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &21750054
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 21750052}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 7068abe55295be5448e91d722c225758, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &21750055
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 21750052}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &21750056
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 21750052}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 711069684}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &81053309
 GameObject:
   m_ObjectHideFlags: 0
@@ -3151,6 +3263,112 @@ MonoScript:
   m_ClassName: MapForgeGeneratedTrapGrid
   m_Namespace: 
   m_AssemblyName: Assembly-CSharp
+--- !u!1 &711069683
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 711069684}
+  - component: {fileID: 711069685}
+  m_Layer: 0
+  m_Name: ceiling_test_panel_20261025
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &711069684
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 711069683}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 4.1, z: 0}
+  m_LocalScale: {x: 4, y: 0.2, z: 4}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 21750056}
+  - {fileID: 1796731329}
+  m_Father: {fileID: 1863323592}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &711069685
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 711069683}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09609c24773d47898d91f5be3e6d7567, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MapForgeObjectProperties
+  objectId: ceiling_test_panel_20261025
+  objectType: cube
+  tags:
+  - ceiling-trap-test
+  prefabType: 
+  parametersJson: '{}'
+  category: 
+  visible: 1
+  locked: 0
+  collision: 1
+  collapsed: 0
+  prefabId: 
+  prefabGuid: 
+  prefabAssetPath: 
+  colliderType: auto
+  colliderIsTrigger: 0
+  colliderCenter: {x: 0, y: 0, z: 0}
+  colliderSize: {x: 1, y: 1, z: 1}
+  colliderRadius: 0.5
+  colliderHeight: 2
+  colliderDirection: 1
+  navRole: none
+  navArea: 0
+  navAgentType: Humanoid
+  navIgnoreFromBuild: 0
+  navApplyToChildren: 0
+  navLinkStart: {x: 0, y: 0, z: 0}
+  navLinkEnd: {x: 0, y: 0, z: 0}
+  navLinkWidth: 1
+  navBidirectional: 1
+  spawnPointEnabled: 0
+  spawnInterval: 1
+  spawnInitialDelay: 2
+  spawnEnemiesPerWave: 10
+  spawnMoveSpeed: 2
+  spawnTravelDirection: {x: 0, y: 0, z: 1}
+  spawnMonsterType: Ground
+  spawnFlightHeight: 3
+  spawnFlyingEntrance: 0
+  spawnEntranceAltitude: 12
+  spawnLaneId: 
+  spawnEnemyPrefabId: 
+  spawnWaves: []
+  enemyCoreEnabled: 0
+  enemyCoreMaxHealth: 30
+  enemyCoreGroundDamage: 2
+  enemyCoreFlyingDamage: 1
+  enemyCoreArrivalRadius: 0.35
+  pathNodeEnabled: 0
+  pathNodeRole: node
+  pathNodeWaitTime: 0
+  pathNodeLinks: []
+  triggerEnabled: 0
+  triggerShape: box
+  triggerIsTrigger: 1
+  triggerOnce: 0
+  triggerCenter: {x: 0, y: 0, z: 0}
+  triggerSize: {x: 1, y: 1, z: 1}
+  triggerRadius: 1
+  triggerEvents: []
 --- !u!1 &738844075
 GameObject:
   m_ObjectHideFlags: 0
@@ -6871,6 +7089,81 @@ MonoBehaviour:
   triggerSize: {x: 1, y: 2, z: 1}
   triggerRadius: 1
   triggerEvents: []
+--- !u!1 &1796731328
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1796731329}
+  - component: {fileID: 1796731331}
+  - component: {fileID: 1796731330}
+  m_Layer: 0
+  m_Name: CeilingTrapGrid_bottom
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1796731329
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1796731328}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -0.5, y: -0.49999952, z: -0.5}
+  m_LocalScale: {x: 0.25, y: 0.24999994, z: 4.9999986}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 711069684}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1796731330
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1796731328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fed3d0067b954654193f880fd9661ad2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MapForgeCeilingTrapGrid
+  objectId: ceiling_test_panel_20261025
+  gridId: bottom
+  mappingJson: '{"id":"bottom","origin":[],"rotation":[],"columns":4,"rows":4,"cellSize":1.0,"surfaceOffset":0.009999999776482582,"openCells":[true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true],"autoFit":true}'
+--- !u!114 &1796731331
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1796731328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c94f60d2887e08445a11eb5e8a11d966, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrapPlacementGrid
+  surfaceKind: 1
+  columns: 4
+  rows: 4
+  cellSize: 1
+  placementHeight: 0
+  trapParent: {fileID: 0}
+  surfaceType: 2
+  supportCollider: {fileID: 21750053}
+  surfaceOffset: 0.01
+  wallSupportProbeDistance: 0.1
+  wallSupportNormalTolerance: 5
+  wallSupportInsetRatio: 0.15
+  monsterClearanceHeight: 2
+  openCells: 01010101010101010101010101010101y
+  walkableTrapsOnly: 0
 --- !u!1001 &1804223340
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7006,6 +7299,7 @@ Transform:
   - {fileID: 1483852036}
   - {fileID: 1691379012}
   - {fileID: 213259640}
+  - {fileID: 711069684}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1906485577

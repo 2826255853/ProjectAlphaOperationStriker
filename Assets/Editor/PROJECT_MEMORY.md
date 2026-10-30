@@ -36,7 +36,48 @@
 - 新增持久用例 `Tests~/Editor/TrapUpgradeStep10Tests.cs`，并扩展 `RunTrapUpgradeRulesTests.ps1 -IncludeStep10`。Step10 全量 EditMode **241/241 PASS，0 FAIL，0 SKIP**；新增兼容/缺省初始化用例 5 例。报告：`C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step10\20261030-131522-401\editmode-results.xml`。测试临时源码及 `.meta` 已清理，持久测试留在 `Tests~`。
 - 清理测试源码后，正式 Unity `6000.6.7f1` 编译及 `TrapUpgradeCatalogAuthoring.ValidateAll` 通过；日志：`C:\Users\ASUS\AppData\Local\Temp\alpha-striker-unity\20261030-131716-trapupgradecatalogauthoring-validateall.log`。`Betty7TrapAuthoring.ProbePrefab`、`ThroatLampAuthoring.ProbePrefabBatch`、`RepairStationAuthoring.ValidateBatch` 均通过；对应生成链重跑成功，运行产物备份在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step10\prefab-backup\`，随后恢复无关的材质/动画/预制体噪声。
 - 未执行主场景真实 PlayMode 人工键鼠升级、攻击/维修过程验收或完整 Player 构建；这些项目不能由本次 EditMode 与编辑器探针结果替代。
+
+## XM777 自动炮击陷阱接入（2026-10-30）
+
+- 放置预览画面错乱修复（2026-10-30）：原 XM777 FBX 导入了 Blender 的 `PreviewCamera` 和三盏制作灯光，并被生成器保存在正式预制体中；瞄准地面网格使预览激活时，额外相机参与渲染，玩家与无人机模式共用此触发路径。`XM777.fbx.meta` 与 `XM777TrapAuthoring.CreateAssets` 现均关闭相机/灯光导入，已重新生成正式预制体；`TrapPlacementController.RebuildPreview` 也禁用预览所有子层级（含 inactive）的 Camera、AudioListener 和 Light，保护旧资源的预览。正式放置通过无相机/灯光的预制体避免同样问题。
+- 本次 `XM777TrapTests` EditMode **15/15 PASS**：新增 active/inactive 制作相机用例，覆盖玩家/无人机视角相机引用下反复显隐，确认相机引用/位置/朝向不变；生成资产检查覆盖正式预制体、其实例及导入设置。报告与修改前备份：`C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\camera-fix\`。新增只读批处理探针 `XM777TrapAuthoring.ValidatePresentationBatch`，可检查相机/灯光/音频监听器未回流。测试不替代主场景人工 PlayMode 操作。
+- 清理临时测试源码及 `.meta` 后，正常 Unity 编译完成，无 C# 编译错误，`normal-validation.log` 确认 `XM777_PRESENTATION_PASS`；正式预制体 Camera 从 1 降至 0、Light 从 3 降至 0，73 个 MeshRenderer 保留。日志在探针完成与退出阶段出现 Unity Licensing Client 的 `IServiceProvider` 已释放异常，随后仍记录成功退出；不应据 runner 的摘要宣称整份日志无异常。未执行主场景人工键鼠验收或完整 Player 构建。
+
+- Visual repair on 2026-10-30: trap placement previews now disable the XM777 firing component, matching the other active trap preview behavior. `FitToFootprint` now preserves imported root scale while applying the 4 m footprint. The menu icon renderer now uses the normalized `Assets/Prefabs/XM777.prefab`; `TrapSelectionMenuAuthoring.RegenerateXM777IconBatch` refreshes only this icon. The updated EditMode suite passes 13/13, and the test source was removed from `Assets/Editor` before normal Unity validation.
+
+- 运行时入口为 `Assets/Scripts/TowerDefense/XM777Trap.cs`：地面目标限定基座水平距离 10～100 m，使用 `MissileAimSolver` / `MissileVelocityTracker` 预测 500 m/s 炮弹的拦截点；每 3 秒发射一次（`XM777Trap.FireInterval = 3f`，2026-10-30 由 6 秒改为 3 秒），炮弹以定时命中记录表示，不创建 projectile GameObject。仰角按当前敌人水平距离从 0° 线性增加到 45°；索敌与预测落点使用四路宽松视线检测（见下文）。爆炸半径 4 m，基础爆炸伤害 45，并通过 `TrapInstance.GetEffectiveDamage` 接入升级倍率；爆炸范围伤害忽略墙体遮挡，飞行怪物不会成为目标。
+- 作者工具 `Assets/Editor/XM777TrapAuthoring.cs` 从最终模型 `Assets/Models/XM777/XM777.fbx` 生成 `Assets/Prefabs/XM777.prefab` 与 `Assets/Resources/XM777.asset`（TrapId `xm777`、地面安装、40 金币），并将炮塔 yaw 枢轴、炮口和模型层级接线固定下来。`nextShotTime` 为可序列化运行态字段，陷阱重新启用时清空旧待爆炸记录与冷却状态。
+- `TrapUpgradeCatalogAuthoring` 与 `TrapSelectionMenuAuthoring` 已纳入 `xm777`；正式目录 `Assets/Resources/TrapUpgradeCatalog.asset` 有对应默认条目，菜单图标生成器从 XM777 FBX 生成 `Assets/Models/TrapMenu/Icons/xm777.png`，两份既有定义目录仍由统一校验扫描。
+- 持久测试 `Tests~/Editor/XM777TrapTests.cs` 共 12 例，入口 `Assets/Editor/RunXM777TrapTests.ps1`；2026-10-30 使用项目记录 Unity `6000.6.7f1` **12/12 PASS**。随后 `TrapUpgradeCatalogAuthoring.ValidateAll` 与 `TrapSelectionMenuAuthoring.Validate` 均通过。测试源码未留在 `Assets/Editor`，未做主场景真实 PlayMode 炮击过程或完整 Player 构建。
+- XM777 制作中间态（Blender、FBX 备份、预览图和设计说明）完整保存在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\`；仓库只保留最终模型与 Unity 资产。
+
+### XM777 转向修复（2026-10-30，滚转 → 水平旋转）
+
+- 症状：游戏中炮塔「左右滚转」而不是水平转向。根因在模型导入轴系：`Assets/Models/XM777/XM777.fbx` 保留了 Blender 的坐标帧，预制体里的 `XM777_Base_Root` 局部旋转是 **X = -90°**，所以它的 `up` 是世界**水平**轴；`XM777Trap.AimYawAt` / `IsYawAligned` 原先都用 `yawPivot.parent.up` 当偏航轴，于是绕水平轴旋转 = 滚转。
+- 修复：`XM777Trap` 新增 `yawAxisWorld`，由 `ResolveYawAxis()` 在捕获静止姿态时算出（取炮塔根节点 `transform.up`；与世界上方向夹角超过约 25° 时回退 `Vector3.up`）。两处偏航计算共用该字段，**不要**再回到 `yawPivot.parent.up`。
+- 第二层坑（同一次修复）：`restYawRotation` 是四元数字段，默认值是 `(0,0,0,0)` 而不是单位四元数，原先只在 `Awake` 里赋值。编辑器工具/测试直接驱动组件（`Awake` 未运行）时 `restYawRotation * restBarrelForwardLocal` 归零，`AimYawAt` 会静默提前返回、炮塔完全不转。现改为 `EnsureRestPose()` 惰性捕获一次，`Awake` / `Tick` / `AimAt` 三个入口都调用；新增状态字段 `restCaptured`。
+- 新增只读/工具接口：`XM777Trap.AimAt(Vector3, float)`（与游戏内同一套偏航数学，供工具和测试驱动）、`YawAxisWorld`、`BarrelDirectionWorld`、`BarrelElevationDegrees`。
+- 回归用例 2 例，均在 `Tests~/Editor/XM777TrapTests.cs`：`TraversesHorizontallyWhenTheImportedRigParentIsAxisRotated` 复刻 `Base_Root` X=-90 的轴系，断言偏航轴竖直、转向时仰角不变、被施加的旋转轴必须竖直；`GeneratedPrefabTurnsAroundWorldUp` 用真实 `Assets/Prefabs/XM777.prefab` 走 `AimAt`，断言施加旋转轴竖直。**回退验证**：把两处轴临时改回 `yawPivot.parent.up` 后该用例失败（仰角从 45° 掉到约 0°），确认用例能抓住旧 bug。最终 EditMode **17/17 PASS**（Unity `6000.6.7f1`），XML：`C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\yaw-fix\before\20261030-183623-864\editmode-results.xml`（回退态 1 失败）与 `C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\tests\20261030-184002-057\editmode-results.xml`（修复态全通过）。
+- 看图入口：`Assets/Editor/XM777TrapPreview.cs`，菜单 `Tools/塔防/预览 XM777 转向`，批处理 `XM777TrapPreview.RenderRotationPreview`（需 `-WithGraphics`）。按 0/45/90/180/270° 驱动真实预制体渲染并写 `report.txt`；实测 achieved 与请求差约 2°（枪口偏离旋转轴的视差，属既有瞄准实现，本次未改），仰角恒为 45.00°，PNG 在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\yaw-fix\preview\`。
+- 本次未做主线场景人工 PlayMode 炮击验收，也未做完整 Player 构建；炮击命中/伤害逻辑未改动。
+
+### XM777 距离俯仰与宽松索敌（2026-10-30）
+
+- 当前目标和预测落点的射程均以陷阱根节点为基座、按世界水平投影计算；仰角为 `Clamp01((distance - 10) / 90) * 45`，10/55/100 米分别为 0/22.5/45°。水平转向仍跟踪预测拦截点，俯仰使用当前敌人位置的水平距离；无目标时保持最后姿态。
+- `XM777Trap` 新增序列化 `pitchPivot`、`pitchSpeedDegrees`（默认 240°/秒），生成器接线至已有 `XM777_Pitch_Root`；旧实例按节点名补齐。捕获原始局部姿态、原始仰角及父坐标系里的俯仰轴，相对模型原有 45° 姿态施加角差；yaw 继续使用先前修复的竖直轴。`AimAt(Vector3, float)` 驱动双轴，新增只读 `PitchPivot` 与统一映射 `ElevationForDistance(float)`。双轴均进入 3° 容差才开火，飞行时间仍为实际炮口到落点的三维距离 / 500，不新增重力弹道。
+- 索敌和预测落点共用 `HasClearTargetPath`：中心、中心上方 1.5 米、水平左右各 0.75 米四条射线，任一路畅通即可；左右按基座到检测点的水平方向确定。每条射线沿用最近非自身碰撞体判定、忽略 Trigger、允许无 Collider 敌人；完整覆盖四路的高墙仍阻挡。爆炸伤害规则不变。
+- 正式预制体已由生成器重建；原预制体、`.meta` 与定义备份在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\distance-elevation\backup\`。`XM777TrapAuthoring.ValidatePresentationBatch` 同时校验 yaw → pitch → muzzle 引用及无制作相机/灯光；预览工具默认输出至同目录 `preview\`，渲染三种距离 × 五种水平朝向，并断言实际仰角和水平对准误差；旧章节中的“仰角恒为 45°”仅描述历史状态。
+- `RunXM777TrapTests.ps1` 最终 **38/38 PASS，0 FAIL，0 SKIP**（项目记录 Unity `6000.6.7f1`）；包括射程边界、高差、线性映射、真实预制体与导入轴、近远切换、双轴开火门槛、上方/侧方绕障、完整遮挡、预测落点规则与当前距离仰角、提前量越界、忽略自身/Trigger、敌人 Collider、最近目标及原有伤害/冷却回归。最终 XML：`C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\distance-elevation\tests-final\20261030-190317-457\editmode-results.xml`；测试源码保留在 `Tests~/Editor/XM777TrapTests.cs`，临时源码和 `.meta` 已清理。
+- 图形批处理正常编译、预制体引用/表现校验及 **15/15 姿态预览通过**：`normal-validation-preview.log` 与 `preview\report.txt` 在上述目录；0/22.5/45° 三张代表图已用 `view_image` 检查。最终测试清理后再次执行正常编译与引用校验通过（`normal-validation-final.log`，`XM777_PRESENTATION_PASS`，无 C# 编译错误或方法异常）。未做主场景人工 PlayMode 炮击验收或完整 Player 构建。
+
+- 射速调整（2026-10-30）：`XM777Trap.FireInterval` 由 `6f` 改为 `3f`，仍是唯一冷却来源（`FireAt` 里 `nextShotTime = clock + FireInterval`），预制体不序列化该值，无需重建 `Assets/Prefabs/XM777.prefab`。持久用例 `FiresEveryThreeSecondsAndDoesNotCreateProjectileObjects` 同步改为 3 秒节奏并断言 `XM777Trap.FireInterval == 3f`；`RunXM777TrapTests.ps1` **38/38 PASS**，XML：`C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\tests\20261030-190959-384\editmode-results.xml`，临时测试源码与 `.meta` 已清理。未做主场景人工 PlayMode 炮击验收。
+
 重建日期：2026-10-16（系统重装后）。本文件保存可随工程保留的项目知识；以当前代码与配置为准，历史路径须重新核实。
+
+## 测试天花板恢复入口（2026-10-30）
+
+- 主地图测试板使用 `CeilingTrapGridAuthoring.AddTestPanelToMainScene` 就地恢复；避免为恢复单个测试板执行全量地图导入，以保留手工墙面网格和空中出怪口。恢复后检查实体可见性、支撑 Collider 和天花板安装网格，并保存主场景。
+- 2026-10-30 已恢复缺失的 `ceiling_test_panel_20261025`，尺寸 4×4 米、底面高度 4 米、`CeilingTrapGrid_bottom` 为 4×4 格。新增菜单 `Tools/塔防/恢复主地图测试天花板`，重复恢复会启用实体、Renderer、Collider 和网格，并清除编辑器隐藏状态；复用已加载主场景，避免重新打开场景丢失内存修改。正式 Unity 编译及恢复探针通过（16/16 格有支撑），场景 diff 仅新增 294 行，原 26 个名称包含 Wall 的对象数量不变、场景 `.meta` 未变；未执行 PlayMode 放置验收。恢复前场景备份及 `restore.log` 位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\CeilingTrapSystem\restore-20261030\`。
 
 ## 项目定位与可信来源
 
@@ -773,3 +814,16 @@
 - `ThroatLampTrap.Advance` 在实际发射时分别采样一级 `directDamage` / `splashDamage` 后写入 `PlasmaProjectile.Initialize`；升级不重启蓄能，旧弹保持采样值。弹体保持原有地面筛选、遮挡、无 Collider 结算、电抗性与直击目标不重复溅射逻辑。
 - 新增持久夹具 `Tests~/Editor/TrapUpgradeDelayedDamageTests.cs`（21 例）。`RunTrapUpgradeRulesTests.ps1 -IncludeStep6` 暂存前五步测试、本步测试及 `Betty7JumpMineSlotTests`，并运行既有 `MissileLauncherWeaponTests` / `FireStatusEffectTests`，finally 清理暂存源码及 `.meta`。Unity EditMode **180/180 PASS，0 失败、0 跳过**：本步 21、贝蒂 13、导弹 13、燃烧 6、前五步 127。报告与实际 Unity 版本见 `C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step6\20261029-221033-883\summary.json`，XML 在同目录 `editmode-results.xml`。
 - 已确认 7 份临时测试源码及其 `.meta` 清理完成；随后正常 Unity 编译与 `TrapUpgradeCatalogAuthoring.ValidateAll` 通过，无 C# 编译错误或方法异常，日志归档 `C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapUpgradeSystem\step6\normal-compile.log`。未进行真实 PlayMode 人工键鼠操作或完整 Player 构建。本步完成七类陷阱普通伤害/维修倍率接入；第 7 步菜单升级及之后步骤仍待实施。升级 skill 参考中的「战斗属性待接入」属于第 4 步历史边界，以本节及当前代码为准。
+
+## 飓风无人机 Hurricane Drone（2026-10-30 新增）
+
+- 资产：`Assets/Models/HurricaneDrone/HurricaneDrone.fbx`（骨骼 + 4 段动画）、`Assets/Models/HurricaneDrone/Materials/M_HD_*.mat`（8 个 URP Lit）、`Assets/Animations/HurricaneDrone/HurricaneDrone.controller`、`Assets/Prefabs/HurricaneDrone.prefab`。尺寸 7.70 x 7.70 x 2.36 m，5662 顶点 / 8 材质槽 / 1 蒙皮网格。
+- 骨骼：`Root -> Body -> (Fan_FL/Fan_FR/Fan_BL/Fan_BR, Gun_Yaw -> Gun_Pitch)`；`Muzzle` 空物体挂在 `Gun_Pitch` 下，本地位置 (0,-1.18,2.42)。Blender 里机头朝 -Y，导出后 Unity 机头朝 +Z。
+- 动画：`HD_Hover` 1.97s 循环 / `HD_FlyForward` 1.30s 循环 / `HD_BankTurn` 1.57s 循环 / `HD_Attack` 2.97s 单次。开火用**导入设置里的动画事件** `OnGunFire`（0.73/0.87/1.00/1.53/1.67/1.80s），不是场景里手挂的，重新生成预制体不会丢。
+- 生成链：Blender 脚本 `C:\Users\ASUS\Desktop\陷阱素材文件夹\HurricaneDrone\build_drone_v3.py` -> `HurricaneDroneAuthoring.CreateAll`（材质/导入设置/控制器/预制体，幂等）。菜单 `Tools/塔防/生成飓风无人机预制体`、`Tools/塔防/校验飓风无人机预制体`、`Tools/塔防/预览飓风无人机`。
+- 运行时：`Assets/Scripts/TowerDefense/HurricaneDroneUnit.cs` **只管动画状态机**（Hover/FlyForward/BankTurn/Attack + ShotFired 事件），不含位移、选靶、伤害。飞行控制/伤害结算/血量是留给程序员的部分，规格见 `Assets/Editor/HURRICANE_DRONE_HANDOFF.md`。
+- 两个已知坑：① `HD_Attack` 的 clip.length 被报成 5.34s（曲线数据其实只到 2.97s，FBX take 尾部有静止），`HurricaneDroneUnit.attackClipSeconds` 按 2.97s 计时收尾，别改成等 Animator 播完；② **本工程 batchmode 离屏渲染只出背景色** —— `Camera.Render()` 与 `RenderPipeline.SubmitRenderRequest` 都一样，现成的 `MissileLauncherTurretPreview` 同样如此，所以自动化视觉验收走 Blender 预览图，不要在 Unity 批处理里等截图。
+- Blender 5.2 相关：`Action` 不再直接暴露 `fcurves`（改插值要走 `preferences.edit.keyframe_new_interpolation_type`）；`bake_anim_use_all_actions=True` 实测导不出任何 take，必须用 NLA 轨道导出；join 时要先建一个原点处的空对象当目标，否则会继承第一个部件的旋转/非等比缩放。
+- XM777 特效接入（2026-10-30）：新增 `Assets/Scripts/TowerDefense/XM777VfxPlayback.cs`，由 `XM777Trap.FireAt` 在实际炮口触发 `muzzleEffectPrefab`，由 `Detonate` 在预测落点触发 `impactEffectPrefab`；特效播放完成后自动销毁，放置预览因 `XM777Trap.enabled = false` 不会触发。伤害、待命中记录、3 秒射击间隔和目标筛选未改。
+- 特效生成器为 `Assets/Editor/XM777VfxAuthoring.cs`，菜单 `Tools/塔防/生成 XM777 特效预制体`；正式资源在 `Assets/Prefabs/Effects/XM777_Muzzle.prefab`、`XM777_Impact.prefab`，含火焰、烟雾与水平冲击波环。`XM777TrapAuthoring.CreateAssets` 会先生成/刷新特效并把两个预制体引用写入 `Assets/Prefabs/XM777.prefab`。
+- XM777 特效中间验证目录为 `C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\vfx\`；EditMode 回归 `42/42 PASS`，XML：`C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\vfx\tests\20261030-193839-918\editmode-results.xml`。最终接线校验日志：`C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\vfx\normal-validation-final.log`，输出 `XM777_PRESENTATION_PASS`。未进行主场景人工 PlayMode 操作验收。
