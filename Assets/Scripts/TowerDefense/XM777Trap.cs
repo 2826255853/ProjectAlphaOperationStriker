@@ -11,14 +11,20 @@ using UnityEngine;
 public sealed class XM777Trap : MonoBehaviour
 {
     public const float ShellSpeed = 500f;
-    public const float MinimumRange = 10f;
-    public const float MaximumRange = 100f;
+    public const float RG777ShellSpeed = 1000f;
+    public const float MinimumRange = 5f;
+    public const float MaximumRange = 95f;
     public const float MinimumFiringElevationDegrees = -30f;
     public const float MaximumFiringElevationDegrees = 30f;
     /// <summary>Seconds between the start of one shot and the next (3 s = one shell per 3 s).</summary>
     public const float FireInterval = 3f;
     public const float BaseExplosionDamage = 45f;
     public const float ExplosionRadius = 4f;
+    public const string RG777BranchId = "rg777";
+    public const float RG777MinimumRange = 5f;
+    public const float RG777MaximumRange = 200f;
+    public const float RG777FireInterval = 2f;
+    public const float RG777ExplosionDamage = BaseExplosionDamage * 5f;
 
     private struct PendingImpact
     {
@@ -52,9 +58,20 @@ public sealed class XM777Trap : MonoBehaviour
     private Quaternion restYawRotation;
     private Quaternion restPitchRotation;
     private Vector3 pitchAxisLocal;
+    private Vector3 restBarrelForwardWorld;
     private float restElevationDegrees;
     private Vector3 yawAxisWorld = Vector3.up;
     private bool restCaptured;
+    private Transform authoredYawPivot;
+    private Transform authoredPitchPivot;
+    private Transform authoredMuzzle;
+    private Quaternion authoredYawRotation;
+    private Quaternion authoredPitchRotation;
+    private bool authoredRigCaptured;
+    private bool hasObservedBranchState;
+    private bool observedRG777State;
+    private bool hasFired;
+    private float lastShotTime;
     private float clock;
     [SerializeField] private float nextShotTime;
 
@@ -72,6 +89,21 @@ public sealed class XM777Trap : MonoBehaviour
     public GameObject MuzzleEffectPrefab => muzzleEffectPrefab;
     public GameObject ImpactEffectPrefab => impactEffectPrefab;
     public float YawSpeedDegrees => yawSpeedDegrees;
+    public bool IsRG777Active => trap != null && trap.UpgradeState.Level == 4
+        && trap.UpgradeState.Direction == TrapUpgradeDirection.Branch
+        && trap.UpgradeState.BranchId == RG777BranchId;
+    public float EffectiveMinimumRange => IsRG777Active ? RG777MinimumRange : MinimumRange;
+    public float EffectiveMaximumRange => IsRG777Active ? RG777MaximumRange : MaximumRange;
+    public float EffectiveShellSpeed => IsRG777Active ? RG777ShellSpeed : ShellSpeed;
+    public float EffectiveFireInterval => IsRG777Active ? RG777FireInterval : FireInterval;
+    public float EffectiveExplosionDamage => IsRG777Active ? RG777ExplosionDamage
+        : trap != null ? trap.GetEffectiveDamage(BaseExplosionDamage) : BaseExplosionDamage;
+    public float EffectiveElevationForDistance(float distance) => IsRG777Active
+        ? RG777ElevationForDistance(distance)
+        : ElevationForDistance(distance);
+
+    public static float RG777ElevationForDistance(float distance) =>
+        Mathf.InverseLerp(RG777MinimumRange, RG777MaximumRange, distance) * 30f;
     /// <summary>Vertical axis the turret traverses around (world up for grounded mounts).</summary>
     public Vector3 YawAxisWorld => yawAxisWorld;
     /// <summary>Current world-space barrel direction, read from the muzzle node.</summary>
@@ -92,6 +124,40 @@ public sealed class XM777Trap : MonoBehaviour
     {
         trap = GetComponent<TrapInstance>();
         EnsureRestPose();
+        CaptureAuthoredRig();
+    }
+
+    /// <summary>Switches the active model rig while keeping this weapon's targets and pending shells.</summary>
+    public void ConfigureAimRig(Transform nextYawPivot, Transform nextPitchPivot, Transform nextMuzzle)
+    {
+        EnsureRestPose();
+        CaptureAuthoredRig();
+        yawPivot = nextYawPivot != null ? nextYawPivot : transform;
+        pitchPivot = nextPitchPivot != null ? nextPitchPivot : yawPivot;
+        muzzle = nextMuzzle != null ? nextMuzzle : yawPivot;
+        restCaptured = false;
+        EnsureRestPose();
+    }
+
+    /// <summary>Returns to the authored XM777 rig and its original rest pose.</summary>
+    public void RestoreAuthoredAimRig()
+    {
+        EnsureRestPose();
+        CaptureAuthoredRig();
+        if (authoredYawPivot != null) authoredYawPivot.rotation = authoredYawRotation;
+        if (authoredPitchPivot != null) authoredPitchPivot.localRotation = authoredPitchRotation;
+        ConfigureAimRig(authoredYawPivot, authoredPitchPivot, authoredMuzzle);
+    }
+
+    private void CaptureAuthoredRig()
+    {
+        if (authoredRigCaptured) return;
+        authoredYawPivot = yawPivot;
+        authoredPitchPivot = pitchPivot;
+        authoredMuzzle = muzzle;
+        authoredYawRotation = authoredYawPivot != null ? authoredYawPivot.rotation : transform.rotation;
+        authoredPitchRotation = authoredPitchPivot != null ? authoredPitchPivot.localRotation : Quaternion.identity;
+        authoredRigCaptured = true;
     }
 
     /// <summary>
@@ -112,6 +178,7 @@ public sealed class XM777Trap : MonoBehaviour
             restBarrelForwardLocal = Vector3.forward;
         restBarrelForwardLocal.Normalize();
         restYawRotation = yawPivot.rotation;
+        restBarrelForwardWorld = muzzle != null ? muzzle.forward : restYawRotation * restBarrelForwardLocal;
         yawAxisWorld = ResolveYawAxis();
         if (pitchPivot != null && pitchPivot != yawPivot)
         {
@@ -156,6 +223,10 @@ public sealed class XM777Trap : MonoBehaviour
         HasInterceptPoint = false;
         InterceptPoint = default;
         TimeToImpact = 0f;
+        hasObservedBranchState = false;
+        observedRG777State = false;
+        hasFired = false;
+        lastShotTime = 0f;
         velocityTracker.Reset();
         pendingImpacts.Clear();
     }
@@ -170,6 +241,7 @@ public sealed class XM777Trap : MonoBehaviour
 
         float step = Mathf.Max(0f, deltaTime);
         clock += step;
+        SynchronizeFireCadence();
         AdvanceImpacts(step);
 
         // Keep one living target through aiming and cooldown. A closer enemy
@@ -193,10 +265,11 @@ public sealed class XM777Trap : MonoBehaviour
 
         Vector3 targetPosition = PlasmaProjectile.AimPosition(currentTarget);
         Vector3 velocity = velocityTracker.Sample(targetPosition, clock, velocitySmoothingSeconds);
+        float shellSpeed = EffectiveShellSpeed;
         if (!IsInRange(HorizontalDistance(targetPosition))) return;
         if (!MissileAimSolver.TrySolveIntercept(muzzle.position, targetPosition, velocity,
-                ShellSpeed, out Vector3 predictedPoint, out _,
-                MaximumRange / ShellSpeed * 2f))
+                shellSpeed, out Vector3 predictedPoint, out _,
+                EffectiveMaximumRange / shellSpeed * 2f))
             return;
 
         if (!IsInRange(HorizontalDistance(predictedPoint))) return;
@@ -206,10 +279,10 @@ public sealed class XM777Trap : MonoBehaviour
         HasInterceptPoint = true;
         float targetDistance = HorizontalDistance(targetPosition);
         AimAt(predictedPoint, targetDistance, step);
-        TimeToImpact = Vector3.Distance(muzzle.position, predictedPoint) / ShellSpeed;
+        TimeToImpact = Vector3.Distance(muzzle.position, predictedPoint) / shellSpeed;
 
         if (clock + 0.0001f < nextShotTime || !IsYawAligned(predictedPoint)
-            || Mathf.Abs(BarrelElevationDegrees - ElevationForDistance(targetDistance)) > aimToleranceDegrees
+            || Mathf.Abs(BarrelElevationDegrees - EffectiveElevationForDistance(targetDistance)) > aimToleranceDegrees
             || !IsWithinFiringElevation(predictedPoint)) return;
         FireAt(predictedPoint, TimeToImpact);
     }
@@ -228,7 +301,8 @@ public sealed class XM777Trap : MonoBehaviour
 
             Vector3 point = PlasmaProjectile.AimPosition(candidate);
             float sqrDistance = Vector3.ProjectOnPlane(point - transform.position, Vector3.up).sqrMagnitude;
-            if (sqrDistance > MaximumRange * MaximumRange || sqrDistance < MinimumRange * MinimumRange)
+            if (sqrDistance > EffectiveMaximumRange * EffectiveMaximumRange
+                || sqrDistance < EffectiveMinimumRange * EffectiveMinimumRange)
                 continue;
             if (sqrDistance >= nearestSqrDistance || !HasClearTargetPath(origin, point, candidate))
                 continue;
@@ -254,7 +328,7 @@ public sealed class XM777Trap : MonoBehaviour
         if (!IsLivingGroundEnemy(candidate)) return false;
         Vector3 point = PlasmaProjectile.AimPosition(candidate);
         float horizontalDistance = HorizontalDistance(point);
-        return horizontalDistance < MinimumRange;
+        return horizontalDistance < EffectiveMinimumRange;
     }
 
     private bool HasClearTargetPath(Vector3 origin, Vector3 destination, EnemyInstance candidate)
@@ -307,9 +381,24 @@ public sealed class XM777Trap : MonoBehaviour
     private float HorizontalDistance(Vector3 point) =>
         Vector3.ProjectOnPlane(point - transform.position, Vector3.up).magnitude;
 
-    private static bool IsInRange(float distance) => distance >= MinimumRange && distance <= MaximumRange;
+    private bool IsInRange(float distance) =>
+        distance >= EffectiveMinimumRange && distance <= EffectiveMaximumRange;
 
-    /// <summary>Linear 10..100 metre horizontal range to 0..45 degree elevation, clamped.</summary>
+    private void SynchronizeFireCadence()
+    {
+        bool isRG777 = IsRG777Active;
+        if (!hasObservedBranchState)
+        {
+            observedRG777State = isRG777;
+            hasObservedBranchState = true;
+            return;
+        }
+        if (observedRG777State == isRG777) return;
+        observedRG777State = isRG777;
+        if (hasFired) nextShotTime = Mathf.Max(clock, lastShotTime + EffectiveFireInterval);
+    }
+
+    /// <summary>Linear 5..95 metre horizontal range to 0..45 degree elevation, clamped.</summary>
     public static float ElevationForDistance(float distance) =>
         Mathf.InverseLerp(MinimumRange, MaximumRange, distance) * 45f;
 
@@ -330,7 +419,7 @@ public sealed class XM777Trap : MonoBehaviour
     {
         AimYawAt(point, deltaTime);
         if (pitchPivot == null || pitchPivot == yawPivot) return;
-        Quaternion desired = Quaternion.AngleAxis(ElevationForDistance(targetDistance) - restElevationDegrees,
+        Quaternion desired = Quaternion.AngleAxis(EffectiveElevationForDistance(targetDistance) - restElevationDegrees,
             pitchAxisLocal) * restPitchRotation;
         pitchPivot.localRotation = Quaternion.RotateTowards(pitchPivot.localRotation, desired,
             Mathf.Max(0f, pitchSpeedDegrees) * Mathf.Max(0f, deltaTime));
@@ -340,7 +429,7 @@ public sealed class XM777Trap : MonoBehaviour
     {
         if (yawPivot == null) return;
         Vector3 up = yawAxisWorld;
-        Vector3 restForward = restYawRotation * restBarrelForwardLocal;
+        Vector3 restForward = restBarrelForwardWorld;
         Vector3 currentAim = Vector3.ProjectOnPlane(point - muzzle.position, up);
         Vector3 flatRestForward = Vector3.ProjectOnPlane(restForward, up);
         if (currentAim.sqrMagnitude < 0.0001f || flatRestForward.sqrMagnitude < 0.0001f) return;
@@ -364,7 +453,7 @@ public sealed class XM777Trap : MonoBehaviour
     {
         SpawnEffect(muzzleEffectPrefab, muzzle != null ? muzzle.position : transform.position,
             muzzle != null ? muzzle.rotation : transform.rotation);
-        float damage = trap != null ? trap.GetEffectiveDamage(BaseExplosionDamage) : BaseExplosionDamage;
+        float damage = EffectiveExplosionDamage;
         pendingImpacts.Add(new PendingImpact
         {
             Point = impactPoint,
@@ -372,7 +461,9 @@ public sealed class XM777Trap : MonoBehaviour
             Damage = damage
         });
         ShotCount++;
-        nextShotTime = clock + FireInterval;
+        lastShotTime = clock;
+        hasFired = true;
+        nextShotTime = clock + EffectiveFireInterval;
         selectTargetAfterShot = true;
     }
 

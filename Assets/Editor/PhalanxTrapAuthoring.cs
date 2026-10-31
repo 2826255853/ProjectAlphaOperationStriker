@@ -134,6 +134,26 @@ public static class PhalanxTrapAuthoring
         rigSerialized.FindProperty("muzzle").objectReferenceValue = muzzle;
         rigSerialized.ApplyModifiedPropertiesWithoutUndo();
 
+        // Firing feedback: muzzle flash + tracers live on PhalanxFireFx, the brass
+        // casings on SentryShellEjector (shared with the sentry machine gun). Both are
+        // driven by PhalanxAutoCannon.ShotFired / ShotTraced, which the branch adapter
+        // adds to the sentry root at runtime, so nothing is wired to a weapon here.
+        PhalanxFireFx fireFx = prefabRoot.GetComponent<PhalanxFireFx>();
+        if (fireFx == null) fireFx = prefabRoot.AddComponent<PhalanxFireFx>();
+        var fxSerialized = new SerializedObject(fireFx);
+        fxSerialized.FindProperty("muzzle").objectReferenceValue = muzzle;
+        fxSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+        SentryShellEjector ejector = prefabRoot.GetComponent<SentryShellEjector>();
+        if (ejector == null) ejector = prefabRoot.AddComponent<SentryShellEjector>();
+        var ejectorSerialized = new SerializedObject(ejector);
+        ejectorSerialized.FindProperty("muzzle").objectReferenceValue = muzzle;
+        // 50 rounds/second with a 1.2 s casing lifetime needs ~60 live casings.
+        ejectorSerialized.FindProperty("poolSize").intValue = 96;
+        ejectorSerialized.FindProperty("lifetime").floatValue = 1.2f;
+        ejectorSerialized.FindProperty("localVelocity").vector3Value = new Vector3(1.7f, 2.1f, -0.35f);
+        ejectorSerialized.ApplyModifiedPropertiesWithoutUndo();
+
         Bounds bounds = MeasureVertexBounds(prefabRoot.transform);
         Debug.Log($"[Phalanx] 预制体尺寸 {bounds.size.x:F2} × {bounds.size.y:F2} × {bounds.size.z:F2} m"
             + $"（占用格 2×2 m；炮管前伸按设计保留）。");
@@ -398,6 +418,82 @@ public static class PhalanxTrapAuthoring
         if (importer.importAnimation) { importer.importAnimation = false; dirty = true; }
         if (importer.importBlendShapes) { importer.importBlendShapes = false; dirty = true; }
         if (dirty) importer.SaveAndReimport();
+    }
+
+    /// <summary>
+    /// Read-only probe for the firing feedback: drives one round through
+    /// PhalanxFireFx + SentryShellEjector on the shipped visual prefab and prints
+    /// the observed flash / tracer / casing state.
+    /// </summary>
+    public static void ProbeFireFxBatch()
+    {
+        GameObject visualPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(VisualPrefabPath);
+        if (visualPrefab == null) throw new InvalidOperationException("Missing visual prefab: " + VisualPrefabPath);
+
+        var problems = new System.Collections.Generic.List<string>();
+        PhalanxFireFx fx = visualPrefab.GetComponent<PhalanxFireFx>();
+        SentryShellEjector ejector = visualPrefab.GetComponent<SentryShellEjector>();
+        if (fx == null) problems.Add("visual prefab is missing PhalanxFireFx");
+        if (ejector == null) problems.Add("visual prefab is missing SentryShellEjector");
+        if (fx != null && fx.Muzzle == null) problems.Add("PhalanxFireFx.muzzle is not wired");
+
+        if (fx == null || ejector == null)
+        {
+            foreach (string problem in problems) Debug.LogError("PHALANX_FX_FAIL " + problem);
+            throw new InvalidOperationException("PHALANX_FX_FAIL");
+        }
+
+        GameObject instance = UnityEngine.Object.Instantiate(visualPrefab);
+        try
+        {
+            PhalanxFireFx liveFx = instance.GetComponent<PhalanxFireFx>();
+            SentryShellEjector liveEjector = instance.GetComponent<SentryShellEjector>();
+            liveFx.EnsureInitialized();
+
+            Transform muzzle = liveFx.Muzzle;
+            Vector3 origin = muzzle != null ? muzzle.position : instance.transform.position;
+            Vector3 aim = origin + instance.transform.forward * 12f;
+
+            liveFx.PlayShot(origin, aim);
+            liveFx.Tick(0.01f);
+            bool flashOn = liveFx.IsMuzzleFlashVisible;
+            int tracersInFlight = liveFx.ActiveTracerCount;
+
+            liveFx.Tick(1f);
+            bool flashOff = !liveFx.IsMuzzleFlashVisible;
+            int tracersAfterFlight = liveFx.ActiveTracerCount;
+
+            liveEjector.Eject();
+            int casings = liveEjector.ActiveCasingCount;
+            liveEjector.Step(0.15f);
+            int casingsAfterStep = liveEjector.ActiveCasingCount;
+            // A throw that points down recycles the brass almost immediately; this catches
+            // the axis-frame mistake the imported model makes so easy.
+            liveEjector.Step(0.35f);
+            int casingsAfterArc = liveEjector.ActiveCasingCount;
+
+            if (!flashOn) problems.Add("muzzle flash never became visible");
+            if (tracersInFlight != 1) problems.Add($"expected 1 tracer in flight, got {tracersInFlight}");
+            if (!flashOff) problems.Add("muzzle flash did not time out");
+            if (tracersAfterFlight != 0) problems.Add($"tracer did not retire, still {tracersAfterFlight}");
+            if (casings != 1) problems.Add($"expected 1 active casing, got {casings}");
+            if (casingsAfterStep != 1) problems.Add("casing vanished on the first step");
+            if (casingsAfterArc != 1) problems.Add("casing fell out of the world within 0.5 s (throw points down)");
+
+            if (problems.Count == 0)
+                Debug.Log($"PHALANX_FX_PASS flash=on->off tracer=1->0 casing=1->{casingsAfterArc} "
+                    + $"muzzle={origin:F3} aim={aim:F3}");
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(instance);
+        }
+
+        if (problems.Count > 0)
+        {
+            foreach (string problem in problems) Debug.LogError("PHALANX_FX_FAIL " + problem);
+            throw new InvalidOperationException("PHALANX_FX_FAIL: " + problems.Count);
+        }
     }
 
     private static Dictionary<string, Material> EnsureMaterials()

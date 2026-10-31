@@ -27,9 +27,13 @@ public static class TrapUpgradeRuntime
         wallet = current;
         service = TrapUpgradeService.ForWallet(current,
             Resources.Load<TrapUpgradeCatalog>(TrapUpgradeCatalog.ResourcePath),
-            SentryPhalanxBranchAdapter.IsAvailable);
+            IsIntegratedBranchAvailable);
         return service;
     }
+
+    private static bool IsIntegratedBranchAvailable(string trapId, string branchId) =>
+        SentryPhalanxBranchAdapter.IsAvailable(trapId, branchId)
+        || RG777BranchAdapter.IsAvailable(trapId, branchId);
 
     internal static void ResetRuntimeState()
     {

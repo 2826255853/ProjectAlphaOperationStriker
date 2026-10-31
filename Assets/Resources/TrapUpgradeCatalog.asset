@@ -58,4 +58,18 @@ MonoBehaviour:
   - trapId: xm777
     growth: []
     costs: []
-    branches: []
+    branches:
+    - branchId: rg777
+      displayName: "RG777 \u96F7\u9524\u7535\u78C1\u70AE"
+      description: "\u5C04\u7A0B 5\u2013200 \u7C73\uFF0C\u70AE\u7BA1\u4EF0\u89D2\u968F\u654C\u8DDD\u5728\u7EBF\u6027 0\xB0\u201330\xB0 \u95F4\u8C03\u6574\uFF1B2 \u79D2\u4E00\u53D1\uFF0C\u4F24\u5BB3\u4E3A XM777 \u4E00\u7EA7\u72B6\u6001\u7684 5 \u500D\u3002"
+      integrated: 1
+      overrideCostMultiplier: 0
+      costMultiplier: 1.5
+      overrideFixedCost: 0
+      fixedCost: 0
+      overrideDamage: 1
+      damage: 5
+      overrideRepair: 0
+      repair: 2
+      overrideMaxHealth: 0
+      maxHealth: 2

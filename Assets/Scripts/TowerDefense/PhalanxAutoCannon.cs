@@ -29,7 +29,14 @@ public sealed class PhalanxAutoCannon : MonoBehaviour
     public EnemyInstance CurrentTarget => target;
     public PhalanxTurretRig Rig => rig;
 
+    /// <summary>Raised once per round with the muzzle world position (flash / casing feed).</summary>
     public event System.Action<Vector3> ShotFired;
+
+    /// <summary>
+    /// Raised once per round with the muzzle world position and the point the round was
+    /// aimed at. Tracer effects need both ends, so they listen here instead of ShotFired.
+    /// </summary>
+    public event System.Action<Vector3, Vector3> ShotTraced;
 
     private void Awake()
     {
@@ -146,8 +153,10 @@ public sealed class PhalanxAutoCannon : MonoBehaviour
             : damagePerShot;
         health.TakeDamage(effectiveDamage, TrapDamageType.Bullet);
         Vector3 muzzle = rig != null ? rig.MuzzlePosition : transform.position;
+        Vector3 aimPoint = enemy.transform.position;
         ShotFired?.Invoke(muzzle);
-        Debug.DrawLine(muzzle, enemy.transform.position, Color.yellow, 0.04f);
+        ShotTraced?.Invoke(muzzle, aimPoint);
+        Debug.DrawLine(muzzle, aimPoint, Color.yellow, 0.04f);
     }
 
     private void ResolveReferences()

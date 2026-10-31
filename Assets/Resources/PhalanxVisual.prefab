@@ -4293,6 +4293,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4443911335948471549}
   - component: {fileID: 1793704813325087092}
+  - component: {fileID: 703272533792690661}
+  - component: {fileID: 4403354115480731872}
   m_Layer: 0
   m_Name: PhalanxVisual
   m_TagString: Untagged
@@ -4338,6 +4340,54 @@ MonoBehaviour:
   maxPitchDegrees: 85
   barrelSpinDegreesPerSecond: 1500
   barrelSpinBlendSeconds: 0.25
+--- !u!114 &703272533792690661
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4633361185930191845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2784b2095e5a4d4489668e00a8e346d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PhalanxFireFx
+  muzzle: {fileID: 4681909528646613205}
+  cannon: {fileID: 0}
+  muzzleFlash: {fileID: 0}
+  flashDuration: 0.05
+  flashScaleJitter: 0.28
+  flashSize: 0.34
+  flashForwardOffset: 0.08
+  flashColor: {r: 1, g: 0.62, b: 0.18, a: 1}
+  tracerSpeed: 240
+  tracerLength: 2.4
+  tracerWidth: 0.05
+  tracerPoolSize: 48
+  tracerEveryNthRound: 1
+  tracerColor: {r: 1, g: 0.86, b: 0.42, a: 1}
+--- !u!114 &4403354115480731872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4633361185930191845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46619e631ced7e5409d54964fb04a3fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SentryShellEjector
+  ejectionPort: {fileID: 0}
+  casingPrefab: {fileID: 0}
+  muzzle: {fileID: 4681909528646613205}
+  poolSize: 96
+  fallbackPortOffset: {x: 0.11, y: -0.06, z: 0.02}
+  localVelocity: {x: 1.7, y: 2.1, z: -0.35}
+  gravity: -9.81
+  spinDegreesPerSecond: 900
+  lifetime: 1.2
+  groundClearance: 0.02
 --- !u!1 &4648374996410600073
 GameObject:
   m_ObjectHideFlags: 0

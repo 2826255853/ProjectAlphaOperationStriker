@@ -110,6 +110,7 @@ public static class XM777TrapAuthoring
         EditorUtility.SetDirty(definition);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
+        RG777BranchAuthoring.WireBranchAdapterIfAvailable();
         Debug.Log($"XM777 预制体和游戏陷阱定义已生成：{PrefabPath} / {DefinitionPath}");
     }
 

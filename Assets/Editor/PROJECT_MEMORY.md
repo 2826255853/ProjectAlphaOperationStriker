@@ -1,5 +1,16 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 密集阵 · 开火特效（枪口火光 / 曳光弹 / 抛壳）（2026-10-31）
+
+- 新增运行时 `Assets/Scripts/TowerDefense/PhalanxFireFx.cs`：枪口火光 + 曳光弹，只由 `PhalanxAutoCannon` 的事件驱动。两者都是**程序化生成**（3 个交叉 quad + LineRenderer 池 + 运行时加法混合材质），所以 `PhalanxVisual.prefab` 里只挂组件、不需要美术 FX 网格，重生成预制体不会丢。
+- `PhalanxAutoCannon` 新增 `ShotTraced(muzzle, aimPoint)` 事件（`ShotFired(muzzle)` 保持不变，火光与抛壳仍走它）。曳光弹必须走 `ShotTraced`，因为只有它带落点。
+- 抛壳复用既有 `SentryShellEjector`（**没有**新写一份）：`BindWeapon()` 先找 `AutoSentryTurret`，再退回 `PhalanxAutoCannon`；`ejectionPort` / `casingPrefab` 为空时自动合成——抛壳口挂在 `PhalanxTurretRig.PitchPivot` 下（**不能挂 barrel cluster**，否则 1500°/s 自转会把弹壳甩成绕轴喷泉），弹壳是程序化黄铜圆柱。
+- 50 发/秒的调参：`tracerEveryNthRound=1`、`tracerSpeed=240`、`tracerLength=2.4`（单发飞行约 0.23 s，约 11 条同时在天上）；抛壳 `poolSize=96`、`lifetime=1.2`（约 60 个同时存活）。
+- 生成器 `PhalanxTrapAuthoring.CreateAssets` 现在会挂 `PhalanxFireFx` + `SentryShellEjector` 并写入 `muzzle` / `poolSize` / `lifetime` / `localVelocity`。**手改预制体会被覆盖**。
+- 校验：`PhalanxTrapAuthoring.ProbeFireFxBatch` → `PHALANX_FX_PASS flash=on->off tracer=1->0 casing=1->1`；既有 `ValidateBatch` 复跑仍 `PHALANX_PASS`（107 渲染器 / 107 材质槽不变）。预制体改动前备份在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\Phalanx\fire-fx-20261031\backup\`。
+- 预览入口：`PhalanxFireFxPreview.RenderPreview`（菜单 `Tools/塔防/预览密集阵开火特效`，批处理需 `-WithGraphics`），输出三张 PNG 到 `%TEMP%\alpha-striker-unity\phalanx-fx-preview`：01 枪口火光、02 曳光连发、03 抛壳。它同时打印 `PHALANX_FX_PREVIEW_CASINGS total=12 onScreen=12`，用 `WorldToViewportPoint` 数值确认弹壳真的在画面里（弹壳只有 2 cm，肉眼看图容易误判）。留档图在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\Phalanx\fire-fx-20261031\preview\`。
+- 抛壳口坐标系坑：`muzzle` 是 FBX 里的节点，局部轴**不是**世界上/右（`PHX_Base_Root` 带 X=270°）。合成抛壳口时用 `Quaternion.LookRotation(rig.BarrelDirection, Vector3.up)` 重建一个干净坐标系，否则 `localVelocity` 的 y 分量会变成水平甚至向下，弹壳一出膛就落地回收。
+- 未做：主场景 PlayMode 实机观察 50 发/秒下的观感（火光亮度、曳光密度是否过密），未做完整 Player 构建。
 ## 密集阵近防炮 · 建模完善 + 转向轴系修复（2026-10-31）
 
 - 建模完善（Blender 侧，脚本 `C:\Users\ASUS\Desktop\陷阱素材文件夹\Phalanx\phalanx_build.py`）：按参考图 `密集阵.jpg` 补齐 ① 炮管加长到 0.62 m 并加**中段摇架套筒** `PHX_Barrel_Jacket` + 过渡颈筒 `PHX_Barrel_Neck`（原来炮组与炮座之间有可见悬空）② 楔形前装甲 `PHX_Turret_Cheek_L/R`（±22° 颊板）+ `PHX_Turret_Glacis`（-26° 首上装甲）③ 雷达背板 X 加强筋 `PHX_Radar_Brace_Clamp_L/R` ④ 前部光学镜 `PHX_Front_Optic` + `PHX_Front_Optic_Lens` ⑤ 圆柱供弹鼓 `PHX_Ammo_Drum` / `_Cap` / `_Hub`。
@@ -915,3 +926,10 @@
 - `Assets/Resources/TrapUpgradeCatalog.asset` 已加入集成分支 `phalanx`，默认四级分支价格为基础价格的 1.5 倍；`TrapUpgradeRuntime` 注册分支效果适配器。
 - `Assets/Prefabs/AutoSentryTurret.prefab` 已挂载分支适配器，密集阵视觉从 `Resources/Phalanx.asset` 的预制体实例化并去除嵌套 `TrapInstance`/Collider。
 - 验证：`SentryPhalanxBranchTests` 2/2、`PhalanxTurretRigTests` 2/2，`TrapUpgradeCatalogAuthoring.ValidateAll` 与 `PhalanxTrapAuthoring.ValidateBatch` 均通过。测试源码保留在 `Tests~/Editor`，未留在 `Assets/Editor`。- 后续补充：`PhalanxTrapAuthoring.CreateAssetsBatch` 现在同时生成 `Assets/Resources/PhalanxVisual.prefab`，该资源只含密集阵视觉与 `PhalanxTurretRig`，不含 `TrapInstance`；分支适配器优先加载该资源。
+### XM777 四级 RG777「雷锤」分支（2026-10-31）
+
+- `Assets/Scripts/TowerDefense/RG777BranchAdapter.cs` 注册 `xm777/rg777` 分支并在原陷阱实例上切换模型；`TrapInstance`、陷阱等级/血量和 `XM777Trap` 的待命中炮弹均保留。离开分支时恢复 XM777 原显示与瞄准 rig。
+- `Assets/Editor/RG777BranchAuthoring.cs` 生成 `Assets/Resources/RG777Visual.prefab`，配置 `Assets/Resources/TrapUpgradeCatalog.asset` 的四级分支，并给 `Assets/Prefabs/XM777.prefab` 挂接分支适配器。之后重建 XM777 时会自动保留这条接线。
+- RG777 参数由 `XM777Trap` 按已提交的分支状态切换：水平射程 5–200 m、炮管仰角线性 0–30°、发射间隔 2 秒；单发基础伤害固定为 `BaseExplosionDamage * 5`（XM777 一级状态 45 × 5 = 225），发射时写入待命中记录。
+- `Assets/Editor/RG777MaterialAuthoring.cs` 将 RG777 FBX 的 9 个材质槽绑定至 `Assets/Models/RG777/Materials/` 下 URP/Lit 材质；`RG777TrapPreview` 从最终分支预制体输出四视图至 `C:\Users\ASUS\Desktop\陷阱素材文件夹\RG777\integration\preview\`。
+- 验证：项目 Unity `6000.6.7f1`，`RunXM777TrapTests.ps1` **63/63 PASS**（含 RG777 射程、角度、冷却、伤害与升级时冷却切换用例）；`RG777BranchAuthoring.ValidateIntegrationBatch` 校验完整升级目录、XM777 特效引用、RG777 rig 和 URP 材质，并实际验证分支模型切换/恢复；`RG777TrapPreview.RenderPreviewBatch -WithGraphics` 成功。未执行主场景人工 PlayMode 验收或完整 Player 构建。

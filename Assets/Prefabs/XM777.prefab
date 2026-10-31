@@ -1875,6 +1875,7 @@ GameObject:
   - component: {fileID: 2323496704579474000}
   - component: {fileID: 7798827253652996484}
   - component: {fileID: 7191115668276159778}
+  - component: {fileID: 9190490457813504880}
   m_Layer: 0
   m_Name: XM777
   m_TagString: Untagged
@@ -1941,6 +1942,21 @@ MonoBehaviour:
   aimToleranceDegrees: 3
   velocitySmoothingSeconds: 0.12
   nextShotTime: 0
+--- !u!114 &9190490457813504880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1618872701264048800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec7fcad7217843b89571bdc3f10c485c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RG777BranchAdapter
+  visualPrefab: {fileID: 9070031556595441632, guid: 9ab1f3697771b014bbf5c402c2304f51, type: 3}
+  weapon: {fileID: 7191115668276159778}
+  rg777Visual: {fileID: 0}
 --- !u!1 &1645787422309020367
 GameObject:
   m_ObjectHideFlags: 0
