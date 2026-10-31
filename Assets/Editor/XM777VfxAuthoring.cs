@@ -7,7 +7,10 @@ public static class XM777VfxAuthoring
 {
     public const string EffectsFolder = "Assets/Prefabs/Effects";
     public const string MuzzlePrefabPath = EffectsFolder + "/XM777_Muzzle.prefab";
+    /// <summary>Self-contained fallback impact effect, rebuilt by <see cref="CreateEffects"/>.</summary>
     public const string ImpactPrefabPath = EffectsFolder + "/XM777_Impact.prefab";
+    /// <summary>Shipped realistic explosion (Hovl Studio) used as the gameplay impact.</summary>
+    public const string GameplayImpactPrefabPath = "Assets/Hovl Studio/Realistic explosions/Prefabs/Explosion1.prefab";
 
     private const string TextureFolder = EffectsFolder + "/Textures";
     private const string MaterialFolder = EffectsFolder + "/Materials";
@@ -45,7 +48,20 @@ public static class XM777VfxAuthoring
     public static void CreateEffectsBatch() => CreateEffects();
 
     public static GameObject LoadMuzzlePrefab() => AssetDatabase.LoadAssetAtPath<GameObject>(MuzzlePrefabPath);
-    public static GameObject LoadImpactPrefab() => AssetDatabase.LoadAssetAtPath<GameObject>(ImpactPrefabPath);
+
+    /// <summary>
+    /// Single source of truth for the impact effect wired into <c>XM777.prefab</c>.
+    /// The shipped explosion wins; the generated <see cref="ImpactPrefabPath"/> keeps the
+    /// prefab valid on machines where the third-party package is not installed.
+    /// Generator, validator and tests must all resolve the impact through this method.
+    /// </summary>
+    public static GameObject LoadImpactPrefab()
+    {
+        GameObject gameplay = AssetDatabase.LoadAssetAtPath<GameObject>(GameplayImpactPrefabPath);
+        if (gameplay != null) return gameplay;
+        Debug.LogWarning($"XM777 未找到真实爆炸特效，回退到自带预制体：{GameplayImpactPrefabPath} -> {ImpactPrefabPath}");
+        return AssetDatabase.LoadAssetAtPath<GameObject>(ImpactPrefabPath);
+    }
 
     private static void CreateMuzzlePrefab(Material flame, Material smoke)
     {

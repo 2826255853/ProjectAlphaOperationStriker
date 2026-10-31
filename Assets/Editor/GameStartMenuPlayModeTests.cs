@@ -63,6 +63,18 @@ public sealed class GameStartMenuPlayModeTests
         Assert.That(Get<GameObject>(view, "mainPanel").activeSelf, Is.True);
         Assert.That(Time.timeScale, Is.Zero);
 
+        Get<Button>(view, "mapButton").onClick.Invoke();
+        Assert.That(Get<GameObject>(view, "mapPanel").activeSelf, Is.True);
+        Assert.That(Get<GameObject>(view, "mainPanel").activeSelf, Is.False);
+        Button[] mapOptions = view.GetComponentsInChildren<Button>(true);
+        bool hasFirstMap = false;
+        foreach (Button mapOption in mapOptions)
+            hasFirstMap |= mapOption != null && mapOption.name == "Map Option 0";
+        Assert.That(hasFirstMap, Is.True);
+        Get<Button>(view, "mapBackButton").onClick.Invoke();
+        Assert.That(Get<GameObject>(view, "mapPanel").activeSelf, Is.False);
+        Assert.That(Get<GameObject>(view, "mainPanel").activeSelf, Is.True);
+
         Get<Button>(view, "primaryButton").onClick.Invoke();
         yield return null;
         Assert.That(GameStartMenu.CursorOwned, Is.False);

@@ -1935,7 +1935,7 @@ MonoBehaviour:
   muzzle: {fileID: 2945059295623242025}
   restBarrelForwardLocal: {x: 0, y: 0.7071067, z: 0.7071068}
   muzzleEffectPrefab: {fileID: 4242123530505739237, guid: 95c9b19e49e0ec44b9eb351cf59ce3be, type: 3}
-  impactEffectPrefab: {fileID: 5594522641287884845, guid: 552ecfff9dce1cf478e7277988131ae1, type: 3}
+  impactEffectPrefab: {fileID: 1267354932851840, guid: f905eddec7702834c8405b61eb844e75, type: 3}
   yawSpeedDegrees: 240
   pitchSpeedDegrees: 240
   aimToleranceDegrees: 3

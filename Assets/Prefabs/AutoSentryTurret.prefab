@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 27194427625806632}
   - component: {fileID: 7819781577974785934}
   - component: {fileID: 889798105331638481}
+  - component: {fileID: 743100000000000001}
   m_Layer: 0
   m_Name: AutoSentryTurret
   m_TagString: Untagged
@@ -70,3 +71,19 @@ MonoBehaviour:
   maxPitchDegrees: 60
   aimPivot: {fileID: 0}
   muzzle: {fileID: 0}
+--- !u!114 &743100000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3443765544896020122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a64cf3f8e4f4e1c97e49a9f6b4a1d22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SentryPhalanxBranchAdapter
+  phalanxPrefab: {fileID: 0}
+  sentry: {fileID: 889798105331638481}
+  cannon: {fileID: 0}
+  phalanxVisual: {fileID: 0}

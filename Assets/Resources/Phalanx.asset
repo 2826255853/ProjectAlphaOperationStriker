@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 584def4af644b0c4fbbf59b658cc2acd, type: 3}
+  m_Name: Phalanx
+  m_EditorClassIdentifier: Assembly-CSharp::TrapDefinition
+  trapId: phalanx
+  displayName: "\u5BC6\u96C6\u9635\u8FD1\u9632\u70AE"
+  prefab: {fileID: 8297299256576898325, guid: bec654e2ec8265a47b0faca97cf09ef5, type: 3}
+  menuIcon: {fileID: 0}
+  cost: 55
+  footprintWidth: 2
+  footprintHeight: 2
+  localRotation: {x: 0, y: 0, z: 0}
+  walkableFloorTrap: 0
+  worldFootprint: {x: 2, y: 2}
+  mountType: 0
+  installBoundsCenter: {x: 0, y: 0, z: 0}
+  installBoundsSize: {x: 0, y: 0, z: 0}
+  skipMonsterClearanceCheck: 0

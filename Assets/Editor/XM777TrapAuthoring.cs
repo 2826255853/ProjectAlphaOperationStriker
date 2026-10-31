@@ -132,19 +132,31 @@ public static class XM777TrapAuthoring
         if (trap == null || trap.PitchPivot == null || trap.Muzzle == null || trap.YawPivot == null
             || !trap.Muzzle.IsChildOf(trap.PitchPivot) || !trap.PitchPivot.IsChildOf(trap.YawPivot))
             throw new InvalidOperationException("XM777 prefab must wire yaw -> pitch -> muzzle.");
+        // Resolve the impact through the same helper the generator uses, so a stale
+        // reference (for example XM777_Impact left on the prefab while the gameplay
+        // impact is Explosion1) is reported instead of silently accepted.
         GameObject muzzleFx = AssetDatabase.LoadAssetAtPath<GameObject>(XM777VfxAuthoring.MuzzlePrefabPath);
-        GameObject impactFx = AssetDatabase.LoadAssetAtPath<GameObject>(XM777VfxAuthoring.ImpactPrefabPath);
+        GameObject impactFx = XM777VfxAuthoring.LoadImpactPrefab();
         if (muzzleFx == null || impactFx == null || trap.MuzzleEffectPrefab != muzzleFx
             || trap.ImpactEffectPrefab != impactFx)
-            throw new InvalidOperationException("XM777 prefab must wire muzzle and impact effect prefabs.");
+            throw new InvalidOperationException(
+                $"XM777 prefab effect references are out of date (muzzle={NameOf(trap.MuzzleEffectPrefab)}, "
+                + $"impact={NameOf(trap.ImpactEffectPrefab)}; expected impact={NameOf(impactFx)}). "
+                + "Rebuild with Tools/塔防/生成 XM777 火炮陷阱.");
         if (muzzleFx.GetComponent<XM777VfxPlayback>() == null
             || muzzleFx.GetComponentsInChildren<ParticleSystem>(true).Length < 2
-            || impactFx.GetComponent<XM777VfxPlayback>() == null
-            || impactFx.GetComponentsInChildren<ParticleSystem>(true).Length < 4
-            || impactFx.transform.Find("Ground Shockwave") == null)
+            || impactFx.GetComponentsInChildren<ParticleSystem>(true).Length == 0)
             throw new InvalidOperationException("XM777 effect prefabs are missing particle playback or required emitters.");
+        GameObject generatedImpact = AssetDatabase.LoadAssetAtPath<GameObject>(XM777VfxAuthoring.ImpactPrefabPath);
+        if (impactFx == generatedImpact
+            && (impactFx.GetComponent<XM777VfxPlayback>() == null
+                || impactFx.GetComponentsInChildren<ParticleSystem>(true).Length < 4
+                || impactFx.transform.Find("Ground Shockwave") == null))
+            throw new InvalidOperationException("Generated XM777_Impact fallback is missing playback, emitters or the ground shockwave.");
         Debug.Log("XM777_PRESENTATION_PASS: yaw/pitch/muzzle and both particle prefabs wired; no cameras, lights or audio listeners.");
     }
+
+    private static string NameOf(UnityEngine.Object asset) => asset != null ? asset.name : "<none>";
 
     private static TrapDefinition LoadOrCreateDefinition()
     {

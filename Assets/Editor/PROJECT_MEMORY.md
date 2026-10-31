@@ -1,5 +1,17 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 密集阵近防炮 · 建模完善 + 转向轴系修复（2026-10-31）
+
+- 建模完善（Blender 侧，脚本 `C:\Users\ASUS\Desktop\陷阱素材文件夹\Phalanx\phalanx_build.py`）：按参考图 `密集阵.jpg` 补齐 ① 炮管加长到 0.62 m 并加**中段摇架套筒** `PHX_Barrel_Jacket` + 过渡颈筒 `PHX_Barrel_Neck`（原来炮组与炮座之间有可见悬空）② 楔形前装甲 `PHX_Turret_Cheek_L/R`（±22° 颊板）+ `PHX_Turret_Glacis`（-26° 首上装甲）③ 雷达背板 X 加强筋 `PHX_Radar_Brace_Clamp_L/R` ④ 前部光学镜 `PHX_Front_Optic` + `PHX_Front_Optic_Lens` ⑤ 圆柱供弹鼓 `PHX_Ammo_Drum` / `_Cap` / `_Hub`。
+- **两个踩过的坑**：警示件原来用**实心圆柱**（`PHX_Barrel_Jacket_Band`、`PHX_Muzzle_Ring`），从正面把炮口轴线堵成一块橙色圆盘——炮口细节全看不见；改成 `primitive_torus_add` 圆环后才露出六根身管。另外炮组前移后必须先加颈筒，否则侧视图上炮管与 gun housing 之间出现悬空断口。
+- 规模：115 网格 / 约 1.99 万三角面；预制体包围盒 **1.76 × 2.12 × 2.34 m**，2×2 占格 + 炮管前伸 0.34 m（预算 0.40）。`PhalanxTrapAuthoring.CreateAssetsBatch` 重新生成后 `ValidateBatch` → `PHALANX_PASS`（107 渲染器 / 107 材质槽全部 `M_PHX_*` URP/Lit）。
+- **转向轴系 bug（关键）**：`PHX_Base_Root` 带 FBX 的 `X=270°` 节点旋转，子节点局部 `Vector3.up` 实际对应世界 **-Z**；`PhalanxTurretRig` 原先用 `Vector3.up`/`Vector3.right` 当局部旋转轴，偏航变成绕水平轴侧倾。实测 60 帧后 `barrelDir` 与目标夹角 **15.92°**、`aimed=False`。修复：`EnsureRestPose()` 解析 `yawAxisLocal = Inverse(yawPivot.parent.rotation) * Vector3.up` 与 `pitchAxisLocal = Inverse(pitchPivot.parent.rotation) * Vector3.right`，两处 `AngleAxis` 改用它们；修复后 `angle=0.00, aimed=True`。与 XM777 的 `yawAxisWorld` 修复同一类问题——**不要在局部旋转里写死世界轴**。
+- 材质解析表 `PhalanxTrapAuthoring.ResolveStyleKey` 增加 `Optic` → `MetalDark` 令牌（新增件走生成器而不是手改预制体）。
+- 回归：新增持久用例 `Tests~/Editor/PhalanxTurretRigTests.cs`（2 例：真实预制体 120 帧收敛 + `IsAimedAt`；复刻 X=270 父节点时偏航轴必须竖直且不把仰角混进偏航）。临时暂存到 `Assets/Editor` 跑 `-runTests -testPlatform EditMode -testFilter PhalanxTurretRigTests` → **2/2 PASS**，XML `C:\Users\ASUS\Desktop\陷阱素材文件夹\Phalanx\modeling-pass2-20261031\tests\phalanx-rig.xml`；跑完已删除暂存源码与 `.meta`，随后正常 Unity 编译 + `ValidateBatch` 复跑仍 `PHALANX_PASS`。
+- 交接文档补写：`Assets/Editor/PHALANX_HANDOFF.md`（两份代码注释一直引用它但此前不存在），记录层级约定、轴系坑、rig 契约、未接入项与校验入口。
+- 未做：`TrapSelectionMenuAuthoring` 与 `TrapUpgradeCatalogAuthoring` 里**没有** `phalanx` 条目（菜单图标、升级四级/分支、主场景摆放均未接入），索敌/射击/伤害组件未写，未做主场景人工 PlayMode 验收，未做完整 Player 构建。价格 `cost = 55` 仍是占位值。
+- 中间态：`C:\Users\ASUS\Desktop\陷阱素材文件夹\Phalanx\`（脚本、`.blend`、FBX、`preview\*.png`、`modeling-pass2-20261031\backup\` 改动前备份）。
+
 ## 防空导弹发射架 · 配色修复（2026-10-30）
 
 - 症状：游戏内发射架「没有颜色」。根因是 `Assets/Models/Trap_Base_Disc_Dual_Launcher_Loaded.fbx` 的 11 个材质全部是 **FBX 内嵌子资产**（`guid: a1b2c3d4e5f6478899aabbccddeeff01`，type 3），材质名有语义（`Trap Base Dark Metal` / `Launcher Body Metal` / `Launcher Rail` / `Missile Body` / `Missile Nose` / `Missile Details` / `Missile Fins` / `Launcher Pylon Metal` / `Inner Groove` / `Warning Edge`）但**颜色全白**，所以整机渲染成一片白色高光（像素对比：旧渲染 top50 平均值 255,255,255）。预制体 `Assets/Prefabs/DualMissileLauncher.prefab` 直接引用了这些内嵌材质。
@@ -876,3 +888,30 @@
 - XM777 特效接入（2026-10-30）：新增 `Assets/Scripts/TowerDefense/XM777VfxPlayback.cs`，由 `XM777Trap.FireAt` 在实际炮口触发 `muzzleEffectPrefab`，由 `Detonate` 在预测落点触发 `impactEffectPrefab`；特效播放完成后自动销毁，放置预览因 `XM777Trap.enabled = false` 不会触发。伤害、待命中记录、3 秒射击间隔和目标筛选未改。
 - 特效生成器为 `Assets/Editor/XM777VfxAuthoring.cs`，菜单 `Tools/塔防/生成 XM777 特效预制体`；正式资源在 `Assets/Prefabs/Effects/XM777_Muzzle.prefab`、`XM777_Impact.prefab`，含火焰、烟雾与水平冲击波环。`XM777TrapAuthoring.CreateAssets` 会先生成/刷新特效并把两个预制体引用写入 `Assets/Prefabs/XM777.prefab`。
 - XM777 特效中间验证目录为 `C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\vfx\`；EditMode 回归 `42/42 PASS`，XML：`C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\vfx\tests\20261030-193839-918\editmode-results.xml`。最终接线校验日志：`C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\vfx\normal-validation-final.log`，输出 `XM777_PRESENTATION_PASS`。未进行主场景人工 PlayMode 操作验收。
+
+- XM777 target selection fix (2026-10-31): retain the locked living target except when it moves inside MinimumRange; then search again for the nearest visible ground enemy in artillery range. Regression ReplacesTooCloseTargetWithAnotherEnemyInArtilleryRange passed. The XM777 suite ran 52/53; the remaining failure was GeneratedEffectsAndXm777PrefabReferencesAreWired (impact reference expected XM777_Impact, actual Explosion1).
+
+### XM777 特效预制体引用归一（2026-10-31）
+
+- 症状：`GeneratedEffectsAndXm777PrefabReferencesAreWired` 报「expected XM777_Impact, actual Explosion1」，`XM777_Impact` 与 `Explosion1` 两套引用谁也没被确立为唯一权威；`XM777VfxAuthoring` 里 `ImpactPrefabPath`（生成物）与 `GameplayImpactPrefabPath`（Hovl Studio 真实爆炸）并存，旧校验器只盯生成物、测试只盯生成物，而 `CreateAssets` 写进预制体的是 Explosion1。
+- 定案：**`Explosion1` 是正式游戏内爆炸，`XM777_Impact` 为自带兜底**。`XM777VfxAuthoring.LoadImpactPrefab()` 成为唯一解析入口——优先取 `GameplayImpactPrefabPath`，缺失时回退 `ImpactPrefabPath` 并打 warning（Hovl 包不在仓库跟踪范围内，换机器或缺包时预制体仍有效）。
+- 三处统一走该入口：`XM777TrapAuthoring.CreateAssets`（写入预制体）、`XM777TrapAuthoring.ValidatePresentationBatch`（校验并输出双方名字，引用过期时直接提示重建）、`Tests~/Editor/XM777TrapTests.cs` 的 `GeneratedEffectsAndXm777PrefabReferencesAreWired`（同时断言生成兜底物仍有 4 个 ParticleSystem + `Ground Shockwave`）。
+- 运行时不需要改动：`XM777Trap.SpawnEffect` 已有两条分支，Hovl 预制体没有 `XM777VfxPlayback` 时按各 ParticleSystem 的 `duration + startLifetime` 计算销毁延时。注意 `Explosion1` 自带一盏 `Light` 子对象（随实例一起销毁，不常驻）。
+- 验证（Unity `6000.6.7f1`）：`RunXM777TrapTests.ps1` **53/53 PASS**，XML `C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\effect-ref-fix-20261031\tests\20261031-120755-511\editmode-results.xml`（此前 52/53 的唯一失败项已通过）；随后 `XM777TrapAuthoring.ValidatePresentationBatch` 输出 `XM777_PRESENTATION_PASS`，无编译错误或异常。测试源码仍只留 `Tests~`，`Assets/Editor/XM777TrapTests.cs` 与 `.meta` 已由 runner 清除。
+- 重建后的 `Assets/Prefabs/XM777.prefab` 仍为 `muzzleEffectPrefab = XM777_Muzzle`、`impactEffectPrefab = Explosion1`。未做主线场景人工 PlayMode 炮击/爆炸观感验收，也未做完整 Player 构建；若要改回自带冲击波，把 `LoadImpactPrefab()` 的首选常量换回 `ImpactPrefabPath` 即可（三处校验会同步跟随）。
+
+### 基于场景切换的地图选择（2026-10-31）
+
+- `Assets/Scripts/FPS/MapSceneCatalog.cs` 从启用的 Build Settings 场景生成地图列表，使用场景文件名作为显示名；新增地图只需加入 `EditorBuildSettings`。
+- `GameStartMenu` 增加地图选择状态。选择地图只更新当前 build index；确认开始时，当前场景直接关闭菜单，其他场景使用 `SceneManager.LoadSceneAsync` 单场景切换。
+- 通过一次性 `skipMenuOnNextSceneLoad` 标志让目标场景加载后跳过首屏菜单，避免切图后重复弹出开始菜单；按 Escape 仍可重新打开菜单。
+- `GameStartMenuView` 和 `GameStartMenuAuthoring` 同步生成/验证主菜单、地图页和设置页；菜单回归测试记录在 `Assets/Editor/GameStartMenuPlayModeTests.cs`，目录测试记录在 `Tests~/Editor/MapSceneCatalogTests.cs`。
+- 验证：`GameStartMenuAuthoring.GenerateAndValidate` 成功；`RunGameStartMenuPlayModeTests.ps1` 通过 1/1。当前只验证已有单场景，尚未添加第二张地图做真实跨场景 PlayMode 验收。
+
+### 哨戒机枪四级密集阵分支（2026-10-31）
+
+- 新增 `Assets/Scripts/TowerDefense/PhalanxAutoCannon.cs`：50 m 射程、空中优先、无空中目标时选地面目标，50 发/秒，基础单发伤害 0.5，命中使用 `TrapDamageType.Bullet`。
+- 新增 `Assets/Scripts/TowerDefense/SentryPhalanxBranchAdapter.cs`：保留原 `TrapInstance`，监听升级状态，在 `auto_sentry_turret` 四级 `phalanx` 分支原地切换哨戒逻辑、密集阵视觉和 `PhalanxTurretRig`。
+- `Assets/Resources/TrapUpgradeCatalog.asset` 已加入集成分支 `phalanx`，默认四级分支价格为基础价格的 1.5 倍；`TrapUpgradeRuntime` 注册分支效果适配器。
+- `Assets/Prefabs/AutoSentryTurret.prefab` 已挂载分支适配器，密集阵视觉从 `Resources/Phalanx.asset` 的预制体实例化并去除嵌套 `TrapInstance`/Collider。
+- 验证：`SentryPhalanxBranchTests` 2/2、`PhalanxTurretRigTests` 2/2，`TrapUpgradeCatalogAuthoring.ValidateAll` 与 `PhalanxTrapAuthoring.ValidateBatch` 均通过。测试源码保留在 `Tests~/Editor`，未留在 `Assets/Editor`。- 后续补充：`PhalanxTrapAuthoring.CreateAssetsBatch` 现在同时生成 `Assets/Resources/PhalanxVisual.prefab`，该资源只含密集阵视觉与 `PhalanxTurretRig`，不含 `TrapInstance`；分支适配器优先加载该资源。

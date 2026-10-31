@@ -14,7 +14,7 @@ public sealed class XM777Trap : MonoBehaviour
     public const float MinimumRange = 10f;
     public const float MaximumRange = 100f;
     public const float MinimumFiringElevationDegrees = -30f;
-    public const float MaximumFiringElevationDegrees = 45f;
+    public const float MaximumFiringElevationDegrees = 30f;
     /// <summary>Seconds between the start of one shot and the next (3 s = one shell per 3 s).</summary>
     public const float FireInterval = 3f;
     public const float BaseExplosionDamage = 45f;
@@ -172,9 +172,11 @@ public sealed class XM777Trap : MonoBehaviour
         clock += step;
         AdvanceImpacts(step);
 
-        // Commit to one living target through aiming and cooldown. A closer
-        // enemy must not restart the aim or velocity history before this shot.
-        if (selectTargetAfterShot || !IsLivingGroundEnemy(currentTarget))
+        // Keep one living target through aiming and cooldown. A closer enemy
+        // must not restart aim before this shot, but a target inside the
+        // minimum range must be replaced so it cannot stall the artillery.
+        if (selectTargetAfterShot || !IsLivingGroundEnemy(currentTarget)
+            || IsTooCloseForArtillery(currentTarget))
         {
             EnemyInstance selected = FindNearestVisibleGroundTarget();
             if (selected != currentTarget)
@@ -245,6 +247,14 @@ public sealed class XM777Trap : MonoBehaviour
             return false;
         EnemyHealth health = candidate.GetComponent<EnemyHealth>();
         return health != null && health.isActiveAndEnabled && !health.IsDead;
+    }
+
+    private bool IsTooCloseForArtillery(EnemyInstance candidate)
+    {
+        if (!IsLivingGroundEnemy(candidate)) return false;
+        Vector3 point = PlasmaProjectile.AimPosition(candidate);
+        float horizontalDistance = HorizontalDistance(point);
+        return horizontalDistance < MinimumRange;
     }
 
     private bool HasClearTargetPath(Vector3 origin, Vector3 destination, EnemyInstance candidate)
@@ -413,8 +423,16 @@ public sealed class XM777Trap : MonoBehaviour
         else
         {
             ParticleSystem[] particles = instance.GetComponentsInChildren<ParticleSystem>(true);
-            for (int i = 0; i < particles.Length; i++) particles[i].Play(true);
-            if (particles.Length == 0) Destroy(instance, 2f);
+            float lifetime = 0f;
+            for (int i = 0; i < particles.Length; i++)
+            {
+                ParticleSystem particle = particles[i];
+                if (particle == null) continue;
+                particle.Play(true);
+                ParticleSystem.MainModule main = particle.main;
+                lifetime = Mathf.Max(lifetime, main.duration + main.startLifetime.constantMax);
+            }
+            Destroy(instance, particles.Length == 0 ? 2f : Mathf.Max(0.25f, lifetime + 0.25f));
         }
     }
 

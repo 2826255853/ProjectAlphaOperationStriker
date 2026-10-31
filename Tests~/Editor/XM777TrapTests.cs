@@ -52,6 +52,24 @@ public sealed class XM777TrapTests
     }
 
     [Test]
+    public void ReplacesTooCloseTargetWithAnotherEnemyInArtilleryRange()
+    {
+        XM777Trap trap = CreateTrap(out _);
+        EnemyInstance original = CreateGroundEnemy(new Vector3(0f, 0f, 20f));
+        EnemyInstance replacement = CreateGroundEnemy(new Vector3(0f, 0f, 40f));
+        SetFloat(trap, "nextShotTime", 100f);
+
+        trap.Tick(0.1f);
+        Assert.That(trap.CurrentTarget, Is.SameAs(original));
+
+        original.transform.position = new Vector3(0f, 0f, 5f);
+        trap.Tick(0.1f);
+
+        Assert.That(trap.CurrentTarget, Is.SameAs(replacement),
+            "An in-range enemy must replace a living target that moved inside XM777's minimum range.");
+    }
+
+    [Test]
     public void PredictsLeadAndDerivesFlightTimeFromFiveHundredMetresPerSecond()
     {
         XM777Trap trap = CreateTrap(out Transform muzzle);
@@ -200,18 +218,24 @@ public sealed class XM777TrapTests
         XM777TrapAuthoring.CreateAssets();
         AssetDatabase.Refresh();
         GameObject muzzle = AssetDatabase.LoadAssetAtPath<GameObject>(XM777VfxAuthoring.MuzzlePrefabPath);
-        GameObject impact = AssetDatabase.LoadAssetAtPath<GameObject>(XM777VfxAuthoring.ImpactPrefabPath);
+        GameObject generatedImpact = AssetDatabase.LoadAssetAtPath<GameObject>(XM777VfxAuthoring.ImpactPrefabPath);
+        // The gameplay impact is resolved by one helper; the generated XM777_Impact is the
+        // self-contained fallback and must stay valid even when the shipped explosion wins.
+        GameObject wiredImpact = XM777VfxAuthoring.LoadImpactPrefab();
         GameObject trapPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(XM777TrapAuthoring.PrefabPath);
         Assert.That(muzzle, Is.Not.Null);
-        Assert.That(impact, Is.Not.Null);
-        Assert.That(impact.transform.Find("Ground Shockwave"), Is.Not.Null);
+        Assert.That(generatedImpact, Is.Not.Null);
+        Assert.That(generatedImpact.transform.Find("Ground Shockwave"), Is.Not.Null);
         Assert.That(muzzle.GetComponentsInChildren<ParticleSystem>(true).Length, Is.EqualTo(2));
-        Assert.That(impact.GetComponentsInChildren<ParticleSystem>(true).Length, Is.EqualTo(4));
+        Assert.That(generatedImpact.GetComponentsInChildren<ParticleSystem>(true).Length, Is.EqualTo(4));
         XM777Trap trap = trapPrefab.GetComponent<XM777Trap>();
         Assert.That(trap.MuzzleEffectPrefab, Is.EqualTo(muzzle));
-        Assert.That(trap.ImpactEffectPrefab, Is.EqualTo(impact));
+        Assert.That(wiredImpact, Is.Not.Null);
+        Assert.That(trap.ImpactEffectPrefab, Is.EqualTo(wiredImpact));
+        Assert.That(trap.ImpactEffectPrefab.GetComponentsInChildren<ParticleSystem>(true).Length,
+            Is.GreaterThan(0));
         XM777VfxAuthoring.CreateEffects();
-        Assert.That(AssetDatabase.LoadAssetAtPath<GameObject>(XM777VfxAuthoring.ImpactPrefabPath), Is.EqualTo(impact));
+        Assert.That(AssetDatabase.LoadAssetAtPath<GameObject>(XM777VfxAuthoring.ImpactPrefabPath), Is.EqualTo(generatedImpact));
     }
 
     [Test]
@@ -462,18 +486,18 @@ public sealed class XM777TrapTests
 
     [TestCase(-30f, true)]
     [TestCase(0f, true)]
-    [TestCase(45f, true)]
+    [TestCase(30f, true)]
     [TestCase(-30.01f, false)]
-    [TestCase(45.01f, false)]
-    public void ActualFiringElevationUsesMinusThirtyToPlusFortyFiveArc(float elevation, bool expected)
+    [TestCase(30.01f, false)]
+    public void ActualFiringElevationUsesMinusThirtyToPlusThirtyArc(float elevation, bool expected)
     {
         Assert.That(XM777Trap.IsWithinFiringElevation(elevation), Is.EqualTo(expected));
     }
 
     [TestCase(-30f, true)]
-    [TestCase(45f, true)]
+    [TestCase(30f, true)]
     [TestCase(-30.1f, false)]
-    [TestCase(45.1f, false)]
+    [TestCase(30.1f, false)]
     public void ActualFireArcGatesTargetsWithoutChangingModelPitch(float elevation, bool canFire)
     {
         XM777Trap trap = CreateTrap(out _);

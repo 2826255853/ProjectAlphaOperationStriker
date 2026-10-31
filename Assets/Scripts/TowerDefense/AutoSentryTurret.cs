@@ -67,6 +67,19 @@ public sealed class AutoSentryTurret : MonoBehaviour
     public float MinPitchLimit => minPitchDegrees;
     public float MaxPitchLimit => maxPitchDegrees;
 
+    /// <summary>Shows or hides the authored sentry art while a branch visual is active.</summary>
+    public void SetVisualsEnabled(bool visible)
+    {
+        Transform authoredArt = transform.Find("Sentry Machine Gun Art");
+        if (authoredArt != null)
+        {
+            authoredArt.gameObject.SetActive(visible);
+            return;
+        }
+
+        if (aimPivot != null) aimPivot.gameObject.SetActive(visible);
+    }
+
     /// <summary>
     /// Clamps any requested elevation into the sentry's fixed -30..+60 degree
     /// band. Missile turrets expose the same helper shape, so both traps agree

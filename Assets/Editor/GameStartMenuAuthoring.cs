@@ -43,6 +43,15 @@ public static class GameStartMenuAuthoring
         GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
         if (prefab == null || prefab.GetComponent<Canvas>() == null || prefab.GetComponent<GameStartMenuView>() == null)
             throw new System.InvalidOperationException("Menu prefab is missing or incomplete: " + PrefabPath);
+        if (prefab.transform.Find("Map Panel") == null
+            || prefab.transform.Find("Map Panel/Map List") == null
+            || prefab.transform.Find("Map Panel/Map Back") == null)
+            throw new InvalidOperationException("Menu prefab is missing the map selection page.");
+        if (prefab.transform.Find("Main Panel/Map Selection") == null)
+            throw new InvalidOperationException("Menu prefab is missing the map selection button.");
+        var maps = MapSceneCatalog.GetMaps();
+        if (maps.Count != UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings || maps.Count == 0)
+            throw new InvalidOperationException("Build Settings map catalog is empty or inconsistent.");
         if (AssetDatabase.LoadAssetAtPath<Sprite>(BackgroundPath) == null)
             throw new System.InvalidOperationException("Menu background is missing: " + BackgroundPath);
         TMP_FontAsset font = Resources.Load<TMP_FontAsset>(GameStartMenuView.MenuFontResourcePath);
@@ -94,9 +103,9 @@ public static class GameStartMenuAuthoring
             canvas.planeDistance = 1f;
             var view = root.GetComponent<GameStartMenuView>();
             string directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "GameStartMenu");
-            for (int page = 0; page < 2; page++)
+            for (int page = 0; page < 3; page++)
             {
-                view.SetState(false, page == 1, 1f, true);
+                view.SetState(false, page == 1, page == 2, 1f, true, 0, false, MapSceneCatalog.GetMaps());
                 Canvas.ForceUpdateCanvases();
                 foreach (TextMeshProUGUI text in root.GetComponentsInChildren<TextMeshProUGUI>()) text.ForceMeshUpdate();
                 camera.Render();
@@ -104,7 +113,8 @@ public static class GameStartMenuAuthoring
                 RenderTexture.active = target;
                 pixels.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0);
                 pixels.Apply();
-                File.WriteAllBytes(Path.Combine(directory, page == 0 ? "font-main-menu.png" : "font-settings.png"), pixels.EncodeToPNG());
+                string name = page == 0 ? "font-main-menu.png" : (page == 1 ? "font-settings.png" : "font-map-selection.png");
+                File.WriteAllBytes(Path.Combine(directory, name), pixels.EncodeToPNG());
             }
         }
         finally

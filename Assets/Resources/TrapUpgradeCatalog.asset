@@ -16,7 +16,21 @@ MonoBehaviour:
   - trapId: auto_sentry_turret
     growth: []
     costs: []
-    branches: []
+    branches:
+    - branchId: phalanx
+      displayName: "\u5BC6\u96C6\u9635\u8FD1\u9632\u70AE"
+      description: "50\u7C73\u5C04\u7A0B\uFF0C\u4F18\u5148\u653B\u51FB\u7A7A\u4E2D\u602A\u7269\uFF0C\u6BCF\u79D2\u53D1\u5C0450\u53D1\u5B50\u5F39\u3002"
+      integrated: 1
+      overrideCostMultiplier: 0
+      costMultiplier: 1.5
+      overrideFixedCost: 0
+      fixedCost: 0
+      overrideDamage: 0
+      damage: 2
+      overrideRepair: 0
+      repair: 2
+      overrideMaxHealth: 0
+      maxHealth: 2
   - trapId: ground-spike
     growth: []
     costs: []
