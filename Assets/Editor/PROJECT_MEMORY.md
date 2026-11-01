@@ -1,5 +1,11 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 颜色光柱传送（2026-11-01）
+
+- `Assets/Scripts/FPS/ColorPillarPortal.cs` 是运行时组件：玩家进入光柱触发区并持续 3 秒后，传送到最近的另一根同 `colorId` 光柱；计时按玩家根对象累计，离开会清零，抵达目标后必须离开才能重新触发。
+- `Assets/Editor/ColorPillarPortalAuthoring.cs` 的 `CreateAssetsAndPlaceInMainScene` 会生成 `Assets/Prefabs/ColorPillarPortal.prefab` 和 URP 材质，并在 `Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity` 放置 Blue A/B 示例；入口为 `Tools/行动打击/生成颜色传送门并放入主场景`。新增颜色可复制该预制体并修改 `colorId`、材质及灯光颜色。
+- 验证：项目 Unity 批处理 `ColorPillarPortalAuthoring.CreateAssetsAndPlaceInMainScene` 成功，脚本编译无错误，写入主场景两处预制体实例。未执行主场景 PlayMode 实机走入与传送验收。
+
 ## 密集阵 · 开火特效（枪口火光 / 曳光弹 / 抛壳）（2026-10-31）
 
 - 新增运行时 `Assets/Scripts/TowerDefense/PhalanxFireFx.cs`：枪口火光 + 曳光弹，只由 `PhalanxAutoCannon` 的事件驱动。两者都是**程序化生成**（3 个交叉 quad + LineRenderer 池 + 运行时加法混合材质），所以 `PhalanxVisual.prefab` 里只挂组件、不需要美术 FX 网格，重生成预制体不会丢。
