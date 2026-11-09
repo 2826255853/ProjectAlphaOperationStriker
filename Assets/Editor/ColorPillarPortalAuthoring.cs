@@ -112,8 +112,8 @@ public static class ColorPillarPortalAuthoring
         GameObject second = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
         first.name = "Color Portal Blue A";
         second.name = "Color Portal Blue B";
-        first.transform.position = new Vector3(-8f, 0f, 0f);
-        second.transform.position = new Vector3(8f, 0f, 0f);
+        first.transform.position = new Vector3(-6f, 0f, 0f);
+        second.transform.position = new Vector3(6f, 0f, 0f);
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
     }
