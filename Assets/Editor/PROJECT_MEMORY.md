@@ -1,5 +1,11 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 资源清理第一轮（2026-11-14）
+
+- 按 `Assets/Editor/RESOURCE_CLEANUP_PLAN.md` 的低风险候选清单，将 `Assets/Models/GameplayLadder.blend` 迁至 `C:\Users\ASUS\Desktop\陷阱素材文件夹\GameplayLadder\`，将 `Assets/Models/create_test_monster.py` 迁至 `C:\Users\ASUS\Desktop\陷阱素材文件夹\TestMonster\`；若存在同名 `.meta`，与资源一并归档。
+- 在计划允许扫描的源码、编辑器、模型、项目设置及包目录内，未发现两者的计划外路径引用。正式 FBX、Prefab、Resources、场景和 MapForge 资产未修改。
+- 两个迁移 `.meta` 的 GUID 均无项目内引用；对允许目录检查后孤立 `.meta` 与空目录均为 0。Unity 导入/编译验证未执行（本次仅移出编辑器中间态文件，无运行时代码改动）。
+
 ## 颜色光柱传送（2026-11-01）
 
 - `Assets/Scripts/FPS/ColorPillarPortal.cs` 是运行时组件：玩家进入光柱触发区并持续 3 秒后，传送到最近的另一根同 `colorId` 光柱；计时按玩家根对象累计，离开会清零，抵达目标后必须离开才能重新触发。
