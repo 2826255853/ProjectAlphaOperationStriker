@@ -395,7 +395,9 @@ public sealed class EnemySpawnPoint : MonoBehaviour
         }
         instance.PathFollower = follower;
         if (instance.Resolution == EnemyInstance.ResolutionState.Alive
-            && selectedType == MonsterType.Ground && enemy.GetComponent<GroundEnemyCombat>() == null)
+            && selectedType == MonsterType.Ground && enemy.GetComponent<GroundEnemyCombat>() == null
+            // 自爆机器人自带索敌/挥臂/自爆逻辑，再套 GroundEnemyCombat 会两边抢 follower 的路径与移动暂停。
+            && enemy.GetComponent<SelfDestructBotEnemy>() == null)
             enemy.AddComponent<GroundEnemyCombat>();
         return instance;
     }

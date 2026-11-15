@@ -1,5 +1,26 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 新怪物：自爆机器人 SelfDestructBot（2026-11-15）
+
+- 模型/动画由桌面素材目录的 Blender 脚本产出：`C:\Users\ASUS\Desktop\陷阱素材文件夹\SelfDestructBot\build_selfdestruct_bot.py`
+  （同目录有 `README.md`、`SelfDestructBot.blend`、`preview_*.png`、`build.log`、`unity-*.log`，v1 备份在 `backup-v1\`）。
+  导出到 `Assets/Models/SelfDestructBot/SelfDestructBot.fbx`（13 850 顶点 / 13 674 面，高 1.96 m，机头朝 Unity +Z）。
+- 生成链（幂等，**手改预制体会被覆盖**）：`Assets/Editor/SelfDestructBotAuthoring.cs`
+  → 13 个 `M_SDB_*` 材质（`Assets/Models/SelfDestructBot/Materials`）、导入设置与 `OnArmSwing` 动画事件、
+  `Assets/Animations/SelfDestructBot/SelfDestructBot.controller`、`Assets/Resources/SelfDestructBotEnemy.prefab`。
+  菜单 `Tools/塔防/生成自爆机器人预制体` / `校验自爆机器人预制体`；批处理 `SelfDestructBotAuthoring.CreateAll` / `ProbeBatch`（输出 `SELF_DESTRUCT_BOT_PASS`）。
+- 动画片段：`SDB_Idle`(60f 循环)、`SDB_Walk`(40f 循环)、`SDB_Attack`(48f 单次，**第 22 帧命中**)、`SDB_Prime`(30f 循环)。
+  骨架 `Root→Hips→Chest→Head/Bomb/Arm_*→Forearm_*`、`Hips→Thigh→Shin→Foot`；锚点 `SDB_Hand`（Forearm_R 下）、`SDB_Bomb`（Bomb 骨骼下）由生成器创建。
+- 玩法：`Assets/Scripts/TowerDefense/SelfDestructBotUnit.cs`（动画层，接收动画事件 `OnArmSwing`）+
+  `SelfDestructBotEnemy.cs`（玩家进入 7 m 停步挥臂；走到「地面可攻击陷阱」1.8 m 内停步蓄爆 1.2 s，3.6 m 范围伤害；
+  自爆走 `Destroy` 而非 `TakeDamage`，`EnemyInstance` 记为 `Despawned`，**不发击杀奖励**）。爆炸表现是程序化的 `SelfDestructBlastFx`。
+- **不变量**：自爆机器人预制体**不能**带 `GroundEnemyCombat`——两套逻辑会抢 `MonsterPathFollower` 的 `FollowCombatPath` / `CombatMovementPaused`；
+  `EnemySpawnPoint.CreateEnemy` 已对 `SelfDestructBotEnemy` 跳过自动添加（改这段时要一并保留）。
+- 验证（2026-11-15）：Unity `6000.6.8f1`（`ProjectVersion.txt` 记录版本）批处理 `CreateAll` + `ProbeBatch` 均成功，
+  日志含 `Exiting batchmode successfully now!`、无 C# 编译错误；探针 27 项全 OK（组件/骨骼/4 段动画/13 材质槽全绑定/Resources.Load 可取）。
+  未做 PlayMode 实机验收（挥臂伤害、自爆范围、陷阱目标筛选的实际手感）；模型仅在 Blender 做过静态与姿态渲染验收。
+- 接入关卡：给地面出怪口的 `WaveSpawnSettings.enemyPrefab`（或默认 `enemyPrefab`）填 `Assets/Resources/SelfDestructBotEnemy.prefab`。
+
 ## Unity 编辑器文档版本（2026-11-15）
 
 - 当前文档基准版本更新为 `6000.6.9f1`，默认直接安装路径为 `C:\Program Files\Unity 6000.6.9f1\Editor\Unity.exe`。
