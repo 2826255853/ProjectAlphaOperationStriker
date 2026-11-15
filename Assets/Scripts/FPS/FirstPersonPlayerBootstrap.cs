@@ -42,6 +42,7 @@ public static class FirstPersonPlayerBootstrap
             {
                 legacyPlayer.gameObject.AddComponent<PlayerSprintAimBridge>();
             }
+            EnsureHipFireCrosshair(legacyPlayer.gameObject);
             EnsureLadderClimbStateLogger(legacyPlayer.gameObject);
             SetupDroneIntegration(legacyPlayer.gameObject);
             return;
@@ -135,6 +136,14 @@ public static class FirstPersonPlayerBootstrap
         {
             player.AddComponent<AmmoDisplayUI>();
         }
+
+        EnsureHipFireCrosshair(player);
+    }
+
+    private static void EnsureHipFireCrosshair(GameObject player)
+    {
+        if (player.GetComponent<HipFireCrosshairUI>() == null)
+            player.AddComponent<HipFireCrosshairUI>();
     }
 
     private static void EnsureLifeStateController(GameObject player)

@@ -1,5 +1,13 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 玩家腰射十字准心（2026-11-15）
+
+- `Assets/Scripts/FPS/HipFireCrosshairUI.cs` 负责绘制屏幕中心四段式十字准心；外观参数（颜色、线长/粗细、中心间距、描边）均为序列化字段，后续可在玩家预制体上配置或扩展自定义准心样式。
+- `FirstPersonPlayerBootstrap` 幂等地为包内玩家、运行时生成玩家和场景内旧控制器玩家挂载该 HUD。腰射显示、`PlayerSprintAimBridge.IsAiming` 为真时（ADS）隐藏；`TrapSelectionMenu` / `GameStartMenu` 接管光标时隐藏。
+- 移动扩散在 `HipFireCrosshairUI.LateUpdate`（执行顺序 1000）采样最终 `CharacterController.isGrounded` 与帧间水平位移，兼容旧控制器 Update 移动和包内 LateUpdate 垂直移动。奔跑额外间距 8、腾空 12、落地叠加 10（1080p 像素），扩散/收拢速度分别 90/30，落地冲量按 35/秒衰减，均可序列化配置。旧控制器复用 `IsSprinting` 并排除静步；包内复用桥接奔跑请求，并要求实际前向移动且速度至少 5 m/s（调整包内行走/奔跑速度时需同步设置 `minimumSprintSpeed`）。菜单、控制器禁用和爬梯时清空采样，首次采样不触发落地；ADS 隐藏规则沿用。
+- 移动扩散验证（2026-11-15）：按 `ProjectVersion.txt` 使用对应 Unity 执行 `UnityEditor.AssetDatabase.Refresh`，日志有 `Exiting batchmode successfully now!`，无 C# 编译错误、无异常。日志：`C:\Users\ASUS\Desktop\陷阱素材文件夹\Crosshair\movement-spread-compile.log`；尺寸示意图（非游戏截图）：同目录 `movement-spread-reference.png`。未做主场景人工 PlayMode 动态观感验收或完整 Player 构建。
+- 验证：项目记录版本 Unity `6000.6.8f1` 批处理导入/编译日志以 `Exiting batchmode successfully now!` 结束，未发现 C# 编译错误；有既存 API 弃用等警告。未做主场景实机观感验收。
+
 ## 资源清理第一轮（2026-11-14）
 
 - 按 `Assets/Editor/RESOURCE_CLEANUP_PLAN.md` 的低风险候选清单，将 `Assets/Models/GameplayLadder.blend` 迁至 `C:\Users\ASUS\Desktop\陷阱素材文件夹\GameplayLadder\`，将 `Assets/Models/create_test_monster.py` 迁至 `C:\Users\ASUS\Desktop\陷阱素材文件夹\TestMonster\`；若存在同名 `.meta`，与资源一并归档。
