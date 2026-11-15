@@ -1,5 +1,11 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## Unity 编辑器文档版本（2026-11-15）
+
+- 当前文档基准版本更新为 `6000.6.9f1`，默认直接安装路径为 `C:\Program Files\Unity 6000.6.9f1\Editor\Unity.exe`。
+- 本次仅同步文档，不修改 `ProjectSettings/ProjectVersion.txt`，不代表已完成项目迁移或新版编译验收；实际运行仍读取该配置并核实对应安装。
+- 下方带日期的验证、编译与测试记录保留实际使用的历史版本，不作为当前版本依据。
+
 ## 玩家腰射十字准心（2026-11-15）
 
 - `Assets/Scripts/FPS/HipFireCrosshairUI.cs` 负责绘制屏幕中心四段式十字准心；外观参数（颜色、线长/粗细、中心间距、描边）均为序列化字段，后续可在玩家预制体上配置或扩展自定义准心样式。
@@ -176,7 +182,7 @@
 - 运行时代码：`Assets/Scripts/FPS`、`Assets/Scripts/TowerDefense`、`Assets/Scripts/MapForge*.cs`；编辑器工具与验证：`Assets/Editor`。
 - 主场景：`Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity`，已在 `ProjectSettings/EditorBuildSettings.asset` 中确认。
 - Unity 版本唯一依据：`ProjectSettings/ProjectVersion.txt`。运行前动态匹配安装目录，不把历史版本号固定到脚本或文档。
-- 当前项目记录的 Unity 编辑器版本（2026-10-24）：`6000.6.7f1`（以 `ProjectSettings/ProjectVersion.txt` 为准；运行前动态匹配安装目录）。
+- 2026-10-24 核对时项目记录的 Unity 编辑器版本为 `6000.6.7f1`，仅作历史快照；当前文档基准见本文件顶部的「Unity 编辑器文档版本」，实际运行仍以 `ProjectSettings/ProjectVersion.txt` 为准。
 - 本次确认包依赖：URP、新 Input System、Unity Test Framework；具体版本始终读 `Packages/manifest.json`。`activeInputHandler: 1`。
 - 可信顺序：当前源码/配置 > 本文件的源码核对记录 > 技能中的历史环境描述。
 

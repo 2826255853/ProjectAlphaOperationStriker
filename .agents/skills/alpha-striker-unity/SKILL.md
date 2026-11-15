@@ -33,6 +33,7 @@ Step 3 - 交互/验收：需要的 UI、预览和旧功能回归；注明未覆�
 
 ## Unity 编辑器版本
 
+- 当前文档基准（2026-11-15 更新）：`6000.6.9f1`；本机已核实安装路径为 `C:\Program Files\Unity 6000.6.9f1\Editor\Unity.exe`。本次仅更新文档，项目实际版本仍以以下配置为准；历史测试记录保留当时版本。
 - 执行本项目时使用 `ProjectSettings/ProjectVersion.txt` 记录的版本，不自行换成机器上更新的编辑器。升级项目版本是单独的迁移任务；不默认使用 Alpha、Beta 或其他预发布版。
 - 每次运行 Unity 前，读取 `ProjectSettings/ProjectVersion.txt` 的 `m_EditorVersion`，再在 `C:\Program Files\Unity *\Editor\Unity.exe` 下核实对应安装；本机使用直接安装布局，脚本也兼容 Hub。文档、脚本、`.csproj` 不固定历史版本号，旧日志或生成文件不作为当前版本依据。
 - 若项目记录的版本未安装，说明缺失，不擅自用其他版本代跑或迁移项目。`run-unity-method.ps1` 在精确路径缺失时可能回退到另一已安装版本；先核对它报告的路径/版本，若与项目记录不一致就停止，不把该次结果当作本项目验证。

@@ -2,6 +2,8 @@
 
 ## 编辑器路径
 
+当前文档基准为 Unity `6000.6.9f1`（2026-11-15 更新），本机已核实路径为 `C:\Program Files\Unity 6000.6.9f1\Editor\Unity.exe`。本次仅同步文档，不修改项目版本配置或代替升级验收；下列命令仍动态读取项目配置。
+
 版本策略见 [SKILL.md 的 Unity 编辑器版本](../SKILL.md#unity-编辑器版本)：本项目始终使用 `ProjectSettings/ProjectVersion.txt` 的 `m_EditorVersion`，更换项目版本属于独立迁移，不因运行脚本而自动升级。
 
 ```

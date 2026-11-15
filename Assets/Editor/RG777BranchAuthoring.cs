@@ -106,14 +106,14 @@ public static class RG777BranchAuthoring
 
             if (!weapon.IsRG777Active || !adapter.IsBranchActive || !adapter.RG777Visual.activeSelf
                 || weapon.YawPivot != FindDeepChild(adapter.RG777Visual.transform, "Yaw Pivot")
-                || !Mathf.Approximately(weapon.EffectiveMinimumRange, 5f)
-                || !Mathf.Approximately(weapon.EffectiveMaximumRange, 200f)
+                || !Mathf.Approximately(weapon.EffectiveMinimumRange, 0f)
+                || !Mathf.Approximately(weapon.EffectiveMaximumRange, 180f)
                 || !Mathf.Approximately(weapon.EffectiveShellSpeed, 1000f)
                 || !Mathf.Approximately(weapon.EffectiveFireInterval, 2f)
                 || !Mathf.Approximately(weapon.EffectiveExplosionDamage, XM777Trap.BaseExplosionDamage * 5f)
-                || !Mathf.Approximately(weapon.EffectiveElevationForDistance(5f), 0f)
-                || !Mathf.Approximately(weapon.EffectiveElevationForDistance(102.5f), 15f)
-                || !Mathf.Approximately(weapon.EffectiveElevationForDistance(200f), 30f))
+                || !Mathf.Approximately(weapon.EffectiveElevationForDistance(0f), 0f)
+                || !Mathf.Approximately(weapon.EffectiveElevationForDistance(90f), 15f)
+                || !Mathf.Approximately(weapon.EffectiveElevationForDistance(180f), 30f))
                 throw new InvalidOperationException("RG777 branch runtime tuning or visual switch did not match its specification.");
             float rg777Footprint = GetFootprint(adapter.RG777Visual.GetComponentsInChildren<Renderer>(true));
             if (Mathf.Abs(rg777Footprint - xm777Footprint) > Mathf.Max(0.1f, xm777Footprint * 0.1f))
@@ -231,7 +231,7 @@ public static class RG777BranchAuthoring
         rgBranch.FindPropertyRelative("branchId").stringValue = XM777Trap.RG777BranchId;
         rgBranch.FindPropertyRelative("displayName").stringValue = "RG777 雷锤电磁炮";
         rgBranch.FindPropertyRelative("description").stringValue =
-            "射程 5–200 米，炮管仰角随敌距在线性 0°–30° 间调整；2 秒一发，伤害为 XM777 一级状态的 5 倍。";
+            "射程 0–180 米，炮管仰角随敌距在线性 0°–30° 间调整；2 秒一发，伤害为 XM777 一级状态的 5 倍。";
         rgBranch.FindPropertyRelative("integrated").boolValue = true;
         rgBranch.FindPropertyRelative("overrideCostMultiplier").boolValue = false;
         rgBranch.FindPropertyRelative("costMultiplier").doubleValue = 1.5d;

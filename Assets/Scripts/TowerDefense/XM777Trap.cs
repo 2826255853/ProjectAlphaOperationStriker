@@ -12,8 +12,8 @@ public sealed class XM777Trap : MonoBehaviour
 {
     public const float ShellSpeed = 500f;
     public const float RG777ShellSpeed = 1000f;
-    public const float MinimumRange = 5f;
-    public const float MaximumRange = 95f;
+    public const float MinimumRange = 0f;
+    public const float MaximumRange = 90f;
     public const float MinimumFiringElevationDegrees = -30f;
     public const float MaximumFiringElevationDegrees = 30f;
     /// <summary>Seconds between the start of one shot and the next (3 s = one shell per 3 s).</summary>
@@ -21,8 +21,8 @@ public sealed class XM777Trap : MonoBehaviour
     public const float BaseExplosionDamage = 45f;
     public const float ExplosionRadius = 4f;
     public const string RG777BranchId = "rg777";
-    public const float RG777MinimumRange = 5f;
-    public const float RG777MaximumRange = 200f;
+    public const float RG777MinimumRange = 0f;
+    public const float RG777MaximumRange = 180f;
     public const float RG777FireInterval = 2f;
     public const float RG777ExplosionDamage = BaseExplosionDamage * 5f;
 
@@ -398,7 +398,7 @@ public sealed class XM777Trap : MonoBehaviour
         if (hasFired) nextShotTime = Mathf.Max(clock, lastShotTime + EffectiveFireInterval);
     }
 
-    /// <summary>Linear 5..95 metre horizontal range to 0..45 degree elevation, clamped.</summary>
+    /// <summary>Linear 0..90 metre horizontal range to 0..45 degree elevation, clamped.</summary>
     public static float ElevationForDistance(float distance) =>
         Mathf.InverseLerp(MinimumRange, MaximumRange, distance) * 45f;
 
