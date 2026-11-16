@@ -1,0 +1,8330 @@
+{
+ "version": 2,
+ "name": "DOUBLE_LAYER_FACILITY",
+ "objects": [
+  {
+   "id": "double-layer-facility",
+   "name": "Double Layer Facility",
+   "type": "folder",
+   "parentId": null,
+   "transform": {
+    "position": [
+     0,
+     0,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1,
+     1,
+     1
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "standard",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "environment",
+   "name": "Environment",
+   "type": "folder",
+   "parentId": "double-layer-facility",
+   "transform": {
+    "position": [
+     0,
+     0,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1,
+     1,
+     1
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "standard",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "1f",
+   "name": "1F",
+   "type": "folder",
+   "parentId": "environment",
+   "transform": {
+    "position": [
+     0,
+     0,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1,
+     1,
+     1
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "standard",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "2f",
+   "name": "2F",
+   "type": "folder",
+   "parentId": "environment",
+   "transform": {
+    "position": [
+     0,
+     0,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1,
+     1,
+     1
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "standard",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "spawnpoints",
+   "name": "SpawnPoints",
+   "type": "folder",
+   "parentId": "double-layer-facility",
+   "transform": {
+    "position": [
+     0,
+     0,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1,
+     1,
+     1
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "standard",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "pathnodes",
+   "name": "PathNodes",
+   "type": "folder",
+   "parentId": "double-layer-facility",
+   "transform": {
+    "position": [
+     0,
+     0,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1,
+     1,
+     1
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "standard",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "ground-slab",
+   "name": "Ground Slab",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     0,
+     -0.25,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     60,
+     0.5,
+     80
+    ]
+   },
+   "color": "#3f4346",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "front-wall-l",
+   "name": "Front Wall L",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -26.5,
+     6.0,
+     -39.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     7,
+     12.0,
+     1.0
+    ]
+   },
+   "color": "#3b3f43",
+   "material": {
+    "type": "standard",
+    "roughness": 0.8,
+    "metalness": 0.15
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "front-wall-ml",
+   "name": "Front Wall ML",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -10.0,
+     6.0,
+     -39.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     14,
+     12.0,
+     1.0
+    ]
+   },
+   "color": "#3b3f43",
+   "material": {
+    "type": "standard",
+    "roughness": 0.8,
+    "metalness": 0.15
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "front-wall-mr",
+   "name": "Front Wall MR",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     10.0,
+     6.0,
+     -39.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     14,
+     12.0,
+     1.0
+    ]
+   },
+   "color": "#3b3f43",
+   "material": {
+    "type": "standard",
+    "roughness": 0.8,
+    "metalness": 0.15
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "front-wall-r",
+   "name": "Front Wall R",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     26.5,
+     6.0,
+     -39.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     7,
+     12.0,
+     1.0
+    ]
+   },
+   "color": "#3b3f43",
+   "material": {
+    "type": "standard",
+    "roughness": 0.8,
+    "metalness": 0.15
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "entrance-lintel--20",
+   "name": "Entrance Lintel -20",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -20,
+     8.0,
+     -39.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6,
+     8,
+     1
+    ]
+   },
+   "color": "#3b3f43",
+   "material": {
+    "type": "standard",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "entrance-lintel-+0",
+   "name": "Entrance Lintel +0",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     0,
+     8.0,
+     -39.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6,
+     8,
+     1
+    ]
+   },
+   "color": "#3b3f43",
+   "material": {
+    "type": "standard",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "entrance-lintel-+20",
+   "name": "Entrance Lintel +20",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     20,
+     8.0,
+     -39.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6,
+     8,
+     1
+    ]
+   },
+   "color": "#3b3f43",
+   "material": {
+    "type": "standard",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "back-wall-l",
+   "name": "Back Wall L",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -26.5,
+     6.0,
+     39.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     7,
+     12.0,
+     1.0
+    ]
+   },
+   "color": "#3b3f43",
+   "material": {
+    "type": "standard",
+    "roughness": 0.8,
+    "metalness": 0.15
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "back-wall-m",
+   "name": "Back Wall M",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     0.0,
+     6.0,
+     39.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     34,
+     12.0,
+     1.0
+    ]
+   },
+   "color": "#3b3f43",
+   "material": {
+    "type": "standard",
+    "roughness": 0.8,
+    "metalness": 0.15
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "back-wall-r",
+   "name": "Back Wall R",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     26.5,
+     6.0,
+     39.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     7,
+     12.0,
+     1.0
+    ]
+   },
+   "color": "#3b3f43",
+   "material": {
+    "type": "standard",
+    "roughness": 0.8,
+    "metalness": 0.15
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "rear-entrance-sill--20",
+   "name": "Rear Entrance Sill -20",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -20,
+     3.2,
+     39.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6,
+     6.4,
+     1
+    ]
+   },
+   "color": "#3b3f43",
+   "material": {
+    "type": "standard",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "rear-entrance-lintel--20",
+   "name": "Rear Entrance Lintel -20",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     -20,
+     11.5,
+     39.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6,
+     1,
+     1
+    ]
+   },
+   "color": "#3b3f43",
+   "material": {
+    "type": "standard",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "rear-entrance-sill-+20",
+   "name": "Rear Entrance Sill +20",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     20,
+     3.2,
+     39.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6,
+     6.4,
+     1
+    ]
+   },
+   "color": "#3b3f43",
+   "material": {
+    "type": "standard",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "rear-entrance-lintel-+20",
+   "name": "Rear Entrance Lintel +20",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     20,
+     11.5,
+     39.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6,
+     1,
+     1
+    ]
+   },
+   "color": "#3b3f43",
+   "material": {
+    "type": "standard",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "side-wall-l",
+   "name": "Side Wall L",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -29.5,
+     6.0,
+     0.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.0,
+     12.0,
+     80
+    ]
+   },
+   "color": "#3b3f43",
+   "material": {
+    "type": "standard",
+    "roughness": 0.8,
+    "metalness": 0.15
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "side-wall-r",
+   "name": "Side Wall R",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     29.5,
+     6.0,
+     0.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.0,
+     12.0,
+     80
+    ]
+   },
+   "color": "#3b3f43",
+   "material": {
+    "type": "standard",
+    "roughness": 0.8,
+    "metalness": 0.15
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "left-lane-strip",
+   "name": "Left Lane Strip",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -20,
+     0.02,
+     -14
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.4,
+     0.04,
+     44
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "decoration"
+  },
+  {
+   "id": "middle-lane-strip",
+   "name": "Middle Lane Strip",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     0,
+     0.02,
+     -14
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.4,
+     0.04,
+     44
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "decoration"
+  },
+  {
+   "id": "right-lane-strip",
+   "name": "Right Lane Strip",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     20,
+     0.02,
+     -14
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.4,
+     0.04,
+     44
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "decoration"
+  },
+  {
+   "id": "2f-slab-front",
+   "name": "2F Slab Front",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     0.0,
+     6.2,
+     -5.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     59.0,
+     0.4,
+     50
+    ]
+   },
+   "color": "#474c51",
+   "material": {
+    "type": "standard",
+    "roughness": 0.82,
+    "metalness": 0.1
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "2f-slab-back",
+   "name": "2F Slab Back",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     0.0,
+     6.2,
+     34.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     59.0,
+     0.4,
+     9
+    ]
+   },
+   "color": "#474c51",
+   "material": {
+    "type": "standard",
+    "roughness": 0.82,
+    "metalness": 0.1
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "2f-slab-mid-l",
+   "name": "2F Slab Mid L",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     -23.25,
+     6.2,
+     25.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     12.5,
+     0.4,
+     10
+    ]
+   },
+   "color": "#474c51",
+   "material": {
+    "type": "standard",
+    "roughness": 0.82,
+    "metalness": 0.1
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "2f-slab-mid-c",
+   "name": "2F Slab Mid C",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     0.0,
+     6.2,
+     25.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     24,
+     0.4,
+     10
+    ]
+   },
+   "color": "#474c51",
+   "material": {
+    "type": "standard",
+    "roughness": 0.82,
+    "metalness": 0.1
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "2f-slab-mid-r",
+   "name": "2F Slab Mid R",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     23.25,
+     6.2,
+     25.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     12.5,
+     0.4,
+     10
+    ]
+   },
+   "color": "#474c51",
+   "material": {
+    "type": "standard",
+    "roughness": 0.82,
+    "metalness": 0.1
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-shaft-rail--17",
+   "name": "Stair Shaft Rail -17",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     -17,
+     6.9,
+     25
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.3,
+     1.0,
+     10
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.55
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-shaft-rail--12",
+   "name": "Stair Shaft Rail -12",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     -12,
+     6.9,
+     25
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.3,
+     1.0,
+     10
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.55
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-shaft-rail-+12",
+   "name": "Stair Shaft Rail +12",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     12,
+     6.9,
+     25
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.3,
+     1.0,
+     10
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.55
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-shaft-rail-+17",
+   "name": "Stair Shaft Rail +17",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     17,
+     6.9,
+     25
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.3,
+     1.0,
+     10
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.55
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "2f-front-edge-rail",
+   "name": "2F Front Edge Rail",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     0,
+     6.9,
+     -29.8
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     58,
+     1.0,
+     0.3
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.55
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-step-01",
+   "name": "Stair L Step 01",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -14.5,
+     0.2,
+     21.2812
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     0.4,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-step-02",
+   "name": "Stair L Step 02",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -14.5,
+     0.4,
+     21.8438
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     0.8,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-step-03",
+   "name": "Stair L Step 03",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -14.5,
+     0.6,
+     22.4062
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     1.2,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-step-04",
+   "name": "Stair L Step 04",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -14.5,
+     0.8,
+     22.9688
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     1.6,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-step-05",
+   "name": "Stair L Step 05",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -14.5,
+     1.0,
+     23.5312
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     2.0,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-step-06",
+   "name": "Stair L Step 06",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -14.5,
+     1.2,
+     24.0938
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     2.4,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-step-07",
+   "name": "Stair L Step 07",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -14.5,
+     1.4,
+     24.6562
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     2.8,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-step-08",
+   "name": "Stair L Step 08",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -14.5,
+     1.6,
+     25.2188
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     3.2,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-step-09",
+   "name": "Stair L Step 09",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -14.5,
+     1.8,
+     25.7812
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     3.6,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-step-10",
+   "name": "Stair L Step 10",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -14.5,
+     2.0,
+     26.3438
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     4.0,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-step-11",
+   "name": "Stair L Step 11",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -14.5,
+     2.2,
+     26.9062
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     4.4,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-step-12",
+   "name": "Stair L Step 12",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -14.5,
+     2.4,
+     27.4688
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     4.8,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-step-13",
+   "name": "Stair L Step 13",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -14.5,
+     2.6,
+     28.0312
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     5.2,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-step-14",
+   "name": "Stair L Step 14",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -14.5,
+     2.8,
+     28.5938
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     5.6,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-step-15",
+   "name": "Stair L Step 15",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -14.5,
+     3.0,
+     29.1562
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     6.0,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-step-16",
+   "name": "Stair L Step 16",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -14.5,
+     3.2,
+     29.7188
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     6.4,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-rail-post-outer-01",
+   "name": "Stair L Rail Post Outer 01",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -17.05,
+     0.9,
+     21.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-rail-post-outer-03",
+   "name": "Stair L Rail Post Outer 03",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -17.05,
+     1.7,
+     22.125
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-rail-post-outer-05",
+   "name": "Stair L Rail Post Outer 05",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -17.05,
+     2.5,
+     23.25
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-rail-post-outer-07",
+   "name": "Stair L Rail Post Outer 07",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -17.05,
+     3.3,
+     24.375
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-rail-post-outer-09",
+   "name": "Stair L Rail Post Outer 09",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -17.05,
+     4.1,
+     25.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-rail-post-outer-11",
+   "name": "Stair L Rail Post Outer 11",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -17.05,
+     4.9,
+     26.625
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-rail-post-outer-13",
+   "name": "Stair L Rail Post Outer 13",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -17.05,
+     5.7,
+     27.75
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-rail-post-outer-15",
+   "name": "Stair L Rail Post Outer 15",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -17.05,
+     6.5,
+     28.875
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-rail-post-inner-01",
+   "name": "Stair L Rail Post Inner 01",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -11.95,
+     0.9,
+     21.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-rail-post-inner-03",
+   "name": "Stair L Rail Post Inner 03",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -11.95,
+     1.7,
+     22.125
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-rail-post-inner-05",
+   "name": "Stair L Rail Post Inner 05",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -11.95,
+     2.5,
+     23.25
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-rail-post-inner-07",
+   "name": "Stair L Rail Post Inner 07",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -11.95,
+     3.3,
+     24.375
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-rail-post-inner-09",
+   "name": "Stair L Rail Post Inner 09",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -11.95,
+     4.1,
+     25.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-rail-post-inner-11",
+   "name": "Stair L Rail Post Inner 11",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -11.95,
+     4.9,
+     26.625
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-rail-post-inner-13",
+   "name": "Stair L Rail Post Inner 13",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -11.95,
+     5.7,
+     27.75
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-l-rail-post-inner-15",
+   "name": "Stair L Rail Post Inner 15",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -11.95,
+     6.5,
+     28.875
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-step-01",
+   "name": "Stair R Step 01",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     14.5,
+     0.2,
+     21.2812
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     0.4,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-step-02",
+   "name": "Stair R Step 02",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     14.5,
+     0.4,
+     21.8438
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     0.8,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-step-03",
+   "name": "Stair R Step 03",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     14.5,
+     0.6,
+     22.4062
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     1.2,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-step-04",
+   "name": "Stair R Step 04",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     14.5,
+     0.8,
+     22.9688
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     1.6,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-step-05",
+   "name": "Stair R Step 05",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     14.5,
+     1.0,
+     23.5312
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     2.0,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-step-06",
+   "name": "Stair R Step 06",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     14.5,
+     1.2,
+     24.0938
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     2.4,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-step-07",
+   "name": "Stair R Step 07",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     14.5,
+     1.4,
+     24.6562
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     2.8,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-step-08",
+   "name": "Stair R Step 08",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     14.5,
+     1.6,
+     25.2188
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     3.2,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-step-09",
+   "name": "Stair R Step 09",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     14.5,
+     1.8,
+     25.7812
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     3.6,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-step-10",
+   "name": "Stair R Step 10",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     14.5,
+     2.0,
+     26.3438
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     4.0,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-step-11",
+   "name": "Stair R Step 11",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     14.5,
+     2.2,
+     26.9062
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     4.4,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-step-12",
+   "name": "Stair R Step 12",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     14.5,
+     2.4,
+     27.4688
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     4.8,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-step-13",
+   "name": "Stair R Step 13",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     14.5,
+     2.6,
+     28.0312
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     5.2,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-step-14",
+   "name": "Stair R Step 14",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     14.5,
+     2.8,
+     28.5938
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     5.6,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-step-15",
+   "name": "Stair R Step 15",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     14.5,
+     3.0,
+     29.1562
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     6.0,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-step-16",
+   "name": "Stair R Step 16",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     14.5,
+     3.2,
+     29.7188
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     6.4,
+     0.5625
+    ]
+   },
+   "color": "#5d6267",
+   "material": {
+    "type": "standard",
+    "roughness": 0.78,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-rail-post-outer-01",
+   "name": "Stair R Rail Post Outer 01",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     11.95,
+     0.9,
+     21.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-rail-post-outer-03",
+   "name": "Stair R Rail Post Outer 03",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     11.95,
+     1.7,
+     22.125
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-rail-post-outer-05",
+   "name": "Stair R Rail Post Outer 05",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     11.95,
+     2.5,
+     23.25
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-rail-post-outer-07",
+   "name": "Stair R Rail Post Outer 07",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     11.95,
+     3.3,
+     24.375
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-rail-post-outer-09",
+   "name": "Stair R Rail Post Outer 09",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     11.95,
+     4.1,
+     25.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-rail-post-outer-11",
+   "name": "Stair R Rail Post Outer 11",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     11.95,
+     4.9,
+     26.625
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-rail-post-outer-13",
+   "name": "Stair R Rail Post Outer 13",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     11.95,
+     5.7,
+     27.75
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-rail-post-outer-15",
+   "name": "Stair R Rail Post Outer 15",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     11.95,
+     6.5,
+     28.875
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-rail-post-inner-01",
+   "name": "Stair R Rail Post Inner 01",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     17.05,
+     0.9,
+     21.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-rail-post-inner-03",
+   "name": "Stair R Rail Post Inner 03",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     17.05,
+     1.7,
+     22.125
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-rail-post-inner-05",
+   "name": "Stair R Rail Post Inner 05",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     17.05,
+     2.5,
+     23.25
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-rail-post-inner-07",
+   "name": "Stair R Rail Post Inner 07",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     17.05,
+     3.3,
+     24.375
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-rail-post-inner-09",
+   "name": "Stair R Rail Post Inner 09",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     17.05,
+     4.1,
+     25.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-rail-post-inner-11",
+   "name": "Stair R Rail Post Inner 11",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     17.05,
+     4.9,
+     26.625
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-rail-post-inner-13",
+   "name": "Stair R Rail Post Inner 13",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     17.05,
+     5.7,
+     27.75
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "stair-r-rail-post-inner-15",
+   "name": "Stair R Rail Post Inner 15",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     17.05,
+     6.5,
+     28.875
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.15,
+     1.0,
+     0.15
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.6
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "gathering-platform",
+   "name": "Gathering Platform",
+   "type": "cylinder",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     0,
+     0.15,
+     26
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     14,
+     0.3,
+     14
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.45,
+    "metalness": 0.5
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "gathering-ring",
+   "name": "Gathering Ring",
+   "type": "cylinder",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     0,
+     0.32,
+     26
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     9,
+     0.06,
+     9
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "decoration"
+  },
+  {
+   "id": "cover-crate-01",
+   "name": "Cover Crate 01",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -12,
+     0.6,
+     -14
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.4,
+     1.2,
+     2.4
+    ]
+   },
+   "color": "#565b60",
+   "material": {
+    "type": "standard",
+    "roughness": 0.7,
+    "metalness": 0.25
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "cover-crate-02",
+   "name": "Cover Crate 02",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     12,
+     0.6,
+     -14
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.4,
+     1.2,
+     2.4
+    ]
+   },
+   "color": "#565b60",
+   "material": {
+    "type": "standard",
+    "roughness": 0.7,
+    "metalness": 0.25
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "cover-crate-03",
+   "name": "Cover Crate 03",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -12,
+     0.6,
+     2
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.4,
+     1.2,
+     2.4
+    ]
+   },
+   "color": "#565b60",
+   "material": {
+    "type": "standard",
+    "roughness": 0.7,
+    "metalness": 0.25
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "cover-crate-04",
+   "name": "Cover Crate 04",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     12,
+     0.6,
+     2
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.4,
+     1.2,
+     2.4
+    ]
+   },
+   "color": "#565b60",
+   "material": {
+    "type": "standard",
+    "roughness": 0.7,
+    "metalness": 0.25
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "cover-crate-05",
+   "name": "Cover Crate 05",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -6.5,
+     0.6,
+     -24
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.8,
+     1.2,
+     3.2
+    ]
+   },
+   "color": "#565b60",
+   "material": {
+    "type": "standard",
+    "roughness": 0.7,
+    "metalness": 0.25
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "cover-crate-06",
+   "name": "Cover Crate 06",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     6.5,
+     0.6,
+     -24
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.8,
+     1.2,
+     3.2
+    ]
+   },
+   "color": "#565b60",
+   "material": {
+    "type": "standard",
+    "roughness": 0.7,
+    "metalness": 0.25
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "cover-crate-07",
+   "name": "Cover Crate 07",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -6.5,
+     0.6,
+     -2
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.8,
+     1.2,
+     3.2
+    ]
+   },
+   "color": "#565b60",
+   "material": {
+    "type": "standard",
+    "roughness": 0.7,
+    "metalness": 0.25
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "cover-crate-08",
+   "name": "Cover Crate 08",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     6.5,
+     0.6,
+     -2
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.8,
+     1.2,
+     3.2
+    ]
+   },
+   "color": "#565b60",
+   "material": {
+    "type": "standard",
+    "roughness": 0.7,
+    "metalness": 0.25
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "planter-01",
+   "name": "Planter 01",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -12,
+     0.35,
+     -30
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3,
+     0.7,
+     3
+    ]
+   },
+   "color": "#5a5049",
+   "material": {
+    "type": "standard",
+    "roughness": 0.9,
+    "metalness": 0.0
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "shrub-01",
+   "name": "Shrub 01",
+   "type": "sphere",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -12,
+     1.35,
+     -30
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.2,
+     1.6,
+     2.2
+    ]
+   },
+   "color": "#3f6b3a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.95,
+    "metalness": 0.0
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "decoration"
+  },
+  {
+   "id": "planter-02",
+   "name": "Planter 02",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     12,
+     0.35,
+     -30
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3,
+     0.7,
+     3
+    ]
+   },
+   "color": "#5a5049",
+   "material": {
+    "type": "standard",
+    "roughness": 0.9,
+    "metalness": 0.0
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "shrub-02",
+   "name": "Shrub 02",
+   "type": "sphere",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     12,
+     1.35,
+     -30
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.2,
+     1.6,
+     2.2
+    ]
+   },
+   "color": "#3f6b3a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.95,
+    "metalness": 0.0
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "decoration"
+  },
+  {
+   "id": "planter-03",
+   "name": "Planter 03",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -12,
+     0.35,
+     10
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3,
+     0.7,
+     3
+    ]
+   },
+   "color": "#5a5049",
+   "material": {
+    "type": "standard",
+    "roughness": 0.9,
+    "metalness": 0.0
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "shrub-03",
+   "name": "Shrub 03",
+   "type": "sphere",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -12,
+     1.35,
+     10
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.2,
+     1.6,
+     2.2
+    ]
+   },
+   "color": "#3f6b3a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.95,
+    "metalness": 0.0
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "decoration"
+  },
+  {
+   "id": "planter-04",
+   "name": "Planter 04",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     12,
+     0.35,
+     10
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3,
+     0.7,
+     3
+    ]
+   },
+   "color": "#5a5049",
+   "material": {
+    "type": "standard",
+    "roughness": 0.9,
+    "metalness": 0.0
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "shrub-04",
+   "name": "Shrub 04",
+   "type": "sphere",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     12,
+     1.35,
+     10
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.2,
+     1.6,
+     2.2
+    ]
+   },
+   "color": "#3f6b3a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.95,
+    "metalness": 0.0
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "decoration"
+  },
+  {
+   "id": "column-1f-01",
+   "name": "Column 1F 01",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -24,
+     3.2,
+     -16
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.4,
+     6.4,
+     1.4
+    ]
+   },
+   "color": "#4a4e52",
+   "material": {
+    "type": "standard",
+    "roughness": 0.75,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "column-1f-02",
+   "name": "Column 1F 02",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     24,
+     3.2,
+     -16
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.4,
+     6.4,
+     1.4
+    ]
+   },
+   "color": "#4a4e52",
+   "material": {
+    "type": "standard",
+    "roughness": 0.75,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "column-1f-03",
+   "name": "Column 1F 03",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -24,
+     3.2,
+     4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.4,
+     6.4,
+     1.4
+    ]
+   },
+   "color": "#4a4e52",
+   "material": {
+    "type": "standard",
+    "roughness": 0.75,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "column-1f-04",
+   "name": "Column 1F 04",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     24,
+     3.2,
+     4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.4,
+     6.4,
+     1.4
+    ]
+   },
+   "color": "#4a4e52",
+   "material": {
+    "type": "standard",
+    "roughness": 0.75,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "column-1f-05",
+   "name": "Column 1F 05",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     -24,
+     3.2,
+     22
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.4,
+     6.4,
+     1.4
+    ]
+   },
+   "color": "#4a4e52",
+   "material": {
+    "type": "standard",
+    "roughness": 0.75,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "column-1f-06",
+   "name": "Column 1F 06",
+   "type": "cube",
+   "parentId": "1f",
+   "transform": {
+    "position": [
+     24,
+     3.2,
+     22
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.4,
+     6.4,
+     1.4
+    ]
+   },
+   "color": "#4a4e52",
+   "material": {
+    "type": "standard",
+    "roughness": 0.75,
+    "metalness": 0.2
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "core-platform",
+   "name": "Core Platform",
+   "type": "cylinder",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     0,
+     6.55,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     18,
+     0.3,
+     18
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.4,
+    "metalness": 0.55
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "core-pedestal",
+   "name": "Core Pedestal",
+   "type": "cylinder",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     0,
+     7.05,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     4,
+     0.7,
+     4
+    ]
+   },
+   "color": "#4a4e52",
+   "material": {
+    "type": "standard",
+    "roughness": 0.5,
+    "metalness": 0.4
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "energy-core",
+   "name": "Energy Core",
+   "type": "sphere",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     0,
+     8.7,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.6,
+     2.6,
+     2.6
+    ]
+   },
+   "color": "#ff2d2d",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "core",
+    "energy"
+   ],
+   "layer": 0,
+   "collision": true,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "EnemyCore",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry",
+   "unity": {
+    "enemyCore": {
+     "enabled": true,
+     "maxHealth": 30,
+     "groundDamage": 2,
+     "flyingDamage": 1,
+     "arrivalRadius": 0.35
+    },
+    "collider": {
+     "type": "sphere",
+     "isTrigger": true,
+     "radius": 1.6
+    }
+   }
+  },
+  {
+   "id": "core-glow-ring",
+   "name": "Core Glow Ring",
+   "type": "cylinder",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     0,
+     7.4,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6.4,
+     0.08,
+     6.4
+    ]
+   },
+   "color": "#ff2d2d",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "decoration"
+  },
+  {
+   "id": "core-ring-front",
+   "name": "Core Ring Front",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     0,
+     7.05,
+     -9.0
+    ],
+    "rotation": [
+     0,
+     0.0,
+     0
+    ],
+    "scale": [
+     14,
+     1.3,
+     0.6
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.55,
+    "metalness": 0.5
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "core-ring-fl",
+   "name": "Core Ring FL",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     -6.36,
+     7.05,
+     -6.36
+    ],
+    "rotation": [
+     0,
+     -0.785398,
+     0
+    ],
+    "scale": [
+     5.2,
+     1.3,
+     0.6
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.55,
+    "metalness": 0.5
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "core-ring-fr",
+   "name": "Core Ring FR",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     6.36,
+     7.05,
+     -6.36
+    ],
+    "rotation": [
+     0,
+     0.785398,
+     0
+    ],
+    "scale": [
+     5.2,
+     1.3,
+     0.6
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.55,
+    "metalness": 0.5
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "core-ring-bl",
+   "name": "Core Ring BL",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     -6.36,
+     7.05,
+     6.36
+    ],
+    "rotation": [
+     0,
+     0.785398,
+     0
+    ],
+    "scale": [
+     5.2,
+     1.3,
+     0.6
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.55,
+    "metalness": 0.5
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "core-ring-br",
+   "name": "Core Ring BR",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     6.36,
+     7.05,
+     6.36
+    ],
+    "rotation": [
+     0,
+     -0.785398,
+     0
+    ],
+    "scale": [
+     5.2,
+     1.3,
+     0.6
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.55,
+    "metalness": 0.5
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "2f-corridor-outer-l",
+   "name": "2F Corridor Outer L",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     -26.5,
+     7.05,
+     34.75
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     1.3,
+     7.5
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.6,
+    "metalness": 0.35
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "2f-corridor-inner-l",
+   "name": "2F Corridor Inner L",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     -16.8,
+     7.05,
+     34.75
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     1.3,
+     7.5
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.6,
+    "metalness": 0.35
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "2f-corridor-outer-r",
+   "name": "2F Corridor Outer R",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     26.5,
+     7.05,
+     34.75
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     1.3,
+     7.5
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.6,
+    "metalness": 0.35
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "2f-corridor-inner-r",
+   "name": "2F Corridor Inner R",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     16.8,
+     7.05,
+     34.75
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     1.3,
+     7.5
+    ]
+   },
+   "color": "#6b7076",
+   "material": {
+    "type": "standard",
+    "roughness": 0.6,
+    "metalness": 0.35
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "2f-low-wall-01",
+   "name": "2F Low Wall 01",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     -16,
+     7.0,
+     -18
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     4,
+     1.2,
+     0.8
+    ]
+   },
+   "color": "#565b60",
+   "material": {
+    "type": "standard",
+    "roughness": 0.7,
+    "metalness": 0.25
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "2f-low-wall-02",
+   "name": "2F Low Wall 02",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     16,
+     7.0,
+     -18
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     4,
+     1.2,
+     0.8
+    ]
+   },
+   "color": "#565b60",
+   "material": {
+    "type": "standard",
+    "roughness": 0.7,
+    "metalness": 0.25
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "2f-low-wall-03",
+   "name": "2F Low Wall 03",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     -8,
+     7.0,
+     -9
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     4,
+     1.2,
+     0.8
+    ]
+   },
+   "color": "#565b60",
+   "material": {
+    "type": "standard",
+    "roughness": 0.7,
+    "metalness": 0.25
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "2f-low-wall-04",
+   "name": "2F Low Wall 04",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     8,
+     7.0,
+     -9
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     4,
+     1.2,
+     0.8
+    ]
+   },
+   "color": "#565b60",
+   "material": {
+    "type": "standard",
+    "roughness": 0.7,
+    "metalness": 0.25
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "2f-planter-01",
+   "name": "2F Planter 01",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     -22,
+     6.75,
+     -24
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3,
+     0.7,
+     3
+    ]
+   },
+   "color": "#5a5049",
+   "material": {
+    "type": "standard",
+    "roughness": 0.9,
+    "metalness": 0.0
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "2f-shrub-01",
+   "name": "2F Shrub 01",
+   "type": "sphere",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     -22,
+     7.75,
+     -24
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.2,
+     1.6,
+     2.2
+    ]
+   },
+   "color": "#3f6b3a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.95,
+    "metalness": 0.0
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "decoration"
+  },
+  {
+   "id": "2f-planter-02",
+   "name": "2F Planter 02",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     22,
+     6.75,
+     -24
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3,
+     0.7,
+     3
+    ]
+   },
+   "color": "#5a5049",
+   "material": {
+    "type": "standard",
+    "roughness": 0.9,
+    "metalness": 0.0
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "2f-shrub-02",
+   "name": "2F Shrub 02",
+   "type": "sphere",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     22,
+     7.75,
+     -24
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.2,
+     1.6,
+     2.2
+    ]
+   },
+   "color": "#3f6b3a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.95,
+    "metalness": 0.0
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "decoration"
+  },
+  {
+   "id": "2f-light-strip-+0.0-+14.0",
+   "name": "2F Light Strip +0.0 +14.0",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     0,
+     6.43,
+     14
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.4,
+     0.04,
+     12
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "decoration"
+  },
+  {
+   "id": "2f-light-strip-+0.0--14.0",
+   "name": "2F Light Strip +0.0 -14.0",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     0,
+     6.43,
+     -14
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.4,
+     0.04,
+     12
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "decoration"
+  },
+  {
+   "id": "2f-light-strip--14.5-+34.0",
+   "name": "2F Light Strip -14.5 +34.0",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     -14.5,
+     6.43,
+     34
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     0.04,
+     0.4
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "decoration"
+  },
+  {
+   "id": "2f-light-strip-+14.5-+34.0",
+   "name": "2F Light Strip +14.5 +34.0",
+   "type": "cube",
+   "parentId": "2f",
+   "transform": {
+    "position": [
+     14.5,
+     6.43,
+     34
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     0.04,
+     0.4
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "decoration"
+  },
+  {
+   "id": "enemy-spawn-left",
+   "name": "Enemy Spawn Left",
+   "type": "cylinder",
+   "parentId": "spawnpoints",
+   "transform": {
+    "position": [
+     -20,
+     0.08,
+     -37
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.2,
+     0.12,
+     2.2
+    ]
+   },
+   "color": "#c0392b",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "spawn",
+    "left"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "EnemySpawnPoint",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "spawnPoint": {
+     "enabled": false,
+     "spawnInterval": 1.5,
+     "initialDelay": 2,
+     "enemiesPerWave": 9,
+     "moveSpeed": 2.2,
+     "travelDirection": [
+      0,
+      0,
+      1
+     ],
+     "monsterType": "Ground",
+     "flightHeight": 3.0,
+     "flyingEntrance": false,
+     "entranceAltitude": 0.0,
+     "laneId": "left",
+     "enemyPrefabId": "",
+     "waves": []
+    }
+   }
+  },
+  {
+   "id": "enemy-spawn-middle",
+   "name": "Enemy Spawn Middle",
+   "type": "cylinder",
+   "parentId": "spawnpoints",
+   "transform": {
+    "position": [
+     0,
+     0.08,
+     -37
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.2,
+     0.12,
+     2.2
+    ]
+   },
+   "color": "#2e9e57",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "spawn",
+    "middle"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "EnemySpawnPoint",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "spawnPoint": {
+     "enabled": false,
+     "spawnInterval": 1.5,
+     "initialDelay": 2,
+     "enemiesPerWave": 9,
+     "moveSpeed": 2.2,
+     "travelDirection": [
+      0,
+      0,
+      1
+     ],
+     "monsterType": "Ground",
+     "flightHeight": 3.0,
+     "flyingEntrance": false,
+     "entranceAltitude": 0.0,
+     "laneId": "middle",
+     "enemyPrefabId": "",
+     "waves": []
+    }
+   }
+  },
+  {
+   "id": "enemy-spawn-right",
+   "name": "Enemy Spawn Right",
+   "type": "cylinder",
+   "parentId": "spawnpoints",
+   "transform": {
+    "position": [
+     20,
+     0.08,
+     -37
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.2,
+     0.12,
+     2.2
+    ]
+   },
+   "color": "#2f7fc1",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "spawn",
+    "right"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "EnemySpawnPoint",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "spawnPoint": {
+     "enabled": false,
+     "spawnInterval": 1.5,
+     "initialDelay": 2,
+     "enemiesPerWave": 9,
+     "moveSpeed": 2.2,
+     "travelDirection": [
+      0,
+      0,
+      1
+     ],
+     "monsterType": "Ground",
+     "flightHeight": 3.0,
+     "flyingEntrance": false,
+     "entranceAltitude": 0.0,
+     "laneId": "right",
+     "enemyPrefabId": "",
+     "waves": []
+    }
+   }
+  },
+  {
+   "id": "enemy-spawn-upper-left",
+   "name": "Enemy Spawn Upper Left",
+   "type": "cylinder",
+   "parentId": "spawnpoints",
+   "transform": {
+    "position": [
+     -20,
+     6.48,
+     36.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.2,
+     0.12,
+     2.2
+    ]
+   },
+   "color": "#c0392b",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "spawn",
+    "upper-left"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "EnemySpawnPoint",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "spawnPoint": {
+     "enabled": false,
+     "spawnInterval": 1.5,
+     "initialDelay": 2,
+     "enemiesPerWave": 9,
+     "moveSpeed": 2.2,
+     "travelDirection": [
+      0,
+      0,
+      -1
+     ],
+     "monsterType": "Ground",
+     "flightHeight": 3.0,
+     "flyingEntrance": false,
+     "entranceAltitude": 0.0,
+     "laneId": "upper-left",
+     "enemyPrefabId": "",
+     "waves": []
+    }
+   }
+  },
+  {
+   "id": "enemy-spawn-upper-right",
+   "name": "Enemy Spawn Upper Right",
+   "type": "cylinder",
+   "parentId": "spawnpoints",
+   "transform": {
+    "position": [
+     20,
+     6.48,
+     36.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.2,
+     0.12,
+     2.2
+    ]
+   },
+   "color": "#2f7fc1",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "spawn",
+    "upper-right"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "EnemySpawnPoint",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "spawnPoint": {
+     "enabled": false,
+     "spawnInterval": 1.5,
+     "initialDelay": 2,
+     "enemiesPerWave": 9,
+     "moveSpeed": 2.2,
+     "travelDirection": [
+      0,
+      0,
+      -1
+     ],
+     "monsterType": "Ground",
+     "flightHeight": 3.0,
+     "flyingEntrance": false,
+     "entranceAltitude": 0.0,
+     "laneId": "upper-right",
+     "enemyPrefabId": "",
+     "waves": []
+    }
+   }
+  },
+  {
+   "id": "enemy-spawn-flying",
+   "name": "Enemy Spawn Flying",
+   "type": "cylinder",
+   "parentId": "spawnpoints",
+   "transform": {
+    "position": [
+     0,
+     15.9,
+     34
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.2,
+     0.12,
+     2.2
+    ]
+   },
+   "color": "#a05cff",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "spawn",
+    "air"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "EnemySpawnPoint",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "spawnPoint": {
+     "enabled": false,
+     "spawnInterval": 1.5,
+     "initialDelay": 2,
+     "enemiesPerWave": 9,
+     "moveSpeed": 2.2,
+     "travelDirection": [
+      0,
+      0,
+      -1
+     ],
+     "monsterType": "Flying",
+     "flightHeight": 16.0,
+     "flyingEntrance": true,
+     "entranceAltitude": 16.0,
+     "laneId": "air",
+     "enemyPrefabId": "",
+     "waves": []
+    }
+   }
+  },
+  {
+   "id": "flying-portal",
+   "name": "Flying Portal",
+   "type": "sphere",
+   "parentId": "spawnpoints",
+   "transform": {
+    "position": [
+     0,
+     16.4,
+     34
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.6,
+     1.6,
+     1.6
+    ]
+   },
+   "color": "#a05cff",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "decoration"
+  },
+  {
+   "id": "ground-l-node-1",
+   "name": "Ground L Node 1",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -20,
+     0.3,
+     -34
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "ground-l-node-2",
+   "name": "Ground L Node 2",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -20,
+     0.3,
+     -20
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "ground-l-node-3",
+   "name": "Ground L Node 3",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -20,
+     0.3,
+     -6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "ground-l-node-4",
+   "name": "Ground L Node 4",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -20,
+     0.3,
+     8
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "ground-l-node-5",
+   "name": "Ground L Node 5",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -20,
+     0.3,
+     16
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "ground-l-turn",
+   "name": "Ground L Turn",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -11.0,
+     0.3,
+     21.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "ground-m-node-1",
+   "name": "Ground M Node 1",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     0,
+     0.3,
+     -34
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "ground-m-node-2",
+   "name": "Ground M Node 2",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     0,
+     0.3,
+     -20
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "ground-m-node-3",
+   "name": "Ground M Node 3",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     0,
+     0.3,
+     -6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "ground-m-node-4",
+   "name": "Ground M Node 4",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     0,
+     0.3,
+     8
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "ground-m-node-5",
+   "name": "Ground M Node 5",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     0,
+     0.3,
+     16
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "ground-m-turn",
+   "name": "Ground M Turn",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     0.0,
+     0.3,
+     21.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "ground-r-node-1",
+   "name": "Ground R Node 1",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     20,
+     0.3,
+     -34
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "ground-r-node-2",
+   "name": "Ground R Node 2",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     20,
+     0.3,
+     -20
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "ground-r-node-3",
+   "name": "Ground R Node 3",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     20,
+     0.3,
+     -6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "ground-r-node-4",
+   "name": "Ground R Node 4",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     20,
+     0.3,
+     8
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "ground-r-node-5",
+   "name": "Ground R Node 5",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     20,
+     0.3,
+     16
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "ground-r-turn",
+   "name": "Ground R Turn",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     11.0,
+     0.3,
+     21.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "converge-node",
+   "name": "Converge Node",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     0,
+     0.3,
+     26
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "stair-l-bottom",
+   "name": "Stair L Bottom",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -14.5,
+     0.3,
+     20.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "stair-l-top",
+   "name": "Stair L Top",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -14.5,
+     6.7,
+     31
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "2f-l-channel",
+   "name": "2F L Channel",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -6.525,
+     6.7,
+     17
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "2f-l-core-approach",
+   "name": "2F L Core Approach",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -1.885,
+     6.7,
+     8
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "stair-r-bottom",
+   "name": "Stair R Bottom",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     14.5,
+     0.3,
+     20.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "stair-r-top",
+   "name": "Stair R Top",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     14.5,
+     6.7,
+     31
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "2f-r-channel",
+   "name": "2F R Channel",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     6.525,
+     6.7,
+     17
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "2f-r-core-approach",
+   "name": "2F R Core Approach",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     1.885,
+     6.7,
+     8
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "core-node",
+   "name": "Core Node",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     0,
+     6.7,
+     3.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "upper-ul-node-1",
+   "name": "Upper UL Node 1",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -20,
+     6.7,
+     36.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "upper-ul-node-2",
+   "name": "Upper UL Node 2",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -20,
+     6.7,
+     27
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "upper-ul-node-3",
+   "name": "Upper UL Node 3",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -14,
+     6.7,
+     18
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "upper-ul-node-4",
+   "name": "Upper UL Node 4",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -11,
+     6.7,
+     5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "upper-ul-node-5",
+   "name": "Upper UL Node 5",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -4,
+     6.7,
+     1.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "upper-ur-node-1",
+   "name": "Upper UR Node 1",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     20,
+     6.7,
+     36.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "upper-ur-node-2",
+   "name": "Upper UR Node 2",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     20,
+     6.7,
+     27
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "upper-ur-node-3",
+   "name": "Upper UR Node 3",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     14,
+     6.7,
+     18
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "upper-ur-node-4",
+   "name": "Upper UR Node 4",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     11,
+     6.7,
+     5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  },
+  {
+   "id": "upper-ur-node-5",
+   "name": "Upper UR Node 5",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     4,
+     6.7,
+     1.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ]
+   },
+   "color": "#2fa8d8",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "pathnode"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "MapForgePathNode",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": []
+    }
+   }
+  }
+ ],
+ "settings": {
+  "gridSize": 1,
+  "unit": "meter"
+ },
+ "groups": [],
+ "gameplay": {},
+ "rotationUnit": "radians",
+ "unity": {
+  "prefabs": [],
+  "waves": {
+   "totalWaves": 3,
+   "initialDelay": 8,
+   "enemiesPerWave": 9,
+   "spawnInterval": 1.5,
+   "transitionDelays": [
+    15,
+    30
+   ]
+  },
+  "settings": {
+   "buildNavMeshOnImport": false
+  }
+ }
+}

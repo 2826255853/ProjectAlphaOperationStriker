@@ -8,5 +8,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity
     guid: 53372d9a7992037488bac64f5ab32630
+  - enabled: 1
+    path: Assets/Scenes/DOUBLE_LAYER_FACILITY.unity
+    guid: cd5dbe2b228d3ce41b6fe33ae3613e3e
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

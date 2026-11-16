@@ -999,3 +999,14 @@
 - RG777 参数由 `XM777Trap` 按已提交的分支状态切换：水平射程 5–200 m、炮管仰角线性 0–30°、发射间隔 2 秒；单发基础伤害固定为 `BaseExplosionDamage * 5`（XM777 一级状态 45 × 5 = 225），发射时写入待命中记录。
 - `Assets/Editor/RG777MaterialAuthoring.cs` 将 RG777 FBX 的 9 个材质槽绑定至 `Assets/Models/RG777/Materials/` 下 URP/Lit 材质；`RG777TrapPreview` 从最终分支预制体输出四视图至 `C:\Users\ASUS\Desktop\陷阱素材文件夹\RG777\integration\preview\`。
 - 验证：项目 Unity `6000.6.7f1`，`RunXM777TrapTests.ps1` **63/63 PASS**（含 RG777 射程、角度、冷却、伤害与升级时冷却切换用例）；`RG777BranchAuthoring.ValidateIntegrationBatch` 校验完整升级目录、XM777 特效引用、RG777 rig 和 URP 材质，并实际验证分支模型切换/恢复；`RG777TrapPreview.RenderPreviewBatch -WithGraphics` 成功。未执行主场景人工 PlayMode 验收或完整 Player 构建。
+
+## 双层设施地图场景（2026-11-16）
+
+- 新场景 `Assets/Scenes/DOUBLE_LAYER_FACILITY.unity` 已加入 `EditorBuildSettings`，通过既有 `MapSceneCatalog` 在地图选择页显示；原 `THREE_ROUTE_MERGE_MAP` 场景保持不变。
+- 地图源快照：`Assets/Editor/MapSources/double-layer-facility.json`，与 `C:\MapForge\wwwroot\examples\double-layer-facility.json` 内容一致。位于 Editor 目录，避免作为运行时资源打包。原 JSON 中的 Unity 玩法映射保留，生成时仅在内存中过滤。
+- 生成器 `Assets/Editor/DoubleLayerFacilityAuthoring.cs`，菜单 `MapForge/Build Double Layer Facility (Geometry Only)` / 批处理 `DoubleLayerFacilityAuthoring.Build`。复用 `MapForgeSceneOrganization.Create` 的层级、图元尺寸、碰撞和材质导入，不走默认导入器的波次/网格生成；重建已有目标场景前备份至桌面 `DoubleLayerFacility/backup/<时间戳>`。
+- 本阶段只含地图几何、碰撞、光照和玩家出生相机；隐藏 spawnpoints/pathnodes 编辑辅助标记，过滤 EnemyCore、EnemySpawnPoint、MapForgePathNode、触发器、NavMesh 及陷阱网格映射。红色核心保留为装饰。暂未实现陷阱、怪物寻路网格或刷怪。
+- 玩家沿用 `FirstPersonPlayerBootstrap` / `Resources/FPSPlayer`。出生相机 `(0,1.7,-32)` 朝 +Z，启动时落地到一层；保留全部原始楼梯几何，添加两条不可见 BoxCollider 斜坡来跨越 0.4 m 台阶，连接 y=0 与 y=6.4 的二层楼板。12 盏无阴影点光源补足一层室内光照。
+- 校验 `DoubleLayerFacilityAuthoring.ValidateSavedScene`：194 个 MapForge 对象、188 个 Renderer、190 个 Collider（含禁用的辅助几何碰撞器）；出生净空、楼梯表面高度、地图列表注册、无玩法组件通过。使用 FPSPlayer 真实 CharacterController 的尺寸、stepOffset/slopeLimit/skinWidth，在编辑器内模拟 Move，上下两侧楼梯均通过 `FACILITY_STAIRS_PASS`；临时探针在 finally 销毁，不写入场景。
+- Unity 按 `ProjectVersion.txt` 选择已安装版本，本次为 6000.6.9f1。Build 与 Validate/RenderPreview 正常完成，无 C# 编译错误或方法异常。验证为编辑器碰撞探针及离屏渲染，未做人工 PlayMode 操作、跨场景菜单操作或完整 Player 构建。
+- 预览入口 `DoubleLayerFacilityAuthoring.RenderPreview`（批处理带 `-WithGraphics`）。预览与日志：`C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\`，含 `01-overview.png`、`02-ground-floor.png`、`03-upper-floor.png`、`04-stairs.png`。场景重建使用专用入口；普通全量导入或 MapForge 实时同步不应用本阶段的玩法过滤与楼梯补充。
