@@ -565,35 +565,35 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawnPoint
   spawningEnabled: 1
-  spawnInterval: 1
+  spawnInterval: 1.5
   overrideKillReward: 0
   killRewardOverride: 10
   totalWaves: 3
-  enemiesPerWave: 10
+  enemiesPerWave: 3
   waveSpawnSettings:
   - enabled: 1
-    enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyCount: 3
+    enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
     alternateEnemyPrefab: {fileID: 0}
-    alternateShare: 0.5
+    alternateShare: 0
     alternateMoveSpeed: 0
   - enabled: 1
-    enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyCount: 4
+    enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
-    alternateEnemyPrefab: {fileID: 0}
+    alternateEnemyPrefab: {fileID: 923835401758357671, guid: 6ff5a3e7968ef9a4da80f94d1d06f1ed, type: 3}
     alternateShare: 0.5
-    alternateMoveSpeed: 0
+    alternateMoveSpeed: 4
   - enabled: 1
-    enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyCount: 2
+    enemyPrefab: {fileID: 920069641527111578, guid: ec35cd26003985b41b795c5fc02d34a4, type: 3}
     monsterType: 0
     flightHeight: 3
     alternateEnemyPrefab: {fileID: 0}
-    alternateShare: 0.5
+    alternateShare: 0
     alternateMoveSpeed: 0
   initialWaveDelay: 2
   waveTransitionDelays:
@@ -1456,35 +1456,35 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawnPoint
   spawningEnabled: 1
-  spawnInterval: 1
+  spawnInterval: 1.5
   overrideKillReward: 0
   killRewardOverride: 10
   totalWaves: 3
-  enemiesPerWave: 10
+  enemiesPerWave: 3
   waveSpawnSettings:
   - enabled: 1
-    enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyCount: 3
+    enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
     alternateEnemyPrefab: {fileID: 0}
-    alternateShare: 0.5
+    alternateShare: 0
     alternateMoveSpeed: 0
   - enabled: 1
-    enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyCount: 4
+    enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
-    alternateEnemyPrefab: {fileID: 0}
+    alternateEnemyPrefab: {fileID: 923835401758357671, guid: 6ff5a3e7968ef9a4da80f94d1d06f1ed, type: 3}
     alternateShare: 0.5
-    alternateMoveSpeed: 0
+    alternateMoveSpeed: 4
   - enabled: 1
-    enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyCount: 2
+    enemyPrefab: {fileID: 920069641527111578, guid: ec35cd26003985b41b795c5fc02d34a4, type: 3}
     monsterType: 0
     flightHeight: 3
     alternateEnemyPrefab: {fileID: 0}
-    alternateShare: 0.5
+    alternateShare: 0
     alternateMoveSpeed: 0
   initialWaveDelay: 2
   waveTransitionDelays:
@@ -4388,35 +4388,35 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawnPoint
   spawningEnabled: 1
-  spawnInterval: 1
+  spawnInterval: 1.5
   overrideKillReward: 0
   killRewardOverride: 10
   totalWaves: 3
-  enemiesPerWave: 10
+  enemiesPerWave: 3
   waveSpawnSettings:
   - enabled: 1
-    enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyCount: 3
+    enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
     alternateEnemyPrefab: {fileID: 0}
-    alternateShare: 0.5
+    alternateShare: 0
     alternateMoveSpeed: 0
   - enabled: 1
-    enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyCount: 4
+    enemyPrefab: {fileID: 7160222295312663286, guid: 7710ab44d35ee474298b3992ac676129, type: 3}
     monsterType: 0
     flightHeight: 3
-    alternateEnemyPrefab: {fileID: 0}
+    alternateEnemyPrefab: {fileID: 923835401758357671, guid: 6ff5a3e7968ef9a4da80f94d1d06f1ed, type: 3}
     alternateShare: 0.5
-    alternateMoveSpeed: 0
+    alternateMoveSpeed: 4
   - enabled: 1
-    enemyCount: 10
-    enemyPrefab: {fileID: 0}
+    enemyCount: 2
+    enemyPrefab: {fileID: 920069641527111578, guid: ec35cd26003985b41b795c5fc02d34a4, type: 3}
     monsterType: 0
     flightHeight: 3
     alternateEnemyPrefab: {fileID: 0}
-    alternateShare: 0.5
+    alternateShare: 0
     alternateMoveSpeed: 0
   initialWaveDelay: 2
   waveTransitionDelays:

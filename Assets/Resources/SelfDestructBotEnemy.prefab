@@ -139,6 +139,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: bdf1b4f4939d92f4e861d1d1a7800006, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6842569409133825001}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: bdf1b4f4939d92f4e861d1d1a7800006, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 711868868838238568}
   m_SourcePrefab: {fileID: 100100000, guid: bdf1b4f4939d92f4e861d1d1a7800006, type: 3}
 --- !u!1 &920069641527111578 stripped
 GameObject:
@@ -254,6 +257,29 @@ MonoBehaviour:
   follower: {fileID: 125617854068291501}
   health: {fileID: 2366061197916591445}
   unit: {fileID: 1109446779812767281}
+--- !u!114 &711868868838238568
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920069641527111578}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67ba6845653551440b0359d9b30931c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SelfDestructBotWarningLight
+  enemy: {fileID: 6842569409133825001}
+  warningRenderers:
+  - {fileID: 3693289940923643456}
+  blinkFrequency: 3.5
+  idleEmission: 0.15
+  peakEmission: 8
+--- !u!137 &3693289940923643456 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 3694328304855409803, guid: bdf1b4f4939d92f4e861d1d1a7800006, type: 3}
+  m_PrefabInstance: {fileID: 1644488012665547}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5696603346138868773 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -3527531095421763858, guid: bdf1b4f4939d92f4e861d1d1a7800006, type: 3}

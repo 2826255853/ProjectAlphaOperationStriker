@@ -1,5 +1,22 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 开发测试三段式出怪链（2026-11-16）
+
+- `Assets/Editor/DeveloperTestSpawnChainAuthoring.cs` 提供菜单 `Tools/塔防/开发测试/配置三段式出怪链` / `校验三段式出怪链`，批处理入口分别为 `DeveloperTestSpawnChainAuthoring.ApplyMainSceneBatch` / `ValidateMainSceneBatch`。
+- 配置主场景全部地面出怪口，每个入口共 9 只：第 1 波蒙面士兵 3 只；第 2 波蒙面士兵 4 只，其中 2 只按 50% 均匀混刷快速小怪（速度取 `MonsterSpeciesCatalog.FastRunner.MoveSpeed`）；第 3 波自爆机器人 2 只。每只间隔 1.5 秒，开局等待 2 秒，波间等待 5 秒。当前 3 个地面入口合计最多 27 只；飓风无人机入口及其 3 波 × 3 架配置不变。
+- 配置前自动备份主场景及 `.meta` 到 `C:\Users\ASUS\Desktop\陷阱素材文件夹\DeveloperTestSpawnChain\scene-backups\<时间戳>\`。2026-11-16 本次备份为 `...\20261116-165224\THREE_ROUTE_MERGE_MAP.unity`。
+- 验证：项目 Unity `6000.6.9f1` 执行 `ApplyMainSceneBatch` 与 `ValidateMainSceneBatch` 均成功，后者输出 `DEVELOPER_TEST_SPAWN_CHAIN_PASS`；场景 diff 为 3 个地面出怪口的波次配置更新。未做 PlayMode 人工观察出怪、战斗与自爆行为。
+
+## MGX5 瞄准镜：镜内放大 + 十字分划（2026-11-16）
+
+- 新增运行时 `Assets/Scripts/FPS/WeaponScopeSight.cs`，由 `FirstPersonPlayerBootstrap.EnsureWeaponScopeSight` 幂等挂到玩家根节点；MGX5 预制体（`Assets/KINEMATION/FPSAnimationPack/Prefabs/MGX5.prefab`，非仓库资产）本身不改。
+- 触发判据：`PlayerSprintAimBridge.IsAiming` 为真、菜单未接管光标、且当前手持武器名包含 `scopeWeaponName`（默认 `mgx5`，忽略大小写与 `.prefab` 后缀）。武器名优先反射调用包内 `FPSPlayer.GetActiveWeapon()`；拿不到时退回「场景层级中名字命中且激活」的兜底。
+- 镜内放大：`LateUpdate`（执行顺序 1010，晚于包内相机与 `HipFireCrosshairUI`）接管 `Camera.fieldOfView`，从进入瞄准那一帧的实际 FOV 用 SmoothStep 混合到 `aimFieldOfView`（默认 22°），`zoomInSpeed 12` / `zoomOutSpeed 10`；**不要在任意帧写死腰射 FOV**——包内 ADS 相机动画会改 FOV，混合起点必须采样当帧实际值。
+- 十字分划：`OnGUI` 在屏幕中心绘制带中心间隙（`centerGap`）的十字，臂延伸到屏幕边缘内缩 `edgeMarginFraction` 处，线条/描边颜色与粗细均可序列化；透明度跟随 `zoomProgress` 淡入淡出。腰射准心 `HipFireCrosshairUI` 在 ADS 时隐藏，两者不重叠。
+- 静态接口（供测试）：`WeaponScopeSight.BlendFieldOfView(base, aim, progress)` 与 `MatchesScopeWeapon(name, filter)`。
+- 验证（2026-11-16，Unity `6000.6.9f1`）：批处理编译 `AssetDatabase.Refresh` 0 个 `error CS`、日志含 `Exiting batchmode successfully now!`；临时 EditMode 用例 3 例（混合端点/钳制单调/武器名匹配）**3/3 PASS**，XML `C:\Users\ASUS\Desktop\陷阱素材文件夹\ScopeSight\tests\editmode-results.xml`；跑完已删除临时源码与 `.meta` 并复跑编译确认。注意：Unity 批处理跑 `-runTests` **不能带 `-quit`**，否则测试框架未启动就退出、不产出结果 XML。
+- 未做：主场景 PlayMode 人工键鼠观察 ADS 实际观感（放大倍率、分划粗细是否合适）、MGX5 专用镜内遮罩/镜筒视野、完整 Player 构建。
+
 ## 新怪物：自爆机器人 SelfDestructBot（2026-11-15）
 
 - 模型/动画由桌面素材目录的 Blender 脚本产出：`C:\Users\ASUS\Desktop\陷阱素材文件夹\SelfDestructBot\build_selfdestruct_bot.py`
@@ -14,11 +31,13 @@
 - 玩法：`Assets/Scripts/TowerDefense/SelfDestructBotUnit.cs`（动画层，接收动画事件 `OnArmSwing`）+
   `SelfDestructBotEnemy.cs`（玩家进入 7 m 停步挥臂；走到「地面可攻击陷阱」1.8 m 内停步蓄爆 1.2 s，3.6 m 范围伤害；
   自爆走 `Destroy` 而非 `TakeDamage`，`EnemyInstance` 记为 `Despawned`，**不发击杀奖励**）。爆炸表现是程序化的 `SelfDestructBlastFx`。
+- 警示灯（2026-11-16）：新增 `Assets/Scripts/TowerDefense/SelfDestructBotWarningLight.cs`；`SelfDestructBotAuthoring.BuildEnemyPrefab` 将机器人 `M_SDB_BombGlow` Renderer 绑定进去。非蓄爆时 emission 保持低亮，`SelfDestructBotEnemy.IsPriming` 为真时以 3.5 Hz 脉冲到峰值；需有 `M_SDB_BombGlow` 材质槽，改模型命名/材质时同步调整生成器筛选。
 - **不变量**：自爆机器人预制体**不能**带 `GroundEnemyCombat`——两套逻辑会抢 `MonsterPathFollower` 的 `FollowCombatPath` / `CombatMovementPaused`；
   `EnemySpawnPoint.CreateEnemy` 已对 `SelfDestructBotEnemy` 跳过自动添加（改这段时要一并保留）。
 - 验证（2026-11-15）：Unity `6000.6.8f1`（`ProjectVersion.txt` 记录版本）批处理 `CreateAll` + `ProbeBatch` 均成功，
   日志含 `Exiting batchmode successfully now!`、无 C# 编译错误；探针 27 项全 OK（组件/骨骼/4 段动画/13 材质槽全绑定/Resources.Load 可取）。
   未做 PlayMode 实机验收（挥臂伤害、自爆范围、陷阱目标筛选的实际手感）；模型仅在 Blender 做过静态与姿态渲染验收。
+- 本次验证（2026-11-16）：Unity `6000.6.9f1` 执行 `SelfDestructBotAuthoring.CreateAll` + `ProbeBatch` 成功，日志无 C# 编译错误/异常，探针 `SELF_DESTRUCT_BOT_PASS` 且包含警示灯组件。未做 PlayMode 的灯光闪烁观感及攻击/移动实机验收。注意 `BuildController` 每次会先删除并重建 controller 资产，ID 会变化。
 - 接入关卡：给地面出怪口的 `WaveSpawnSettings.enemyPrefab`（或默认 `enemyPrefab`）填 `Assets/Resources/SelfDestructBotEnemy.prefab`。
 
 ## Unity 编辑器文档版本（2026-11-15）

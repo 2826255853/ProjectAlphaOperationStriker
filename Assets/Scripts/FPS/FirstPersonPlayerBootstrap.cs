@@ -138,12 +138,19 @@ public static class FirstPersonPlayerBootstrap
         }
 
         EnsureHipFireCrosshair(player);
+        EnsureWeaponScopeSight(player);
     }
 
     private static void EnsureHipFireCrosshair(GameObject player)
     {
         if (player.GetComponent<HipFireCrosshairUI>() == null)
             player.AddComponent<HipFireCrosshairUI>();
+    }
+
+    private static void EnsureWeaponScopeSight(GameObject player)
+    {
+        if (player.GetComponent<WeaponScopeSight>() == null)
+            player.AddComponent<WeaponScopeSight>();
     }
 
     private static void EnsureLifeStateController(GameObject player)

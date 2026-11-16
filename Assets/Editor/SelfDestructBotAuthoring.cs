@@ -377,6 +377,7 @@ public static class SelfDestructBotAuthoring
         var health = instance.GetComponent<EnemyHealth>() ?? instance.AddComponent<EnemyHealth>();
         var follower = instance.GetComponent<MonsterPathFollower>() ?? instance.AddComponent<MonsterPathFollower>();
         var enemy = instance.GetComponent<SelfDestructBotEnemy>() ?? instance.AddComponent<SelfDestructBotEnemy>();
+        var warningLight = instance.GetComponent<SelfDestructBotWarningLight>() ?? instance.AddComponent<SelfDestructBotWarningLight>();
 
         var healthSo = new SerializedObject(health);
         healthSo.FindProperty("maxHealth").floatValue = EnemyMaxHealth;
@@ -394,6 +395,19 @@ public static class SelfDestructBotAuthoring
         enemySo.FindProperty("health").objectReferenceValue = health;
         enemySo.FindProperty("unit").objectReferenceValue = instance.GetComponent<SelfDestructBotUnit>();
         enemySo.ApplyModifiedPropertiesWithoutUndo();
+
+        var warningSo = new SerializedObject(warningLight);
+        warningSo.FindProperty("enemy").objectReferenceValue = enemy;
+        var glow = System.Array.FindAll(instance.GetComponentsInChildren<Renderer>(true), renderer =>
+        {
+            foreach (var material in renderer.sharedMaterials)
+                if (material != null && material.name.Contains("BombGlow")) return true;
+            return false;
+        });
+        var renderersProperty = warningSo.FindProperty("warningRenderers");
+        renderersProperty.arraySize = glow.Length;
+        for (int i = 0; i < glow.Length; i++) renderersProperty.GetArrayElementAtIndex(i).objectReferenceValue = glow[i];
+        warningSo.ApplyModifiedPropertiesWithoutUndo();
 
         PrefabUtility.SaveAsPrefabAsset(instance, EnemyPrefabPath);
         Object.DestroyImmediate(instance);
@@ -443,6 +457,8 @@ public static class SelfDestructBotAuthoring
         Check(unit != null, "SelfDestructBotUnit", sb, failures);
         var enemy = prefab.GetComponent<SelfDestructBotEnemy>();
         Check(enemy != null, "SelfDestructBotEnemy", sb, failures);
+        var warningLight = prefab.GetComponent<SelfDestructBotWarningLight>();
+        Check(warningLight != null, "SelfDestructBotWarningLight", sb, failures);
         if (unit != null)
         {
             Check(unit.animator != null && unit.animator.runtimeAnimatorController != null, "Animator + Controller", sb, failures);
