@@ -5,7 +5,7 @@ description: 在 ProjectAlphaOperationStriker（Unity FPS + 塔防）及配套 M
 
 # Alpha Striker Unity / MapForge
 
-本工程是 Unity 6 的第一人称射击 + 塔防项目，地图由浏览器编辑器 MapForge（`C:\MapForge`）产出：要么导出 JSON 再由 Unity 编辑器脚本全量导入成场景，要么点「Send to Unity」让编辑器把增量修订直接应用到当前场景（`MapForgeSync/` 文件夹协议）。改地图和改代码是同一件事的两半，通常需要同时动 `C:\Unity Project\ProjectAlphaOperationStriker` 和 `C:\MapForge`。
+本工程是 Unity 6 的第一人称射击 + 塔防项目，配套地图编辑器为 MapForge（`C:\MapForge`）。先确定本次使用普通全量导入、实时增量同步，还是地图专用 Authoring 生成器；三条入口的过滤和补充几何不相同。只有任务涉及共享地图源或同步协议时才联动两边，运行时代码或单个陷阱修改不默认扩展到 MapForge。
 
 工作节奏、只读范围和探索预算见工程根目录的 `AGENTS.md`，本 skill 不重复。编辑前先读 `Assets/Editor/PROJECT_MEMORY.md`；当前源码与配置优先于带日期的历史记录。这里只讲**这个工程特有的、容易做错的做法**。
 
@@ -33,10 +33,9 @@ Step 3 - 交互/验收：需要的 UI、预览和旧功能回归；注明未覆�
 
 ## Unity 编辑器版本
 
-- 当前文档基准（2026-11-15 更新）：`6000.6.9f1`；本机已核实安装路径为 `C:\Program Files\Unity 6000.6.9f1\Editor\Unity.exe`。本次仅更新文档，项目实际版本仍以以下配置为准；历史测试记录保留当时版本。
 - 执行本项目时使用 `ProjectSettings/ProjectVersion.txt` 记录的版本，不自行换成机器上更新的编辑器。升级项目版本是单独的迁移任务；不默认使用 Alpha、Beta 或其他预发布版。
 - 每次运行 Unity 前，读取 `ProjectSettings/ProjectVersion.txt` 的 `m_EditorVersion`，再在 `C:\Program Files\Unity *\Editor\Unity.exe` 下核实对应安装；本机使用直接安装布局，脚本也兼容 Hub。文档、脚本、`.csproj` 不固定历史版本号，旧日志或生成文件不作为当前版本依据。
-- 若项目记录的版本未安装，说明缺失，不擅自用其他版本代跑或迁移项目。`run-unity-method.ps1` 在精确路径缺失时可能回退到另一已安装版本；先核对它报告的路径/版本，若与项目记录不一致就停止，不把该次结果当作本项目验证。
+- 若项目记录的版本未安装，说明缺失，不擅自用其他版本代跑或迁移项目。`run-unity-method.ps1` 在精确路径缺失时可能回退到另一已安装版本；因此启动前先核实精确版本路径，并用 `-UnityPath` 显式传入，不能等自动回退运行后才检查。
 - 批处理命令使用核实后的路径，不硬编码历史版本号；具体执行方式见 [references/unity-editor.md](references/unity-editor.md)。
 
 ## 四条工程规范怎么落地
@@ -46,10 +45,10 @@ Step 3 - 交互/验收：需要的 UI、预览和旧功能回归；注明未覆�
 1. **只用新版输入系统。** 新增输入代码写 `using UnityEngine.InputSystem`，不要用 `Input.GetKey` / `Input.GetAxis`。工程启用了 `ENABLE_INPUT_SYSTEM`，`Packages/manifest.json` 已带 `com.unity.inputsystem`。
 2. **图形类编辑必须能预览、能撤回。** 三类改动各自的撤回手段不同：
    - Blender 建模：脚本常直接 `save_as_mainfile` 覆盖同一个 `.blend`。改之前先把 `.blend` 复制一份到 `C:\Users\ASUS\Desktop\陷阱素材文件夹\<陷阱名>\` 下的备份副本，结束时用 `bpy.ops.render.render(write_still=True)` 出 PNG 预览。
-   - MapForge 改地图：编辑器有 80 步内存内撤销，但**关闭页面即丢失**。改前把 `Assets/mapforge-world.json` 备份或提交，改后重新导出。
-   - Unity 改场景：**全量导入**（`MapForgeWorldImporter.Import`）会**覆盖**目标场景文件，所以导入前先 `git stash` 或提交，之后用 `git diff` 回滚。MapForge 的「Send to Unity」增量同步只就地改写变过的对象、且不动 `MapForgeWorld` 之外的手工对象（见[下文](#mapforgesend-to-unity实时同步2026-09-新增)），但同样要先把场景提交一份再动手。
+   - MapForge 改地图：编辑器有 80 步内存内撤销，但**关闭页面即丢失**。改前备份该地图实际源 JSON，改后重新导出；双层设施等专用源见任务路由。
+   - Unity 改场景：**全量导入**（`MapForgeWorldImporter.Import`）会覆盖目标场景。改前备份本次相关源文件、场景和 `.meta` 到桌面对应子目录；已有合适的提交也可作为恢复点。增量同步的手工对象保留机制见 [mapforge-pipeline.md](references/mapforge-pipeline.md)。不要把自动 stash、提交或整文件回滚作为前置条件；撤回仅覆盖本次改动，保留用户已有工作。
 3. **地图不能遮挡怪物前进道路。** 平台/陷阱网格的可放置格必须排除怪物通道格，这条由 `TrapGridAuthoring` 的掩码函数保证——不要手写一套新的格子逻辑，见 [references/mapforge-pipeline.md](references/mapforge-pipeline.md)。
-4. **确认地图在 Unity 里真的没有错位。** 不要靠肉眼看场景视图下结论，用 `Tools/Tower Defense/Validate Trap Grids` 输出数值结果。
+4. **确认地图在 Unity 里真的没有错位。** 已接入陷阱网格的地图运行 `Tools/Tower Defense/Validate Trap Grids`；geometry-only 地图运行对应 Authoring 的尺寸、碰撞与通行校验，不能用空网格通过来验收。
 
 ## 不变量：半格偏移
 
@@ -75,116 +74,17 @@ Step 3 - 交互/验收：需要的 UI、预览和旧功能回归；注明未覆�
 - 汇报时给出该文件夹下的完整绝对路径，用户要能直接点开看预览图。
 - 与第 2 条规范的配合：修改共用 `.blend` 前先把副本备份到该文件夹的对应子目录，再用 `bpy.ops.render.render(write_still=True)` 把预览图输出到同一子目录。
 
-## 近期改动的约定（2026-09 新增）
+## 按任务读取
 
-以下整理了 2026-09 至 2026-10 的能力不变量，改代码时**必须沿用，不要另起一套**。里程碑测试记录与未覆盖范围以 `Assets/Editor/PROJECT_MEMORY.md` 为准；不要把某次 EditMode 通过等同于真实 PlayMode、完整构建或人工场景验收。
+只加载当前任务涉及的参考页；详细参数和历史验收记录留在项目记忆，不必每次通读。
 
-### 空中出怪口（飞行怪物）（2026-09 新增）
-
-飞行不是「走得快的怪物」，而是**完全不使用 `MonsterPathGrid` 的另一条移动分支**：
-
-- 怪物原型用 `MonsterType` 区分（`Ground = 0` / `Flying = 1`）。`EnemyInstance.MonsterType` 决定伤害走哪条路径。
-- 飞行移动由 `MonsterPathFollower.InitializeFlying(target, fallbackTarget, speed, height, core)` 开启；`IsFlying` 为真时 `TargetPosition` 直接取目标 Y + `flightHeight`，**不做网格寻路、不做地面投影**。
-- 出怪口由 `EnemySpawnPoint` 的两个字段控制：`flyingEntrance`（只产飞行怪，且自身会在运行时被抬到空中）与 `entranceAltitude`（世界 Y，默认 12）。生成时另有 `flyingSpawnSpread` 做水平随机散布。
-- 相关编辑器入口在 `FlyingSpawnPointAuthoring`：`CreateFlyingPrefab`（生成 `Assets/Resources/FlyingMonster.prefab`）、`AddFlyingSpawnPoint`（在 `MapForgeWorld` 下创建名为 `Enemy Spawn Flying` 的空中出怪口）、`CreateAssets`（两者 + 存场景，可批处理）。
-- 空中出怪口的**名字固定为 `Enemy Spawn Flying`**，`AddFlyingSpawnPoint` 靠它判重（已存在就跳过）。改名会造出第二个出怪口。
-
-改飞行怪物时容易踩的两个坑：
-
-1. **不要给飞行怪加 `GroundEnemyCombat`。** 近战追击依赖网格可达性，飞行怪应在战斗中缺席（`FlyingSpawnPointTests.FlyingEntranceSpawnsAirborneMonsters` 会断言 `GroundEnemyCombat == null`）。
-2. **不要给飞行怪写死 Prefab 引用。** `EnemySpawnPoint` 在 `enemyPrefab` 为空时用 `Resources.Load<GameObject>("FlyingMonster")` 兜底，所以预制体必须待在 `Assets/Resources/` 下。移动或改名要同步 `FlyingMonsterResourcePath`。
-
-覆盖这两点的编辑期测试：`Assets/Editor/FlyingSpawnPointTests.cs`、`Assets/Editor/GroundEnemyCombatTests.cs`（真机跑法见 [references/unity-editor.md](references/unity-editor.md)）。
-
-### 飓风无人机 = 第二种飞行怪物（2026-10-30 新增）
-
-无人机（`Assets/Models/HurricaneDrone/HurricaneDrone.fbx`，美术交付说明在 `Assets/Editor/HURRICANE_DRONE_HANDOFF.md`）现在既是表现预制体，也是一套**完整的飞行怪物**：
-
-- 表现件 `Assets/Prefabs/HurricaneDrone.prefab`（`HurricaneDroneUnit` 只管动画）；飞行怪物 `Assets/Resources/HurricaneDroneEnemy.prefab` = 表现件 + `EnemyHealth`(260) + `MonsterPathFollower`(flying, 速度 3.4, 高度 10) + `HurricaneDroneEnemy`。两者都由 `HurricaneDroneAuthoring.CreateAll` 重建，**手改预制体会被覆盖**。
-- `Assets/Scripts/TowerDefense/HurricaneDroneEnemy.cs` 是玩法层：按位移/偏航切 `FlyForward`/`BankTurn`/`Hover`（攻击态不抢），索敌后悬停播 `HD_Attack`，`OnGunFire` 动画事件逐发结算（陷阱 `TrapInstance.TakeDamage`、玩家 `PlayerHealth.TakeDamage`），不造弹丸、不套 `MissileAimSolver`。位移仍只有 `InitializeFlying` 一条分支。
-- **悬停开火必须 `follower.enabled = false`**：`CombatMovementPaused` 只在 `followingCombatPath` 时生效，对飞行分支无效；而 follower 的 Update 会朝航点转体，与开火朝向互相抢。
-- 出怪口由 `Assets/Editor/HurricaneDroneSpawnAuthoring.cs` 幂等维护（场景对象 `Enemy Spawn Flying Drone`，挂在 `MapForgeWorld` 下）。**坑**：`ApplyModifiedProperties` 会触发 `EnemySpawnPoint.OnValidate → EnsureWaveSpawnData`，用当时的 `enemiesPerWave`（默认 10）补默认逐波条目，所以逐波设置要在基础字段之后用第二遍 `SerializedObject` 重写。
-- 校验入口：`HurricaneDroneAuthoring.ProbeEnemyPrefabBatch`（`HURRICANE_DRONE_ENEMY_PASS`）、`HurricaneDroneSpawnAuthoring.ValidateBatch`（`HURRICANE_DRONE_SPAWN_PASS`）。当前主场景里没有旧的 `Enemy Spawn Flying`，空中出怪口只有无人机这一个。
-
-### 陷阱菜单锁定玩家视角（2026-09 新增）
-
-打开陷阱选择菜单时玩家视角必须冻结（不能转视角、不能误射），这条靠**一处状态 + 两处尊重**实现：
-
-- 唯一判据是 `TrapSelectionMenu.CursorOwned`（静态属性，等价于「菜单开着 **或** 菜单刚在本帧关闭」）。
-- `FirstPersonController.UpdateCursor()` 与 `FPSPackagePlayerMotion.UpdateCursor()` 都要在开头判断 `TrapSelectionMenu.CursorOwned` 并**直接返回**，不再抢回鼠标锁。有**两份** `UpdateCursor`（两个控制器副本），改一份要改两份。
-- `TrapSelectionMenu` 自己开菜单时记下 `previousLock` / `previousVisible`，关闭时还原。
-
-### 瞄准陷阱时显示陷阱血条（2026-09 新增）
-
-准星对准某个已放置的陷阱时，屏幕会叠一条血条（陷阱名 + 当前/最大血量 + 血量条）。实现集中在 `Assets/Scripts/TowerDefense/TrapHealthBarUI.cs`：
-
-- 血量数据源是 `TrapInstance.CurrentHealth` / `MaxHealth`（和 `GroundEnemyCombat` 打陷阱用的是同一个字段），血条不自己存血量。
-- 选靶有两条路：先用 `Physics.Raycast` 从准星打出去（`FirstPersonController` 的射击也用同一套射线），命中解得 `TrapInstance` 就直接用；打空了就用 `TrapHealthBarUI.FindTrapNearRay` 在 `TrapInstance.ActiveTraps` 里挑离射线最近的（阈值 `AimConeRadius = 0.35`），因为生成的炮塔模型**没有 Collider**，只靠射线检测不到。障碍物会把射线距离截断，被挡住的陷阱不会显示。
-- 组件用 `[RuntimeInitializeOnLoadMethod(AfterSceneLoad)]` 自建 HUD 对象（和 `WaveStatusUI`、`TrapSelectionMenu` 同一模式），用 IMGUI 画在陷阱世界坐标上方，所以**不需要**改场景、预制体或 Canvas。
-- 面板在 `TrapSelectionMenu.CursorOwned` 为真时隐藏（菜单开着不选靶）。`lingerAfterAimLost` 控制视线移开后的粘滞时间，防止准星抖动闪烁。
-- 回归测试：`Assets/Editor/TrapHealthBarUITests.cs`（选靶、身后/被遮挡过滤、低血比例），跑法 `-runTests -testPlatform EditMode -testFilter TrapHealthBarUITests`。注意本工程 `Assets/Editor` 的测试类都用 `#if UNITY_INCLUDE_TESTS` 包住，直接 `-executeMethod` 不会执行。
-
-### 双联导弹发射器（对空陷阱）（2026-09 新增）
-
-这是第一个**主动对空**的陷阱，四个脚本各管一段，别把它们合并或绕过：
-
-| 文件 | 管什么 |
+| 当前任务 | 参考页与边界 |
 | --- | --- |
-| `Assets/Scripts/TowerDefense/MissileLauncherTurret.cs` | 两轴旋转 + 选靶（yaw 不限位，pitch 夹在 `MinPitchDegrees = 0` / `MaxPitchDegrees = 75`） |
-| `Assets/Scripts/TowerDefense/MissileLauncherWeapon.cs` | 瞄准判定、齐射、装填 |
-| `Assets/Scripts/TowerDefense/MissileProjectile.cs` | 弹道飞行、近炸/接触/超程引爆、溅射结算（`MissileGuidanceMode`：`ContinuousLeadRefine` 默认，`FrozenLeadShot` 冻结发射瞬间的拦截点） |
-| `Assets/Scripts/TowerDefense/MissileAimSolver.cs` | **唯一的**拦截点预测与速度估计（`MissileVelocityTracker`） |
-
-要点：
-
-- **瞄准的是拦截点，不是怪物当前位置。** 炮塔与导弹都调 `MissileAimSolver.TrySolveIntercept`，所以两边算出的落点必然一致；要改预测逻辑只改这个文件。怪物侧的 `MonsterPathFollower` 不暴露速度，速度估计走 `MissileVelocityTracker`，不要另写一套差分。
-- **选靶由三个字段决定**：`targetFilter`（默认 `AirOnly`）、`targetPriority`（默认 `ClosestToTurret`）、`tieBreakDistanceEpsilon`。空中判定统一用 `MissileLauncherTurret.IsAirTarget`（按 `EnemyInstance.MonsterType == Flying`），和空中出怪口是同一套判据。默认只打飞行怪 → 这个陷阱不会因为地面怪路过而开火。
-- **仰角超限时退化瞄本体，而不是卡死**：迎面高速目标会把拦截点顶到 75° 以上，此时 `TryGetInterceptPoint` 退回瞄敌人当前位置并把 `IsUsingLead` 置 false；若连本体都在限位之上，炮塔就只继续转、**绝不在被夹住的姿态下开火**。改发射条件时别把这个分支砍掉，回归用例是 `LeadFallbackKeepsFiringWhenElevationExceedsPitchLimit`。
-- **导弹不依赖 Collider 结算伤害**：命中判定与溅射在 `MissileProjectile` 里算（用例 `ProjectileAppliesDamageWithoutACollider`）。因此生成的陷阱模型**不需要**加 Collider——这和「陷阱血条要绕射线检测」是同一个原因，不要为了统一而给陷阱模型补物理体。
-- **预制体由编辑器脚本生成，别手搓**：`MissileLauncherTurretAuthoring.CreateLauncherPrefab`（菜单 `Tools/塔防/生成导弹发射器预制体`）从 `Assets/Models/Trap_Base_Disc_Dual_Launcher_Loaded.fbx` 搭 `Yaw Pivot` → `Pitch Pivot` → 炮管层级并存成 `Assets/Prefabs/DualMissileLauncher.prefab`，最后把 `Assets/Resources/DualMissileLauncherLoaded.asset` 与 `Assets/TrapDefinitions/DualMissileLauncherLoaded.asset` 的 `prefab` 字段指过去。批处理入口是 `MissileLauncherTurretAuthoring.CreateLauncherPrefabBatch`。改模型路径或预制体路径要同时改这两个 `const string`。
-- **尾焰（发射特效）**：`Assets/Models/DualMissileExhaust/DualMissileExhaust.fbx`（Blender 源在桌面「陷阱素材文件夹\DualMissileExhaust」）不要手工往预制体里拖。`MissileLauncherTurretAuthoring.CreateLauncherPrefab` 会自动把两组尾焰挂到 `Pitch Pivot` 下：每组只保留自己那根管子的火焰网格（按 `_01` / `_02` 后缀裁剪，重复名带空格序号也认），喷嘴位置用 `Missile_01/02` 的包围盒尾部反推，朝向从模型自身的 `HotGasCore → OuterFlame` 轴算出，所以 Blender 改轴不用改代码。驱动在 `Assets/Scripts/TowerDefense/MissileExhaustFx.cs`：只有 `MissileLauncherWeapon.State == Firing` 时全强度，`lingerAfterLaunchSeconds` 后淡出，`idleScale = 0` 表示平时完全不显示（`Awake` 会先压到静止态，所以预制体里看到火焰、运行时进场不喷是正常的）。FBX 自带的材质是内置 `Standard`，URP 下是品红，生成器会在 `Assets/Models/DualMissileExhaust/Materials/` 生成并指派 4 个 URP Unlit 加法混合材质，别手改回 FBX 材质。
-- 尾焰的看图入口：`MissileExhaustPreview.RenderPreview`（菜单 `Tools/塔防/预览导弹发射器尾焰`），输出到 `%TEMP%\alpha-striker-unity\exhaust-preview`，渲染静止 / 全强度 / 半强度三张；确认挂载数值用 `MissileLauncherTurretAuthoring.ProbeExhaustMount`。回归用例 `Assets/Editor/MissileExhaustFxTests.cs`（两组尾焰各对一根导轨 + 只在开火时可见），跑法 `-runTests -testPlatform EditMode -testFilter MissileExhaustFxTests`。- 需要看图时跑 `MissileLauncherTurretPreview.RenderPreview`（菜单 `Tools/塔防/预览导弹发射器旋转`），它按 6 组 yaw/pitch 渲染预制体并把 PNG 写到 `%TEMP%\alpha-striker-unity\launcher-preview`（它读的是 `DualMissileLauncher.prefab`，找不到会报「请先生成」）。别靠场景视图肉眼判断；要留档的图按规范复制到桌面「陷阱素材文件夹」的对应子目录。
-- **玩家武器伤害按武器区分**：玩家侧命中结算在 `Assets/Scripts/FPS/FirstPersonController.cs` 的 `FPSHitscanShooter`（hitscan 桥，KINEMATION 只管射速/弹药/动画）。伤害公式是 `基础伤害 x 距离衰减 x 目标种类缩放 x 弱点倍率`，全部在纯结构体 `WeaponDamageStats`（`Assets/Scripts/FPS/WeaponDamageProfile.cs`）里算，所以不依赖 KINEMATION 预制体即可单测（用例 `Assets/Editor/WeaponDamageProfileTests.cs`，跑法 `-runTests -testPlatform EditMode -testFilter WeaponDamageProfileTests`）。武器分类两条路径：预制体上有 `WeaponDamageProfile` 组件就用手填值（菜单 `Tools/塔防/给武器预制体写入伤害档案` 会把随包武器的默认档案写进 `Assets/KINEMATION/FPSAnimationPack/Prefabs/*.prefab`）；没有组件就按**预制体名字**走 `WeaponDamageStats.DefaultsFor`，先查 `TryGetKnownClass` 的精确表（AK / ASVal / G3 / MX16A4、MPS5 / PDW90、Drake-12 / Striker-V / KXG12、Kar98k / L96X / SVD / Mk14EBR、M1911 / Kolibri / X18 / Viper-357、MGX5、RPG / DGL50），再退回子串启发式。`FPSPlayer_Settings_Utlimate.asset` 里那 20 把武器全部有精确分类——**新增武器要同步补 `TryGetKnownClass`，否则会掉进 Unknown 用回退伤害（默认 25，衰减曲线取 Unknown 档）**。改公式后同步改 `AmmoDisplayUI` 的 HUD 文案（它显示基础伤害与弱点倍率）。
-- 生成的预制体落在 `Assets/Prefabs/DualMissileLauncher.prefab`（**不是** `Assets/Resources/`）：它由 `TrapDefinition` 资产直接引用，不需要 `Resources.Load` 兜底；飞行怪物那套才必须待在 `Resources/`。新增陷阱按各自的引用方式选目录，别照抄。
-- **逐管装填表现（2026-10-30）**：某根管子发射后该位置**空管**，直到装填完毕才重新出现导弹。实现在 `Assets/Scripts/TowerDefense/MissileLauncherReloadVisual.cs`：按管维护 `tubeLoaded[]`，空管时只关该管导弹的 `Renderer.enabled`，**不要** `SetActive(false)`——`Missile_01/02` 同时是发射口和尾焰喷嘴基准，节点停用会丢位置。`MissileLauncherWeapon` 在 `Awake` 里 `ResolveReloadVisual()`（缺组件就自建，旧预制体/场景实例也能生效），发射时按 `NextTubeIndex()` 清空对应管，`reloadRemaining` 归零那一帧 `FinishReload()` 恢复两管；管序固定 `Missile_01` = 0、`Missile_02` = 1，轮换仍由 `missilesLaunchedInSalvo % 2` 决定。生成器 `WireWeapon` 把组件、`reloadVisual` 与 `tubeVisuals` 写进预制体，重生成后复查这两个引用。看图：`MissileLauncherTurretPreview.RenderReloadStatePreview`（菜单 `Tools/塔防/预览导弹装填状态`，批处理需 `-WithGraphics`）渲染两管满装 / 左管空 / 两管空三张 PNG。
-- 回归测试：`Assets/Editor/MissileLauncherTurretTests.cs`（两轴限位、预制体接线的旋转台、原始 FBX 能自建 rig、空中过滤）与 `Assets/Editor/MissileLauncherWeaponTests.cs`（选靶优先级、拦截点领先、齐射两发、装填阻塞、逐管空管与装填恢复、超程引爆、无 Collider 结算）。两者都在 `#if UNITY_INCLUDE_TESTS` 里，跑法 `-runTests -testPlatform EditMode`（可加 `-testFilter MissileLauncher`），或用 `Assets/Editor/RunEnemyDamageResistanceTests.ps1 -Fixtures MissileLauncherWeaponTests,MissileLauncherTurretTests`。
-
-### 贝蒂7号跳雷（地面陷阱，2026-10 改为逐槽装填）
-
-`Assets/Scripts/TowerDefense/Betty7JumpMineTrap.cs` 现在是**四个槽位各一套状态机**，不是整机一个状态机：
-
-- 装填时间 `cooldownSeconds` 只属于刚起爆的那一颗；其余槽位保持自己的 `Ready`/冷却，`GetMineReloadRemaining(i)` 读的是单个槽位。
-- 开火是"方向择雷"：取 `detectRadius` 内最近的地面怪 → 在已装填槽位里选方位最贴合的那颗（`SelectMineForTarget`，`Vector2.Dot` 最大、同方位再比水平距离）。改方向规则只改这一个函数。
-- **同一时间只允许一颗起爆**（`IsAnyMineEngaged` 门控）：这是"启动最靠近的一个可使用的跳雷"的落点，四角跳雷不再齐爆。想恢复齐爆就得重写状态机，别只改一个布尔。
-- 起爆中心是**被选中那颗跳雷自己的角位**（`MineBlastCenter`），不是陷阱中心；所以"侦测圈内但爆破圈外"的距离判据要按角位算，写回归用例时别再用陷阱中心。
-- `State` 变成所有槽位的聚合态（最活跃优先），`DetonationCount` 是总数，另有 `LastLaunchedMineIndex` / `LastLaunchDirection` / `GetMineState` / `IsMineReady` / `GetMineDetonationCount` 供测试与工具使用。
-- 序列化字段名一个都没改，`Assets/Prefabs/Betty7.prefab` 无需重新生成；改字段名会丢掉预制体里已保存的数值。
-- 回归用例在 `Tests~\Editor\Betty7JumpMineSlotTests.cs`（12 例，含真实预制体四槽接线），跑法：复制到 `Assets/Editor` 后 `Assets/Editor/RunEnemyDamageResistanceTests.ps1 -Fixtures Betty7JumpMineSlotTests`，跑完删除源码与 `.meta`。夹具的怪物必须给高血量：`EnemyHealth` 死亡时调用 `Destroy`，编辑期会报错并留下待销毁对象污染后续 TearDown。
-
-### MapForge「Send to Unity」实时同步（2026-09 新增）
-
-除了一次性导入，现在还多了一条**增量同步**通道：MapForge 里点「Send to Unity」，Unity 编辑器自己把改动应用到**当前打开的场景**上。
-
-- 协议两边各一份常量：MapForge 的 `C:\MapForge\MapForgeSync.cs`（`MapForgeSync.Protocol`，另有浏览器侧 `C:\MapForge\wwwroot\unity-sync.js`、配置 `C:\MapForge\mapforge-sync.json`）与 Unity 的 `Assets/Editor/MapForgeLiveSync.cs`（`MapForgeLiveSync.Protocol`）。**改协议要两边一起改**，版本号是握手的依据。
-- 传输靠文件夹而不是网络：MapForge 写 `<工程>/MapForgeSync/mail/pending.json`，Unity 侧每 2 秒轮询一次（`PollSeconds`，心跳 `HeartbeatSeconds = 15`），应用后把结果写回同目录（`revision.txt`、`status.json`、`applied.txt` / `applied.json`），浏览器据此汇报成败。
-- 增量修订只带「这次真的改过的对象」，Unity 就地把它们重写：新增的建、改过的原地改写、删掉的移除。只有 MapForge 要求时才整图重建（首次发送、地图改名、`gameplay`/场景级映射变了、或改动量过大）；重建也是**原地重建**场景资产，所以 scene 的路径、GUID 以及地图之外的手工对象都保住。整图修订的 world 文件先落到 `Assets/MapForgeSync/sync-world.json` 再交给导入器。
-- **只动 `MapForgeWorld` 生成的层级**，这就是它和 `MapForgeWorldImporter.Import` 的关键区别：手工加的空中出怪口等对象**不会**像全量导入那样被删掉。保留机制在 `Assets/Editor/MapForgeWorldImporter.Authored.cs`（`MapForgeWorldImporter` 现在是 **partial**，两个文件都要在），它把上次生成过的直接子对象名记在 **EditorPrefs**（机器本地、不进版本库），据此把工程自制的对象搬出去再搬回来。
-- 手动/批处理入口：菜单 `MapForge/应用待同步版本 (Apply pending revision)` = `MapForgeLiveSync.ApplyPendingFromMenu`，菜单 `MapForge/下次发送时完整重建 (Request full rebuild)` = `MapForgeLiveSync.RequestFullRebuild`；批处理直接调 `MapForgeLiveSync.ApplyPending()`（public，无待同步修订时返回 null，不算失败）。
-- 两侧各自的测试：浏览器/服务端在 `C:\MapForge\tests\unity-sync.test.js`（`node --test`）；Unity 侧当前无独立自动化用例。先确认任何辅助 `.csproj` 覆盖了此次改动，再将其作为局部编译检查；它缺少导入器依赖时不能作为 Unity 编译结论。之后用正式 Unity 编译验证，并手动点一次「Send to Unity」检查 `status.json` 回执。
-- 新增按 `id` 关联的运行时组件也是这批改动的一部分：`Assets/Scripts/MapForgePathNode.cs`（`MapForgePathNode.All` / `Find(objectId)`，`role` / `waitTime` / `links`）与 `Assets/Scripts/MapForgeTrigger.cs`（`MapForgeTrigger.Fired` 事件 + `FindTarget(objectId)`，支持 `spawn/damage/goal/message/enable/disable`）。导入时它们由 `MapForgeSceneOrganization` 从 JSON 的 `unity.pathNode` / `unity.trigger` 段建立并做合法性校验；改 JSON 键名要同步这两处。
-
-## 路由
-
-- 要在 Unity 里跑编辑器脚本、批处理导入或校验，读 [references/unity-editor.md](references/unity-editor.md)，并优先用 `scripts/run-unity-method.ps1`，因为 Unity 的退出码**不能**用来判断成败。
-- 要改地图、改 MapForge 导出格式、或调整格子/路径联动，读 [references/mapforge-pipeline.md](references/mapforge-pipeline.md)。
-- 要改陷阱升级规则、付费预约、换局生命周期或有效属性，读 [references/trap-upgrades.md](references/trap-upgrades.md)；该文档区分已验证能力与尚未接入的步骤。
-- 要运行 Unity 编辑期测试，读 [references/unity-editor.md](references/unity-editor.md) 中的测试隔离流程；持久测试放在 `Tests~/`，运行器临时暂存到 `Assets/` 的测试源码应在后续 Unity 编译前清理。
-- 两边都要动的地图改动，有两条路：日常改动走**实时同步**（MapForge 点「Send to Unity」→ 编辑器轮询应用），整图重排或换了地图名走**导入**（导出 JSON → MapForgeWorldImporter.ImportDefault → Validate Trap Grids）。两条路都会写场景文件，动手前先提交。
-- 改空中出怪口、飞行怪物移动、或陷阱菜单的视角/准星锁定，读上面的[近期改动的约定](#近期改动的约定2026-09-新增)；这几处都各有一份以上的复制实现，别只改一处。
-- 改双联导弹发射器（炮塔两轴、拦截点预测、齐射/装填、对空过滤、预制体生成），读上面的[双联导弹发射器](#双联导弹发射器对空陷阱2026-09-新增)。
-- 改「Send to Unity」实时同步、MapForgeSync/ 目录或 MapForgeWorldImporter.Authored.cs 的手工对象保留，读上面的[MapForge「Send to Unity」实时同步](#mapforgesend-to-unity实时同步2026-09-新增)。
-- 改陷阱血条显示（准星选靶、遮挡判定、HUD 样式），读上面的[瞄准陷阱时显示陷阱血条](#瞄准陷阱时显示陷阱血条2026-09-新增)。
-- 改贝蒂7号跳雷（方向择雷、逐槽装填、起爆中心、预制体四槽接线），读上面的[贝蒂7号跳雷](#贝蒂7号跳雷地面陷阱2026-10-改为逐槽装填)。
+| Unity 编译、生成器、测试、渲染 | [unity-editor.md](references/unity-editor.md)：精确版本、日志判定、测试 XML 与收尾隔离 |
+| 普通地图导入、实时同步、格式或网格 | [mapforge-pipeline.md](references/mapforge-pipeline.md)：协议、坐标、手工对象保留 |
+| 双层设施、楼梯/货运坡道、地图扩容 | [facility-authoring.md](references/facility-authoring.md)：专用生成器、源图、几何通行与预览 |
+| 飞行怪、无人机、自爆机器人、菜单/HUD、瞄准镜、导弹、贝蒂跳雷 | [gameplay.md](references/gameplay.md)：按对应小节读取现有实现 |
+| 陷阱升级、分支、付费预约、换局生命周期 | [trap-upgrades.md](references/trap-upgrades.md)：已接入能力与状态保留 |
 
 ## 已知会造成误判的情况
 

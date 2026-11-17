@@ -2,6 +2,8 @@
 
 ## 数据流
 
+以下普通管线不适用于带专用生成器的 geometry-only 双层设施；该地图先读 [facility-authoring.md](facility-authoring.md)。变更前确认实际源文件和目标场景，不默认所有地图都来自 `Assets/mapforge-world.json`。
+
 ```
 浏览器编辑器 C:\MapForge (ASP.NET + Three.js)
         │
@@ -88,7 +90,7 @@ FlyingSpawnPointAuthoring.CreateFlyingPrefab   # 生成 Assets/Resources/FlyingM
 FlyingSpawnPointAuthoring.AddFlyingSpawnPoint  # 在 MapForgeWorld 下建 "Enemy Spawn Flying"
 ```
 
-由此有个必须记住的顺序问题：**MapForge 导入会覆盖整个场景，连带删掉上一次手工加的 `Enemy Spawn Flying`。** 每次重导地图之后都要再跑一遍 `FlyingSpawnPointAuthoring.CreateAssets`（或菜单 `Tools/塔防/在场景中添加飞行出怪口`），并在 `git diff` 里确认它回来了。判重靠对象名 `Enemy Spawn Flying`，别改这个名字。
+**全量导入会覆盖整个场景及手工添加的出怪口。** 导入前记录该地图实际需要的手工对象，之后调用对应 Authoring 恢复并核对 diff。旧飞行怪入口用 `FlyingSpawnPointAuthoring`，无人机入口用 `HurricaneDroneSpawnAuthoring`；不要每次都恢复已被替换的旧入口，更不能给 geometry-only 场景补怪物。判重名称和逐波写入顺序见 [gameplay.md](gameplay.md)。
 
 要长期保留飞行出怪口，要么每次导入后重建，要么把这一步并进导入流程（目前没有自动跑）。
 `openCells` 是一维布尔数组，长度 `columns * rows`，行主序。导入时它被逐格拷进 `MonsterPathGrid`；`segments` 则是把起点/终点 `TryWorldToCell` 后按 Bresenham 走线设为开格。
@@ -125,11 +127,11 @@ go.transform.localRotation = Quaternion.AngleAxis(r.x, Vector3.right)
 
 **`MapForgeWorldImporter.Import` 会覆盖 `Assets/Scenes/<name>.unity`**，不合并、不给旧版留位置。所以：
 
-1. 导入前先 `git stash` 或提交场景文件。
-2. 导入后用 `git diff Assets/Scenes/<name>.unity` 看变化，不对就 `git checkout --` 回滚。
+1. 导入前保存相关源、目标场景和 `.meta` 的备份；已有合适提交也可作恢复点。存在用户未提交修改时保留它们，不自动 stash 或提交整个工作区。
+2. 导入后先看目标文件的 diff 摘要，再定位相关对象局部核对。需要恢复时只撤回本次改动，不能用整文件 checkout 覆盖用户已有修改。
 3. 别指望 Unity 的 Undo 能救——导入是写文件，不是编辑器操作。
 
-自动导入有节流：`[InitializeOnLoad]` 在域重载后跑 `AutoImportIfNeeded`，但只在「场景文件不存在」或「JSON 内容 hash 变了」时才重导，hash 存在 `EditorPrefs` 里（键含 `Application.dataPath`，是机器本地的）。**改了 JSON 要真的改动内容**才会触发；手改后又改回原样不会重导。要强制重导就删掉 `Assets/Scenes/<name>.unity` 再跑一次。
+自动导入有节流：`[InitializeOnLoad]` 在域重载后跑 `AutoImportIfNeeded`，但只在「场景文件不存在」或「JSON 内容 hash 变了」时才重导，hash 存在 `EditorPrefs` 里（键含 `Application.dataPath`，是机器本地的）。需要强制重建时，在备份后调用相应显式导入/生成方法；不要靠删除 scene 或 `.meta` 触发，避免丢失场景身份和引用。
 
 `MapForge/Import mapforge-world.json` 会弹文件面板，**批处理下必挂**，脚本化用 `ImportDefault`（或 `Import(jsonPath)`）。
 
@@ -139,7 +141,7 @@ go.transform.localRotation = Quaternion.AngleAxis(r.x, Vector3.right)
 | --- | --- | --- |
 | 浏览器里的地图编辑 | Ctrl+Z / Ctrl+Y（上限 80 步，见 `scene-model.js` 的 `History`） | **关页面即丢** |
 | `Assets/mapforge-world.json` | git（文件被跟踪） | 永久 |
-| 实时同步改过的场景对象 | 同步只就地改写变过的对象；出错时 `git checkout -- Assets/Scenes/<name>.unity` | 永久（场景文件） |
+| 实时同步改过的场景对象 | 根据本次 diff 和改前备份恢复相关对象，保留其他修改 | 取决于备份或提交 |
 | 导入后的 `.unity` 场景 | git（导入会覆盖，正是靠 git 兜底） | 永久 |
 | Blender 模型 | 改前把 `.blend` 备份到桌面「陷阱素材文件夹」的陷阱子目录 | 手动 |
 
@@ -162,7 +164,7 @@ go.transform.localRotation = Quaternion.AngleAxis(r.x, Vector3.right)
 2. MapForge 里改，导出 JSON，覆盖 `Assets/mapforge-world.json`。
 3. 用 [unity-editor.md](unity-editor.md) 里的脚本跑 `MapForgeWorldImporter.ImportDefault`，**按日志判定成败**（退出码不可信）。
 4. 跑 `Tools/Tower Defense/Validate Trap Grids`（`TrapPlacementGridEditor.ValidateTrapGrids`），看输出的数值报告而不是靠肉眼。
-5. 重跑 `FlyingSpawnPointAuthoring.CreateAssets` 把空中出怪口加回来（导入会覆盖掉它）。
+5. 按改前清单恢复当前地图需要的手工对象，验证出怪口类型和逐波配置；不固定恢复旧飞行怪入口。
 6. `git diff` 复查场景与 JSON。
 
 日常小幅改动不必走 2–5 步，直接点 MapForge 的「Send to Unity」增量同步（见上文）：它只改写变过的对象，也不会删掉空中出怪口。只有整图重排、换地图名或同步要求完整重建时才回到上面的全量导入流程。

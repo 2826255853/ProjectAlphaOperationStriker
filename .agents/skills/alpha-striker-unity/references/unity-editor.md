@@ -2,21 +2,21 @@
 
 ## 编辑器路径
 
-当前文档基准为 Unity `6000.6.9f1`（2026-11-15 更新），本机已核实路径为 `C:\Program Files\Unity 6000.6.9f1\Editor\Unity.exe`。本次仅同步文档，不修改项目版本配置或代替升级验收；下列命令仍动态读取项目配置。
+编辑器路径从项目版本配置动态解析；历史验证记录中的版本号不作为当前运行依据。
 
 版本策略见 [SKILL.md 的 Unity 编辑器版本](../SKILL.md#unity-编辑器版本)：本项目始终使用 `ProjectSettings/ProjectVersion.txt` 的 `m_EditorVersion`，更换项目版本属于独立迁移，不因运行脚本而自动升级。
 
 ```
 C:\Program Files\Unity <m_EditorVersion>\Editor\Unity.exe
-C:\Program Files\Unity\Hub\Editor\Unity <m_EditorVersion>\Editor\Unity.exe
+C:\Program Files\Unity\Hub\Editor\<m_EditorVersion>\Editor\Unity.exe
 ```
 
-版本号和安装目录不要写死。`scripts/run-unity-method.ps1` 先按项目记录版本在常见直接安装与 Hub 路径查找，找不到时会扫描并选择另一已安装版本、报告实际路径；只有预发布版时会明确告警。此回退不等于项目版本验证：如果报告版本与 `ProjectVersion.txt` 不一致，停止，不把结果当作本项目通过。自定义位置可用 `-UnityPath` 指向已核实的编辑器。不要读取 `Library/` 或历史日志推断版本。
+版本号和安装目录不要写死。`scripts/run-unity-method.ps1` 找不到精确版本时会回退到另一安装，这不符合本工程的版本约束。调用前解析 `ProjectVersion.txt`、核实对应编辑器，再用 `-UnityPath` 显式传入；缺失时停止，不能等回退版本已经运行才核对。不要读取 `Library/` 或历史日志推断版本。
 
 ## 批处理模板
 
 ```powershell
-& "C:\Unity Project\ProjectAlphaOperationStriker\.agents\skills\alpha-striker-unity\scripts\run-unity-method.ps1" MapForgeWorldImporter.ImportDefault
+& "C:\Unity Project\ProjectAlphaOperationStriker\.agents\skills\alpha-striker-unity\scripts\run-unity-method.ps1" MapForgeWorldImporter.ImportDefault -UnityPath $verifiedUnityPath
 ```
 
 它做的事等价于：
@@ -28,34 +28,19 @@ Unity.exe -batchmode -nographics -quit `
   -logFile "<temp>\alpha-striker-unity\<时间戳>-<方法名>.log"
 ```
 
-- `-quit` 必须有，否则跑完方法也不会退出。
+- executeMethod 批处理带 -quit；下文 -runTests 不带它，两种命令不能直接混用。
 - `-nographics` 用于纯数据操作（导入、生成、校验），明显更快；只有需要渲染/截图时才去掉（脚本用 `-WithGraphics`）。
 - `-executeMethod` 只能调用**静态**方法，写成 `类型名.方法名`。**`private static` 也可以**（已实测：`TrapPlacementGridEditor.ValidateTrapGrids` 是 private，成功执行）。类型必须在已编译的程序集里，编译器不认识的类型名会直接中止。
 - 日志默认写到 `%TEMP%\alpha-striker-unity\`，不污染仓库（根目录 `*.log` 虽然被 gitignore，但 AGENTS.md 也禁止读它）。脚本还会在旁边写 `<日志>.stdout.txt` / `.stderr.txt` 两个副文件——**Unity 会把 `Aborting batchmode due to failure:` 这类信息打到 stdout 而不是日志文件**，少了这两路就会漏判。
 - 一次完整运行的日志大约 28–50 KB（含启动、包列表、内存统计）。整体耗时 15–20 秒左右。
 
-## 退出码不可信（实测数据）
+## 方法执行的通过条件
 
-仓库根目录遗留的日志正好构成一组对照：
+不能只看进程退出码、日志大小或一个成功字符串。检查本轮日志及 stdout/stderr：正常结束标记 Exiting batchmode successfully now!、无 error CS / 方法异常 / 启动失败，并确认目标方法的专用 PASS 或实际产物符合预期。有结束标记但产物缺失时不能报告任务完成。
 
-| 日志 | 大小 | 有 `Exiting batchmode successfully now!` | 进程退出码 |
-| --- | --- | --- | --- |
-| `unity_ladder_generate4.log` | 34.1 KB | 有 | 0 |
-| `unity_place_ladders.log` | 35.7 KB | 有 | 0 |
-| `mapforge_import_three_route.log` | 31.4 KB | 有 | 0 |
-| `unity_ladder_generate2.log` | 56.5 KB | **无**（方法抛异常） | 1 |
-| `unity_ladder_generate3.log` | 28.9 KB | **无**（方法抛异常） | 1 |
-| `unity_ladder_generate.log` | 1.2 KB | **无**（启动即中止） | 1 |
-| `unity_import.log` | 1.0 KB | **无**（启动即中止） | 1 |
+scripts/run-unity-method.ps1 检查基础日志条件：0 = 日志确认成功，1 = 确认失败，2 = 环境问题；调用者仍需核对目标方法的产物或专用断言。缺少未入库的 KINEMATION/TextMesh Pro 可解释编译失败，但不能算作通过。方法抛异常时可能已有部分资产写入，先检查本次 diff 再决定恢复范围。
 
-结论：**不要用 `$LASTEXITCODE` / `ExitCode` 判断成败。** 判定顺序：
-
-1. 日志里有 `Exiting batchmode successfully now!` → 方法确实跑完了。
-2. 日志只有 1.0–1.2 KB 且结尾是 `Application will terminate with return code 1` → Unity 在启动或脚本编译阶段就中止，`-executeMethod` **根本没执行**，不要以为“改的东西生效了”。注意这时日志尺寸很小且**没有** `Exiting batchmode successfully now!`——反过来，只要那个标记出现了，日志是多大都算成功。
-3. 有 `error CS` → 编译错误。本工程 `Assets/KINEMATION`、`Assets/TextMesh Pro` 不在仓库里，缺这两个包的缺类型错误属于预期，其余 `error CS` 要当回事。
-4. 有 `Exception:` → 方法抛异常（上面 `unity_ladder_generate2/3.log` 就是 `MissingComponentException`，Unity 直接中止）。此时**可能已经有半途写入的资产**，要检查生成物再决定是否回滚。
-
-`scripts/run-unity-method.ps1` 已实现以上判定：0 = 日志确认成功，1 = 确认失败，2 = 环境问题。
+只读本次允许位置的日志，不翻根目录历史日志。陷阱/地图任务通过 -LogFile 指定桌面素材对应子目录；默认 %TEMP% 仅用于一般批处理。
 
 ## Library/ 单实例锁
 
@@ -137,6 +122,8 @@ Unity.exe -batchmode -nographics -projectPath "C:\Unity Project\ProjectAlphaOper
 ```
 
 判定要检查 XML 里的预期 fixture 和用例数、失败数、跳过数，以及日志中的 Unity 编译状态；不要只看进程退出码或成功退出标记。局部辅助 `.csproj` 的覆盖范围有限，见[更快的编译检查](#更快的编译检查不进-unity)。
+
+**-runTests 不加 -quit**：近期瞄准镜测试曾因提前退出而没有生成 XML。运行前删除或隔离该次目标位置的旧 XML，结束后核对新文件时间及预期用例实际执行；缺 XML 或零用例都不能报通过。通用 run-unity-method.ps1 面向 executeMethod，不用它拼接测试运行。
 
 ## 测试源码隔离与收尾
 

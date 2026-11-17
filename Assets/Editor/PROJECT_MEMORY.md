@@ -1,5 +1,33 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## Alpha Striker 技能维护（2026-11-18）
+
+- `.agents/skills/alpha-striker-unity/SKILL.md` 保留共同约束与任务路由；既有玩法细节移入 `references/gameplay.md`，新增 `references/facility-authoring.md` 汇总双层设施专用生成链、同源路线、真实胶囊/大怪几何通行和验收边界。
+- Unity 参考区分 executeMethod 与 runTests 的退出参数，要求本轮日志/产物及新 XML 证据；地图参考按当前配置恢复手工对象，避免固定恢复旧飞行怪、删场景触发导入或自动整文件回滚。本次为技能文档维护，不代表新一轮 Unity 或玩法验收。
+
+## 双层设施扩容与货运动线（2026-11-18）
+
+- 已实施 `DOUBLE_LAYER_FACILITY_EXPANSION_PLAN.md` 的建筑几何部分。主地板 72×96 m，中心 (0,-0.25,8)，边界 x=±36、z=-40…56，面积 6,912 m²（相对原主地板 +44%）；前立面 z=-29.5、二层 y=6.4 保留，后墙移到 z=55.5。外挑检修平台重新接到后墙，末端基础到 z=70，不计入主地板 96 m 进深。
+- 新货运链：一层三路 x=-24/0/24 → 宽汇合区 → 中央 12 m 净宽主坡（z0…32，y0→5.2）→ 18×18 m 分流平台 → 10 m 净宽支坡（x9…17 与镜像，y5.2→6.4）→ 两侧 18 m 转向平台 → x=±27 的二层长回廊 → 核心两侧入口。核心移到 (0,-18)，18×18 m 基座上表面改为与二层齐平。主坡前后各 2 m、支坡前后各 1 m 变坡，坡道、栏杆、支撑与洞口均在源 JSON 中维护。
+- 一层工位、货架和服务房重排，新增柱梁避开汇合区和通高洞口。两座原玩家楼梯的 170 个子对象保持不变；其源路径标记明确禁用、断链，不并入货运图。大怪代理长 12 m，地面出生中心由 z=-37 前移到 -33，以保证整只代理落在前场地板内。
+- 源 JSON 新增隐藏的 `route-cargo-*` 路径节点，位置为实际走面高度（不加 .3 m 标记偏移），3 个 `route-cargo-left/middle/right-start` 经 links 分出 6 条至 role=end 的路径。`DoubleLayerFacilityAuthoring.Cargo.cs` 从同一源图读取几何验证路线，不维护第二套坡高公式；场景生成仍过滤所有玩法映射。
+- 标出 10 块 `defense-reservation` 几何预留区，总计 432 m²：一层 4×48 m²、二层 4×48+2×24 m²。生产校验检查障碍、4.8 m 高空间及各角支撑。它们不是已启用的陷阱网格；尚未测得相对原图的运行时格数/陷阱容量增幅，不能把主地板 +44% 当成陷阱容量 +44%。
+- 项目记录版本 Unity `6000.6.9f1` 执行 `DoubleLayerFacilityAuthoring.BuildAndPreview` 成功。保存前与重载后均通过实际 FPS 胶囊的楼梯往返、屋面露天、主地板尺寸、10 块预留区和 6 条货运几何路线检查。8×12×4.2 m 代理另加 .6 m 净空，沿线 .5 m 步距、转角 5° 步距检查碰撞和足迹支撑；坡段接缝探针避开端面法线误判。路线 177.53…193.66 m，入口最长/最短差约 9.1%。这是几何扫掠，不是运行时 AI 寻路、动画或战斗验证。
+- 最终场景为 1,124 个源对象、1,108 个 Renderer、1,112 个 Collider；仍为 geometry-only，无怪物出怪、寻路网格、陷阱放置网格或战斗接入。未做人工 PlayMode、完整 Player 构建及旧图同口径路线增幅测量。专用验证属于生产 Authoring 入口，未在 Assets 留测试源码。
+- 源 `Assets/Editor/MapSources/double-layer-facility.json` 与 `C:\MapForge\wwwroot\examples\double-layer-facility.json` SHA256 一致。预览 `C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\01-overview.png` 至 `11-longitudinal-section.png`，总览、上下层、坡道、分流及剖面已目视检查。最终日志同目录 `expansion-final-build.log` 包含 `Exiting batchmode successfully now!`，无编译错误或方法异常。
+- 扩容前源、生成器、场景备份：`C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\expansion-backup\20261118-005843\`；每次生成场景另备份到 `backup\<时间戳>\`。一次性生成脚本 `expand-facility.py`、静态审阅和路线报告均在该桌面素材目录。正式重建继续直接读取源 JSON，不依赖一次性脚本。
+
+## 双层设施第一轮结构改造（2026-11-18）
+
+- 地图源 `Assets/Editor/MapSources/double-layer-facility.json` 与 `C:\MapForge\wwwroot\examples\double-layer-facility.json` 同步为工业检修中心灰盒（635 个源对象）。主区域仍 60×80 m、二层楼面 y=6.4；侧/后墙顶降到 y=7.6，前立面移到 z=-29.5，入口前约 10 m 变为卸货前场，二层保持露天。
+- 新增 36 根柱及主次梁；一层三条运输通道 x=-20/0/20，检修工位、备件货架与四间服务房沿通道外侧组织。后侧二层门接有支柱的露天检修平台；平台为本轮建筑空间，尚未接怪物玩法。
+- 两座楼梯井中心仍 x=±14.5、z=20…30，改为双跑折返：每跑 18 个踢面、单级 3.2/18 m，踏步深 .3 m、跑宽 2.2 m。下跑 x=中心-1.25 从 z21 向北升到 y3.2，中间平台 z26.4…29.4，上跑 x=中心+1.25 向南返回，z20…21 的出口平台顶 y6.4。JSON 中楼梯路径节点相应更新，生成器仍过滤所有玩法映射。
+- `DoubleLayerFacilityAuthoring` 生成两跑各自的不可见平滑碰撞面。`Build` 保存前先验几何与真实 FPS CharacterController 往返上下楼、平台转弯、三路地面通行及 3.8 m 净空；屋面检查同时检测 Collider 和 Renderer bounds。批处理一站入口 `BuildAndPreview`，新增 `05-workshop.png`、`06-ground-cutaway.png`（剖切只临时关闭 Renderer，不修改已保存场景）。
+- 修复旧核心圆盘的碰撞：Unity 圆柱默认 CapsuleCollider 在扁平非等比缩放后半径变成 9 m，穿楼板堵住一层中路。将 `core-platform`、`core-pedestal` 改为矩形设备基座，尺寸/位置保留，避免引入导入器全局变更。
+- 源文件备份：`C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\round1-backup\20261118-001821\`。场景重建前自动备份 scene、meta 与旧预览到同级 `backup\<时间戳>\`。
+- 验证完成：源数据静态检查通过（ID、父级、路径链接、正尺寸、500 个地面采样、6 个屋面样本）；项目记录版本 Unity `6000.6.9f1` 执行 `BuildAndPreview` 成功，保存前与重新载入后均通过 `FACILITY_STAIRS_PASS`、`FACILITY_GROUND_ROUTES_PASS` 和露天检查，635 个对象 / 622 个 Renderer / 626 个 Collider。最终日志 `C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\round1-final-build.log` 有 `Exiting batchmode successfully now!`，无编译错误和方法异常。
+- 六张预览生成完成，已目视检查总览、下层剖切、楼梯口与车间视角；源 JSON 与 MapForge 示例 SHA256 一致。未做人工 PlayMode 操作、完整 Player 构建或飞行怪战斗验证；本轮仍是 geometry-only 场景。生成材质库随场景保留，Unity 自动序列化 YAML 的空值尾空格不作手工格式化。
+
 ## 开发测试三段式出怪链（2026-11-16）
 
 - `Assets/Editor/DeveloperTestSpawnChainAuthoring.cs` 提供菜单 `Tools/塔防/开发测试/配置三段式出怪链` / `校验三段式出怪链`，批处理入口分别为 `DeveloperTestSpawnChainAuthoring.ApplyMainSceneBatch` / `ValidateMainSceneBatch`。

@@ -8,11 +8,16 @@ using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
 /// <summary>Geometry-only facility scene. Keep the original MapForge source for later gameplay authoring.</summary>
-public static class DoubleLayerFacilityAuthoring
+public static partial class DoubleLayerFacilityAuthoring
 {
     public const string SourcePath = "Assets/Editor/MapSources/double-layer-facility.json";
     public const string ScenePath = "Assets/Scenes/DOUBLE_LAYER_FACILITY.unity";
     private static readonly Vector3 SpawnCameraPosition = new Vector3(0f, 1.7f, -32f);
+    private const float UpperFloorHeight = 6.4f;
+    private const float HalfStairHeight = UpperFloorHeight * .5f;
+    private const float StairFlightOffset = 1.25f;
+    private const float StairFlightWidth = 2.2f;
+    private static readonly float[] StairCenters = { -14.5f, 14.5f };
 
     [MenuItem("MapForge/Build Double Layer Facility (Geometry Only)")]
     public static void Build()
@@ -36,15 +41,21 @@ public static class DoubleLayerFacilityAuthoring
             string backup = Path.Combine(OutputDirectory, "backup", DateTime.Now.ToString("yyyyMMdd-HHmmss-fff"));
             Directory.CreateDirectory(backup);
             File.Copy(ScenePath, Path.Combine(backup, "DOUBLE_LAYER_FACILITY.unity"));
+            if (File.Exists(ScenePath + ".meta"))
+                File.Copy(ScenePath + ".meta", Path.Combine(backup, "DOUBLE_LAYER_FACILITY.unity.meta"));
+            foreach (string preview in Directory.Exists(OutputDirectory)
+                         ? Directory.GetFiles(OutputDirectory, "*.png", SearchOption.TopDirectoryOnly) : Array.Empty<string>())
+                File.Copy(preview, Path.Combine(backup, Path.GetFileName(preview)));
         }
         var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
         scene.name = document.name;
         var root = new GameObject(MapForgeWorldImporter.RootName);
         MapForgeSceneOrganization.Create(document, root.transform, document.name);
-        AddStairRamp(root.transform, -14.5f, "Left Stair Walk Surface");
-        AddStairRamp(root.transform, 14.5f, "Right Stair Walk Surface");
+        foreach (float x in StairCenters) AddStairRamps(root.transform, x);
         ConfigurePresentation();
         Validate(scene, document.objects.Length);
+        ValidateStairMovement();
+        ValidateCargoRoutes();
 
         Directory.CreateDirectory("Assets/Scenes");
         if (!EditorSceneManager.SaveScene(scene, ScenePath)) throw new IOException("Could not save " + ScenePath);
@@ -57,18 +68,30 @@ public static class DoubleLayerFacilityAuthoring
         Debug.Log("DOUBLE_LAYER_FACILITY_PASS: saved geometry-only scene and enabled map selection: " + ScenePath);
     }
 
-    // The 0.4 m risers exceed the player's normal step offset. The ramp follows the
-    // leading tread edges; the last tread joins the upper floor at y=6.4 m.
-    private static void AddStairRamp(Transform parent, float x, string name)
+    public static void BuildAndPreview()
     {
-        Vector3 bottom = new Vector3(x, 0f, 20.4375f);
-        Vector3 top = new Vector3(x, 6.4f, 29.4375f);
+        Build();
+        RenderPreview();
+    }
+
+    // Each return stair has two 18-riser flights. Smooth collision follows the
+    // tread noses, while visible steps, landings and handrails live in the map source.
+    private static void AddStairRamps(Transform parent, float x)
+    {
+        AddStairRamp(parent, new Vector3(x - StairFlightOffset, 0f, 20.7f),
+            new Vector3(x - StairFlightOffset, HalfStairHeight, 26.1f), $"Stair {x} Lower Walk Surface");
+        AddStairRamp(parent, new Vector3(x + StairFlightOffset, HalfStairHeight, 26.7f),
+            new Vector3(x + StairFlightOffset, UpperFloorHeight, 21.3f), $"Stair {x} Upper Walk Surface");
+    }
+
+    private static void AddStairRamp(Transform parent, Vector3 bottom, Vector3 top, string name)
+    {
         Quaternion rotation = Quaternion.LookRotation(top - bottom, Vector3.up);
         var ramp = new GameObject(name);
         ramp.transform.SetParent(parent, false);
         ramp.transform.SetPositionAndRotation((bottom + top) * .5f - rotation * Vector3.up * .05f, rotation);
         ramp.isStatic = true;
-        ramp.AddComponent<BoxCollider>().size = new Vector3(4.9f, .1f, Vector3.Distance(bottom, top));
+        ramp.AddComponent<BoxCollider>().size = new Vector3(StairFlightWidth, .1f, Vector3.Distance(bottom, top));
     }
 
     private static void ConfigurePresentation()
@@ -91,8 +114,8 @@ public static class DoubleLayerFacilityAuthoring
         RenderSettings.sun = sun;
 
         var lights = new GameObject("Facility Interior Lighting");
-        foreach (float x in new[] { -19f, 0f, 19f })
-        foreach (float z in new[] { -24f, -4f, 16f, 33f })
+        foreach (float x in new[] { -24f, 0f, 24f })
+        foreach (float z in new[] { -24f, -4f, 16f, 36f, 50f })
         {
             var lamp = new GameObject($"Lower Floor Light {x} {z}");
             lamp.transform.SetParent(lights.transform, false);
@@ -113,6 +136,7 @@ public static class DoubleLayerFacilityAuthoring
         var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
         Validate(scene, MapForgeSceneOrganization.Parse(File.ReadAllText(SourcePath)).objects.Length);
         ValidateStairMovement();
+        ValidateCargoRoutes();
         if (!EditorBuildSettings.scenes.Any(entry => entry.path == ScenePath && entry.enabled))
             throw new InvalidOperationException("Facility is missing from map selection.");
         Debug.Log("DOUBLE_LAYER_FACILITY_VALIDATION_PASS");
@@ -120,7 +144,8 @@ public static class DoubleLayerFacilityAuthoring
 
     private static void ValidateStairMovement()
     {
-        var source = Resources.Load<GameObject>("FPSPlayer").GetComponentInChildren<CharacterController>(true);
+        var prefab = Resources.Load<GameObject>("FPSPlayer");
+        var source = prefab != null ? prefab.GetComponentInChildren<CharacterController>(true) : null;
         if (source == null) throw new InvalidOperationException("FPSPlayer has no CharacterController.");
         var probe = new GameObject("Temporary Stair Validation");
         try
@@ -133,21 +158,44 @@ public static class DoubleLayerFacilityAuthoring
             controller.slopeLimit = source.slopeLimit;
             controller.skinWidth = source.skinWidth;
             controller.minMoveDistance = 0f;
-            foreach (float x in new[] { -14.5f, 14.5f })
+            foreach (float x in StairCenters)
             {
+                var route = new[]
+                {
+                    new Vector3(x - StairFlightOffset, 0f, 19f),
+                    new Vector3(x - StairFlightOffset, HalfStairHeight, 27.8f),
+                    new Vector3(x + StairFlightOffset, HalfStairHeight, 27.8f),
+                    new Vector3(x + StairFlightOffset, UpperFloorHeight, 19f)
+                };
                 controller.enabled = false;
-                probe.transform.position = new Vector3(x, .05f, 19f);
+                probe.transform.position = route[0] + Vector3.up * .05f;
                 controller.enabled = true;
-                for (int i = 0; i < 300; i++) controller.Move(new Vector3(0f, -.08f, .05f));
-                if (probe.transform.position.z < 31f || Mathf.Abs(probe.transform.position.y - 6.4f) > .3f)
-                    throw new InvalidOperationException("Player cannot climb stair: " + probe.transform.position);
-                for (int i = 0; i < 300; i++) controller.Move(new Vector3(0f, -.08f, -.05f));
-                if (probe.transform.position.z > 20f || Mathf.Abs(probe.transform.position.y) > .3f)
-                    throw new InvalidOperationException("Player cannot descend stair: " + probe.transform.position);
+                Physics.SyncTransforms();
+                for (int i = 1; i < route.Length; i++) WalkTo(controller, route[i], $"stair {x} ascent {i}");
+                for (int i = route.Length - 2; i >= 0; i--) WalkTo(controller, route[i], $"stair {x} descent {i}");
             }
-            Debug.Log("FACILITY_STAIRS_PASS: actual FPS capsule settings walked up and down both staircases.");
+            Debug.Log("FACILITY_STAIRS_PASS: actual FPS capsule walked both return stairs, including landing turns, in both directions.");
+
+            // The old three straight lines now meet the cargo ramp. Their large-body
+            // clearance is checked separately; the narrow employee stairs stay player-only.
         }
         finally { UnityEngine.Object.DestroyImmediate(probe); }
+    }
+
+    private static void WalkTo(CharacterController controller, Vector3 target, string label)
+    {
+        for (int i = 0; i < 2000; i++)
+        {
+            Vector3 delta = target - controller.transform.position;
+            delta.y = 0f;
+            if (delta.sqrMagnitude < .0025f) break;
+            controller.Move(Vector3.ClampMagnitude(delta, .05f) + Vector3.down * .08f);
+        }
+        for (int i = 0; i < 12; i++) controller.Move(Vector3.down * .08f);
+        Vector3 actual = controller.transform.position;
+        if (Vector2.Distance(new Vector2(actual.x, actual.z), new Vector2(target.x, target.z)) > .12f ||
+            Mathf.Abs(actual.y - target.y) > .3f)
+            throw new InvalidOperationException($"Blocked {label}: reached {actual}, expected {target}.");
     }
 
     [MenuItem("MapForge/Preview Double Layer Facility")]
@@ -165,11 +213,14 @@ public static class DoubleLayerFacilityAuthoring
         {
             camera.targetTexture = target;
             camera.fieldOfView = 45f;
-            RenderShot(camera, target, new Vector3(48f, 66f, -64f), new Vector3(0f, 3f, 0f), "01-overview.png");
+            RenderShot(camera, target, new Vector3(68f, 85f, -89f), new Vector3(0f, 3f, 8f), "01-overview.png");
             camera.fieldOfView = fieldOfView;
             RenderShot(camera, target, SpawnCameraPosition, new Vector3(0f, 1.7f, 20f), "02-ground-floor.png");
-            RenderShot(camera, target, new Vector3(-10f, 8.1f, 32f), new Vector3(0f, 8f, 0f), "03-upper-floor.png");
-            RenderShot(camera, target, new Vector3(-9f, 2.7f, 18f), new Vector3(-14.5f, 4f, 26f), "04-stairs.png");
+            RenderShot(camera, target, new Vector3(-27f, 8.1f, 40f), new Vector3(-27f, 8f, -20f), "03-upper-floor.png");
+            RenderShot(camera, target, new Vector3(-10f, 8.8f, 17f), new Vector3(-14.5f, 3.5f, 25f), "04-stairs.png");
+            RenderShot(camera, target, new Vector3(-24f, 2.2f, -26f), new Vector3(-18f, 2.5f, 3f), "05-workshop.png");
+            RenderGroundCutaway(camera, target);
+            RenderExpansionPreviews(camera, target);
             Debug.Log("FACILITY_PREVIEW_PASS: " + OutputDirectory);
         }
         finally
@@ -179,6 +230,28 @@ public static class DoubleLayerFacilityAuthoring
             camera.transform.SetPositionAndRotation(position, rotation);
             RenderTexture.active = previous;
             UnityEngine.Object.DestroyImmediate(target);
+        }
+    }
+
+    private static void RenderGroundCutaway(Camera camera, RenderTexture target)
+    {
+        // Preview only: reveal the lower floor without changing geometry, collision or the saved scene.
+        var hidden = UnityEngine.Object.FindObjectsByType<MapForgeObjectProperties>(FindObjectsSortMode.None)
+            .Where(item => item.objectId == "2f" || item.objectId == "side-wall-r" ||
+                item.objectId.StartsWith("front-wall-") || item.objectId.StartsWith("entrance-lintel-"))
+            .SelectMany(item => item.GetComponentsInChildren<Renderer>()).Where(renderer => renderer.enabled)
+            .Distinct().ToArray();
+        float fov = camera.fieldOfView;
+        try
+        {
+            foreach (var renderer in hidden) renderer.enabled = false;
+            camera.fieldOfView = 45f;
+            RenderShot(camera, target, new Vector3(68f, 85f, -89f), new Vector3(0f, 1f, 8f), "06-ground-cutaway.png");
+        }
+        finally
+        {
+            foreach (var renderer in hidden) renderer.enabled = true;
+            camera.fieldOfView = fov;
         }
     }
 
@@ -219,17 +292,33 @@ public static class DoubleLayerFacilityAuthoring
         CheckFloor(SpawnCameraPosition + Vector3.up * 2f, 0f);
         if (Physics.CheckCapsule(new Vector3(0f, .4f, -32f), new Vector3(0f, 1.5f, -32f), .3f, ~0, QueryTriggerInteraction.Ignore))
             throw new InvalidOperationException("Player spawn is obstructed.");
-        foreach (float x in new[] { -14.5f, 14.5f })
+        foreach (float x in StairCenters)
         {
-            for (int i = 0; i <= 16; i++)
+            for (int i = 0; i <= 18; i++)
             {
-                float t = i / 16f;
-                CheckFloor(new Vector3(x, 8f, Mathf.Lerp(20.4375f, 29.4375f, t)), Mathf.Lerp(0f, 6.4f, t));
+                float t = i / 18f;
+                CheckFloor(new Vector3(x - StairFlightOffset, 8f, Mathf.Lerp(20.7f, 26.1f, t)),
+                    Mathf.Lerp(0f, HalfStairHeight, t));
+                CheckFloor(new Vector3(x + StairFlightOffset, 8f, Mathf.Lerp(26.7f, 21.3f, t)),
+                    Mathf.Lerp(HalfStairHeight, UpperFloorHeight, t));
             }
-            CheckFloor(new Vector3(x, 8f, 31f), 6.4f);
+            CheckFloor(new Vector3(x, 8f, 27.8f), HalfStairHeight);
+            CheckFloor(new Vector3(x + StairFlightOffset, 8f, 20.5f), UpperFloorHeight);
+        }
+        // Sample the open circulation areas, away from the central core and equipment.
+        // Check render bounds as well: a decorative canopy can lack collision entirely.
+        var skySamples = new[] { new Vector2(-27f, -12f), new Vector2(27f, -12f),
+            new Vector2(-27f, 12f), new Vector2(27f, 12f), new Vector2(0f, -3f), new Vector2(0f, 16f) };
+        var visibleGeometry = components.OfType<Renderer>().Where(r => r.enabled && r.gameObject.activeInHierarchy).ToArray();
+        foreach (Vector2 sample in skySamples)
+        {
+            var ray = new Ray(new Vector3(sample.x, UpperFloorHeight + .15f, sample.y), Vector3.up);
+            if (Physics.Raycast(ray, 30f, ~0, QueryTriggerInteraction.Ignore) ||
+                visibleGeometry.Any(r => r.bounds.IntersectRay(ray, out float distance) && distance <= 30f))
+                throw new InvalidOperationException($"Roof approach is covered at {sample}.");
         }
         Debug.Log($"Facility geometry verified: {metadata.Length} source objects, {components.OfType<Renderer>().Count()} renderers, " +
-                  $"{components.OfType<Collider>().Count()} colliders; spawn clear; both stair ramps connect to the upper floor; no gameplay grids or spawners.");
+                  $"{components.OfType<Collider>().Count()} colliders; spawn clear; return stairs connect both floors; roof remains open; no gameplay grids or spawners.");
     }
 
     private static void CheckFloor(Vector3 origin, float expectedHeight)
