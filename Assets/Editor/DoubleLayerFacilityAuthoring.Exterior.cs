@@ -49,6 +49,7 @@ public static partial class DoubleLayerFacilityAuthoring
         ValidateExteriorPlayerMovement();
         Debug.Log("FACILITY_EXTERIOR_PASS: 96 x 64 m supported yard, eight 6 x 8 m ground pads, " +
             "two 12 x 10 m AA platforms, actual FPS capsule walked both ramps and crossed the entrance apron.");
+        Debug.Log("FACILITY_REAR_WALK_PASS: actual FPS capsule walked both side roads, both freight ramps in both directions and the upper crosswalk.");
     }
 
     private static void RequireExteriorSupport(Vector3 expected)
@@ -99,6 +100,25 @@ public static partial class DoubleLayerFacilityAuthoring
             Physics.SyncTransforms();
             WalkTo(controller, new Vector3(30f, 0f, -35f), "entrance apron transverse passage");
             WalkTo(controller, new Vector3(-30f, 0f, -35f), "entrance apron return passage");
+
+            foreach (float side in new[] { -1f, 1f })
+            {
+                float road = 40f * side;
+                float lane = 27f * side;
+                controller.enabled = false;
+                probe.transform.position = new Vector3(road, .05f, -42f);
+                controller.enabled = true;
+                Physics.SyncTransforms();
+                WalkTo(controller, new Vector3(road, 0f, 8f), "side service road");
+                WalkTo(controller, new Vector3(road, 0f, 65f), "rear yard access");
+                WalkTo(controller, new Vector3(road, 0f, 116f), "perimeter apron");
+                WalkTo(controller, new Vector3(lane, 0f, 116f), "rear freight approach");
+                WalkTo(controller, new Vector3(lane, UpperFloorHeight, 63f), "rear freight ramp ascent");
+                WalkTo(controller, new Vector3(lane, UpperFloorHeight, 48f), "upper loading door");
+                WalkTo(controller, new Vector3(lane, UpperFloorHeight, 63f), "return to upper loading apron");
+                WalkTo(controller, new Vector3(-lane, UpperFloorHeight, 63f), "upper service crosswalk");
+                WalkTo(controller, new Vector3(-lane, 0f, 116f), "rear freight ramp descent");
+            }
         }
         finally { UnityEngine.Object.DestroyImmediate(probe); }
     }
@@ -110,5 +130,14 @@ public static partial class DoubleLayerFacilityAuthoring
         camera.fieldOfView = 75f;
         RenderShot(camera, target, new Vector3(0f, 1.7f, -90f), new Vector3(0f, 3f, -29.5f), "13-exterior-player.png");
         RenderShot(camera, target, new Vector3(-45f, 7f, -43f), new Vector3(-37f, 2.4f, -65f), "14-aa-platform.png");
+    }
+
+    private static void RenderRearPreviews(Camera camera, RenderTexture target)
+    {
+        camera.fieldOfView = 50f;
+        RenderShot(camera, target, new Vector3(88f, 68f, 147f), new Vector3(0f, 3f, 79f), "15-rear-passage.png");
+        camera.fieldOfView = 68f;
+        RenderShot(camera, target, new Vector3(-28f, 2.8f, 123f), new Vector3(-27f, 7f, 54f), "16-rear-freight-approach.png");
+        RenderShot(camera, target, new Vector3(13f, 8.3f, 63f), new Vector3(27f, 7.7f, 55f), "17-rear-loading-door.png");
     }
 }

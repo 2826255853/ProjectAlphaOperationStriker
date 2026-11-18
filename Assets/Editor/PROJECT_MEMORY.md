@@ -1,5 +1,20 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 双层设施后场物流区与二层入侵（2026-11-19）
+
+- 后场物流庭院为 88×70 m，地坪 x=±44、z=56…126，厂房两侧各有 8 m 宽的检修车道连通前后场。庭院沿两边排列货运坡道，中间布置调度棚、集装箱和设备区。两条坡道各宽 12 m，沿 z=110→70 抬升 6.4 m，经有柱梁支撑的装卸平台接后立面两处 12 m 宽的卷帘门。两侧平台通过 4 m 宽的检修连桥相连。
+- 两个既有上层出怪口 ID 保留，位置移到后场平地 `(±27,0.08,117)`，朝向 -Z。源图 `route-cargo-upper-{left,right}-start` 接坡脚、坡顶、装卸平台和门洞，再接既有二层货运节点。后场各口第 1 波关闭，第 2 波 1 只，第 3 波 2 只。平面寻路网格在后场只开放坡脚外的平直进场段，登坡与上层依源图高度行进。
+- 增设两个地面、两个二层布防位，各 6×8 m。全图 24 套陷阱网格、1,100 个按层统计的可用 1 m 格，其中后场 160 格。生产校验确认各后场阵地有有效 XM777 占位，校验共享掩码与半格对齐。后场几何路线报告与原六分支共用源图，并单列 rearRoutes，两路均为 152.51 m。
+- Unity 与 MapForge 示例 JSON 的 SHA256 一致。专用 `BuildAndPreview` 保存并重载校验通过，覆盖两条后场路线、六条既有货运路线、真实 FPS 胶囊走两条检修车道与双向坡道和连桥、24 套陷阱网格。后场总览、坡脚与装卸门的预览分别为桌面 `DoubleLayerFacility\15-rear-passage.png`、`16-rear-freight-approach.png`、`17-rear-loading-door.png`，均已目视检查。源图、生成器和修改前场景的备份位于 `DoubleLayerFacility\rear-yard-expansion\backup-20261119-003829\`。
+- 后场 PlayMode 验收 **1/1 通过**。隔离正门及空中出怪口、缩短空等时间后，两路后场按第 2/3 波自动生成 6 只正式敌人，每只都经过坡面和二层门洞，总计扣除核心 12 点耐久。夹具及 XML `rear-runtime-v2-results.xml` 留在桌面 `DoubleLayerFacility\rear-yard-expansion\`，已移除 Assets 内的临时测试源码及 meta。完整波次实战平衡未评估。
+
+## 双层设施二层后部护墙开口（2026-11-19）
+
+- 二层左右出生标记位于 `(±27,6.48,48)`，后侧 `turn-rear-guard-*` 在 z=50.15 横贯出生体积。两侧各分成内外两段，分别保留 |x|=17…22 与 32…35.15 的黄色护墙，在 |x|=22…32 留出 10 m 开口。开口下方使用现有连续楼板，外侧短墙接回转向平台外围护墙。
+- Unity 地图源与 `C:\MapForge\wwwroot\examples\double-layer-facility.json` 同步，SHA256 一致。专用 `BuildAndPreview` 已重建保存场景。`.Cargo.cs` 补查两处出生点经 upper-4 到 upper-5 的完整身体足迹、支撑和净空，覆盖原六条货运路线未采样的 z=48 出生位置。源图中两个二层出生点当前均为 disabled。
+- 本轮按项目记录版本运行 Unity，保存前及重载后均通过 `FACILITY_UPPER_ENTRANCES_PASS`、六条货运路线、楼梯、外场及 20 套陷阱网格校验，无 C# 编译错误或方法异常，正常退出。通行代理为 8×12×4.2 m、额外净空 0.6 m。未执行人工 PlayMode 刷怪验收或 Player 构建。
+- 后部预览已目视检查：`C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\15-rear-passage.png`。源图与生成器备份位于 `DoubleLayerFacility\rear-passage-fix\backup\`，本轮日志为 `DoubleLayerFacility\rear-passage-fix\build-preview.log`；生成前场景备份由 Build 写入同目录的 `backup\20261119-003228-822\`。
+
 ## 双层设施正面外场与玩法接入（2026-11-18）
 
 - 外场新增 `exterior-yard-slab`，96×64 m，x=±48、z=-104…-40；接现有主地板后正门外纵深 74.5 m。8 块 6×8 m 地面阵地位于 x=±12、z=-78/-66/-54/-42；两翼 x=±36、z=-64 各有 12×10 m、走面 y=2.4 的防空台与 3 m 宽缓坡。防空台有效阵地各 10×8 m，外场预留面积合计 544 m²，全图预留面积 976 m²。
