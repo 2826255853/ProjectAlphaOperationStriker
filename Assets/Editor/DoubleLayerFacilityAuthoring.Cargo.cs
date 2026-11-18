@@ -51,7 +51,7 @@ public static partial class DoubleLayerFacilityAuthoring
     {
         var pads = UnityEngine.Object.FindObjectsByType<MapForgeObjectProperties>(FindObjectsSortMode.None)
             .Where(item => item.tags != null && item.tags.Contains("defense-reservation")).ToArray();
-        if (pads.Length < 10) throw new InvalidOperationException("Expected ten defense reservations.");
+        if (pads.Length != 20) throw new InvalidOperationException("Expected twenty interior and exterior defense reservations.");
         float area = 0f;
         foreach (var pad in pads)
         {
@@ -68,7 +68,7 @@ public static partial class DoubleLayerFacilityAuthoring
                 CheckFloor(new Vector3(x, floor + .5f, z), floor);
             area += bounds.size.x * bounds.size.z;
         }
-        Debug.Log($"FACILITY_DEFENSE_RESERVATIONS_PASS: {pads.Length} obstacle-free pads, {area:F0} square meters. Geometry reservations, not runtime placement cells.");
+        Debug.Log($"FACILITY_DEFENSE_RESERVATIONS_PASS: {pads.Length} obstacle-free pads, {area:F0} square meters; runtime placement cells are validated separately.");
     }
 
     private static void VisitCargoRoute(string id, List<string> route,

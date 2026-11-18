@@ -385,6 +385,10 @@ public sealed class EnemySpawnPoint : MonoBehaviour
         {
             follower.InitializeFlying(destinationPoint, destination, selectedSpeed, selectedHeight, core);
         }
+        else if (TryGetComponent<AuthoredMonsterRoute>(out var authoredRoute))
+        {
+            follower.InitializeAuthoredRoute(authoredRoute.GetRoute(spawnSequence, core), selectedSpeed, core, pathGrid);
+        }
         else if (core != null && useTargetWaypoint)
         {
             follower.InitializeViaWaypoint(pathGrid, targetPoint, targetPosition, direction, selectedSpeed, core);

@@ -1,5 +1,18 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 双层设施正面外场与玩法接入（2026-11-18）
+
+- 外场新增 `exterior-yard-slab`，96×64 m，x=±48、z=-104…-40；接现有主地板后正门外纵深 74.5 m。8 块 6×8 m 地面阵地位于 x=±12、z=-78/-66/-54/-42；两翼 x=±36、z=-64 各有 12×10 m、走面 y=2.4 的防空台与 3 m 宽缓坡。防空台有效阵地各 10×8 m，外场预留面积合计 544 m²，全图预留面积 976 m²。
+- 三路地面出生及 `route-cargo-*-start` 移至 z=-96；飞行出生改为 (0,16,-136)，高度偏移 7.3 m 对齐核心 y=8.7 后的 y=16 飞行终点。Unity 与 MapForge 的 JSON 同步维护；专用 Authoring 将负责运行时路线和放置网格，不能改回普通导入器。
+- 源、生成器与场景恢复点：`C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\exterior-expansion\backup\20261118-145040\`。一次性脚本 `exterior-expansion\expand-exterior.py` 只用于此次源图制作，正式重建仍直接读源 JSON。
+- `.Gameplay.cs` 按源图的已启用出生点配置三路地面、一个飞行入口、核心及三波敌人；默认准备 30 秒、波间 45 秒，每个地面入口 3/4/2 只、飞行入口 2/3/4 只，待后续实战平衡。20 套网格复用 `TrapGridAuthoring` 掩码与半格对齐，外场 544 格、全图 940 格（均为 1 m 格）；预留几何面积与可用格数分别统计。
+- `AuthoredMonsterRoute` 从源 `route-cargo-*` 关联真实场景节点，每口轮换两条货运分支。`MonsterPathFollower.InitializeAuthoredRoute` 保留坡道高度、禁止在一层经过核心下方时提前抵达，并在外场战斗后恢复尚未走完的任务。近战寻路网格只覆盖外场；室内和二层怪物继续货运任务，尚不主动绕路追击玩家。
+- 项目记录版本 Unity 的 `BuildAndPreview` 正常生成并重载校验通过：1,204 个源对象，6 条货运路线 240.53…256.66 m，大怪完整足迹/净空与玩家楼梯、两座防空台缓坡、门前横向通行均通过。总览与防空台预览已目视检查；图片 `C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\12-exterior-overview.png`、`13-exterior-player.png`、`14-aa-platform.png`。
+- 隔离夹具 `Tests~/Editor/AuthoredMonsterRouteTests.cs` 7 例，加 `FacilityExteriorPlayModeTests.cs` 1 例（实际进入 PlayMode），合计 **8/8 PASS，0 失败/跳过**。真实放置 8 个哨戒机枪、2 个双联导弹发射器；六只实怪走完六分支并扣核心 12 血；同速 2.2 m/s 的控制对照旧飞行 29.85 s、新飞行 53.49 s，倍率 1.792。XML：`C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\exterior-expansion\runtime-tests\results.xml`；临时复制到 Assets/Editor 的两份夹具及 meta 已清理。飞行计时探针没有血量、未受攻击；该结果不代表完整波次平衡验收。
+- 本轮首次生成在碰撞同步前取支撑失败，已在配置玩法前补 `Physics.SyncTransforms()`。一次 NoNewWindow 启动触发 Burst 子进程 Console 的 Lock violation，改为隐藏独立进程启动后成功；最终构建日志 `exterior-expansion\build-preview-hidden.log` 含正常结束标记。未做人工 PlayMode 操作及完整 Player 构建。
+- 清理测试源码后的正常 `ValidateSavedScene` 编译与共享 `Validate Trap Grids` 已通过，20 套均对齐、无埋入/悬空/无支撑/占道。覆盖 928 个不同 XZ 坐标，12 个坐标在不同楼层重合；按楼层累计是 940 格。两座防空台中心已用正式 40 m 导弹射程验算覆盖中轴飞行线。正式哨戒机枪射程为 5 m，外场保留 12 m 净宽通道，因此外场地面阵地应选 XM777 等长射程陷阱；不把“能放置机枪”解释为“机枪能覆盖通道中心”。
+- 因射程检查补强同一运行时夹具，正式外场 XM777 实际对中路地面目标造成 45 点伤害，防空台内侧的正式双联导弹对中轴空中目标造成 45 点伤害；之后六路漏怪与同速飞行对照仍通过，最终 **8/8 PASS**。外场 8 块地面阵地的生产校验改用正式 4×4 m XM777 占位。重复运行仍复用上述 XML 路径，最终日志包含 `FACILITY_COMBAT_ACCEPTANCE_PASS` 与 `FACILITY_RUNTIME_ACCEPTANCE_PASS`。
+
 ## Alpha Striker 技能维护（2026-11-18）
 
 - `.agents/skills/alpha-striker-unity/SKILL.md` 保留共同约束与任务路由；既有玩法细节移入 `references/gameplay.md`，新增 `references/facility-authoring.md` 汇总双层设施专用生成链、同源路线、真实胶囊/大怪几何通行和验收边界。

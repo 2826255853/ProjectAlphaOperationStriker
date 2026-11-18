@@ -7,19 +7,19 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
-/// <summary>Geometry-only facility scene. Keep the original MapForge source for later gameplay authoring.</summary>
+/// <summary>Builds the facility geometry and its authored exterior defense gameplay.</summary>
 public static partial class DoubleLayerFacilityAuthoring
 {
     public const string SourcePath = "Assets/Editor/MapSources/double-layer-facility.json";
     public const string ScenePath = "Assets/Scenes/DOUBLE_LAYER_FACILITY.unity";
-    private static readonly Vector3 SpawnCameraPosition = new Vector3(0f, 1.7f, -32f);
+    private static readonly Vector3 SpawnCameraPosition = new Vector3(-12f, 1.7f, -35f);
     private const float UpperFloorHeight = 6.4f;
     private const float HalfStairHeight = UpperFloorHeight * .5f;
     private const float StairFlightOffset = 1.25f;
     private const float StairFlightWidth = 2.2f;
     private static readonly float[] StairCenters = { -14.5f, 14.5f };
 
-    [MenuItem("MapForge/Build Double Layer Facility (Geometry Only)")]
+    [MenuItem("MapForge/Build Double Layer Facility")]
     public static void Build()
     {
         if (EditorApplication.isPlayingOrWillChangePlaymode)
@@ -27,7 +27,8 @@ public static partial class DoubleLayerFacilityAuthoring
         if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
 
         var document = MapForgeSceneOrganization.Parse(File.ReadAllText(SourcePath));
-        // Never rewrite the source: its dormant spawn/path mappings are useful in a later gameplay pass.
+        // Build visual geometry first. The map-specific pass below owns gameplay,
+        // including the elevated cargo routes that the flat default importer cannot represent.
         foreach (var node in document.objects)
         {
             var collider = node.unity != null ? node.unity.collider : null;
@@ -53,9 +54,13 @@ public static partial class DoubleLayerFacilityAuthoring
         MapForgeSceneOrganization.Create(document, root.transform, document.name);
         foreach (float x in StairCenters) AddStairRamps(root.transform, x);
         ConfigurePresentation();
+        Physics.SyncTransforms();
+        ConfigureFacilityGameplay(root);
         Validate(scene, document.objects.Length);
         ValidateStairMovement();
         ValidateCargoRoutes();
+        ValidateExterior();
+        ValidateFacilityGameplay(root);
 
         Directory.CreateDirectory("Assets/Scenes");
         if (!EditorSceneManager.SaveScene(scene, ScenePath)) throw new IOException("Could not save " + ScenePath);
@@ -65,7 +70,7 @@ public static partial class DoubleLayerFacilityAuthoring
         else scenes[existing].enabled = true;
         EditorBuildSettings.scenes = scenes.ToArray();
         AssetDatabase.SaveAssets();
-        Debug.Log("DOUBLE_LAYER_FACILITY_PASS: saved geometry-only scene and enabled map selection: " + ScenePath);
+        Debug.Log("DOUBLE_LAYER_FACILITY_PASS: saved playable exterior defense facility and enabled map selection: " + ScenePath);
     }
 
     public static void BuildAndPreview()
@@ -137,6 +142,10 @@ public static partial class DoubleLayerFacilityAuthoring
         Validate(scene, MapForgeSceneOrganization.Parse(File.ReadAllText(SourcePath)).objects.Length);
         ValidateStairMovement();
         ValidateCargoRoutes();
+        ValidateExterior();
+        ValidateFacilityGameplay(GameObject.Find(MapForgeWorldImporter.RootName));
+        if (!EditorApplication.ExecuteMenuItem("Tools/Tower Defense/Validate Trap Grids"))
+            throw new InvalidOperationException("Could not execute the shared trap grid validation.");
         if (!EditorBuildSettings.scenes.Any(entry => entry.path == ScenePath && entry.enabled))
             throw new InvalidOperationException("Facility is missing from map selection.");
         Debug.Log("DOUBLE_LAYER_FACILITY_VALIDATION_PASS");
@@ -221,6 +230,7 @@ public static partial class DoubleLayerFacilityAuthoring
             RenderShot(camera, target, new Vector3(-24f, 2.2f, -26f), new Vector3(-18f, 2.5f, 3f), "05-workshop.png");
             RenderGroundCutaway(camera, target);
             RenderExpansionPreviews(camera, target);
+            RenderExteriorPreviews(camera, target);
             Debug.Log("FACILITY_PREVIEW_PASS: " + OutputDirectory);
         }
         finally
@@ -276,10 +286,8 @@ public static partial class DoubleLayerFacilityAuthoring
     {
         var components = scene.GetRootGameObjects().SelectMany(go => go.GetComponentsInChildren<Component>(true)).ToArray();
         if (components.Any(c => c == null)) throw new InvalidOperationException("Missing script in facility scene.");
-        if (components.Any(c => c is MonsterPathGrid || c is TrapPlacementGrid || c is TrapInstance ||
-                                c is EnemySpawnPoint || c is WaveManager || c is EnemyCore || c is MapForgePathNode ||
-                                c is MapForgeTrigger || c is Unity.AI.Navigation.NavMeshSurface))
-            throw new InvalidOperationException("Geometry-only scene contains gameplay components.");
+        if (components.Any(c => c is MapForgeTrigger || c is Unity.AI.Navigation.NavMeshSurface))
+            throw new InvalidOperationException("Facility contains unexpected default-import gameplay components.");
         var metadata = components.OfType<MapForgeObjectProperties>().ToArray();
         if (metadata.Length != expectedObjects) throw new InvalidOperationException("Map objects were lost during import.");
         foreach (var item in metadata.Where(item => item.objectId == "pathnodes" || item.objectId == "spawnpoints"))
@@ -290,7 +298,8 @@ public static partial class DoubleLayerFacilityAuthoring
             throw new InvalidOperationException("Expected exactly one player spawn camera.");
         Physics.SyncTransforms();
         CheckFloor(SpawnCameraPosition + Vector3.up * 2f, 0f);
-        if (Physics.CheckCapsule(new Vector3(0f, .4f, -32f), new Vector3(0f, 1.5f, -32f), .3f, ~0, QueryTriggerInteraction.Ignore))
+        if (Physics.CheckCapsule(SpawnCameraPosition + Vector3.down * 1.3f,
+                SpawnCameraPosition + Vector3.down * .2f, .3f, ~0, QueryTriggerInteraction.Ignore))
             throw new InvalidOperationException("Player spawn is obstructed.");
         foreach (float x in StairCenters)
         {
@@ -318,7 +327,7 @@ public static partial class DoubleLayerFacilityAuthoring
                 throw new InvalidOperationException($"Roof approach is covered at {sample}.");
         }
         Debug.Log($"Facility geometry verified: {metadata.Length} source objects, {components.OfType<Renderer>().Count()} renderers, " +
-                  $"{components.OfType<Collider>().Count()} colliders; spawn clear; return stairs connect both floors; roof remains open; no gameplay grids or spawners.");
+                  $"{components.OfType<Collider>().Count()} colliders; spawn clear; return stairs connect both floors; roof remains open.");
     }
 
     private static void CheckFloor(Vector3 origin, float expectedHeight)

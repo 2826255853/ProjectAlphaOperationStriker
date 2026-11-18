@@ -5,9 +5,9 @@
 ## 先选对生成入口
 
 - Unity 源：`Assets/Editor/MapSources/double-layer-facility.json`；配套 MapForge 示例：`C:\MapForge\wwwroot\examples\double-layer-facility.json`。修改共享源时同步这两份并核对 SHA256；正式重建直接读 JSON，不依赖桌面的一次性生成脚本。
-- 生成器：`Assets/Editor/DoubleLayerFacilityAuthoring.cs` 与 `.Cargo.cs` 是同一个 partial 类。`Build` 生成并保存；`ValidateSavedScene` 重载校验；`BuildAndPreview` 生成并渲染；`RenderPreview` 只用于已有场景校验和预览。渲染通过 runner 的 `-WithGraphics` 启用图形。
+- 生成器：`Assets/Editor/DoubleLayerFacilityAuthoring.cs`、`.Cargo.cs`、`.Exterior.cs`、`.Gameplay.cs` 是同一个 partial 类。`Build` 生成并保存；`ValidateSavedScene` 重载校验；`BuildAndPreview` 生成并渲染；`RenderPreview` 只用于已有场景校验和预览。渲染通过 runner 的 `-WithGraphics` 启用图形。
 - 目标：`Assets/Scenes/DOUBLE_LAYER_FACILITY.unity`，加入启用的 Build Settings 后由 `MapSceneCatalog` 提供地图选择。不能把生成/注册成功当成跨场景菜单操作已通过。
-- 当前是 geometry-only：在内存中保留 collider 映射、过滤玩法映射，并补楼梯平滑碰撞面。源里的休眠玩法信息保留供后续接入；不要删除源字段来实现过滤。普通 `ImportDefault` 或「Send to Unity」没有这套过滤与补充，不能替代专用入口。
+- 正面外场版本接入专用玩法：先在内存中仅保留 collider 映射生成几何，再由 `.Gameplay.cs` 从原始源图读取核心、已启用出生点与 `route-cargo-*` 图，配置放置网格、波次和带高度的运行时路线。`AuthoredMonsterRoute` 只用于挂载它的地面入口；原地图的平面寻路不变。普通 `ImportDefault` 或「Send to Unity」没有这套接线与楼梯补充，不能替代专用入口。
 - 产物、备份、日志放 `C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\`。生成器会备份目标 scene、meta 和旧预览；修改源或生成器前仍需保留它们自己的恢复点。
 
 ## 几何与通行共同验收
@@ -22,6 +22,6 @@
 ## 报告能力边界
 
 - 路径节点存在、代理扫掠通过，只证明作者指定路线的几何通行；不证明运行时 AI 寻路、动画、刷怪或战斗。
-- `defense-reservation` 是几何预留区，需检查障碍、净空及支撑；它不是已启用的 TrapPlacementGrid。
+- `defense-reservation` 首先是几何预留区，需检查障碍、净空及支撑；正面外场版本的专用 Gameplay pass 才将其转换为 `TrapPlacementGrid`。只有通过放置格、半格对齐及实际陷阱 footprint 校验后才能报告可放置能力。
 - 地板面积、可放陷阱面积、运行时格数、路线长度分别报告。宣称增幅前用同一口径测量旧图和新图；地板扩容比例不能代替陷阱容量或路线增幅。
 - 分开列出编译、生产探针、预览目视检查、人工 PlayMode、跨场景操作与 Player 构建的执行情况；旧里程碑的通过记录不作为本轮通过。

@@ -24,6 +24,9 @@ public sealed class MonsterPathFollower : MonoBehaviour
     private bool travellingToRequiredWaypoint;
     private bool currentPathReachesDestination;
     private bool followingCombatPath;
+    private readonly List<Vector3> authoredMissionRoute = new List<Vector3>();
+    private bool hasAuthoredMissionRoute;
+    private int authoredNextWaypoint;
 
     public bool IsInitialized => initialized;
     public bool HasArrived { get; private set; }
@@ -45,7 +48,7 @@ public sealed class MonsterPathFollower : MonoBehaviour
             for (int i = waypointIndex; i < waypoints.Count; i++)
             {
                 Vector3 delta = waypoints[i] - previous;
-                if (!flying) delta.y = 0f;
+                if (!flying && (!hasAuthoredMissionRoute || followingCombatPath)) delta.y = 0f;
                 distance += delta.magnitude;
                 previous = waypoints[i];
             }
@@ -76,6 +79,7 @@ public sealed class MonsterPathFollower : MonoBehaviour
 
     public void SetDestination(Vector3 worldPosition)
     {
+        hasAuthoredMissionRoute = false;
         targetCore = null;
         finalCore = null;
         travellingToRequiredWaypoint = false;
@@ -88,6 +92,7 @@ public sealed class MonsterPathFollower : MonoBehaviour
 
     public void SetDestination(Transform target)
     {
+        hasAuthoredMissionRoute = false;
         targetCore = null;
         finalCore = null;
         travellingToRequiredWaypoint = false;
@@ -113,6 +118,7 @@ public sealed class MonsterPathFollower : MonoBehaviour
 
     public void Initialize(MonsterPathGrid grid, Transform target, Vector3 fallbackTarget, Vector3 direction, float speed, EnemyCore core)
     {
+        hasAuthoredMissionRoute = false;
         pathGrid = grid;
         destination = target;
         destinationPoint = fallbackTarget;
@@ -131,6 +137,7 @@ public sealed class MonsterPathFollower : MonoBehaviour
     /// <summary>Initializes a flying monster. Flying movement ignores the ground grid.</summary>
     public void InitializeFlying(Transform target, Vector3 fallbackTarget, float speed, float height, EnemyCore core)
     {
+        hasAuthoredMissionRoute = false;
         pathGrid = null;
         destination = target;
         destinationPoint = fallbackTarget;
@@ -159,6 +166,7 @@ public sealed class MonsterPathFollower : MonoBehaviour
         float speed,
         EnemyCore core)
     {
+        hasAuthoredMissionRoute = false;
         pathGrid = grid;
         destination = waypoint;
         destinationPoint = fallbackWaypoint;
@@ -174,12 +182,41 @@ public sealed class MonsterPathFollower : MonoBehaviour
         RebuildPath();
     }
 
+    /// <summary>Follows a validated authored mission, including ramp heights and floor changes.</summary>
+    public void InitializeAuthoredRoute(IReadOnlyList<Vector3> route, float speed, EnemyCore core,
+        MonsterPathGrid combatGrid = null)
+    {
+        if (route == null || route.Count == 0) throw new ArgumentException("The authored route is empty.", nameof(route));
+        authoredMissionRoute.Clear();
+        for (int i = 0; i < route.Count; i++) authoredMissionRoute.Add(route[i]);
+        authoredNextWaypoint = 0;
+        hasAuthoredMissionRoute = true;
+        pathGrid = combatGrid;
+        destination = core != null ? core.transform : null;
+        destinationPoint = route[route.Count - 1];
+        targetCore = core;
+        finalCore = core;
+        travellingToRequiredWaypoint = false;
+        moveSpeed = Mathf.Max(0f, speed);
+        flying = false;
+        initialized = true;
+        HasArrived = false;
+        RebuildPath();
+    }
+
     public void RebuildPath()
     {
         followingCombatPath = false;
         CombatMovementPaused = false;
         waypointIndex = 0;
         waypoints.Clear();
+        if (hasAuthoredMissionRoute)
+        {
+            waypoints.AddRange(authoredMissionRoute);
+            waypointIndex = authoredNextWaypoint;
+            currentPathReachesDestination = true;
+            return;
+        }
         Vector3 target = destination != null ? destination.position : destinationPoint;
         if (flying) target.y += flightHeight;
         lastPathTarget = target;
@@ -208,12 +245,12 @@ public sealed class MonsterPathFollower : MonoBehaviour
     {
         if (!initialized || HasArrived) return;
         if (followingCombatPath && CombatMovementPaused) return;
-        if (!followingCombatPath && targetCore != null && targetCore.IsWithinArrivalRange(transform.position))
+        if (!followingCombatPath && !hasAuthoredMissionRoute && targetCore != null && targetCore.IsWithinArrivalRange(transform.position))
         {
             CompleteArrival();
             return;
         }
-        if (!followingCombatPath && destination != null && pathGrid != null && (destination.position - lastPathTarget).sqrMagnitude > pathGrid.CellSize * pathGrid.CellSize)
+        if (!followingCombatPath && !hasAuthoredMissionRoute && destination != null && pathGrid != null && (destination.position - lastPathTarget).sqrMagnitude > pathGrid.CellSize * pathGrid.CellSize)
             RebuildPath();
         if (waypointIndex >= waypoints.Count)
         {
@@ -222,11 +259,12 @@ public sealed class MonsterPathFollower : MonoBehaviour
         }
 
         Vector3 target = waypoints[waypointIndex];
-        if (!flying) target.y = transform.position.y;
+        if (!flying && (!hasAuthoredMissionRoute || followingCombatPath)) target.y = transform.position.y;
         Vector3 toTarget = target - transform.position;
         if (toTarget.sqrMagnitude <= stoppingDistance * stoppingDistance)
         {
             waypointIndex++;
+            if (hasAuthoredMissionRoute && !followingCombatPath) authoredNextWaypoint = waypointIndex;
             if (waypointIndex >= waypoints.Count) HandleCurrentDestinationReached();
             return;
         }
@@ -235,7 +273,9 @@ public sealed class MonsterPathFollower : MonoBehaviour
         transform.position += step.magnitude >= toTarget.magnitude ? toTarget : step;
         if (toTarget.sqrMagnitude > 0.0001f)
         {
-            Quaternion desired = Quaternion.LookRotation(toTarget, Vector3.up);
+            Vector3 facing = flying ? toTarget : new Vector3(toTarget.x, 0f, toTarget.z);
+            if (facing.sqrMagnitude < .0001f) return;
+            Quaternion desired = Quaternion.LookRotation(facing, Vector3.up);
             transform.rotation = Quaternion.RotateTowards(transform.rotation, desired, turnSpeed * Time.deltaTime);
         }
     }
