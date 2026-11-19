@@ -124,6 +124,18 @@ public static class QuadcopterDroneAuthoring
             }
 
             var size = bounds.size;
+            if (requireUrpMaterials)
+            {
+                var bodyCollider = instance.GetComponent<BoxCollider>();
+                Check("solid flight collider exists", bodyCollider != null && bodyCollider.enabled && !bodyCollider.isTrigger,
+                    bodyCollider != null ? bodyCollider.size.ToString() : "missing");
+                Check("continuous flight collisions enabled", runtimeBody != null && runtimeBody.detectCollisions
+                      && runtimeBody.collisionDetectionMode == CollisionDetectionMode.ContinuousDynamic,
+                    runtimeBody != null ? runtimeBody.collisionDetectionMode.ToString() : "missing");
+                Check("flight collider encloses model", bodyCollider != null
+                      && bodyCollider.bounds.Contains(bounds.min) && bodyCollider.bounds.Contains(bounds.max),
+                    "model=" + bounds + " collider=" + (bodyCollider != null ? bodyCollider.bounds.ToString() : "missing"));
+            }
             Line("bounds size (x,y,z) = " + F(size.x) + ", " + F(size.y) + ", " + F(size.z));
             Check("span ~0.626 m",
                 Mathf.Abs(size.x - 0.6264f) < 0.02f && Mathf.Abs(size.z - 0.6264f) < 0.02f,
@@ -405,6 +417,7 @@ public static class QuadcopterDroneAuthoring
         var flightController = instance.GetComponent<TowerDefense.QuadcopterFlightController>();
         if (flightController == null)
             flightController = instance.AddComponent<TowerDefense.QuadcopterFlightController>();
+        flightController.EnsureCollisionBody();
         flightController.horizontalSpeed = 15f;
         flightController.verticalSpeed = 10f;
         flightController.enabled = false;

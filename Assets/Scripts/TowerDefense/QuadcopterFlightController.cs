@@ -72,6 +72,7 @@ namespace TowerDefense
         void Awake()
         {
             _rb = GetComponent<Rigidbody>();
+            EnsureCollisionBody();
 
             // 飞控自己维持高度，不需要引擎重力
             _rb.useGravity      = false;
@@ -84,6 +85,24 @@ namespace TowerDefense
                             | RigidbodyConstraints.FreezeRotationZ;
 
             _rotors = FindRotors();
+        }
+
+        /// <summary>Also supplies collision for drones saved before the prefab gained a collider.</summary>
+        public void EnsureCollisionBody()
+        {
+            var bodyCollider = GetComponent<BoxCollider>();
+            if (bodyCollider == null)
+                bodyCollider = gameObject.AddComponent<BoxCollider>();
+
+            // Enclose the 0.626 m rotor guards, body and camera without animated mesh colliders.
+            bodyCollider.center = new Vector3(0f, 0.02f, 0f);
+            bodyCollider.size = new Vector3(0.64f, 0.26f, 0.64f);
+            bodyCollider.isTrigger = false;
+            bodyCollider.enabled = true;
+
+            var body = GetComponent<Rigidbody>();
+            body.detectCollisions = true;
+            body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
         }
 
         void FixedUpdate()
