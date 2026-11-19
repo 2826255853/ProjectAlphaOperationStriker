@@ -717,8 +717,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db9d4037bef69d147aec1467282acbb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TowerDefense.QuadcopterFlightController
-  horizontalSpeed: 6
-  verticalSpeed: 4
+  horizontalSpeed: 15
+  verticalSpeed: 10
   horizontalSmoothTime: 0.12
   verticalSmoothTime: 0.1
   yawSpeed: 90

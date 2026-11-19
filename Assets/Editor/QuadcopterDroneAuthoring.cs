@@ -405,6 +405,8 @@ public static class QuadcopterDroneAuthoring
         var flightController = instance.GetComponent<TowerDefense.QuadcopterFlightController>();
         if (flightController == null)
             flightController = instance.AddComponent<TowerDefense.QuadcopterFlightController>();
+        flightController.horizontalSpeed = 15f;
+        flightController.verticalSpeed = 10f;
         flightController.enabled = false;
         var cameraController = instance.GetComponent<DroneCameraController>();
         if (cameraController == null) cameraController = instance.AddComponent<DroneCameraController>();

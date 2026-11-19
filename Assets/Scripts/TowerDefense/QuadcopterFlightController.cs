@@ -25,10 +25,10 @@ namespace TowerDefense
         // ── 平移参数 ──────────────────────────────────────────────
         [Header("平移")]
         [Tooltip("前后 / 左右最大速度 (m/s)")]
-        public float horizontalSpeed = 6f;
+        public float horizontalSpeed = 15f;
 
         [Tooltip("上升 / 下降最大速度 (m/s)")]
-        public float verticalSpeed = 4f;
+        public float verticalSpeed = 10f;
 
         [Tooltip("水平速度平滑时间 (s)，越小越灵敏")]
         public float horizontalSmoothTime = 0.12f;
