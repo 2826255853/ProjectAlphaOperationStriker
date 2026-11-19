@@ -125,7 +125,7 @@ public sealed class EnemySpawnPoint : MonoBehaviour
     [SerializeField, Min(0f), Tooltip("飞行怪物生成时在水平方向的随机散布半径，避免全部叠在同一个点。")]
     private float flyingSpawnSpread = 2f;
 
-    private const string FlyingMonsterResourcePath = "FlyingMonster";
+    public const string DefaultFlyingEnemyResourceName = "HurricaneDroneEnemy";
     private static GameObject cachedFlyingMonsterPrefab;
     private float timeUntilNextSpawn;
     private int spawnSequence;
@@ -543,7 +543,7 @@ public sealed class EnemySpawnPoint : MonoBehaviour
     public static GameObject GetFlyingMonsterPrefab()
     {
         if (cachedFlyingMonsterPrefab == null)
-            cachedFlyingMonsterPrefab = Resources.Load<GameObject>(FlyingMonsterResourcePath);
+            cachedFlyingMonsterPrefab = Resources.Load<GameObject>(DefaultFlyingEnemyResourceName);
         return cachedFlyingMonsterPrefab;
     }
 

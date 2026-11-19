@@ -1,5 +1,18 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 飓风无人机替换旧飞行怪（2026-11-19）
+
+- 飞行出怪口默认加载 `Resources/HurricaneDroneEnemy.prefab`。通用出怪口、双层设施生成器和双层设施场景的四个入口及逐波配置均指向该正式怪物预制体。双层设施三波仍是 2 / 3 / 4 架，航线、刷怪时序、2.2 m/s 和 16 m 飞行高度沿用场景配置，无人机使用自身的 260 血和机炮行为。
+- 移除 `Assets/Resources/FlyingMonster.prefab` 及旧预制体生成入口。旧 FBX 和 Blender 源留作素材，当前游戏资源和两张启用地图均无引用。三路合流当前只有三个地面入口，本次未新增入口。
+- Unity 编辑器探针覆盖预制体接线、四个入口和空配置兜底实际生成、四条航线净空与导弹覆盖。记录在桌面素材目录 `HurricaneDrone/replace-flying-monster-20261119/unity-probe.txt`。
+- 定向 Play Mode 通过 1/1，三波实际生成 2 / 3 / 4 架无人机，覆盖四个入口，并验证 260 血、实际飞行和原航线参数。测试报告在同目录 `playmode-verified.xml`。临时源码及 `.meta` 清理后，`DoubleLayerFacilityAuthoring.ValidateSavedScene` 正常编译、四路检查及场景重载通过，日志为同目录 `facility-validate.log`。人工实战和平衡体验未验证。
+
+## 双层设施外场进攻路线标线（2026-11-19）
+
+- `Assets/Editor/MapSources/double-layer-facility.json` 三条外场主进攻线（x = -24/0/24）从出生区延伸至原汇流引导段，端点连续；线宽由 0.12 m 调至 0.18 m，材质色从 `#d4b348` 提亮至 `#f2c94c`。既有弯道、合流与厂房内标线维持原路径，只统一提亮三路中心引导线。
+- MapForge 示例源 `C:\MapForge\wwwroot\examples\double-layer-facility.json` 同步，SHA256 一致。Unity `6000.6.9f1` 执行 `DoubleLayerFacilityAuthoring.BuildAndPreview` 成功，场景生成/保存、重载验证及预览均通过；俯视和玩家视角已目视检查。预览：`C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\12-exterior-overview.png`、`13-exterior-player.png`。原地图源备份与日志在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\route-markings-20261119\`，场景备份由 Authoring 写入同级 `backup\`。
+- 未执行人工 PlayMode 刷怪观察或 Player 构建；本次验证覆盖地图源几何、场景重建/重载和静态预览。
+
 ## 双层设施四向飞行出怪（2026-11-19）
 
 - 移除原中轴飞行入口及旧装饰标记。新入口在正门外 `(±36,16,-130)`、后场物流区 `(±36,16,94)`，以 `X=0` 镜像。朝向核心上方 `(0,16,-18)`，沿用现有飞行控制和 2 m 出生散布。每条基准航线 117.64 m，速度 2.2 m/s。

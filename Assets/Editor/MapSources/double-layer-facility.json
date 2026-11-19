@@ -40734,12 +40734,12 @@
     "position": [
      -24.0,
      0.008,
-     -27.5
+     -64.0
     ],
     "scale": [
-     0.12,
+     0.18,
      0.016,
-     11.0
+     62.0
     ],
     "rotation": [
      0,
@@ -40747,7 +40747,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -40787,7 +40787,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -40827,7 +40827,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -40867,7 +40867,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -40907,7 +40907,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -40947,7 +40947,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -40987,7 +40987,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -41254,12 +41254,12 @@
     "position": [
      0.0,
      0.008,
-     -27.5
+     -64.0
     ],
     "scale": [
-     0.12,
+     0.18,
      0.016,
-     11.0
+     62.0
     ],
     "rotation": [
      0,
@@ -41267,7 +41267,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -41307,7 +41307,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -41347,7 +41347,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -41387,7 +41387,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -41654,12 +41654,12 @@
     "position": [
      24.0,
      0.008,
-     -27.5
+     -64.0
     ],
     "scale": [
-     0.12,
+     0.18,
      0.016,
-     11.0
+     62.0
     ],
     "rotation": [
      0,
@@ -41667,7 +41667,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -41707,7 +41707,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -41747,7 +41747,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -41787,7 +41787,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -41827,7 +41827,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -41867,7 +41867,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -41907,7 +41907,7 @@
      0
     ]
    },
-   "color": "#d4b348",
+   "color": "#f2c94c",
    "material": {
     "type": "standard",
     "roughness": 0.85,

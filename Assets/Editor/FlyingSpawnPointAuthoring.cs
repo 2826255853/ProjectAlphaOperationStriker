@@ -1,40 +1,15 @@
-using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
 /// <summary>
 /// Authoring helpers for the dedicated airborne enemy entrance.
-/// Creates the flying monster prefab and places a flying-only spawn point in the air.
+/// Places a flying-only spawn point configured to use the Hurricane Drone.
 /// </summary>
 public static class FlyingSpawnPointAuthoring
 {
-    public const string FlyingModelPath = "Assets/FlyingMonsterPlane.fbx";
-    public const string FlyingPrefabPath = "Assets/Resources/FlyingMonster.prefab";
     public const string FlyingSpawnName = "Enemy Spawn Flying";
     public const float DefaultEntranceAltitude = 14f;
-
-    [MenuItem("Tools/塔防/生成飞行怪物预制体")]
-    public static void CreateFlyingPrefab()
-    {
-        Directory.CreateDirectory("Assets/Resources");
-        var model = AssetDatabase.LoadAssetAtPath<GameObject>(FlyingModelPath);
-        if (model == null)
-        {
-            Debug.LogError($"找不到飞行怪物模型：{FlyingModelPath}");
-            return;
-        }
-
-        var instance = (GameObject)PrefabUtility.InstantiatePrefab(model);
-        instance.name = "FlyingMonster";
-        instance.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
-        instance.transform.localScale = Vector3.one;
-        PrefabUtility.SaveAsPrefabAsset(instance, FlyingPrefabPath);
-        Object.DestroyImmediate(instance);
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
-        Debug.Log($"已生成飞行怪物预制体：{FlyingPrefabPath}");
-    }
 
     [MenuItem("Tools/塔防/在场景中添加飞行出怪口")]
     public static void AddFlyingSpawnPoint()
@@ -50,7 +25,13 @@ public static class FlyingSpawnPointAuthoring
             return;
         }
 
-        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(FlyingPrefabPath);
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(HurricaneDroneAuthoring.EnemyPrefabPath);
+        if (prefab == null)
+        {
+            Debug.LogError($"找不到飓风无人机怪物预制体：{HurricaneDroneAuthoring.EnemyPrefabPath}");
+            return;
+        }
+
         var grid = Object.FindAnyObjectByType<MonsterPathGrid>();
         var core = Object.FindAnyObjectByType<EnemyCore>();
         Vector3 position = core != null
@@ -80,7 +61,7 @@ public static class FlyingSpawnPointAuthoring
         Debug.Log($"已在空中添加飞行出怪口：{FlyingSpawnName} @ {position}");
     }
 
-    /// <summary>Batch entry point: creates the prefab, then places the airborne entrance and saves the scene.</summary>
+    /// <summary>Batch entry point: places the airborne entrance and saves the scene.</summary>
     public static void CreateAssets()
     {
         const string scenePath = "Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity";
@@ -88,7 +69,6 @@ public static class FlyingSpawnPointAuthoring
         if (string.IsNullOrEmpty(scene.path))
             scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
 
-        CreateFlyingPrefab();
         AddFlyingSpawnPoint();
         EditorSceneManager.SaveScene(scene);
         Debug.Log("FlyingSpawnPointAuthoring.CreateAssets 完成");

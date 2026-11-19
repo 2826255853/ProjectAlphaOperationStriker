@@ -86,11 +86,11 @@ roadsideSteps[]    { platformId, position, axis, nearSideSign, length, width, he
 `MapForgeWorldImporter` 从 `gameplay.spawns[]` 建出的每个 `EnemySpawnPoint` 都**不写** `flyingEntrance`，所以导入结果里全是地面出怪口（`MonsterType.Ground`）。**空中出怪口不来自 JSON**，是导入完成后用编辑器脚本补的：
 
 ```
-FlyingSpawnPointAuthoring.CreateFlyingPrefab   # 生成 Assets/Resources/FlyingMonster.prefab
+HurricaneDroneAuthoring.CreateAll             # 生成 Assets/Resources/HurricaneDroneEnemy.prefab
 FlyingSpawnPointAuthoring.AddFlyingSpawnPoint  # 在 MapForgeWorld 下建 "Enemy Spawn Flying"
 ```
 
-**全量导入会覆盖整个场景及手工添加的出怪口。** 导入前记录该地图实际需要的手工对象，之后调用对应 Authoring 恢复并核对 diff。旧飞行怪入口用 `FlyingSpawnPointAuthoring`，无人机入口用 `HurricaneDroneSpawnAuthoring`；不要每次都恢复已被替换的旧入口，更不能给 geometry-only 场景补怪物。判重名称和逐波写入顺序见 [gameplay.md](gameplay.md)。
+**全量导入会覆盖整个场景及手工添加的出怪口。** 导入前记录该地图实际需要的手工对象，之后调用对应 Authoring 恢复并核对 diff。通用飞行入口用 `FlyingSpawnPointAuthoring`，主场景专用无人机波次用 `HurricaneDroneSpawnAuthoring`。判重名称和逐波写入顺序见 [gameplay.md](gameplay.md)。
 
 要长期保留飞行出怪口，要么每次导入后重建，要么把这一步并进导入流程（目前没有自动跑）。
 `openCells` 是一维布尔数组，长度 `columns * rows`，行主序。导入时它被逐格拷进 `MonsterPathGrid`；`segments` 则是把起点/终点 `TryWorldToCell` 后按 Bresenham 走线设为开格。

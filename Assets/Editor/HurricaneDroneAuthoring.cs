@@ -25,11 +25,11 @@ public static class HurricaneDroneAuthoring
     public const string PrefabPath = "Assets/Prefabs/HurricaneDrone.prefab";
     /// <summary>
     /// 可接入出怪口的飞行怪物预制体：表现预制体 + EnemyHealth / MonsterPathFollower(飞行) / HurricaneDroneEnemy。
-    /// 放在 Resources 下，和 FlyingMonster 一样能被 <c>Resources.Load</c> 按名字取到。
+    /// 放在 Resources 下，作为所有飞行出怪口的默认怪物。
     /// </summary>
-    public const string EnemyPrefabPath = "Assets/Resources/HurricaneDroneEnemy.prefab";
+    public const string EnemyPrefabPath = "Assets/Resources/" + EnemyPrefabResourceName + ".prefab";
     /// <summary>Resources.Load 用的资源名。</summary>
-    public const string EnemyPrefabResourceName = "HurricaneDroneEnemy";
+    public const string EnemyPrefabResourceName = EnemySpawnPoint.DefaultFlyingEnemyResourceName;
 
     // 飞行怪物默认参数（与空中出怪口的飞行分支一致：不走 MonsterPathGrid）
     public const float EnemyMaxHealth = 260f;

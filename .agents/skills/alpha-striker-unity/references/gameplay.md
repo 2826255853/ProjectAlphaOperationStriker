@@ -24,17 +24,17 @@
 - 怪物原型用 `MonsterType` 区分（`Ground = 0` / `Flying = 1`）。`EnemyInstance.MonsterType` 决定伤害走哪条路径。
 - 飞行移动由 `MonsterPathFollower.InitializeFlying(target, fallbackTarget, speed, height, core)` 开启；`IsFlying` 为真时 `TargetPosition` 直接取目标 Y + `flightHeight`，**不做网格寻路、不做地面投影**。
 - 出怪口由 `EnemySpawnPoint` 的两个字段控制：`flyingEntrance`（只产飞行怪，且自身会在运行时被抬到空中）与 `entranceAltitude`（世界 Y，默认 12）。生成时另有 `flyingSpawnSpread` 做水平随机散布。
-- 相关编辑器入口在 `FlyingSpawnPointAuthoring`：`CreateFlyingPrefab`（生成 `Assets/Resources/FlyingMonster.prefab`）、`AddFlyingSpawnPoint`（在 `MapForgeWorld` 下创建名为 `Enemy Spawn Flying` 的空中出怪口）、`CreateAssets`（两者 + 存场景，可批处理）。
+- `HurricaneDroneAuthoring.CreateAll` 生成默认飞行怪物 `Assets/Resources/HurricaneDroneEnemy.prefab`。`FlyingSpawnPointAuthoring.AddFlyingSpawnPoint` 在 `MapForgeWorld` 下创建名为 `Enemy Spawn Flying` 的通用空中出怪口，`CreateAssets` 可批处理创建入口并保存场景。
 - 空中出怪口的**名字固定为 `Enemy Spawn Flying`**，`AddFlyingSpawnPoint` 靠它判重（已存在就跳过）。改名会造出第二个出怪口。
 
 改飞行怪物时容易踩的两个坑：
 
 1. **不要给飞行怪加 `GroundEnemyCombat`。** 近战追击依赖网格可达性，飞行怪应在战斗中缺席（`FlyingSpawnPointTests.FlyingEntranceSpawnsAirborneMonsters` 会断言 `GroundEnemyCombat == null`）。
-2. **不要给飞行怪写死 Prefab 引用。** `EnemySpawnPoint` 在 `enemyPrefab` 为空时用 `Resources.Load<GameObject>("FlyingMonster")` 兜底，所以预制体必须待在 `Assets/Resources/` 下。移动或改名要同步 `FlyingMonsterResourcePath`。
+2. **沿用飓风无人机预制体。** 飞行出怪口未设置逐波或入口预制体时，`EnemySpawnPoint` 用 `DefaultFlyingEnemyResourceName` 从 Resources 加载。双层设施的生成器为四个飞行入口和逐波条目显式指定同一预制体。
 
 覆盖这两点的编辑期测试：`Assets/Editor/FlyingSpawnPointTests.cs`、`Assets/Editor/GroundEnemyCombatTests.cs`（真机跑法见 [references/unity-editor.md](unity-editor.md)）。
 
-### 飓风无人机 = 第二种飞行怪物（2026-10-30 新增）
+### 飓风无人机（默认飞行怪物）
 
 无人机（`Assets/Models/HurricaneDrone/HurricaneDrone.fbx`，美术交付说明在 `Assets/Editor/HURRICANE_DRONE_HANDOFF.md`）现在既是表现预制体，也是一套**完整的飞行怪物**：
 
@@ -42,7 +42,7 @@
 - `Assets/Scripts/TowerDefense/HurricaneDroneEnemy.cs` 是玩法层：按位移/偏航切 `FlyForward`/`BankTurn`/`Hover`（攻击态不抢），索敌后悬停播 `HD_Attack`，`OnGunFire` 动画事件逐发结算（陷阱 `TrapInstance.TakeDamage`、玩家 `PlayerHealth.TakeDamage`），不造弹丸、不套 `MissileAimSolver`。位移仍只有 `InitializeFlying` 一条分支。
 - **悬停开火必须 `follower.enabled = false`**：`CombatMovementPaused` 只在 `followingCombatPath` 时生效，对飞行分支无效；而 follower 的 Update 会朝航点转体，与开火朝向互相抢。
 - 出怪口由 `Assets/Editor/HurricaneDroneSpawnAuthoring.cs` 幂等维护（场景对象 `Enemy Spawn Flying Drone`，挂在 `MapForgeWorld` 下）。**坑**：`ApplyModifiedProperties` 会触发 `EnemySpawnPoint.OnValidate → EnsureWaveSpawnData`，用当时的 `enemiesPerWave`（默认 10）补默认逐波条目，所以逐波设置要在基础字段之后用第二遍 `SerializedObject` 重写。
-- 校验入口：`HurricaneDroneAuthoring.ProbeEnemyPrefabBatch`（`HURRICANE_DRONE_ENEMY_PASS`）、`HurricaneDroneSpawnAuthoring.ValidateBatch`（`HURRICANE_DRONE_SPAWN_PASS`）。当前主场景里没有旧的 `Enemy Spawn Flying`，空中出怪口只有无人机这一个。
+- 校验入口：`HurricaneDroneAuthoring.ProbeEnemyPrefabBatch`（`HURRICANE_DRONE_ENEMY_PASS`）、`HurricaneDroneSpawnAuthoring.ValidateBatch`（`HURRICANE_DRONE_SPAWN_PASS`）校验脚本创建的专用入口。当前主场景保存了三个地面入口，双层设施保存了四个飓风无人机入口。
 
 ### 陷阱菜单锁定玩家视角（2026-09 新增）
 

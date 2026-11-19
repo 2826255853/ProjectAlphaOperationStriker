@@ -70,7 +70,7 @@ Step 3 - 交互/验收：需要的 UI、预览和旧功能回归；注明未覆�
 
 - 写什么：Blender 源文件与自动备份（`*.blend` / `*.blend1` / `*.blend2`）、临时导出的 `*.fbx` / `*.obj` / `*.glb`、贴图与烘焙结果、预览图与试渲染、一次性清单/日志，以及只为这次陷阱写的一次性脚本（含 Blender 的 `*.py`）。
 - 怎么放：按陷阱名建子目录（如 `陷阱素材文件夹\Flamethrower\`），同一陷阱的源文件、导出件、预览图都放这个子目录里；目录不存在就直接创建，**不要**退而写到仓库根目录或 `Temp`。
-- 什么才进仓库：只有**定稿**资源，即模型 `Assets/Models/<TrapName>/*.fbx`（含贴图）、最终预制体与陷阱定义（飞行怪物那套在 `Assets/Resources/`，双联导弹发射器在 `Assets/Prefabs/DualMissileLauncher.prefab` + `Assets/Resources/DualMissileLauncherLoaded.asset` + `Assets/TrapDefinitions/DualMissileLauncherLoaded.asset`），以及导入生成的材质库 `Assets/MapForgeMaterials/<场景名哈希>/`（生成物但被跟踪，见 [references/mapforge-pipeline.md](references/mapforge-pipeline.md)）。已有 `const string` 引用的路径（如 `FlyingSpawnPointAuthoring.FlyingModelPath`、`MissileLauncherTurretAuthoring.LauncherModelPath`）不要顺手搬家。
+- 什么才进仓库：只有**定稿**资源，即模型 `Assets/Models/<TrapName>/*.fbx`（含贴图）、最终预制体与陷阱定义（飞行怪物那套在 `Assets/Resources/`，双联导弹发射器在 `Assets/Prefabs/DualMissileLauncher.prefab` + `Assets/Resources/DualMissileLauncherLoaded.asset` + `Assets/TrapDefinitions/DualMissileLauncherLoaded.asset`），以及导入生成的材质库 `Assets/MapForgeMaterials/<场景名哈希>/`（生成物但被跟踪，见 [references/mapforge-pipeline.md](references/mapforge-pipeline.md)）。已有 `const string` 引用的路径（如 `HurricaneDroneAuthoring.ModelPath`、`MissileLauncherTurretAuthoring.LauncherModelPath`）不要顺手搬家。
 - 汇报时给出该文件夹下的完整绝对路径，用户要能直接点开看预览图。
 - 与第 2 条规范的配合：修改共用 `.blend` 前先把副本备份到该文件夹的对应子目录，再用 `bpy.ops.render.render(write_still=True)` 把预览图输出到同一子目录。
 

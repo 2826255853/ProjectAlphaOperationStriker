@@ -56,7 +56,7 @@ scripts/run-unity-method.ps1 检查基础日志条件：0 = 日志确认成功�
 | Tools/Map/Place Symmetric Gameplay Ladders | `PlaceGameplayLadders.Place` | 是 |
 | Tools/Generate Gameplay Ladder Prefab | `GenerateLadderPrefab.Generate` | 是 |
 | Tools/Test Monster/Create Prefab | `CreateTestMonsterPrefab.Create` | 是 |
-| Tools/塔防/生成飞行怪物预制体 | `FlyingSpawnPointAuthoring.CreateFlyingPrefab` | 是 |
+| Tools/塔防/生成飓风无人机预制体 | `HurricaneDroneAuthoring.CreateAll` | 是 |
 | Tools/塔防/在场景中添加飞行出怪口 | `FlyingSpawnPointAuthoring.AddFlyingSpawnPoint` | 是 |
 | （无菜单，批处理专用） | `FlyingSpawnPointAuthoring.CreateAssets` | 是 |
 | MapForge/Redesign map with ceiling trap arches | `RedesignMapWithCeilingArches.Build` | 是 |

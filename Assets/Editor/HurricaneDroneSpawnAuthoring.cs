@@ -6,8 +6,8 @@ using UnityEngine;
 /// 把飓风无人机作为飞行怪物接入主场景：创建/刷新空中出怪口 <see cref="SpawnName"/>。
 ///
 /// 与 <see cref="FlyingSpawnPointAuthoring"/> 的分工：
-///   * 那边管的是默认飞行怪（Resources/FlyingMonster，飞机模型）与固定入口名 "Enemy Spawn Flying"；
-///   * 这里只新增一个**独立的**空中出怪口，专门放飓风无人机，不改动既有入口。
+///   * 通用入口使用固定名称 "Enemy Spawn Flying"。
+///   * 这里维护带主场景专用波次配置的 "Enemy Spawn Flying Drone" 入口。
 ///
 /// 出怪口的字段全部由脚本写入（EnemySpawnPoint 的字段是私有的序列化字段），
 /// 所以重复运行只会刷新接线，不会重复建对象。

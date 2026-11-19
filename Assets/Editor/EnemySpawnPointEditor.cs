@@ -149,8 +149,8 @@ public sealed class EnemySpawnPointEditor : Editor
                 GameObject flyingPrefab = EnemySpawnPoint.GetFlyingMonsterPrefab();
                 EditorGUILayout.HelpBox(
                     flyingPrefab != null
-                        ? "未指定预制体：将使用 Assets/Resources/FlyingMonster.prefab。"
-                        : "未指定预制体，且未找到 Assets/Resources/FlyingMonster.prefab：请先执行 菜单 Tools/塔防/生成飞行怪物预制体。",
+                        ? $"未指定预制体，将使用 {HurricaneDroneAuthoring.EnemyPrefabPath}。"
+                        : $"未指定预制体，且未找到 {HurricaneDroneAuthoring.EnemyPrefabPath}。请执行 Tools/塔防/生成飓风无人机预制体。",
                     flyingPrefab != null ? MessageType.Info : MessageType.Warning);
             }
             EditorGUI.indentLevel--;

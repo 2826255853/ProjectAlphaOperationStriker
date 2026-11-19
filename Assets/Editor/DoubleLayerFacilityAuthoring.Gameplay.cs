@@ -40,9 +40,9 @@ public static partial class DoubleLayerFacilityAuthoring
             CreateFacilityDefenseGrid(gameplay.transform, lanes, pad);
 
         var groundPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(MaskedSoldierAuthoring.PrefabPath);
-        var flyingPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(FlyingSpawnPointAuthoring.FlyingPrefabPath);
+        var flyingPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(HurricaneDroneAuthoring.EnemyPrefabPath);
         if (groundPrefab == null || flyingPrefab == null)
-            throw new InvalidOperationException("Facility requires the existing MaskedSoldier and FlyingMonster prefabs.");
+            throw new InvalidOperationException("Facility requires the existing MaskedSoldier and HurricaneDroneEnemy prefabs.");
         var authored = document.objects.Where(node => node.id.StartsWith("route-cargo-", StringComparison.Ordinal))
             .ToDictionary(node => node.id);
 
@@ -229,14 +229,22 @@ public static partial class DoubleLayerFacilityAuthoring
         };
         Vector3 reference = rotation.FrontLeft.transform.position - core.Position;
         float referenceSpeed = rotation.FrontLeft.MoveSpeed;
-        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(FlyingSpawnPointAuthoring.FlyingPrefabPath);
-        var probe = prefab != null ? PrefabUtility.InstantiatePrefab(prefab) as GameObject : null;
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(HurricaneDroneAuthoring.EnemyPrefabPath);
+        if (prefab == null || !prefab.TryGetComponent<HurricaneDroneEnemy>(out _))
+            throw new InvalidOperationException("The facility air routes require the Hurricane Drone enemy prefab.");
+        var probe = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
         if (probe == null) throw new InvalidOperationException("Could not measure the flying monster prefab.");
         try
         {
             foreach (var (id, rear, right, padId) in routes)
             {
                 var entrance = air[id];
+                var waves = new SerializedObject(entrance).FindProperty("waveSpawnSettings");
+                if (entrance.EnemyPrefab != prefab || waves.arraySize != entrance.TotalWaves ||
+                    Enumerable.Range(0, waves.arraySize).Any(index => waves.GetArrayElementAtIndex(index)
+                        .FindPropertyRelative("enemyPrefab").objectReferenceValue != prefab))
+                    throw new InvalidOperationException("Invalid Hurricane Drone prefab configuration: " + id);
+
                 Vector3 start = entrance.transform.position;
                 Vector3 expectedOffset = new Vector3(right ? -reference.x : reference.x, reference.y,
                     rear ? -reference.z : reference.z);
