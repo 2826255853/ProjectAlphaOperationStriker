@@ -62,6 +62,7 @@ namespace TowerDefense
 
         float _smoothYawRate;
         float _yawDamp;
+        float _pendingMouseYawDegrees;
 
         // 旋翼名与 QuadcopterDroneAuthoring 保持一致
         static readonly string[] RotorNames = { "Rotor_FL", "Rotor_FR", "Rotor_RL", "Rotor_RR" };
@@ -100,15 +101,14 @@ namespace TowerDefense
         void ReadInputAndDrive()
         {
             var kb = Keyboard.current;
-            if (kb == null) return;
 
             // 三轴原始输入（本地坐标）
-            var inputX = (kb.dKey.isPressed ? 1f : 0f) - (kb.aKey.isPressed ? 1f : 0f);
-            var inputY = (kb.shiftKey.isPressed ? 1f : 0f) - (kb.ctrlKey.isPressed ? 1f : 0f);
-            var inputZ = (kb.wKey.isPressed ? 1f : 0f) - (kb.sKey.isPressed ? 1f : 0f);
+            var inputX = kb == null ? 0f : (kb.dKey.isPressed ? 1f : 0f) - (kb.aKey.isPressed ? 1f : 0f);
+            var inputY = kb == null ? 0f : (kb.shiftKey.isPressed ? 1f : 0f) - (kb.ctrlKey.isPressed ? 1f : 0f);
+            var inputZ = kb == null ? 0f : (kb.wKey.isPressed ? 1f : 0f) - (kb.sKey.isPressed ? 1f : 0f);
 
             // 偏航原始输入
-            var inputYaw = (kb.eKey.isPressed ? 1f : 0f) - (kb.qKey.isPressed ? 1f : 0f);
+            var inputYaw = kb == null ? 0f : (kb.eKey.isPressed ? 1f : 0f) - (kb.qKey.isPressed ? 1f : 0f);
 
             // ── 速度平滑 ──
             var targetLocalVel = new Vector3(
@@ -143,8 +143,15 @@ namespace TowerDefense
                 yawSmoothTime
             );
 
-            // angularVelocity 单位是 rad/s
-            _rb.angularVelocity = new Vector3(0f, _smoothYawRate * Mathf.Deg2Rad, 0f);
+            // The physics controller is the sole owner of root rotation, including interpolated pose updates.
+            var yawDelta = _pendingMouseYawDegrees + _smoothYawRate * Time.fixedDeltaTime;
+            _pendingMouseYawDegrees = 0f;
+            _rb.MoveRotation(_rb.rotation * Quaternion.Euler(0f, yawDelta, 0f));
+        }
+
+        public void QueueMouseYaw(float degrees)
+        {
+            _pendingMouseYawDegrees += degrees;
         }
 
         // ── 旋翼动画 ──────────────────────────────────────────────

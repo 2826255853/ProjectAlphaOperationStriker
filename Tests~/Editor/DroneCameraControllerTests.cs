@@ -187,6 +187,41 @@ public class DroneCameraControllerTests
             "Yaw 应随鼠标 X delta 增加");
     }
 
+    [Test]
+    public void Yaw_WithInterpolatedRigidbody_IsAppliedByFlightPhysics()
+    {
+        Object.DestroyImmediate(droneGo);
+        droneGo = new GameObject("InterpolatedDroneTest");
+        var body = droneGo.AddComponent<Rigidbody>();
+        body.interpolation = RigidbodyInterpolation.Interpolate;
+        var flight = droneGo.AddComponent<TowerDefense.QuadcopterFlightController>();
+        flight.enabled = true;
+        typeof(TowerDefense.QuadcopterFlightController)
+            .GetMethod("Awake", BindingFlags.NonPublic | BindingFlags.Instance)
+            ?.Invoke(flight, null);
+        pivotGo = new GameObject("Camera_Gimbal");
+        pivotGo.transform.SetParent(droneGo.transform, worldPositionStays: false);
+        controller = droneGo.AddComponent<DroneCameraController>();
+        StepAwake(controller);
+
+        SetDelta(new Vector2(-100f, 0f));
+        StepUpdate(controller);
+
+        Assert.That(controller.CurrentYaw, Is.EqualTo(0f).Within(0.01f),
+            "Interpolated Rigidbody root should not be rotated directly by the camera update");
+
+        typeof(TowerDefense.QuadcopterFlightController)
+            .GetMethod("FixedUpdate", BindingFlags.NonPublic | BindingFlags.Instance)
+            ?.Invoke(flight, null);
+
+        var pendingMouseYaw = typeof(TowerDefense.QuadcopterFlightController)
+            .GetField("_pendingMouseYawDegrees", BindingFlags.NonPublic | BindingFlags.Instance);
+        Assert.That(pendingMouseYaw.GetValue(flight), Is.EqualTo(0f).Within(0.001f),
+            "Physics update should consume the mouse yaw delta");
+        Assert.That(body.rotation.eulerAngles.y, Is.EqualTo(348f).Within(0.01f),
+            "Physics update should apply the 12-degree mouse-left yaw to the Rigidbody");
+    }
+
     /// <summary>鼠标向上推 100 单位，摄像头应从默认俯视姿态抬高约 12°。</summary>
     [Test]
     public void Pitch_IncreasesByMouseYTimesSensitivity()

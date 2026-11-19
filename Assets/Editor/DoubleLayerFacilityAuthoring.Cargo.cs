@@ -22,6 +22,10 @@ public static partial class DoubleLayerFacilityAuthoring
             VisitCargoRoute("route-cargo-upper-" + side + "-start", new List<string>(), authored, instances, rearReports);
         Debug.Log($"FACILITY_REAR_ROUTES_PASS: {rearReports.Count} routes from the rear perimeter through the upper loading doors to the core corridor; " +
             $"{rearReports.Min(route => route.lengthMeters):F2}..{rearReports.Max(route => route.lengthMeters):F2} m.");
+        var pumpReports = new List<CargoRouteReport>();
+        VisitCargoRoute("route-cargo-pump-start", new List<string>(), authored, instances, pumpReports);
+        Debug.Log($"FACILITY_PUMP_ROUTES_PASS: {pumpReports.Count} routes from the pump intake through the west doorway; " +
+            $"{pumpReports.Min(route => route.lengthMeters):F2}..{pumpReports.Max(route => route.lengthMeters):F2} m.");
         var reports = new List<CargoRouteReport>();
         foreach (string entrance in new[] { "left", "middle", "right" })
         {
@@ -37,7 +41,7 @@ public static partial class DoubleLayerFacilityAuthoring
         Directory.CreateDirectory(OutputDirectory);
         File.WriteAllText(Path.Combine(OutputDirectory, "cargo-geometry-validation.json"),
             JsonUtility.ToJson(new CargoValidationReport { routes = reports.ToArray(), rearRoutes = rearReports.ToArray(),
-                shortestMeters = shortest, longestMeters = longest }, true));
+                pumpRoutes = pumpReports.ToArray(), shortestMeters = shortest, longestMeters = longest }, true));
         Debug.Log($"FACILITY_CARGO_ROUTES_PASS: {reports.Count} authored geometry routes, {shortest:F2}..{longest:F2} m; " +
             "8 x 12 x 4.2 m proxy with 0.6 m headroom, full footprint support and swept turns. No runtime AI pathfinding claim.");
     }
@@ -56,7 +60,7 @@ public static partial class DoubleLayerFacilityAuthoring
     {
         var pads = UnityEngine.Object.FindObjectsByType<MapForgeObjectProperties>(FindObjectsSortMode.None)
             .Where(item => item.tags != null && item.tags.Contains("defense-reservation")).ToArray();
-        if (pads.Length != 24) throw new InvalidOperationException("Expected 24 interior, front yard and rear yard defense reservations.");
+        if (pads.Length != 27) throw new InvalidOperationException("Expected 27 facility defense reservations.");
         float area = 0f;
         foreach (var pad in pads)
         {
@@ -177,6 +181,7 @@ public static partial class DoubleLayerFacilityAuthoring
         public float shortestMeters, longestMeters;
         public CargoRouteReport[] routes;
         public CargoRouteReport[] rearRoutes;
+        public CargoRouteReport[] pumpRoutes;
     }
 
     private static void RenderExpansionPreviews(Camera camera, RenderTexture target)

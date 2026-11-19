@@ -7,6 +7,8 @@ using UnityEngine;
 
 public static partial class DoubleLayerFacilityAuthoring
 {
+    private const string PumpSpawnId = "enemy-spawn-pump";
+
     // Gameplay is applied after the geometry import so the facility keeps its
     // authored multi-storey cargo routes instead of a flat imported path grid.
     private static void ConfigureFacilityGameplay(GameObject world)
@@ -84,7 +86,24 @@ public static partial class DoubleLayerFacilityAuthoring
                 entrance.gameObject.AddComponent<AuthoredMonsterRoute>().Configure(branches.ToArray());
             }
         }
+        ConfigurePumpIntake(instances);
         Physics.SyncTransforms();
+    }
+
+    private static void ConfigurePumpIntake(Dictionary<string, MapForgeObjectProperties> instances)
+    {
+        var entrance = instances[PumpSpawnId].GetComponent<EnemySpawnPoint>();
+        var rear = instances["enemy-spawn-upper-left"].GetComponent<EnemySpawnPoint>();
+        var shutter = instances["wing-pump-shutter"].transform;
+        var panel = instances["wing-pump-shutter-panel"].GetComponentInChildren<Renderer>();
+        var beacon = instances["wing-pump-beacon"].GetComponentInChildren<Renderer>();
+        var warning = beacon.transform.parent.gameObject.AddComponent<AudioSource>();
+        warning.playOnAwake = false;
+        warning.spatialBlend = 1f;
+        warning.minDistance = 12f;
+        warning.maxDistance = 70f;
+        warning.rolloffMode = AudioRolloffMode.Linear;
+        entrance.gameObject.AddComponent<FacilityPumpIntake>().Configure(entrance, rear, shutter, panel, beacon, warning);
     }
 
     private static void ValidateFacilityGameplay(GameObject world)
@@ -94,11 +113,11 @@ public static partial class DoubleLayerFacilityAuthoring
         var grids = world.GetComponentsInChildren<TrapPlacementGrid>(true);
         var pads = world.GetComponentsInChildren<MapForgeObjectProperties>(true)
             .Where(item => item.tags != null && item.tags.Contains("defense-reservation")).ToArray();
-        if (cores.Length != 1 || entrances.Length != 6 || entrances.Count(item => item.IsFlyingEntrance) != 1)
-            throw new InvalidOperationException("Facility requires one core, five ground entrances and one flying entrance.");
-        if (grids.Length != pads.Length || grids.Length < 24)
+        if (cores.Length != 1 || entrances.Length != 7 || entrances.Count(item => item.IsFlyingEntrance) != 1)
+            throw new InvalidOperationException("Facility requires one core, six ground entrances and one flying entrance.");
+        if (grids.Length != pads.Length || grids.Length < 27)
             throw new InvalidOperationException("Every facility defense reservation requires a usable placement grid.");
-        int exteriorCells = 0, rearCells = 0, allCells = 0;
+        int exteriorCells = 0, rearCells = 0, wingCells = 0, allCells = 0;
         var lanes = world.GetComponentInChildren<MonsterPathGrid>();
         foreach (var grid in grids)
         {
@@ -118,9 +137,10 @@ public static partial class DoubleLayerFacilityAuthoring
             }
             if (count == 0) throw new InvalidOperationException("Empty facility placement grid: " + grid.name);
             bool rearPad = grid.name.Contains("rear-defense-");
+            bool outerWingPad = grid.name.Contains("wing-defense-") && grid.name.EndsWith("-apron", StringComparison.Ordinal);
             var definition = Resources.Load<TrapDefinition>(grid.name.Contains("exterior-aa-")
                 ? "DualMissileLauncherLoaded"
-                : (grid.name.Contains("exterior-defense-") || rearPad) ? "XM777" : "AutoSentryTurret");
+                : (grid.name.Contains("exterior-defense-") || rearPad || outerWingPad) ? "XM777" : "AutoSentryTurret");
             if (definition == null) throw new InvalidOperationException("Facility defense trap definition is missing.");
             bool canPlace = false;
             for (int y = 0; y < grid.Rows && !canPlace; y++)
@@ -133,13 +153,15 @@ public static partial class DoubleLayerFacilityAuthoring
             allCells += count;
             if (grid.name.Contains("exterior-")) exteriorCells += count;
             if (rearPad) rearCells += count;
+            if (grid.name.Contains("wing-defense-")) wingCells += count;
         }
         foreach (var entrance in entrances)
         {
             if (!entrance.SpawningEnabled || entrance.Core != cores[0] || entrance.EnemyPrefab == null)
                 throw new InvalidOperationException("Facility entrance is not configured: " + entrance.name);
             if (entrance.IsFlyingEntrance) continue;
-            bool rear = entrance.GetComponent<MapForgeObjectProperties>().objectId.StartsWith("enemy-spawn-upper-", StringComparison.Ordinal);
+            string id = entrance.GetComponent<MapForgeObjectProperties>().objectId;
+            bool rear = id.StartsWith("enemy-spawn-upper-", StringComparison.Ordinal);
             var mission = entrance.GetComponent<AuthoredMonsterRoute>();
             if (mission == null || mission.Routes.Count != (rear ? 1 : 2))
                 throw new InvalidOperationException("Ground entrance has an unexpected number of cargo branches: " + entrance.name);
@@ -147,6 +169,12 @@ public static partial class DoubleLayerFacilityAuthoring
                 !entrance.IsWaveEnabled(2) || entrance.GetEnemiesPerWave(2) != 1 ||
                 !entrance.IsWaveEnabled(3) || entrance.GetEnemiesPerWave(3) != 2))
                 throw new InvalidOperationException("Rear entrance must face the factory and join in waves two and three: " + entrance.name);
+            if (id == PumpSpawnId && (entrance.TravelDirection != Vector3.right || entrance.IsWaveEnabled(1) ||
+                entrance.IsWaveEnabled(2) || !entrance.IsWaveEnabled(3) || entrance.GetEnemiesPerWave(3) != 2 ||
+                entrance.GetComponent<FacilityPumpIntake>() == null))
+                throw new InvalidOperationException("Pump intake must move two third-wave enemies through the shutter.");
+            if (id == "enemy-spawn-left" && entrance.IsWaveEnabled(3))
+                throw new InvalidOperationException("The pump intake replaces the front-left entrance in wave three.");
             for (int i = 1; i <= mission.Routes.Count; i++)
             {
                 var route = mission.GetRoute(i, cores[0]);
@@ -175,7 +203,7 @@ public static partial class DoubleLayerFacilityAuthoring
         Debug.Log($"FACILITY_WEAPON_COVERAGE_PASS: platform centers cover the flight corridor with the real launcher range " +
             $"{launcher.DetectionRange:F1}m; current sentry prefab range {sentry.DetectionRange:F1}m.");
         Debug.Log($"FACILITY_GAMEPLAY_PASS: {entrances.Length} entrances, {grids.Length} placement grids, " +
-            $"{exteriorCells} front yard / {rearCells} rear yard / {allCells} total usable 1m cells; flying horizontal approach {distance:F2}m, " +
+            $"{exteriorCells} front yard / {rearCells} rear yard / {wingCells} side wings / {allCells} total usable 1m cells; flying horizontal approach {distance:F2}m, " +
             $"{distance / air.MoveSpeed:F2}s at {air.MoveSpeed:F2}m/s. Ground missions use authored ramp heights.");
     }
 
@@ -188,6 +216,8 @@ public static partial class DoubleLayerFacilityAuthoring
         Bounds worldBounds = exterior;
         worldBounds.Encapsulate(slab);
         worldBounds.Encapsulate(instances["rear-service-foundation"].GetComponentInChildren<Renderer>().bounds);
+        foreach (string side in new[] { "left", "right" })
+            worldBounds.Encapsulate(instances["wing-" + side + "-slab"].GetComponentInChildren<Renderer>().bounds);
         var go = new GameObject("Facility Exterior Monster Lanes");
         go.transform.SetParent(parent, false);
         go.transform.position = new Vector3(worldBounds.min.x, 0f, worldBounds.min.z);
@@ -204,6 +234,8 @@ public static partial class DoubleLayerFacilityAuthoring
             instances["enemy-spawn-middle"].transform.position.x, instances["enemy-spawn-right"].transform.position.x };
         var rearApproaches = new[] { "left", "right" }.Select(side =>
             instances["route-cargo-upper-" + side + "-ramp-toe"].transform.position).ToArray();
+        var pumpApproach = new[] { "start", "shutter", "apron", "door" }.Select(node =>
+            instances["route-cargo-pump-" + node].transform.position).ToArray();
         for (int y = 0; y < lanes.Rows; y++)
         for (int x = 0; x < lanes.Columns; x++)
         {
@@ -211,9 +243,23 @@ public static partial class DoubleLayerFacilityAuthoring
             Vector3 center = lanes.CellToWorld(cell);
             bool frontLane = center.z <= entranceZ && centers.Any(lane => Mathf.Abs(center.x - lane) < 6f);
             bool rearLane = rearApproaches.Any(toe => center.z >= toe.z && Mathf.Abs(center.x - toe.x) < 6f);
-            lanes.SetOpen(cell, frontLane || rearLane);
+            bool pumpLane = center.x < slab.min.x && InPumpApproach(center, pumpApproach);
+            lanes.SetOpen(cell, frontLane || rearLane || pumpLane);
         }
         return lanes;
+    }
+
+    private static bool InPumpApproach(Vector3 point, Vector3[] approach)
+    {
+        const float halfWidth = 4f;
+        for (int i = 1; i < approach.Length; i++)
+        {
+            Vector3 start = approach[i - 1];
+            Vector3 delta = approach[i] - start;
+            float along = Mathf.Clamp01(Vector3.Dot(point - start, delta) / delta.sqrMagnitude);
+            if ((point - (start + along * delta)).sqrMagnitude < halfWidth * halfWidth) return true;
+        }
+        return false;
     }
 
     private static void CreateFacilityDefenseGrid(Transform parent, MonsterPathGrid lanes, MapForgeObjectProperties pad)

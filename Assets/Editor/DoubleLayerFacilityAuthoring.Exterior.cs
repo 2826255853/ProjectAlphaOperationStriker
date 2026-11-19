@@ -16,6 +16,18 @@ public static partial class DoubleLayerFacilityAuthoring
             Vector3.Distance(renderer.bounds.center, new Vector3(0f, -.25f, -72f)) > .02f)
             throw new InvalidOperationException("Exterior yard must measure 96 x 64 m, centered at z=-72.");
 
+        foreach (float side in new[] { -1f, 1f })
+        {
+            string id = side < 0f ? "wing-left-slab" : "wing-right-slab";
+            Bounds wing = objects[id].GetComponentInChildren<Renderer>().bounds;
+            if (Vector3.Distance(wing.size, new Vector3(32f, .5f, 96f)) > .02f ||
+                Vector3.Distance(wing.center, new Vector3(side * 60f, -.25f, 8f)) > .02f)
+                throw new InvalidOperationException("Invalid wing slab dimensions: " + id);
+            foreach (float x in new[] { 43.9f, 44.1f, 74f })
+            foreach (float z in new[] { -39f, 39f, 55f })
+                RequireExteriorSupport(new Vector3(side * x, 0f, z));
+        }
+
         foreach (float x in new[] { -46f, -24f, 0f, 24f, 46f })
         foreach (float z in new[] { -102f, -92f, -82f })
             RequireExteriorSupport(new Vector3(x, 0f, z));
@@ -50,6 +62,7 @@ public static partial class DoubleLayerFacilityAuthoring
         Debug.Log("FACILITY_EXTERIOR_PASS: 96 x 64 m supported yard, eight 6 x 8 m ground pads, " +
             "two 12 x 10 m AA platforms, actual FPS capsule walked both ramps and crossed the entrance apron.");
         Debug.Log("FACILITY_REAR_WALK_PASS: actual FPS capsule walked both side roads, both freight ramps in both directions and the upper crosswalk.");
+        Debug.Log("FACILITY_WING_WALK_PASS: actual FPS capsule crossed the pump hall and west balcony, and walked the east steel stair to the control cab and upper corridor in both directions.");
     }
 
     private static void RequireExteriorSupport(Vector3 expected)
@@ -119,8 +132,33 @@ public static partial class DoubleLayerFacilityAuthoring
                 WalkTo(controller, new Vector3(-lane, UpperFloorHeight, 63f), "upper service crosswalk");
                 WalkTo(controller, new Vector3(-lane, 0f, 116f), "rear freight ramp descent");
             }
+
+            WalkWingRoute(controller, "west pump hall access", new Vector3(-31f, 0f, 12f),
+                new Vector3(-49f, 0f, 12f), new Vector3(-53f, 0f, 12f));
+            WalkWingRoute(controller, "west valve gallery", new Vector3(-31f, UpperFloorHeight, 17.5f),
+                new Vector3(-41f, UpperFloorHeight, 17.5f));
+            WalkWingRoute(controller, "east workshop door", new Vector3(27f, 0f, 11.2f),
+                new Vector3(46f, 0f, 11.2f));
+            WalkWingRoute(controller, "east external steel stair", new Vector3(54f, 0f, 23.5f),
+                new Vector3(54f, HalfStairHeight, 33.45f), new Vector3(50.8f, HalfStairHeight, 33.45f),
+                new Vector3(50.8f, UpperFloorHeight, 23.5f), new Vector3(39.2f, UpperFloorHeight, 23.5f),
+                new Vector3(39.2f, UpperFloorHeight, 28f));
+            WalkWingRoute(controller, "east bridge to upper corridor", new Vector3(49f, UpperFloorHeight, 23.5f),
+                new Vector3(31f, UpperFloorHeight, 23.5f), new Vector3(31f, UpperFloorHeight, 33f));
         }
         finally { UnityEngine.Object.DestroyImmediate(probe); }
+    }
+
+    private static void WalkWingRoute(CharacterController controller, string label, params Vector3[] route)
+    {
+        controller.enabled = false;
+        controller.transform.position = route[0] + Vector3.up * .05f;
+        controller.enabled = true;
+        Physics.SyncTransforms();
+        for (int i = 1; i < route.Length; i++)
+            WalkTo(controller, route[i], label + " outbound segment " + i);
+        for (int i = route.Length - 2; i >= 0; i--)
+            WalkTo(controller, route[i], label + " return segment " + i);
     }
 
     private static void RenderExteriorPreviews(Camera camera, RenderTexture target)
@@ -139,5 +177,16 @@ public static partial class DoubleLayerFacilityAuthoring
         camera.fieldOfView = 68f;
         RenderShot(camera, target, new Vector3(-28f, 2.8f, 123f), new Vector3(-27f, 7f, 54f), "16-rear-freight-approach.png");
         RenderShot(camera, target, new Vector3(13f, 8.3f, 63f), new Vector3(27f, 7.7f, 55f), "17-rear-loading-door.png");
+    }
+
+    private static void RenderWingPreviews(Camera camera, RenderTexture target)
+    {
+        camera.farClipPlane = 420f;
+        camera.fieldOfView = 57f;
+        RenderShot(camera, target, new Vector3(115f, 176f, -122f), new Vector3(0f, 0f, 9f), "18-wing-site-overview.png");
+        camera.fieldOfView = 64f;
+        RenderShot(camera, target, new Vector3(-82f, 30f, -38f), new Vector3(-48f, 2f, 7f), "19-cooling-wing.png");
+        RenderShot(camera, target, new Vector3(83f, 29f, -26f), new Vector3(47f, 3f, 20f), "20-heavy-workshop-wing.png");
+        RenderShot(camera, target, new Vector3(39.5f, 8.1f, 27.2f), new Vector3(30f, 7.5f, 73f), "21-crane-cab-view.png");
     }
 }

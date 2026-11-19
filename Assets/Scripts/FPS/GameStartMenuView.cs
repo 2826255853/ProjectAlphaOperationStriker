@@ -9,6 +9,9 @@ using UnityEngine.UI;
 public sealed class GameStartMenuView : MonoBehaviour
 {
     public const string MenuFontResourcePath = "UI/Fonts/MenuChinese SDF";
+    public const string MapPrompt = "点击地图进入游戏";
+    public const string MapLoadingMessage = "正在加载地图...";
+    public const string EmptyMapMessage = "没有可用地图";
     private static TMP_FontAsset menuFont;
     private static readonly Color Panel = new Color(.025f, .07f, .105f, .93f);
     private static readonly Color ButtonColor = new Color(.045f, .14f, .20f, .96f);
@@ -21,7 +24,6 @@ public sealed class GameStartMenuView : MonoBehaviour
     [SerializeField] private GameObject mapPanel;
     [SerializeField] private TextMeshProUGUI primaryLabel;
     [SerializeField] private Button primaryButton;
-    [SerializeField] private Button mapButton;
     [SerializeField] private Button settingsButton;
     [SerializeField] private Button quitButton;
     [SerializeField] private Button backButton;
@@ -74,7 +76,7 @@ public sealed class GameStartMenuView : MonoBehaviour
 
     public void Initialize(GameStartMenu owner)
     {
-        if (primaryButton == null || mapButton == null || mapPanel == null)
+        if (primaryButton == null || mapPanel == null)
             BuildLayout(gameObject, LoadRuntimeBackground());
 
         EnsureEventSystem();
@@ -85,7 +87,6 @@ public sealed class GameStartMenuView : MonoBehaviour
         if (initialized) return;
         initialized = true;
         primaryButton.onClick.AddListener(owner.BeginOrResume);
-        mapButton.onClick.AddListener(owner.OpenMapSelection);
         settingsButton.onClick.AddListener(owner.OpenSettings);
         quitButton.onClick.AddListener(owner.QuitGame);
         backButton.onClick.AddListener(owner.CloseSettings);
@@ -99,11 +100,11 @@ public sealed class GameStartMenuView : MonoBehaviour
 
     public void SetState(bool started, bool showSettings, float volume, bool fullscreen)
     {
-        SetState(started, showSettings, false, volume, fullscreen, -1, false, MapSceneCatalog.GetMaps());
+        SetState(started, showSettings, false, volume, fullscreen, false, MapSceneCatalog.GetMaps());
     }
 
     public void SetState(bool started, bool showSettings, bool showMaps, float volume, bool fullscreen,
-        int selectedMapBuildIndex, bool loading, IReadOnlyList<MapSceneCatalog.Entry> maps)
+        bool loading, IReadOnlyList<MapSceneCatalog.Entry> maps)
     {
         primaryLabel.text = started ? "继续游戏" : "开始游戏";
         mainPanel.SetActive(!showSettings && !showMaps);
@@ -111,7 +112,7 @@ public sealed class GameStartMenuView : MonoBehaviour
         mapPanel.SetActive(showMaps);
         volumeSlider.SetValueWithoutNotify(Mathf.Clamp01(volume));
         fullscreenToggle.SetIsOnWithoutNotify(fullscreen);
-        if (showMaps) RefreshMaps(maps, selectedMapBuildIndex, loading);
+        if (showMaps) RefreshMaps(maps, loading);
     }
 
     private static void BuildMain(GameStartMenuView view, Transform panel)
@@ -123,9 +124,8 @@ public sealed class GameStartMenuView : MonoBehaviour
         Text(panel, "部署防御设施，守住边境前线。", new Vector2(44, -340), new Vector2(-44, -292), 22, Body);
         view.primaryButton = Button(panel, "Primary Action", new Vector2(44, -430), "开始游戏", Cyan);
         view.primaryLabel = view.primaryButton.GetComponentInChildren<TextMeshProUGUI>();
-        view.mapButton = Button(panel, "Map Selection", new Vector2(44, -500), "地图选择", Body);
-        view.settingsButton = Button(panel, "Settings", new Vector2(44, -570), "设置", Body);
-        view.quitButton = Button(panel, "Quit", new Vector2(44, -640), "退出游戏", Body);
+        view.settingsButton = Button(panel, "Settings", new Vector2(44, -500), "设置", Body);
+        view.quitButton = Button(panel, "Quit", new Vector2(44, -570), "退出游戏", Body);
         Footer(panel, "系统在线  ·  防线状态稳定");
     }
 
@@ -143,10 +143,9 @@ public sealed class GameStartMenuView : MonoBehaviour
 
     private static void BuildMapSelection(GameStartMenuView view, Transform panel)
     {
-        Text(panel, "MAP SELECT  //  BUILD SETTINGS", new Vector2(44, -76), new Vector2(-44, -38), 18, Amber);
         Text(panel, "地图选择", new Vector2(40, -188), new Vector2(-40, -76), 72, Color.white);
         Image(panel, "Divider", new Vector2(0, 1), new Vector2(0, 1), new Vector2(44, -218), new Vector2(300, -214), null, Cyan);
-        view.mapStatusLabel = Text(panel, "选择作战地图", new Vector2(44, -266), new Vector2(-44, -224), 22, Body);
+        view.mapStatusLabel = Text(panel, MapPrompt, new Vector2(44, -266), new Vector2(-44, -224), 22, Body);
         GameObject list = Obj(panel, "Map List");
         RectTransform listRect = list.GetComponent<RectTransform>();
         listRect.anchorMin = new Vector2(0, 1);
@@ -157,31 +156,31 @@ public sealed class GameStartMenuView : MonoBehaviour
         VerticalLayoutGroup layout = list.AddComponent<VerticalLayoutGroup>();
         layout.spacing = 10f;
         layout.childControlWidth = true;
-        layout.childControlHeight = false;
+        layout.childControlHeight = true;
         layout.childForceExpandWidth = true;
         layout.childForceExpandHeight = false;
         view.mapListContainer = list.transform;
         view.mapBackButton = Button(panel, "Map Back", new Vector2(44, -584), "返回", Cyan);
-        Footer(panel, "地图来自 Unity Build Settings");
     }
 
-    private void RefreshMaps(IReadOnlyList<MapSceneCatalog.Entry> maps, int selectedBuildIndex, bool loading)
+    private void RefreshMaps(IReadOnlyList<MapSceneCatalog.Entry> maps, bool loading)
     {
         for (int i = 0; i < mapButtons.Count; i++)
             if (mapButtons[i] != null) Destroy(mapButtons[i].gameObject);
         mapButtons.Clear();
 
-        if (mapStatusLabel != null) mapStatusLabel.text = loading ? "正在加载地图..." : "选择作战地图";
+        mapBackButton.interactable = !loading;
+        mapStatusLabel.text = loading ? MapLoadingMessage : MapPrompt;
         if (maps == null || maps.Count == 0)
         {
-            if (mapStatusLabel != null) mapStatusLabel.text = "Build Settings 中没有可用地图";
+            mapStatusLabel.text = EmptyMapMessage;
             return;
         }
 
         for (int i = 0; i < maps.Count; i++)
         {
             MapSceneCatalog.Entry entry = maps[i];
-            Button button = MapButton(mapListContainer, entry.DisplayName, entry.BuildIndex == selectedBuildIndex, loading);
+            Button button = MapButton(mapListContainer, entry.DisplayName, loading);
             button.name = "Map Option " + entry.BuildIndex;
             int buildIndex = entry.BuildIndex;
             button.onClick.AddListener(() => MapSelectionRequested?.Invoke(buildIndex));
@@ -189,18 +188,17 @@ public sealed class GameStartMenuView : MonoBehaviour
         }
     }
 
-    private static Button MapButton(Transform parent, string label, bool selected, bool loading)
+    private static Button MapButton(Transform parent, string label, bool loading)
     {
         GameObject go = Obj(parent, "Map Option");
         Image image = go.AddComponent<Image>();
-        image.color = selected ? new Color(.10f, .34f, .42f, .98f) : ButtonColor;
+        image.color = ButtonColor;
         Button button = go.AddComponent<Button>();
         button.targetGraphic = image;
         button.interactable = !loading;
         LayoutElement element = go.AddComponent<LayoutElement>();
         element.preferredHeight = 58f;
-        Text(go.transform, (selected ? ">  " : string.Empty) + label,
-            new Vector2(25, 0), new Vector2(-18, 0), 25, Color.white,
+        Text(go.transform, label, new Vector2(25, 0), new Vector2(-18, 0), 25, Color.white,
             TextAlignmentOptions.Left, Vector2.zero);
         return button;
     }

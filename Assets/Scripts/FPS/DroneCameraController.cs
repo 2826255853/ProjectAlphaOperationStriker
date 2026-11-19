@@ -31,6 +31,7 @@ public sealed class DroneCameraController : MonoBehaviour
 
     // 当前 pitch 积累值（度），向上为负（绕 +X 轴）
     private float pitch;
+    private TowerDefense.QuadcopterFlightController flightController;
 
     // ──────────────────────────────────────────────
     //  生命周期
@@ -38,6 +39,8 @@ public sealed class DroneCameraController : MonoBehaviour
 
     private void Awake()
     {
+        flightController = GetComponent<TowerDefense.QuadcopterFlightController>();
+
         // 若 Inspector 未赋值，尝试按约定名称在子树中自动找
         if (cameraPivot == null)
         {
@@ -69,9 +72,16 @@ public sealed class DroneCameraController : MonoBehaviour
 
         var delta = Mouse.current.delta.ReadValue();
 
-        // Yaw：水平输入旋转整个机身（绕世界 Y 轴）
+        // The interpolated Rigidbody owns the root transform, so route yaw through its physics controller.
         var yawDelta = delta.x * mouseSensitivity;
-        transform.Rotate(Vector3.up, yawDelta, Space.World);
+        if (flightController != null)
+        {
+            flightController.QueueMouseYaw(yawDelta);
+        }
+        else
+        {
+            transform.Rotate(Vector3.up, yawDelta, Space.World);
+        }
 
         // Pitch：垂直输入俯仰摄像头枢轴（绕本地 X 轴，向上移鼠标 = 向上看 = 负 pitch）
         if (cameraPivot != null)

@@ -40,17 +40,32 @@ $xmlPath = Join-Path $session 'editmode-results.xml'
 $stdoutPath = Join-Path $session 'stdout.txt'
 $stderrPath = Join-Path $session 'stderr.txt'
 $fixture = 'GameStartMenuPlayModeTests'
+$fixtureSource = Join-Path $ProjectPath "Tests~\Editor\$fixture.cs"
+$stagedFixture = Join-Path $ProjectPath "Assets\Editor\$fixture.cs"
+if (!(Test-Path -LiteralPath $fixtureSource)) { throw "Missing test source: $fixtureSource" }
+if ((Test-Path -LiteralPath $stagedFixture) -or (Test-Path -LiteralPath "$stagedFixture.meta")) {
+    throw "The temporary test source path is occupied: $stagedFixture"
+}
 $arguments = '-batchmode -nographics -projectPath "{0}" -runTests -testPlatform EditMode -testFilter "{1}" -extraScriptingDefines=UNITY_INCLUDE_TESTS -testResults "{2}" -logFile "{3}"' -f $ProjectPath, $fixture, $xmlPath, $logPath
 
 Write-Host "[menu] Unity $version; NUnit output: $xmlPath"
-$process = Start-Process -FilePath $unity -ArgumentList $arguments -PassThru -WindowStyle Hidden `
-    -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath
-$null = $process.Handle
-if (!$process.WaitForExit($TimeoutSeconds * 1000)) {
-    Stop-Process -Id $process.Id -ErrorAction SilentlyContinue
-    throw "Menu Play Mode tests timed out after $TimeoutSeconds seconds. See $logPath"
+try {
+    Copy-Item -LiteralPath $fixtureSource -Destination $stagedFixture
+    $process = Start-Process -FilePath $unity -ArgumentList $arguments -PassThru -WindowStyle Hidden `
+        -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath
+    $null = $process.Handle
+    if (!$process.WaitForExit($TimeoutSeconds * 1000)) {
+        Stop-Process -Id $process.Id -ErrorAction SilentlyContinue
+        $process.WaitForExit()
+        throw "Menu Play Mode tests timed out after $TimeoutSeconds seconds. See $logPath"
+    }
+    $process.Refresh()
 }
-$process.Refresh()
+finally {
+    foreach ($path in @($stagedFixture, "$stagedFixture.meta")) {
+        if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Force }
+    }
+}
 
 if (!(Test-Path -LiteralPath $xmlPath)) {
     throw "Unity exit code $($process.ExitCode) produced no NUnit XML; this is NOT a passing run. See $logPath"

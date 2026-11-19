@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Pays the player for surviving a wave. Kill rewards alone cannot fund the
@@ -59,6 +60,18 @@ public sealed class WaveRewardService : MonoBehaviour
     private static void ResetStatics() => Instance = null;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Initialize()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        CreateForScene();
+    }
+
+    private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (mode == LoadSceneMode.Single) CreateForScene();
+    }
+
     private static void CreateForScene()
     {
         if (FindAnyObjectByType<WaveRewardService>() != null) return;

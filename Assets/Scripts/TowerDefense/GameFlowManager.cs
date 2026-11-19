@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>Resolves tower-defense victory and defeat conditions for the scene.</summary>
 [DefaultExecutionOrder(-900)]
@@ -14,6 +15,18 @@ public sealed class GameFlowManager : MonoBehaviour
     private float nextScan;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Initialize()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        CreateForScene();
+    }
+
+    private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (mode == LoadSceneMode.Single) CreateForScene();
+    }
+
     private static void CreateForScene()
     {
         if (FindAnyObjectByType<GameFlowManager>() != null) return;

@@ -131,10 +131,11 @@ public sealed class EnemySpawnPoint : MonoBehaviour
     private int spawnSequence;
     private int currentWave;
     private int spawnedInCurrentWave;
+    private int waitingForWaveResolution;
     private bool allWavesCompleted;
     private WaveManager waveManager;
 
-    /// <summary>Raised immediately after the final enemy of the final wave is created.</summary>
+    /// <summary>Raised after the final wave has been fully resolved.</summary>
     public event Action<EnemySpawnPoint> AllWavesCompleted;
 
     public bool SpawningEnabled
@@ -267,6 +268,23 @@ public sealed class EnemySpawnPoint : MonoBehaviour
 
         if (!spawningEnabled) return;
 
+        if (waitingForWaveResolution > 0)
+        {
+            if (!IsWaveResolvedAcrossSpawnPoints(waitingForWaveResolution)) return;
+
+            int resolvedWave = waitingForWaveResolution;
+            waitingForWaveResolution = 0;
+            if (resolvedWave >= TotalWaves)
+            {
+                CompleteAllWaves();
+                return;
+            }
+
+            currentWave = resolvedWave + 1;
+            spawnedInCurrentWave = 0;
+            timeUntilNextSpawn = GetWaveTransitionDelay(resolvedWave);
+        }
+
         timeUntilNextSpawn -= Time.deltaTime;
         if (timeUntilNextSpawn > 0f) return;
 
@@ -314,16 +332,36 @@ public sealed class EnemySpawnPoint : MonoBehaviour
             return;
         }
 
-        if (currentWave >= TotalWaves)
+        waitingForWaveResolution = currentWave;
+        timeUntilNextSpawn = 0f;
+    }
+
+    private static bool IsWaveResolvedAcrossSpawnPoints(int waveNumber)
+    {
+        EnemySpawnPoint[] spawnPoints = FindObjectsByType<EnemySpawnPoint>(FindObjectsSortMode.None);
+        foreach (EnemySpawnPoint point in spawnPoints)
         {
-            CompleteAllWaves();
-            return;
+            if (!point.spawningEnabled || point.allWavesCompleted || point.currentWave > waveNumber)
+                continue;
+
+            if (point.currentWave < waveNumber)
+                return false;
+
+            if (point.IsWaveEnabled(waveNumber)
+                && point.spawnedInCurrentWave < point.GetEnemiesPerWave(waveNumber))
+                return false;
         }
 
-        float transitionDelay = GetWaveTransitionDelay(currentWave);
-        currentWave++;
-        spawnedInCurrentWave = 0;
-        timeUntilNextSpawn = transitionDelay;
+        EnemyInstance[] enemies = FindObjectsByType<EnemyInstance>(FindObjectsSortMode.None);
+        foreach (EnemyInstance enemy in enemies)
+        {
+            if (enemy != null
+                && enemy.Resolution == EnemyInstance.ResolutionState.Alive
+                && enemy.WaveNumber == waveNumber)
+                return false;
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -410,6 +448,7 @@ public sealed class EnemySpawnPoint : MonoBehaviour
     {
         currentWave = 1;
         spawnedInCurrentWave = 0;
+        waitingForWaveResolution = 0;
         allWavesCompleted = false;
         timeUntilNextSpawn = initialWaveDelay;
     }

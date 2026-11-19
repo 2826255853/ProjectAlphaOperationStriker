@@ -1,5 +1,31 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 波次等待怪物结算（2026-11-19）
+
+- `EnemySpawnPoint` 生成完本波最后一只后保留当前波次，不立即启动波间计时。所有启用出怪口都完成本波配置数量的生成，且全场该波 `EnemyInstance` 均不再处于 `Alive` 后，各入口才进入原配置的准备时间并刷新下一波；最终波也在清场后才触发 `AllWavesCompleted`。
+- 跨入口判断同时覆盖尚未刷完本波的入口，避免短波入口先进入下一波。`IsWaitingForWave` 仍代表下一波计时，不把战斗清场等待误显示为准备时间。
+- Unity `6000.6.9f1` 批处理 `DeveloperTestSpawnChainAuthoring.ValidateMainSceneBatch` 通过，输出 `DEVELOPER_TEST_SPAWN_CHAIN_PASS`，无 C# 编译错误或方法异常。未做实际 PlayMode 波间时序验收。
+
+## 四轴无人机鼠标偏航物理接管（2026-11-19）
+
+- `DroneCameraController.Update` 原先直接 `transform.Rotate` 改动插值刚体根节点，和 `QuadcopterFlightController.FixedUpdate` 的刚体角速度写入竞争，可能表现为鼠标持续向左时视角间歇回弹。现在相机控制器把鼠标 yaw 角度累加到飞控；飞控在物理步合并键盘平滑偏航并通过 `Rigidbody.MoveRotation` 统一更新姿态。
+- `Tests~/Editor/DroneCameraControllerTests.cs` 新增插值刚体回归用例，断言相机 Update 不直接改变根朝向，飞控物理步消费鼠标 yaw 并更新 Rigidbody 目标朝向。项目版本 Unity 的 EditMode 定向回归 **12/12 PASS**，NUnit XML 在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\QuadcopterDrone\mouse-yaw-physics\20261119-final\editmode-results.xml`。测试临时源码及 `.meta` 已清理；清理后 `QuadcopterDroneAuthoring.ProbePrefab` 正式编译与预制体验证通过。未做主场景人工 PlayMode 键鼠验收。
+
+## 从开始游戏进入地图选择（2026-11-19）
+
+- 主菜单「开始游戏」打开地图页，鼠标点选地图即开局，「返回」或 Esc 回主菜单。地图仍取启用的 Build Settings 场景。选择当前场景恢复输入和时间，选择其他场景走异步单场景加载，加载期间禁用地图按钮和返回。
+- 跨场景后在目标地图重建暂停菜单并直接开始对局。「继续游戏」恢复当前对局。胜负管理、波次奖励和受击方位 HUD 在每次单场景加载时重新初始化。
+- 菜单资源由 `GameStartMenuAuthoring.GenerateAndValidate` 重建，预览位于 `C:\Users\ASUS\Desktop\GameStartMenu\`。`RunGameStartMenuPlayModeTests.ps1` 从 `Tests~/Editor` 临时引入两张地图的回归夹具，退出后清理 Assets 内的源码及 meta。
+- Play Mode 回归 **2/2 通过**，覆盖开始后显示地图、返回、默认地图开局、加载双层设施及目标地图的暂停与恢复。批处理直接调用暂停入口，实体 Esc 输入未覆盖。测试输出位于桌面 `GameStartMenu\playmode\20261119-152731-215\`。
+
+## 双层设施两翼扩建（2026-11-19）
+
+- 左右各接 32×96 m 地坪，厂房段总宽从 88 m（含检修车道）扩至 152 m，新增 6,144 m²。西侧加入双冷却塔、泵机大厅、厂房门洞和二层阀门检修台；东侧加入重件工位、贯穿侧门的行车、露天试车台，以及通往行车控制室和二层回廊的折返钢梯。两侧 8 m 检修车道横贯前后场。
+- `enemy-spawn-pump` 复用源图 `route-cargo-pump-*` 接入原一层左路并轮换两个二层分支。新增入口只在第 3 波生成 2 只，正面左口第 3 波关闭。场景共 7 个正式出怪口。专用生成器挂载 `FacilityPumpIntake`，在后场左口刷出第 2 波敌人后亮灯并播放停机声，泵房第 3 波开刷前 4 秒打开卷帘门。
+- 新增三块 6×8 m 布防位。地图共有 27 套陷阱网格，按层累计 1,244 个可用 1 m 格，其中两翼 144 格。两条新路线各约 232.89 m，通过大怪足迹和净空验证；真实 FPS 胶囊验证了新门洞、检修台、钢梯、连桥和控制室的双向通行。
+- Unity 源图与 MapForge 示例 JSON 哈希一致。专用 `BuildAndPreview` 已保存并重载。四张预览位于桌面素材目录 `DoubleLayerFacility\18-wing-site-overview.png` 至 `21-crane-cab-view.png`。日志、源图和生成器备份位于同目录的 `side-wing-expansion\`，场景备份由生成器另存于 `backup\`。
+- Play Mode 定向验收 **1/1 通过**。警灯开启时闸门保持关闭，第三波两只正式敌人穿过西侧门洞并共扣除核心 4 点耐久。夹具与 XML 已移到桌面素材，Assets 内临时源码及 meta 已清理。全波次实战平衡与 Player 构建未覆盖。
+
 ## 双层设施后场物流区与二层入侵（2026-11-19）
 
 - 后场物流庭院为 88×70 m，地坪 x=±44、z=56…126，厂房两侧各有 8 m 宽的检修车道连通前后场。庭院沿两边排列货运坡道，中间布置调度棚、集装箱和设备区。两条坡道各宽 12 m，沿 z=110→70 抬升 6.4 m，经有柱梁支撑的装卸平台接后立面两处 12 m 宽的卷帘门。两侧平台通过 4 m 宽的检修连桥相连。

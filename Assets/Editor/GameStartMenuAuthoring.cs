@@ -13,6 +13,7 @@ public static class GameStartMenuAuthoring
     private const string PrefabPath = "Assets/Resources/UI/GameStartMenu.prefab";
     private const string FontPath = "Assets/Resources/UI/Fonts/MenuChinese SDF.asset";
     private const string SourceFontPath = "Assets/Resources/UI/Fonts/NotoSansCJKsc-Regular.otf";
+    private const string RuntimeLabels = "继续游戏" + GameStartMenuView.MapLoadingMessage + GameStartMenuView.EmptyMapMessage;
 
     [MenuItem("Tools/行动打击/生成战术主菜单")]
     public static void Generate()
@@ -27,7 +28,7 @@ public static class GameStartMenuAuthoring
         try
         {
             GameStartMenuView.BuildLayout(root, background);
-            string characters = string.Concat(root.GetComponentsInChildren<TextMeshProUGUI>(true).Select(t => t.text)) + "继续游戏";
+            string characters = string.Concat(root.GetComponentsInChildren<TextMeshProUGUI>(true).Select(t => t.text)) + RuntimeLabels;
             if (!font.TryAddCharacters(characters, out string missing))
                 throw new InvalidOperationException("Chinese menu font is missing characters: " + missing);
             SaveFontSubAssets(font);
@@ -47,8 +48,9 @@ public static class GameStartMenuAuthoring
             || prefab.transform.Find("Map Panel/Map List") == null
             || prefab.transform.Find("Map Panel/Map Back") == null)
             throw new InvalidOperationException("Menu prefab is missing the map selection page.");
-        if (prefab.transform.Find("Main Panel/Map Selection") == null)
-            throw new InvalidOperationException("Menu prefab is missing the map selection button.");
+        if (prefab.transform.Find("Main Panel/Primary Action") == null
+            || prefab.transform.Find("Main Panel/Map Selection") != null)
+            throw new InvalidOperationException("Enter the map selection page through the main menu's primary action.");
         var maps = MapSceneCatalog.GetMaps();
         if (maps.Count != UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings || maps.Count == 0)
             throw new InvalidOperationException("Build Settings map catalog is empty or inconsistent.");
@@ -66,7 +68,7 @@ public static class GameStartMenuAuthoring
             if (label.font != font) throw new InvalidOperationException("Menu label uses the wrong font: " + label.text);
             ValidateCharacters(font, label.text);
         }
-        ValidateCharacters(font, "继续游戏");
+        ValidateCharacters(font, RuntimeLabels);
         string output = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "GameStartMenu", "font-validation.txt");
         Directory.CreateDirectory(Path.GetDirectoryName(output));
         File.WriteAllText(output, "PASS: bundled Chinese font covers all " + labels.Length + " menu labels, including inactive settings and resume text.\nFont: " + font.name + "\n" + string.Join("\n", labels.Select(t => t.text)) + "\n继续游戏\n");
@@ -105,7 +107,7 @@ public static class GameStartMenuAuthoring
             string directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "GameStartMenu");
             for (int page = 0; page < 3; page++)
             {
-                view.SetState(false, page == 1, page == 2, 1f, true, 0, false, MapSceneCatalog.GetMaps());
+                view.SetState(false, page == 1, page == 2, 1f, true, false, MapSceneCatalog.GetMaps());
                 Canvas.ForceUpdateCanvases();
                 foreach (TextMeshProUGUI text in root.GetComponentsInChildren<TextMeshProUGUI>()) text.ForceMeshUpdate();
                 camera.Render();

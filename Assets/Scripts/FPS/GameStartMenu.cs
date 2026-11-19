@@ -13,7 +13,6 @@ public sealed class GameStartMenu : MonoBehaviour
     private bool mapSelection;
     private bool started;
     private bool loading;
-    private int selectedMapBuildIndex = -1;
     private bool restoreInputPending;
     private bool previousCursorVisible;
     private CursorLockMode previousCursorLock;
@@ -25,6 +24,19 @@ public sealed class GameStartMenu : MonoBehaviour
     public static bool BlocksPlayerCursor => CursorOwned || cursorReleasedFrame == Time.frameCount;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void InitializeForGame()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        CreateForScene();
+    }
+
+    private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (mode == LoadSceneMode.Single && skipMenuOnNextSceneLoad)
+            CreateForScene();
+    }
+
     private static void CreateForScene()
     {
         if (FindAnyObjectByType<GameStartMenu>() == null)
@@ -35,7 +47,6 @@ public sealed class GameStartMenu : MonoBehaviour
     {
         bool skipMenu = skipMenuOnNextSceneLoad;
         skipMenuOnNextSceneLoad = false;
-        selectedMapBuildIndex = MapSceneCatalog.GetCurrentBuildIndex();
         started = skipMenu;
         GameObject prefab = Resources.Load<GameObject>(ViewPrefabPath);
         view = prefab != null ? Instantiate(prefab).GetComponent<GameStartMenuView>() : GameStartMenuView.CreateFallback();
@@ -47,7 +58,7 @@ public sealed class GameStartMenu : MonoBehaviour
     private void Update()
     {
         RestoreInputAfterClick();
-        if (Keyboard.current == null || !Keyboard.current.escapeKey.wasPressedThisFrame) return;
+        if (loading || Keyboard.current == null || !Keyboard.current.escapeKey.wasPressedThisFrame) return;
         if (open)
         {
             if (settings) ShowSettings(false);
@@ -67,19 +78,14 @@ public sealed class GameStartMenu : MonoBehaviour
 
     public void BeginOrResume()
     {
-        if (loading) return;
-        if (selectedMapBuildIndex < 0 || selectedMapBuildIndex == MapSceneCatalog.GetCurrentBuildIndex())
-        {
-            Close();
-            return;
-        }
-
-        LoadSelectedMap();
+        if (!open || loading || settings || mapSelection) return;
+        if (started) Close();
+        else OpenMapSelection();
     }
 
-    public void OpenMapSelection()
+    private void OpenMapSelection()
     {
-        if (!open || loading) return;
+        if (!open || started || loading) return;
         settings = false;
         mapSelection = true;
         RefreshView();
@@ -87,16 +93,18 @@ public sealed class GameStartMenu : MonoBehaviour
 
     public void CloseMapSelection()
     {
-        if (!open || !mapSelection) return;
+        if (!open || !mapSelection || loading) return;
         mapSelection = false;
         RefreshView();
     }
 
     public void SelectMap(int buildIndex)
     {
-        if (loading || !MapSceneCatalog.TryGet(buildIndex, out _)) return;
-        selectedMapBuildIndex = buildIndex;
-        RefreshView();
+        if (!open || !mapSelection || loading || !MapSceneCatalog.TryGet(buildIndex, out MapSceneCatalog.Entry map))
+            return;
+
+        if (buildIndex == MapSceneCatalog.GetCurrentBuildIndex()) Close();
+        else LoadMap(map);
     }
 
     public void OpenSettings() => ShowSettings(true);
@@ -162,21 +170,14 @@ public sealed class GameStartMenu : MonoBehaviour
 
     private void ShowSettings(bool show)
     {
-        if (!open || settings == show) return;
+        if (!open || loading || settings == show) return;
         settings = show;
         if (show) mapSelection = false;
         RefreshView();
     }
 
-    private void LoadSelectedMap()
+    private void LoadMap(MapSceneCatalog.Entry map)
     {
-        if (!MapSceneCatalog.TryGet(selectedMapBuildIndex, out MapSceneCatalog.Entry map))
-        {
-            selectedMapBuildIndex = MapSceneCatalog.GetCurrentBuildIndex();
-            RefreshView();
-            return;
-        }
-
         loading = true;
         skipMenuOnNextSceneLoad = true;
         RefreshView();
@@ -205,7 +206,7 @@ public sealed class GameStartMenu : MonoBehaviour
         view.SetVisible(open);
         if (open)
             view.SetState(started, settings, mapSelection, AudioListener.volume, Screen.fullScreen,
-                selectedMapBuildIndex, loading, MapSceneCatalog.GetMaps());
+                loading, MapSceneCatalog.GetMaps());
     }
 
     private void RestoreInputAfterClick()

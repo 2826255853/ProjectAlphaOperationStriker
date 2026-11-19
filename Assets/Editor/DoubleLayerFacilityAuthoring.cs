@@ -232,6 +232,7 @@ public static partial class DoubleLayerFacilityAuthoring
             RenderExpansionPreviews(camera, target);
             RenderExteriorPreviews(camera, target);
             RenderRearPreviews(camera, target);
+            RenderWingPreviews(camera, target);
             Debug.Log("FACILITY_PREVIEW_PASS: " + OutputDirectory);
         }
         finally

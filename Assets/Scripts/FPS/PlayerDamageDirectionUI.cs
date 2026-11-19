@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>Short-lived FPS-style indicator showing where the latest damage came from.</summary>
 public sealed class PlayerDamageDirectionUI : MonoBehaviour
@@ -15,6 +16,18 @@ public sealed class PlayerDamageDirectionUI : MonoBehaviour
     private GUIStyle arrowStyle;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void Initialize()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        EnsureUI();
+    }
+
+    private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (mode == LoadSceneMode.Single) EnsureUI();
+    }
+
     private static void EnsureUI()
     {
         if (FindAnyObjectByType<PlayerDamageDirectionUI>() != null) return;
