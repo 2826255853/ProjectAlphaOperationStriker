@@ -188,6 +188,12 @@ public sealed class EnemySpawnPoint : MonoBehaviour
         WaveSpawnSettings settings = GetWaveSettings(waveNumber);
         return settings == null || (settings.enabled && settings.enemyCount > 0);
     }
+    /// <summary>Returns the enemy type configured for a specific wave at this entrance.</summary>
+    public MonsterType GetMonsterTypeForWave(int waveNumber)
+    {
+        if (flyingEntrance) return MonsterType.Flying;
+        return GetWaveSettings(waveNumber)?.monsterType ?? monsterType;
+    }
     public float InitialWaveDelay
     {
         get => initialWaveDelay;
@@ -387,9 +393,7 @@ public sealed class EnemySpawnPoint : MonoBehaviour
     private EnemyInstance CreateEnemy(int waveNumber, int indexInWave)
     {
         WaveSpawnSettings settings = GetWaveSettings(waveNumber);
-        MonsterType selectedType = flyingEntrance
-            ? MonsterType.Flying
-            : (settings?.monsterType ?? monsterType);
+        MonsterType selectedType = GetMonsterTypeForWave(waveNumber);
         // Reject invalid configuration before creating a partially initialized enemy.
         GetKillReward(selectedType);
         spawnSequence++;

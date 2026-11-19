@@ -135,8 +135,8 @@ public static partial class DoubleLayerFacilityAuthoring
 
             WalkWingRoute(controller, "west pump hall access", new Vector3(-31f, 0f, 12f),
                 new Vector3(-49f, 0f, 12f), new Vector3(-53f, 0f, 12f));
-            WalkWingRoute(controller, "west valve gallery", new Vector3(-31f, UpperFloorHeight, 17.5f),
-                new Vector3(-41f, UpperFloorHeight, 17.5f));
+            WalkWingRoute(controller, "west valve gallery", new Vector3(-31f, UpperFloorHeight, 23f),
+                new Vector3(-41f, UpperFloorHeight, 23f));
             WalkWingRoute(controller, "east workshop door", new Vector3(27f, 0f, 11.2f),
                 new Vector3(46f, 0f, 11.2f));
             WalkWingRoute(controller, "east external steel stair", new Vector3(54f, 0f, 23.5f),

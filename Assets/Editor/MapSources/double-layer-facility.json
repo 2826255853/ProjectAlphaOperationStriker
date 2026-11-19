@@ -7548,7 +7548,7 @@
     "position": [
      -66.5,
      1.7,
-     25
+     29
     ],
     "rotation": [
      0,
@@ -7588,7 +7588,7 @@
     "position": [
      -66.5,
      1.7,
-     35
+     39
     ],
     "rotation": [
      0,
@@ -7628,7 +7628,7 @@
     "position": [
      -63.9,
      1.7,
-     26.9
+     30.9
     ],
     "rotation": [
      0,
@@ -7668,7 +7668,7 @@
     "position": [
      -63.9,
      1.7,
-     33.1
+     37.1
     ],
     "rotation": [
      0,
@@ -7708,7 +7708,7 @@
     "position": [
      -63.9,
      2.95,
-     30
+     34
     ],
     "rotation": [
      0,
@@ -7748,7 +7748,7 @@
     "position": [
      -66.5,
      3.5,
-     30
+     34
     ],
     "rotation": [
      0,
@@ -7788,7 +7788,7 @@
     "position": [
      -63.85,
      0.025,
-     30
+     34
     ],
     "rotation": [
      0,
@@ -7828,7 +7828,7 @@
     "position": [
      -63.78,
      2.65,
-     30
+     34
     ],
     "rotation": [
      0,
@@ -7868,7 +7868,7 @@
     "position": [
      -68.2,
      1,
-     27.5
+     31.5
     ],
     "rotation": [
      0,
@@ -7908,7 +7908,7 @@
     "position": [
      -66.6,
      0.8,
-     33
+     37
     ],
     "rotation": [
      0,
@@ -8346,9 +8346,9 @@
    "parentId": "facility-service",
    "transform": {
     "position": [
-     32.5,
+     66.5,
      1.7,
-     -23
+     29
     ],
     "rotation": [
      0,
@@ -8386,9 +8386,9 @@
    "parentId": "facility-service",
    "transform": {
     "position": [
-     32.5,
+     66.5,
      1.7,
-     -13
+     39
     ],
     "rotation": [
      0,
@@ -8426,9 +8426,9 @@
    "parentId": "facility-service",
    "transform": {
     "position": [
-     29.9,
+     63.9,
      1.7,
-     -21.1
+     30.9
     ],
     "rotation": [
      0,
@@ -8466,9 +8466,9 @@
    "parentId": "facility-service",
    "transform": {
     "position": [
-     29.9,
+     63.9,
      1.7,
-     -14.9
+     37.1
     ],
     "rotation": [
      0,
@@ -8506,9 +8506,9 @@
    "parentId": "facility-service",
    "transform": {
     "position": [
-     29.9,
+     63.9,
      2.95,
-     -18
+     34
     ],
     "rotation": [
      0,
@@ -8546,9 +8546,9 @@
    "parentId": "facility-service",
    "transform": {
     "position": [
-     32.5,
+     66.5,
      3.5,
-     -18
+     34
     ],
     "rotation": [
      0,
@@ -8586,9 +8586,9 @@
    "parentId": "facility-service",
    "transform": {
     "position": [
-     29.85,
+     63.85,
      0.025,
-     -18
+     34
     ],
     "rotation": [
      0,
@@ -8626,9 +8626,9 @@
    "parentId": "facility-service",
    "transform": {
     "position": [
-     29.78,
+     63.78,
      2.65,
-     -18
+     34
     ],
     "rotation": [
      0,
@@ -8666,9 +8666,9 @@
    "parentId": "facility-service",
    "transform": {
     "position": [
-     34.2,
+     68.2,
      1,
-     -20.5
+     31.5
     ],
     "rotation": [
      0,
@@ -8706,9 +8706,9 @@
    "parentId": "facility-service",
    "transform": {
     "position": [
-     32.6,
+     66.6,
      0.8,
-     -15
+     37
     ],
     "rotation": [
      0,
@@ -38474,7 +38474,7 @@
     "position": [
      61,
      1.3,
-     -12
+     -27
     ],
     "scale": [
      3.3,
@@ -45315,7 +45315,20 @@
      "entranceAltitude": 0,
      "laneId": "right",
      "enemyPrefabId": "",
-     "waves": []
+     "waves": [
+      {
+       "enabled": true,
+       "enemyCount": 3
+      },
+      {
+       "enabled": true,
+       "enemyCount": 4
+      },
+      {
+       "enabled": false,
+       "enemyCount": 0
+      }
+     ]
     }
    }
   },
@@ -69186,7 +69199,7 @@
     "position": [
      -35.7,
      7.0,
-     -8.0
+     -4.5
     ],
     "rotation": [
      0,
@@ -69196,7 +69209,7 @@
     "scale": [
      0.6,
      1.1999999999999993,
-     44
+     51
     ]
    },
    "color": "#8b9193",
@@ -69226,7 +69239,7 @@
     "position": [
      -35.7,
      7.0,
-     38.5
+     40.5
     ],
     "rotation": [
      0,
@@ -69236,7 +69249,7 @@
     "scale": [
      0.6,
      1.1999999999999993,
-     35
+     31
     ]
    },
    "color": "#8b9193",
@@ -69506,7 +69519,7 @@
     "position": [
      35.7,
      2.625,
-     -11.0
+     -27.0
     ],
     "rotation": [
      0,
@@ -69516,7 +69529,7 @@
     "scale": [
      0.6,
      5.25,
-     38
+     6
     ]
    },
    "color": "#8b9193",
@@ -69546,7 +69559,7 @@
     "position": [
      35.7,
      2.625,
-     36.0
+     -1.5
     ],
     "rotation": [
      0,
@@ -69556,10 +69569,290 @@
     "scale": [
      0.6,
      5.25,
-     40
+     21
     ]
    },
    "color": "#8b9193",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-r-wall-base-2",
+   "name": "Factory Side Wall",
+   "type": "cube",
+   "parentId": "wing-right",
+   "transform": {
+    "position": [
+     35.7,
+     2.625,
+     35.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     5.25,
+     41
+    ]
+   },
+   "color": "#8b9193",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-r-door-jamb-0--24.16",
+   "name": "Service Door Jamb",
+   "type": "cube",
+   "parentId": "wing-right",
+   "transform": {
+    "position": [
+     35.77,
+     2.6,
+     -24.16
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1,
+     5.2,
+     0.32
+    ]
+   },
+   "color": "#cc9d35",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-r-door-jamb-0--11.84",
+   "name": "Service Door Jamb",
+   "type": "cube",
+   "parentId": "wing-right",
+   "transform": {
+    "position": [
+     35.77,
+     2.6,
+     -11.84
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1,
+     5.2,
+     0.32
+    ]
+   },
+   "color": "#cc9d35",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-r-door-head-0",
+   "name": "Service Door Header",
+   "type": "cube",
+   "parentId": "wing-right",
+   "transform": {
+    "position": [
+     35.78,
+     5.38,
+     -18.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1,
+     0.26,
+     12.6
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-r-door-jamb-1-8.84",
+   "name": "Service Door Jamb",
+   "type": "cube",
+   "parentId": "wing-right",
+   "transform": {
+    "position": [
+     35.77,
+     2.6,
+     8.84
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1,
+     5.2,
+     0.32
+    ]
+   },
+   "color": "#cc9d35",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-r-door-jamb-1-15.16",
+   "name": "Service Door Jamb",
+   "type": "cube",
+   "parentId": "wing-right",
+   "transform": {
+    "position": [
+     35.77,
+     2.6,
+     15.16
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1,
+     5.2,
+     0.32
+    ]
+   },
+   "color": "#cc9d35",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-r-door-head-1",
+   "name": "Service Door Header",
+   "type": "cube",
+   "parentId": "wing-right",
+   "transform": {
+    "position": [
+     35.78,
+     5.38,
+     12.0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1,
+     0.26,
+     6.6
+    ]
+   },
+   "color": "#303b42",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -69626,7 +69919,7 @@
     "position": [
      35.7,
      7.0,
-     -4.0
+     -4.5
     ],
     "rotation": [
      0,
@@ -69636,7 +69929,7 @@
     "scale": [
      0.6,
      1.1999999999999993,
-     52
+     51
     ]
    },
    "color": "#8b9193",
@@ -69666,7 +69959,7 @@
     "position": [
      35.7,
      7.0,
-     42.0
+     40.5
     ],
     "rotation": [
      0,
@@ -69676,130 +69969,10 @@
     "scale": [
      0.6,
      1.1999999999999993,
-     28
+     31
     ]
    },
    "color": "#8b9193",
-   "material": {
-    "type": "standard",
-    "roughness": 0.85,
-    "metalness": 0.05
-   },
-   "tags": [],
-   "layer": 0,
-   "collision": true,
-   "static": true,
-   "visible": true,
-   "locked": false,
-   "collapsed": false,
-   "prefabType": "",
-   "parameters": {},
-   "parametersJson": "{}",
-   "category": "geometry"
-  },
-  {
-   "id": "wing-r-door-jamb-0-7.84",
-   "name": "Service Door Jamb",
-   "type": "cube",
-   "parentId": "wing-right",
-   "transform": {
-    "position": [
-     35.77,
-     2.6,
-     7.84
-    ],
-    "rotation": [
-     0,
-     0,
-     0
-    ],
-    "scale": [
-     1,
-     5.2,
-     0.32
-    ]
-   },
-   "color": "#cc9d35",
-   "material": {
-    "type": "standard",
-    "roughness": 0.85,
-    "metalness": 0.05
-   },
-   "tags": [],
-   "layer": 0,
-   "collision": true,
-   "static": true,
-   "visible": true,
-   "locked": false,
-   "collapsed": false,
-   "prefabType": "",
-   "parameters": {},
-   "parametersJson": "{}",
-   "category": "geometry"
-  },
-  {
-   "id": "wing-r-door-jamb-0-16.16",
-   "name": "Service Door Jamb",
-   "type": "cube",
-   "parentId": "wing-right",
-   "transform": {
-    "position": [
-     35.77,
-     2.6,
-     16.16
-    ],
-    "rotation": [
-     0,
-     0,
-     0
-    ],
-    "scale": [
-     1,
-     5.2,
-     0.32
-    ]
-   },
-   "color": "#cc9d35",
-   "material": {
-    "type": "standard",
-    "roughness": 0.85,
-    "metalness": 0.05
-   },
-   "tags": [],
-   "layer": 0,
-   "collision": true,
-   "static": true,
-   "visible": true,
-   "locked": false,
-   "collapsed": false,
-   "prefabType": "",
-   "parameters": {},
-   "parametersJson": "{}",
-   "category": "geometry"
-  },
-  {
-   "id": "wing-r-door-head-0",
-   "name": "Service Door Header",
-   "type": "cube",
-   "parentId": "wing-right",
-   "transform": {
-    "position": [
-     35.78,
-     5.38,
-     12.0
-    ],
-    "rotation": [
-     0,
-     0,
-     0
-    ],
-    "scale": [
-     1,
-     0.26,
-     8.6
-    ]
-   },
-   "color": "#303b42",
    "material": {
     "type": "standard",
     "roughness": 0.85,
@@ -73146,7 +73319,7 @@
     "position": [
      -39.5,
      6.2,
-     17.5
+     23.0
     ],
     "rotation": [
      0,
@@ -73186,7 +73359,7 @@
     "position": [
      -39.5,
      6.98,
-     14
+     19.5
     ],
     "rotation": [
      0,
@@ -73226,7 +73399,7 @@
     "position": [
      -39.5,
      6.98,
-     21
+     26.5
     ],
     "rotation": [
      0,
@@ -73266,7 +73439,7 @@
     "position": [
      -43.65,
      6.98,
-     17.5
+     23.0
     ],
     "rotation": [
      0,
@@ -73306,7 +73479,7 @@
     "position": [
      -42.8,
      6.87,
-     15.5
+     21.0
     ],
     "rotation": [
      0,
@@ -73346,7 +73519,7 @@
     "position": [
      -42.8,
      7.39,
-     15.5
+     21.0
     ],
     "rotation": [
      0,
@@ -73386,7 +73559,7 @@
     "position": [
      -42.8,
      6.87,
-     19.2
+     24.7
     ],
     "rotation": [
      0,
@@ -73426,7 +73599,7 @@
     "position": [
      -42.8,
      7.39,
-     19.2
+     24.7
     ],
     "rotation": [
      0,
@@ -75066,7 +75239,7 @@
     "position": [
      54,
      0.5,
-     -10
+     -34
     ],
     "rotation": [
      0,
@@ -75106,7 +75279,7 @@
     "position": [
      52.4,
      1.5,
-     -10
+     -34
     ],
     "rotation": [
      0,
@@ -75146,7 +75319,7 @@
     "position": [
      54.0,
      1.5,
-     -10
+     -34
     ],
     "rotation": [
      0,
@@ -75186,7 +75359,7 @@
     "position": [
      55.6,
      1.5,
-     -10
+     -34
     ],
     "rotation": [
      0,
@@ -75226,7 +75399,7 @@
     "position": [
      54,
      0.5,
-     -3
+     -27
     ],
     "rotation": [
      0,
@@ -75266,7 +75439,7 @@
     "position": [
      52.4,
      1.5,
-     -3
+     -27
     ],
     "rotation": [
      0,
@@ -75306,7 +75479,7 @@
     "position": [
      54.0,
      1.5,
-     -3
+     -27
     ],
     "rotation": [
      0,
@@ -75346,7 +75519,7 @@
     "position": [
      55.6,
      1.5,
-     -3
+     -27
     ],
     "rotation": [
      0,
@@ -80130,7 +80303,1425 @@
     "position": [
      -69.1,
      1.7,
-     30
+     34
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.22,
+     3.4,
+     10.2
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-inlet",
+   "name": "Workshop Dispatch and Service Shutter",
+   "type": "folder",
+   "parentId": "wing-right",
+   "transform": {
+    "position": [
+     0,
+     0,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1,
+     1,
+     1
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-inlet-north",
+   "name": "Intake Side Wall",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     68.4,
+     2.65,
+     1.1
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     14,
+     5.3,
+     0.35
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-inlet-south",
+   "name": "Intake Side Wall",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     68.4,
+     2.65,
+     -11.1
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     14,
+     5.3,
+     0.35
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-inlet-back",
+   "name": "Intake Retaining Wall",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     75.6,
+     2.65,
+     -5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.5,
+     5.3,
+     12.4
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-inlet-roof",
+   "name": "Intake Roof",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     68.6,
+     5.56,
+     -5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     14.5,
+     0.52,
+     12.6
+    ]
+   },
+   "color": "#59666c",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-shutter",
+   "name": "Intake Roll-up Shutter",
+   "type": "folder",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     61.5,
+     5.2,
+     -5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1,
+     1,
+     1
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-shutter-slat-0",
+   "name": "Shutter Slat",
+   "type": "cube",
+   "parentId": "wing-workshop-shutter",
+   "transform": {
+    "position": [
+     -0.13,
+     -5.04,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.08,
+     0.082,
+     11.8
+    ]
+   },
+   "color": "#59666c",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-shutter-slat-1",
+   "name": "Shutter Slat",
+   "type": "cube",
+   "parentId": "wing-workshop-shutter",
+   "transform": {
+    "position": [
+     -0.13,
+     -4.73,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.08,
+     0.082,
+     11.8
+    ]
+   },
+   "color": "#59666c",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-shutter-slat-2",
+   "name": "Shutter Slat",
+   "type": "cube",
+   "parentId": "wing-workshop-shutter",
+   "transform": {
+    "position": [
+     -0.13,
+     -4.42,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.08,
+     0.082,
+     11.8
+    ]
+   },
+   "color": "#59666c",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-shutter-slat-3",
+   "name": "Shutter Slat",
+   "type": "cube",
+   "parentId": "wing-workshop-shutter",
+   "transform": {
+    "position": [
+     -0.13,
+     -4.11,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.08,
+     0.082,
+     11.8
+    ]
+   },
+   "color": "#59666c",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-shutter-slat-4",
+   "name": "Shutter Slat",
+   "type": "cube",
+   "parentId": "wing-workshop-shutter",
+   "transform": {
+    "position": [
+     -0.13,
+     -3.8,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.08,
+     0.082,
+     11.8
+    ]
+   },
+   "color": "#59666c",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-shutter-slat-5",
+   "name": "Shutter Slat",
+   "type": "cube",
+   "parentId": "wing-workshop-shutter",
+   "transform": {
+    "position": [
+     -0.13,
+     -3.49,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.08,
+     0.082,
+     11.8
+    ]
+   },
+   "color": "#59666c",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-shutter-slat-6",
+   "name": "Shutter Slat",
+   "type": "cube",
+   "parentId": "wing-workshop-shutter",
+   "transform": {
+    "position": [
+     -0.13,
+     -3.18,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.08,
+     0.082,
+     11.8
+    ]
+   },
+   "color": "#59666c",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-shutter-slat-7",
+   "name": "Shutter Slat",
+   "type": "cube",
+   "parentId": "wing-workshop-shutter",
+   "transform": {
+    "position": [
+     -0.13,
+     -2.87,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.08,
+     0.082,
+     11.8
+    ]
+   },
+   "color": "#59666c",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-shutter-slat-8",
+   "name": "Shutter Slat",
+   "type": "cube",
+   "parentId": "wing-workshop-shutter",
+   "transform": {
+    "position": [
+     -0.13,
+     -2.56,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.08,
+     0.082,
+     11.8
+    ]
+   },
+   "color": "#59666c",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-shutter-slat-9",
+   "name": "Shutter Slat",
+   "type": "cube",
+   "parentId": "wing-workshop-shutter",
+   "transform": {
+    "position": [
+     -0.13,
+     -2.25,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.08,
+     0.082,
+     11.8
+    ]
+   },
+   "color": "#59666c",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-shutter-slat-10",
+   "name": "Shutter Slat",
+   "type": "cube",
+   "parentId": "wing-workshop-shutter",
+   "transform": {
+    "position": [
+     -0.13,
+     -1.94,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.08,
+     0.082,
+     11.8
+    ]
+   },
+   "color": "#59666c",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-shutter-slat-11",
+   "name": "Shutter Slat",
+   "type": "cube",
+   "parentId": "wing-workshop-shutter",
+   "transform": {
+    "position": [
+     -0.13,
+     -1.63,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.08,
+     0.082,
+     11.8
+    ]
+   },
+   "color": "#59666c",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-shutter-slat-12",
+   "name": "Shutter Slat",
+   "type": "cube",
+   "parentId": "wing-workshop-shutter",
+   "transform": {
+    "position": [
+     -0.13,
+     -1.3200000000000003,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.08,
+     0.082,
+     11.8
+    ]
+   },
+   "color": "#59666c",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-shutter-slat-13",
+   "name": "Shutter Slat",
+   "type": "cube",
+   "parentId": "wing-workshop-shutter",
+   "transform": {
+    "position": [
+     -0.13,
+     -1.0099999999999998,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.08,
+     0.082,
+     11.8
+    ]
+   },
+   "color": "#59666c",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-shutter-slat-14",
+   "name": "Shutter Slat",
+   "type": "cube",
+   "parentId": "wing-workshop-shutter",
+   "transform": {
+    "position": [
+     -0.13,
+     -0.7000000000000002,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.08,
+     0.082,
+     11.8
+    ]
+   },
+   "color": "#59666c",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-shutter-slat-15",
+   "name": "Shutter Slat",
+   "type": "cube",
+   "parentId": "wing-workshop-shutter",
+   "transform": {
+    "position": [
+     -0.13,
+     -0.3899999999999997,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.08,
+     0.082,
+     11.8
+    ]
+   },
+   "color": "#59666c",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-inlet-jamb--10.75",
+   "name": "Shutter Guide",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     61.15,
+     2.65,
+     -10.75
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.42,
+     5.3,
+     0.43
+    ]
+   },
+   "color": "#216787",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-inlet-jamb-0.75",
+   "name": "Shutter Guide",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     61.15,
+     2.65,
+     0.75
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.42,
+     5.3,
+     0.43
+    ]
+   },
+   "color": "#216787",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-beacon",
+   "name": "Amber Wave Warning",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     61.13,
+     5.65,
+     -5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.52,
+     0.44,
+     0.81
+    ]
+   },
+   "color": "#ae5f34",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "enemy-spawn-workshop",
+   "name": "Workshop Dispatch Spawn",
+   "type": "cylinder",
+   "parentId": "spawnpoints",
+   "transform": {
+    "position": [
+     69,
+     0.08,
+     -5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.2,
+     0.12,
+     2.2
+    ]
+   },
+   "color": "#c0392b",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "spawn",
+    "right",
+    "workshop-dispatch"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "EnemySpawnPoint",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "spawnPoint": {
+     "enabled": true,
+     "spawnInterval": 1.5,
+     "initialDelay": 2,
+     "enemiesPerWave": 2,
+     "moveSpeed": 2.2,
+     "travelDirection": [
+      -1,
+      0,
+      0
+     ],
+     "monsterType": "Ground",
+     "flightHeight": 3,
+     "flyingEntrance": false,
+     "entranceAltitude": 0,
+     "laneId": "workshop",
+     "enemyPrefabId": "",
+     "waves": [
+      {
+       "enabled": false,
+       "enemyCount": 0
+      },
+      {
+       "enabled": false,
+       "enemyCount": 0
+      },
+      {
+       "enabled": true,
+       "enemyCount": 2
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "route-cargo-workshop-start",
+   "name": "Workshop Dispatch Route Start",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     69,
+     0,
+     -5
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [
+    "cargo-route"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": [
+      "route-cargo-workshop-shutter"
+     ]
+    }
+   }
+  },
+  {
+   "id": "route-cargo-workshop-shutter",
+   "name": "Workshop Dispatch Route Shutter",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     53,
+     0,
+     -5
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [
+    "cargo-route"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": [
+      "route-cargo-workshop-apron"
+     ]
+    }
+   }
+  },
+  {
+   "id": "route-cargo-workshop-apron",
+   "name": "Workshop Dispatch Route Apron",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     48,
+     0,
+     -18
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [
+    "cargo-route"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": [
+      "route-cargo-workshop-door"
+     ]
+    }
+   }
+  },
+  {
+   "id": "route-cargo-workshop-door",
+   "name": "Workshop Dispatch Route Door",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     36,
+     0,
+     -18
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [
+    "cargo-route"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": [
+      "route-cargo-workshop-join"
+     ]
+    }
+   }
+  },
+  {
+   "id": "route-cargo-workshop-join",
+   "name": "Workshop Dispatch Route Join",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     24,
+     0,
+     -18
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [
+    "cargo-route"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": [
+      "route-cargo-route-right-3"
+     ]
+    }
+   }
+  },
+  {
+   "id": "wing-workshop-shutter-panel",
+   "name": "Roll-up Door Panel",
+   "type": "cube",
+   "parentId": "wing-workshop-shutter",
+   "transform": {
+    "position": [
+     0,
+     -2.6,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.23,
+     5.2,
+     12
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-tool-room-wall",
+   "name": "Tool Store Back Wall",
+   "type": "cube",
+   "parentId": "wing-right",
+   "transform": {
+    "position": [
+     69.1,
+     1.7,
+     34
     ],
     "rotation": [
      0,

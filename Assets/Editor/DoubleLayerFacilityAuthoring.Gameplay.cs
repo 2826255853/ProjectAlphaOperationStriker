@@ -8,6 +8,7 @@ using UnityEngine;
 public static partial class DoubleLayerFacilityAuthoring
 {
     private const string PumpSpawnId = "enemy-spawn-pump";
+    private const string WorkshopSpawnId = "enemy-spawn-workshop";
 
     // Gameplay is applied after the geometry import so the facility keeps its
     // authored multi-storey cargo routes instead of a flat imported path grid.
@@ -86,17 +87,19 @@ public static partial class DoubleLayerFacilityAuthoring
                 entrance.gameObject.AddComponent<AuthoredMonsterRoute>().Configure(branches.ToArray());
             }
         }
-        ConfigurePumpIntake(instances);
+        ConfigureWingIntake(instances, PumpSpawnId, "wing-pump-", "enemy-spawn-upper-left");
+        ConfigureWingIntake(instances, WorkshopSpawnId, "wing-workshop-", "enemy-spawn-upper-right");
         Physics.SyncTransforms();
     }
 
-    private static void ConfigurePumpIntake(Dictionary<string, MapForgeObjectProperties> instances)
+    private static void ConfigureWingIntake(Dictionary<string, MapForgeObjectProperties> instances,
+        string spawnId, string gatePrefix, string rearSpawnId)
     {
-        var entrance = instances[PumpSpawnId].GetComponent<EnemySpawnPoint>();
-        var rear = instances["enemy-spawn-upper-left"].GetComponent<EnemySpawnPoint>();
-        var shutter = instances["wing-pump-shutter"].transform;
-        var panel = instances["wing-pump-shutter-panel"].GetComponentInChildren<Renderer>();
-        var beacon = instances["wing-pump-beacon"].GetComponentInChildren<Renderer>();
+        var entrance = instances[spawnId].GetComponent<EnemySpawnPoint>();
+        var rear = instances[rearSpawnId].GetComponent<EnemySpawnPoint>();
+        var shutter = instances[gatePrefix + "shutter"].transform;
+        var panel = instances[gatePrefix + "shutter-panel"].GetComponentInChildren<Renderer>();
+        var beacon = instances[gatePrefix + "beacon"].GetComponentInChildren<Renderer>();
         var warning = beacon.transform.parent.gameObject.AddComponent<AudioSource>();
         warning.playOnAwake = false;
         warning.spatialBlend = 1f;
@@ -113,8 +116,8 @@ public static partial class DoubleLayerFacilityAuthoring
         var grids = world.GetComponentsInChildren<TrapPlacementGrid>(true);
         var pads = world.GetComponentsInChildren<MapForgeObjectProperties>(true)
             .Where(item => item.tags != null && item.tags.Contains("defense-reservation")).ToArray();
-        if (cores.Length != 1 || entrances.Length != 7 || entrances.Count(item => item.IsFlyingEntrance) != 1)
-            throw new InvalidOperationException("Facility requires one core, six ground entrances and one flying entrance.");
+        if (cores.Length != 1 || entrances.Length != 8 || entrances.Count(item => item.IsFlyingEntrance) != 1)
+            throw new InvalidOperationException("Facility requires one core, seven ground entrances and one flying entrance.");
         if (grids.Length != pads.Length || grids.Length < 27)
             throw new InvalidOperationException("Every facility defense reservation requires a usable placement grid.");
         int exteriorCells = 0, rearCells = 0, wingCells = 0, allCells = 0;
@@ -169,12 +172,13 @@ public static partial class DoubleLayerFacilityAuthoring
                 !entrance.IsWaveEnabled(2) || entrance.GetEnemiesPerWave(2) != 1 ||
                 !entrance.IsWaveEnabled(3) || entrance.GetEnemiesPerWave(3) != 2))
                 throw new InvalidOperationException("Rear entrance must face the factory and join in waves two and three: " + entrance.name);
-            if (id == PumpSpawnId && (entrance.TravelDirection != Vector3.right || entrance.IsWaveEnabled(1) ||
+            if ((id == PumpSpawnId || id == WorkshopSpawnId) &&
+                (entrance.TravelDirection != (id == PumpSpawnId ? Vector3.right : Vector3.left) || entrance.IsWaveEnabled(1) ||
                 entrance.IsWaveEnabled(2) || !entrance.IsWaveEnabled(3) || entrance.GetEnemiesPerWave(3) != 2 ||
                 entrance.GetComponent<FacilityPumpIntake>() == null))
-                throw new InvalidOperationException("Pump intake must move two third-wave enemies through the shutter.");
-            if (id == "enemy-spawn-left" && entrance.IsWaveEnabled(3))
-                throw new InvalidOperationException("The pump intake replaces the front-left entrance in wave three.");
+                throw new InvalidOperationException("Invalid third-wave wing entrance: " + id);
+            if ((id == "enemy-spawn-left" || id == "enemy-spawn-right") && entrance.IsWaveEnabled(3))
+                throw new InvalidOperationException("The side entrances replace the front flanks in wave three.");
             for (int i = 1; i <= mission.Routes.Count; i++)
             {
                 var route = mission.GetRoute(i, cores[0]);
@@ -234,8 +238,10 @@ public static partial class DoubleLayerFacilityAuthoring
             instances["enemy-spawn-middle"].transform.position.x, instances["enemy-spawn-right"].transform.position.x };
         var rearApproaches = new[] { "left", "right" }.Select(side =>
             instances["route-cargo-upper-" + side + "-ramp-toe"].transform.position).ToArray();
-        var pumpApproach = new[] { "start", "shutter", "apron", "door" }.Select(node =>
-            instances["route-cargo-pump-" + node].transform.position).ToArray();
+        Vector3[] Approach(string wing) => new[] { "start", "shutter", "apron", "door" }.Select(node =>
+            instances["route-cargo-" + wing + "-" + node].transform.position).ToArray();
+        var westApproach = Approach("pump");
+        var eastApproach = Approach("workshop");
         for (int y = 0; y < lanes.Rows; y++)
         for (int x = 0; x < lanes.Columns; x++)
         {
@@ -243,13 +249,14 @@ public static partial class DoubleLayerFacilityAuthoring
             Vector3 center = lanes.CellToWorld(cell);
             bool frontLane = center.z <= entranceZ && centers.Any(lane => Mathf.Abs(center.x - lane) < 6f);
             bool rearLane = rearApproaches.Any(toe => center.z >= toe.z && Mathf.Abs(center.x - toe.x) < 6f);
-            bool pumpLane = center.x < slab.min.x && InPumpApproach(center, pumpApproach);
-            lanes.SetOpen(cell, frontLane || rearLane || pumpLane);
+            bool wingLane = (center.x < slab.min.x && InWingApproach(center, westApproach)) ||
+                (center.x > slab.max.x && InWingApproach(center, eastApproach));
+            lanes.SetOpen(cell, frontLane || rearLane || wingLane);
         }
         return lanes;
     }
 
-    private static bool InPumpApproach(Vector3 point, Vector3[] approach)
+    private static bool InWingApproach(Vector3 point, Vector3[] approach)
     {
         const float halfWidth = 4f;
         for (int i = 1; i < approach.Length; i++)
