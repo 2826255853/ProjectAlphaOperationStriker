@@ -188,6 +188,13 @@ public sealed class EnemySpawnPoint : MonoBehaviour
         WaveSpawnSettings settings = GetWaveSettings(waveNumber);
         return settings == null || (settings.enabled && settings.enemyCount > 0);
     }
+
+    internal void SetWaveEnabled(int waveNumber, bool enabled)
+    {
+        WaveSpawnSettings settings = GetWaveSettings(waveNumber);
+        if (settings != null) settings.enabled = enabled;
+    }
+
     /// <summary>Returns the enemy type configured for a specific wave at this entrance.</summary>
     public MonsterType GetMonsterTypeForWave(int waveNumber)
     {
@@ -312,19 +319,12 @@ public sealed class EnemySpawnPoint : MonoBehaviour
 
     private void SpawnNextWaveEnemy()
     {
-        // Disabled/empty waves are advanced without creating an enemy.
-        while (!IsWaveEnabled(currentWave))
+        // An empty entrance still waits for the other entrances to finish this wave.
+        if (!IsWaveEnabled(currentWave))
         {
-            if (currentWave >= TotalWaves)
-            {
-                CompleteAllWaves();
-                return;
-            }
-
-            currentWave++;
-            spawnedInCurrentWave = 0;
-            timeUntilNextSpawn = GetWaveTransitionDelay(currentWave - 1);
-            if (timeUntilNextSpawn > 0f) return;
+            waitingForWaveResolution = currentWave;
+            timeUntilNextSpawn = 0f;
+            return;
         }
 
         int indexInWave = spawnedInCurrentWave + 1;

@@ -223,6 +223,7 @@ public static partial class DoubleLayerFacilityAuthoring
             camera.targetTexture = target;
             camera.fieldOfView = 45f;
             RenderShot(camera, target, new Vector3(68f, 85f, -89f), new Vector3(0f, 3f, 8f), "01-overview.png");
+            RenderAirPreview(camera, target);
             camera.fieldOfView = fieldOfView;
             RenderShot(camera, target, SpawnCameraPosition, new Vector3(0f, 1.7f, 20f), "02-ground-floor.png");
             RenderShot(camera, target, new Vector3(-27f, 8.1f, 40f), new Vector3(-27f, 8f, -20f), "03-upper-floor.png");
@@ -242,6 +243,45 @@ public static partial class DoubleLayerFacilityAuthoring
             camera.transform.SetPositionAndRotation(position, rotation);
             RenderTexture.active = previous;
             UnityEngine.Object.DestroyImmediate(target);
+        }
+    }
+
+    private static void RenderAirPreview(Camera camera, RenderTexture target)
+    {
+        var points = UnityEngine.Object.FindObjectsByType<EnemySpawnPoint>(FindObjectsSortMode.None)
+            .Where(point => point.IsFlyingEntrance).ToArray();
+        float minZ = points.Min(point => point.transform.position.z);
+        float maxZ = points.Max(point => point.transform.position.z);
+        float centerZ = (minZ + maxZ) * .5f;
+        float originalSize = camera.orthographicSize;
+        var overlay = new GameObject("Temporary air approach preview");
+        var material = new Material(Shader.Find("Sprites/Default"));
+        try
+        {
+            foreach (var point in points)
+            {
+                var line = new GameObject(point.name).AddComponent<LineRenderer>();
+                line.transform.SetParent(overlay.transform, false);
+                line.sharedMaterial = material;
+                line.startColor = line.endColor = point.transform.position.z < point.Core.Position.z
+                    ? new Color(.22f, .8f, 1f) : new Color(1f, .6f, .17f);
+                line.startWidth = 1.5f;
+                line.endWidth = .35f;
+                line.positionCount = 2;
+                line.SetPosition(0, point.transform.position);
+                line.SetPosition(1, point.Core.Position + Vector3.up * point.FlightHeight);
+            }
+            camera.orthographic = true;
+            camera.orthographicSize = (maxZ - minZ) * .5f + 40f;
+            RenderShot(camera, target, new Vector3(0f, 200f, centerZ), new Vector3(0f, 0f, centerZ),
+                "22-air-routes.png", Vector3.forward);
+        }
+        finally
+        {
+            camera.orthographic = false;
+            camera.orthographicSize = originalSize;
+            UnityEngine.Object.DestroyImmediate(overlay);
+            UnityEngine.Object.DestroyImmediate(material);
         }
     }
 
@@ -267,9 +307,10 @@ public static partial class DoubleLayerFacilityAuthoring
         }
     }
 
-    private static void RenderShot(Camera camera, RenderTexture target, Vector3 position, Vector3 lookAt, string filename)
+    private static void RenderShot(Camera camera, RenderTexture target, Vector3 position, Vector3 lookAt,
+        string filename, Vector3? up = null)
     {
-        camera.transform.SetPositionAndRotation(position, Quaternion.LookRotation(lookAt - position));
+        camera.transform.SetPositionAndRotation(position, Quaternion.LookRotation(lookAt - position, up ?? Vector3.up));
         // Warm the offscreen camera before reading its render target.
         camera.Render();
         camera.Render();

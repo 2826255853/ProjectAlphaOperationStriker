@@ -9,6 +9,10 @@ public static partial class DoubleLayerFacilityAuthoring
 {
     private const string PumpSpawnId = "enemy-spawn-pump";
     private const string WorkshopSpawnId = "enemy-spawn-workshop";
+    private const string FrontLeftAirSpawnId = "enemy-spawn-flying-front-left";
+    private const string FrontRightAirSpawnId = "enemy-spawn-flying-front-right";
+    private const string RearLeftAirSpawnId = "enemy-spawn-flying-rear-left";
+    private const string RearRightAirSpawnId = "enemy-spawn-flying-rear-right";
 
     // Gameplay is applied after the geometry import so the facility keeps its
     // authored multi-storey cargo routes instead of a flat imported path grid.
@@ -62,16 +66,19 @@ public static partial class DoubleLayerFacilityAuthoring
             var direction = mapping.travelDirection;
             entrance.TravelDirection = direction == null ? Vector3.forward
                 : new Vector3(direction[0], direction[1], direction[2]);
+            if (flying) entrance.transform.rotation = Quaternion.LookRotation(entrance.TravelDirection, Vector3.up);
             var serialized = new SerializedObject(entrance);
             var waves = serialized.FindProperty("waveSpawnSettings");
             waves.arraySize = 3;
-            int[] counts = flying ? new[] { 2, 3, 4 } : new[] { 3, 4, 2 };
+            if (flying && mapping.waves?.Length != waves.arraySize)
+                throw new InvalidOperationException("An air route requires a count for every wave: " + node.id);
+            int[] groundCounts = { 3, 4, 2 };
             for (int i = 0; i < 3; i++)
             {
                 var wave = waves.GetArrayElementAtIndex(i);
                 bool hasSource = mapping.waves != null && i < mapping.waves.Length;
                 wave.FindPropertyRelative("enabled").boolValue = !hasSource || mapping.waves[i].enabled;
-                wave.FindPropertyRelative("enemyCount").intValue = hasSource ? mapping.waves[i].enemyCount : counts[i];
+                wave.FindPropertyRelative("enemyCount").intValue = hasSource ? mapping.waves[i].enemyCount : groundCounts[i];
                 wave.FindPropertyRelative("enemyPrefab").objectReferenceValue = entrance.EnemyPrefab;
                 wave.FindPropertyRelative("monsterType").enumValueIndex = (int)entrance.MonsterType;
                 wave.FindPropertyRelative("flightHeight").floatValue = mapping.flightHeight;
@@ -89,6 +96,9 @@ public static partial class DoubleLayerFacilityAuthoring
         }
         ConfigureWingIntake(instances, PumpSpawnId, "wing-pump-", "enemy-spawn-upper-left");
         ConfigureWingIntake(instances, WorkshopSpawnId, "wing-workshop-", "enemy-spawn-upper-right");
+        gameplay.AddComponent<FacilityAirWaveRotation>().Configure(
+            instances[FrontLeftAirSpawnId].GetComponent<EnemySpawnPoint>(),
+            instances[FrontRightAirSpawnId].GetComponent<EnemySpawnPoint>());
         Physics.SyncTransforms();
     }
 
@@ -116,8 +126,8 @@ public static partial class DoubleLayerFacilityAuthoring
         var grids = world.GetComponentsInChildren<TrapPlacementGrid>(true);
         var pads = world.GetComponentsInChildren<MapForgeObjectProperties>(true)
             .Where(item => item.tags != null && item.tags.Contains("defense-reservation")).ToArray();
-        if (cores.Length != 1 || entrances.Length != 8 || entrances.Count(item => item.IsFlyingEntrance) != 1)
-            throw new InvalidOperationException("Facility requires one core, seven ground entrances and one flying entrance.");
+        if (cores.Length != 1 || entrances.Length != 11 || entrances.Count(item => item.IsFlyingEntrance) != 4)
+            throw new InvalidOperationException("Facility requires one core, seven ground entrances and four flying entrances.");
         if (grids.Length != pads.Length || grids.Length < 27)
             throw new InvalidOperationException("Every facility defense reservation requires a usable placement grid.");
         int exteriorCells = 0, rearCells = 0, wingCells = 0, allCells = 0;
@@ -187,28 +197,111 @@ public static partial class DoubleLayerFacilityAuthoring
                     throw new InvalidOperationException("Ground mission is detached from entrance/floor: " + entrance.name);
             }
         }
-        var air = entrances.Single(item => item.IsFlyingEntrance);
-        float distance = Vector2.Distance(new Vector2(air.transform.position.x, air.transform.position.z),
-            new Vector2(cores[0].Position.x, cores[0].Position.z));
-        if (distance < 115f || air.MoveSpeed <= 0f)
-            throw new InvalidOperationException("Flying entrance must provide at least 115 m of approach.");
-        var launcherDefinition = Resources.Load<TrapDefinition>("DualMissileLauncherLoaded");
-        var launcher = launcherDefinition.Prefab.GetComponentInChildren<MissileLauncherTurret>(true);
-        float flightAltitude = cores[0].Position.y + air.FlightHeight;
-        foreach (var pad in pads.Where(item => item.objectId.StartsWith("exterior-aa-", StringComparison.Ordinal)))
-        {
-            Bounds bounds = pad.GetComponentInChildren<Renderer>().bounds;
-            Vector3 installation = new Vector3(bounds.center.x, bounds.min.y, bounds.center.z);
-            Vector3 crossing = new Vector3(cores[0].Position.x, flightAltitude, bounds.center.z);
-            if (launcher == null || Vector3.Distance(installation, crossing) >= launcher.DetectionRange)
-                throw new InvalidOperationException("AA platform center is outside the real launcher's flight coverage: " + pad.objectId);
-        }
+        ValidateFacilityAirRoutes(world, cores[0], entrances, grids);
         var sentry = Resources.Load<TrapDefinition>("AutoSentryTurret").Prefab.GetComponentInChildren<AutoSentryTurret>(true);
-        Debug.Log($"FACILITY_WEAPON_COVERAGE_PASS: platform centers cover the flight corridor with the real launcher range " +
-            $"{launcher.DetectionRange:F1}m; current sentry prefab range {sentry.DetectionRange:F1}m.");
         Debug.Log($"FACILITY_GAMEPLAY_PASS: {entrances.Length} entrances, {grids.Length} placement grids, " +
-            $"{exteriorCells} front yard / {rearCells} rear yard / {wingCells} side wings / {allCells} total usable 1m cells; flying horizontal approach {distance:F2}m, " +
-            $"{distance / air.MoveSpeed:F2}s at {air.MoveSpeed:F2}m/s. Ground missions use authored ramp heights.");
+            $"{exteriorCells} front yard / {rearCells} rear yard / {wingCells} side wings / {allCells} total usable 1m cells; " +
+            $"current sentry prefab range {sentry.DetectionRange:F1}m. Ground missions use authored ramp heights.");
+    }
+
+    private static void ValidateFacilityAirRoutes(GameObject world, EnemyCore core, EnemySpawnPoint[] entrances,
+        TrapPlacementGrid[] grids)
+    {
+        var air = entrances.Where(item => item.IsFlyingEntrance)
+            .ToDictionary(item => item.GetComponent<MapForgeObjectProperties>().objectId);
+        var rotation = world.GetComponentInChildren<FacilityAirWaveRotation>();
+        if (rotation == null || rotation.FrontLeft != air[FrontLeftAirSpawnId] ||
+            rotation.FrontRight != air[FrontRightAirSpawnId] ||
+            rotation.FrontLeft.GetEnemiesPerWave(2) != 1 || rotation.FrontRight.GetEnemiesPerWave(2) != 1 ||
+            rotation.FrontLeft.IsWaveEnabled(2) == rotation.FrontRight.IsWaveEnabled(2))
+            throw new InvalidOperationException("Exactly one front route must start enabled for the second air wave.");
+
+        var launcherDefinition = Resources.Load<TrapDefinition>("DualMissileLauncherLoaded");
+        var launcher = launcherDefinition?.Prefab?.GetComponentInChildren<MissileLauncherTurret>(true);
+        if (launcher == null || launcher.DetectionRange <= 0f)
+            throw new InvalidOperationException("The facility air route check requires the dual missile launcher.");
+        var routes = new[]
+        {
+            (FrontLeftAirSpawnId, false, false, "exterior-aa-left-reservation"),
+            (FrontRightAirSpawnId, false, true, "exterior-aa-right-reservation"),
+            (RearLeftAirSpawnId, true, false, "rear-defense-upper-left"),
+            (RearRightAirSpawnId, true, true, "rear-defense-upper-right")
+        };
+        Vector3 reference = rotation.FrontLeft.transform.position - core.Position;
+        float referenceSpeed = rotation.FrontLeft.MoveSpeed;
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(FlyingSpawnPointAuthoring.FlyingPrefabPath);
+        var probe = prefab != null ? PrefabUtility.InstantiatePrefab(prefab) as GameObject : null;
+        if (probe == null) throw new InvalidOperationException("Could not measure the flying monster prefab.");
+        try
+        {
+            foreach (var (id, rear, right, padId) in routes)
+            {
+                var entrance = air[id];
+                Vector3 start = entrance.transform.position;
+                Vector3 expectedOffset = new Vector3(right ? -reference.x : reference.x, reference.y,
+                    rear ? -reference.z : reference.z);
+                Vector3 end = core.Position + Vector3.up * entrance.FlightHeight;
+                Vector3 route = end - start;
+                float distance = route.magnitude;
+                Vector3 direction = route.normalized;
+                if (reference.x >= 0f || reference.z >= 0f ||
+                    Vector3.Distance(start - core.Position, expectedOffset) > .01f ||
+                    Mathf.Abs(end.y - start.y) > .01f || Mathf.Abs(entrance.EntranceAltitude - start.y) > .01f ||
+                    distance < 115f || referenceSpeed <= 0f || !Mathf.Approximately(entrance.MoveSpeed, referenceSpeed) ||
+                    Vector3.Dot(entrance.transform.forward, direction) < .999f ||
+                    entrance.IsWaveEnabled(1) == rear || (rear && !entrance.IsWaveEnabled(2)) ||
+                    !entrance.IsWaveEnabled(3))
+                    throw new InvalidOperationException("Invalid facility air route: " + id);
+
+                probe.transform.SetPositionAndRotation(start, entrance.transform.rotation);
+                Bounds bounds = new Bounds(start, Vector3.zero);
+                foreach (var renderer in probe.GetComponentsInChildren<Renderer>())
+                    bounds.Encapsulate(renderer.bounds);
+                probe.transform.position = Vector3.up * 1000f;
+                Physics.SyncTransforms();
+                float spreadDiameter = entrance.FlyingSpawnSpread * 2f;
+                bounds.Expand(new Vector3(spreadDiameter, 0f, spreadDiameter));
+                if (Physics.CheckBox(bounds.center, bounds.extents, Quaternion.identity, ~0,
+                        QueryTriggerInteraction.Ignore) ||
+                    Physics.BoxCast(bounds.center, bounds.extents, direction, out _, Quaternion.identity, distance, ~0,
+                        QueryTriggerInteraction.Ignore))
+                    throw new InvalidOperationException("Flying monster plus spawn spread intersects scenery: " + id);
+
+                var grid = grids.Single(item => item.name == "TrapPlacementGrid_" + padId);
+                ValidateAirDefensePlacement(grid, launcherDefinition, launcher.DetectionRange, start, end);
+                Debug.Log($"FACILITY_AIR_ROUTE_PASS: {id}, {distance:F2} m / {distance / entrance.MoveSpeed:F2} s, " +
+                    $"clear for the flying prefab and covered by {padId}.");
+            }
+        }
+        finally { UnityEngine.Object.DestroyImmediate(probe); }
+
+        int[] expectedCounts = { 2, 3, 4 };
+        for (int wave = 1; wave <= expectedCounts.Length; wave++)
+        {
+            int count = air.Values.Where(item => item.IsWaveEnabled(wave)).Sum(item => item.GetEnemiesPerWave(wave));
+            if (count != expectedCounts[wave - 1])
+                throw new InvalidOperationException($"Wave {wave} must spawn {expectedCounts[wave - 1]} flying monsters.");
+        }
+    }
+
+    private static void ValidateAirDefensePlacement(TrapPlacementGrid grid, TrapDefinition launcher, float range,
+        Vector3 start, Vector3 end)
+    {
+        if (grid.TryGetFootprint(launcher, out Vector2Int footprint))
+        {
+            Vector3 route = end - start;
+            for (int y = 0; y < grid.Rows; y++)
+            for (int x = 0; x < grid.Columns; x++)
+            {
+                var cell = new Vector2Int(x, y);
+                if (!grid.CanPlaceTrap(cell, launcher, out _)) continue;
+                Vector3 site = grid.GetTrapWorldPosition(cell, footprint);
+                Vector3 crossing = start + route * Mathf.Clamp01(Vector3.Dot(site - start, route) / route.sqrMagnitude);
+                if (Vector3.Distance(site, crossing) < range &&
+                    !Physics.Linecast(site + Vector3.up, crossing, ~0, QueryTriggerInteraction.Ignore)) return;
+            }
+        }
+        throw new InvalidOperationException("No exposed missile launcher placement covers the flying approach: " + grid.name);
     }
 
     private static MonsterPathGrid CreateFacilityLaneGrid(Transform parent,

@@ -45487,15 +45487,15 @@
    }
   },
   {
-   "id": "enemy-spawn-flying",
-   "name": "Enemy Spawn Flying",
+   "id": "enemy-spawn-flying-front-left",
+   "name": "Enemy Spawn Flying Front Left",
    "type": "cylinder",
    "parentId": "spawnpoints",
    "transform": {
     "position": [
-     0,
+     -36,
      16,
-     -136
+     -130
     ],
     "rotation": [
      0,
@@ -45533,33 +45533,46 @@
      "enabled": true,
      "spawnInterval": 1.5,
      "initialDelay": 2,
-     "enemiesPerWave": 9,
+     "enemiesPerWave": 1,
      "moveSpeed": 2.2,
      "travelDirection": [
+      36,
       0,
-      0,
-      -1
+      112
      ],
      "monsterType": "Flying",
      "flightHeight": 7.3,
      "flyingEntrance": true,
      "entranceAltitude": 16,
-     "laneId": "air",
+     "laneId": "air-front-left",
      "enemyPrefabId": "",
-     "waves": []
+     "waves": [
+      {
+       "enabled": true,
+       "enemyCount": 1
+      },
+      {
+       "enabled": true,
+       "enemyCount": 1
+      },
+      {
+       "enabled": true,
+       "enemyCount": 1
+      }
+     ]
     }
    }
   },
   {
-   "id": "flying-portal",
-   "name": "Flying Portal",
-   "type": "sphere",
+   "id": "enemy-spawn-flying-front-right",
+   "name": "Enemy Spawn Flying Front Right",
+   "type": "cylinder",
    "parentId": "spawnpoints",
    "transform": {
     "position": [
-     0,
-     16.4,
-     48
+     36,
+     16,
+     -130
     ],
     "rotation": [
      0,
@@ -45567,9 +45580,9 @@
      0
     ],
     "scale": [
-     1.6,
-     1.6,
-     1.6
+     2.2,
+     0.12,
+     2.2
     ]
    },
    "color": "#a05cff",
@@ -45578,17 +45591,208 @@
     "roughness": 0.72,
     "metalness": 0.12
    },
-   "tags": [],
+   "tags": [
+    "spawn",
+    "air"
+   ],
    "layer": 0,
    "collision": false,
    "static": false,
    "visible": true,
    "locked": false,
    "collapsed": false,
-   "prefabType": "",
+   "prefabType": "EnemySpawnPoint",
    "parameters": {},
    "parametersJson": "{}",
-   "category": "decoration"
+   "category": "waypoint",
+   "unity": {
+    "spawnPoint": {
+     "enabled": true,
+     "spawnInterval": 1.5,
+     "initialDelay": 2,
+     "enemiesPerWave": 1,
+     "moveSpeed": 2.2,
+     "travelDirection": [
+      -36,
+      0,
+      112
+     ],
+     "monsterType": "Flying",
+     "flightHeight": 7.3,
+     "flyingEntrance": true,
+     "entranceAltitude": 16,
+     "laneId": "air-front-right",
+     "enemyPrefabId": "",
+     "waves": [
+      {
+       "enabled": true,
+       "enemyCount": 1
+      },
+      {
+       "enabled": false,
+       "enemyCount": 1
+      },
+      {
+       "enabled": true,
+       "enemyCount": 1
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "enemy-spawn-flying-rear-left",
+   "name": "Enemy Spawn Flying Rear Left",
+   "type": "cylinder",
+   "parentId": "spawnpoints",
+   "transform": {
+    "position": [
+     -36,
+     16,
+     94
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.2,
+     0.12,
+     2.2
+    ]
+   },
+   "color": "#a05cff",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "spawn",
+    "air"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "EnemySpawnPoint",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "spawnPoint": {
+     "enabled": true,
+     "spawnInterval": 1.5,
+     "initialDelay": 2,
+     "enemiesPerWave": 1,
+     "moveSpeed": 2.2,
+     "travelDirection": [
+      36,
+      0,
+      -112
+     ],
+     "monsterType": "Flying",
+     "flightHeight": 7.3,
+     "flyingEntrance": true,
+     "entranceAltitude": 16,
+     "laneId": "air-rear-left",
+     "enemyPrefabId": "",
+     "waves": [
+      {
+       "enabled": false,
+       "enemyCount": 0
+      },
+      {
+       "enabled": true,
+       "enemyCount": 1
+      },
+      {
+       "enabled": true,
+       "enemyCount": 1
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "enemy-spawn-flying-rear-right",
+   "name": "Enemy Spawn Flying Rear Right",
+   "type": "cylinder",
+   "parentId": "spawnpoints",
+   "transform": {
+    "position": [
+     36,
+     16,
+     94
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.2,
+     0.12,
+     2.2
+    ]
+   },
+   "color": "#a05cff",
+   "material": {
+    "type": "unlit",
+    "roughness": 0.72,
+    "metalness": 0.12
+   },
+   "tags": [
+    "spawn",
+    "air"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": false,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "EnemySpawnPoint",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "waypoint",
+   "unity": {
+    "spawnPoint": {
+     "enabled": true,
+     "spawnInterval": 1.5,
+     "initialDelay": 2,
+     "enemiesPerWave": 1,
+     "moveSpeed": 2.2,
+     "travelDirection": [
+      -36,
+      0,
+      -112
+     ],
+     "monsterType": "Flying",
+     "flightHeight": 7.3,
+     "flyingEntrance": true,
+     "entranceAltitude": 16,
+     "laneId": "air-rear-right",
+     "enemyPrefabId": "",
+     "waves": [
+      {
+       "enabled": false,
+       "enemyCount": 0
+      },
+      {
+       "enabled": true,
+       "enemyCount": 1
+      },
+      {
+       "enabled": true,
+       "enemyCount": 1
+      }
+     ]
+    }
+   }
   },
   {
    "id": "rear-service-foundation",
