@@ -55,6 +55,8 @@ public sealed class GameStartMenuPlayModeTests
             : (double)statistics.GamesWon / statistics.TotalGamesPlayed * 100d;
         Assert.That(Get<TextMeshProUGUI>(view, "statisticsValues").text,
             Is.EqualTo($"{statistics.TotalGamesPlayed:N0}\n{statistics.GamesWon:N0}\n{statistics.GamesLost:N0}\n{winRate:F1}%"));
+        Assert.That(Get<TextMeshProUGUI>(view, "strategicResourcesValue").text,
+            Is.EqualTo(statistics.StrategicResources.ToString("N0")));
         PlayerInput player = Object.FindAnyObjectByType<PlayerInput>();
         Assert.That(player, Is.Not.Null, "The real scene must bootstrap its player.");
         Assert.That(player.actions, Is.Not.Null);
@@ -115,6 +117,9 @@ public sealed class GameStartMenuPlayModeTests
         Assert.That(GameSaveSystem.Current.TotalGamesPlayed, Is.EqualTo(statistics.TotalGamesPlayed));
         Assert.That(GameSaveSystem.Current.GamesWon, Is.EqualTo(statistics.GamesWon));
         Assert.That(GameSaveSystem.Current.GamesLost, Is.EqualTo(statistics.GamesLost));
+        Assert.That(GameSaveSystem.Current.StrategicResources, Is.EqualTo(statistics.StrategicResources));
+        Assert.That(Get<TextMeshProUGUI>(returnedView, "strategicResourcesValue").text,
+            Is.EqualTo(statistics.StrategicResources.ToString("N0")));
         Assert.That(GameStartMenu.CursorOwned, Is.True);
         Assert.That(Time.timeScale, Is.Zero);
         Assert.That(GameFlowManager.Instance.CurrentResult, Is.EqualTo(GameFlowManager.Result.Playing));

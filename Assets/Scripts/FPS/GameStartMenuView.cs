@@ -45,6 +45,7 @@ public sealed class GameStartMenuView : MonoBehaviour
     [SerializeField] private TextMeshProUGUI settingsTitle;
     [SerializeField] private GameObject statisticsPanel;
     [SerializeField] private TextMeshProUGUI statisticsValues;
+    [SerializeField] private TextMeshProUGUI strategicResourcesValue;
     private readonly List<Button> mapButtons = new List<Button>();
     private bool initialized;
 
@@ -101,6 +102,7 @@ public sealed class GameStartMenuView : MonoBehaviour
             }
             BuildLayout(gameObject, LoadRuntimeBackground());
         }
+        if (strategicResourcesValue == null) BuildStrategicResources();
 
         EnsureEventSystem();
         TMP_FontAsset font = LoadMenuFont();
@@ -158,6 +160,7 @@ public sealed class GameStartMenuView : MonoBehaviour
             double winRate = statistics.TotalGamesPlayed == 0 ? 0d
                 : (double)statistics.GamesWon / statistics.TotalGamesPlayed * 100d;
             statisticsValues.text = $"{statistics.TotalGamesPlayed:N0}\n{statistics.GamesWon:N0}\n{statistics.GamesLost:N0}\n{winRate:F1}%";
+            strategicResourcesValue.text = statistics.StrategicResources.ToString("N0");
         }
         if (showMaps) RefreshMaps(maps, loading);
     }
@@ -205,7 +208,25 @@ public sealed class GameStartMenuView : MonoBehaviour
         view.statisticsValues.enableAutoSizing = true;
         view.statisticsValues.fontSizeMin = 18;
         view.statisticsValues.fontSizeMax = 26;
+        view.BuildStrategicResources();
         Footer(panel, "记录已完成对局的胜负，自动保存至本机。");
+    }
+
+    private void BuildStrategicResources()
+    {
+        RectTransform panel = statisticsPanel.GetComponent<RectTransform>();
+        panel.sizeDelta = new Vector2(panel.sizeDelta.x, 530);
+        Image(panel, "Strategic Resources Divider", new Vector2(0, 1), new Vector2(1, 1),
+            new Vector2(44, -373), new Vector2(-44, -372), null, new Color(Amber.r, Amber.g, Amber.b, .6f));
+        Text(panel, "战略资源", new Vector2(44, -441), new Vector2(196, -388), 26, Amber)
+            .name = "Strategic Resources Label";
+        strategicResourcesValue = Text(panel, "0", new Vector2(196, -441), new Vector2(-44, -388),
+            32, Amber, TextAlignmentOptions.Right);
+        strategicResourcesValue.name = "Strategic Resources Value";
+        strategicResourcesValue.enableAutoSizing = true;
+        strategicResourcesValue.fontSizeMin = 16;
+        strategicResourcesValue.fontSizeMax = 32;
+        strategicResourcesValue.textWrappingMode = TextWrappingModes.NoWrap;
     }
 
     private static void BuildMapSelection(GameStartMenuView view, Transform panel)

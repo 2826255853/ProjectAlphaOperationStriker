@@ -55,6 +55,9 @@ public static class GameStartMenuAuthoring
             throw new InvalidOperationException("Enter the map selection page through the main menu's primary action.");
         if (prefab.transform.Find("Statistics Panel") == null)
             throw new InvalidOperationException("Menu prefab is missing saved-game statistics.");
+        if (new SerializedObject(prefab.GetComponent<GameStartMenuView>())
+            .FindProperty("strategicResourcesValue").objectReferenceValue == null)
+            throw new InvalidOperationException("Menu prefab is missing the strategic resources balance.");
         var maps = MapSceneCatalog.GetMaps();
         if (maps.Count != UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings || maps.Count == 0)
             throw new InvalidOperationException("Build Settings map catalog is empty or inconsistent.");

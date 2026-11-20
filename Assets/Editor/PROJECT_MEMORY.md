@@ -1,5 +1,11 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 局外战略资源（2026-11-20）
+
+- `GameFlowManager` 首次判定胜负时调用 `GameSaveSystem.RecordCompletedGame`。胜局发放 2000、败局发放 1000 战略资源，与已完成对局统计同时写入本机 PlayerPrefs。旧存档保留原统计，首次余额为 0。中途退出无结算奖励。
+- `GameStartMenuView` 在主菜单右侧局外统计面板显示余额，每次返回主菜单从存档状态刷新。菜单预制体由 `GameStartMenuAuthoring` 生成并校验。本阶段只接入发放、存档和显示。
+- 项目版本 Unity 图形模式验证 8/8 通过，覆盖两档奖励、存档重载、余额去重、旧存档、菜单刷新及中途退出。临时测试源码及 `.meta` 已清理。主菜单预览和报告分别位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\GameStartMenu\strategic-resources\main-menu.png` 和同目录的 `tests-final\results.xml`。
+
 ## Unity 编辑器升级至 6000.6.10f1（2026-11-20）
 
 - 项目编辑器已从 `6000.6.9f1` 升级至 `6000.6.10f1`（修订 `40e81493c67d`）。`ProjectSettings/ProjectVersion.txt` 已记录新版本，本机已核实直接安装路径 `C:\Program Files\Unity 6000.6.10f1\Editor\Unity.exe` 存在。
