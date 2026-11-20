@@ -482,6 +482,7 @@ public sealed class SentryMachineGunTests
         Assert.That(prefab, Is.Not.Null, "缺少出厂陷阱预制体：" + ShippedTrapPrefabPath);
         AutoSentryTurret shipped = prefab.GetComponent<AutoSentryTurret>();
         Assert.That(shipped, Is.Not.Null, "出厂预制体上必须有 AutoSentryTurret。");
+        Assert.That(shipped.DetectionRange, Is.EqualTo(10f).Within(0.01f), "出厂预制体索敌范围和射程必须是 10 米。");
         Assert.That(shipped.MinPitchLimit, Is.EqualTo(-30f).Within(0.01f), "出厂预制体射界下限必须是 -30°。");
         Assert.That(shipped.MaxPitchLimit, Is.EqualTo(60f).Within(0.01f), "出厂预制体射界上限必须是 +60°。");
     }

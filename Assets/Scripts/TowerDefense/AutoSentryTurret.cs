@@ -24,7 +24,7 @@ public sealed class AutoSentryTurret : MonoBehaviour
     private const float ElevationToleranceDegrees = 0.5f;
 
     [Header("Targeting")]
-    [SerializeField, Min(0.1f)] private float detectionRange = 5f;
+    [SerializeField, Min(0.1f)] private float detectionRange = 10f;
     [SerializeField, Min(0f)] private float rotationSpeed = 360f;
     [SerializeField] private bool targetingFeedbackEnabled = true;
 

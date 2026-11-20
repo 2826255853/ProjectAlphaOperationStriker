@@ -1,5 +1,23 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## Unity 编辑器空白启动（2026-11-20）
+
+- `Assets/Editor/EditorWorkspaceStartup.cs` 在正常退出时关闭已加载的雷鸣工厂。退出仍保留 Unity 的保存确认，只有雷鸣工厂这一个已加载场景时切换到 `Assets/Scenes/EditorWorkspace.unity`。下次普通启动恢复退出时的场景布局。
+- 崩溃退出或需要首次跳过上次场景时，运行项目根目录的 `Open-UnityWorkspace.ps1`。脚本按 `ProjectSettings/ProjectVersion.txt` 查找 Unity，通过 `-openfile` 直接打开空白工作场景。空白工作场景跳过 MapForge 启动时的自动全量导入，仍可手动打开地图或执行导入。
+- 实机验证 `-openfile` 仅加载空白工作场景。手动加载雷鸣工厂时复现 DirectX 12 设备丢失，以 DirectX 11 进行退出验证，日志确认正常退出前切换到空白工作场景。之后使用普通 `-projectPath` 启动，DirectX 12 下仅恢复空白工作场景。
+
+## 雷鸣工厂两翼厂外出怪口（2026-11-20）
+
+- 西侧冷却区和东侧重件车间的地面入口及货运路线起点从厂区内侧 `x=±69` 外移到厂界外 `x=±82`，均位于 `z=-5`。源图新增左右外场引道，并将对应外侧路沿分段形成约 14 m 厂门通道。
+- 两翼进场外墙改为净宽约 14 m 的开口并扩宽顶棚、侧墙间距，让大体型怪物代理可从厂外进入；原有卷帘门、室内货运路线、波次和陷阱网格配置沿用。
+- Unity 源 `Assets/Editor/MapSources/double-layer-facility.json` 与 MapForge 示例 `C:\MapForge\wwwroot\examples\double-layer-facility.json` 已同步。源图备份和本轮构建日志在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\exterior-side-spawns-20261120\`。
+- Unity `6000.6.9f1` 的 `DoubleLayerFacilityAuthoring.BuildAndPreview` 成功，包含保存后重载、两翼货运路线、楼梯/外场及陷阱网格校验。预览 `18-wing-site-overview.png`、`19-cooling-wing.png`、`20-heavy-workshop-wing.png` 已生成并目视检查。未做人工 PlayMode 刷怪或完整 Player 构建。
+
+# 三路地图下线（2026-11-20）
+
+- 移除测试场景 `Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity` 及其 `.meta`，并从 `ProjectSettings/EditorBuildSettings.asset` 移除构建入口。当前可玩地图保留 `DOUBLE_LAYER_FACILITY.unity`。
+- 场景与 `.meta` 备份位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\THREE_ROUTE_MERGE_MAP\backup\`。仍指向旧场景的编辑器 authoring/测试脚本属于历史工具，本次未改动；启用构建配置及运行时地图目录不再引用它。
+
 ## 短矛无人机接入双层设施（2026-11-20）
 
 - `ShortSpearDroneAuthoring.Build` 从现有 `ShortSpear.fbx` 生成 `Assets/Resources/ShortSpearDroneEnemy.prefab`。预制体有 100 血、受击盒、原地螺旋桨动画和红色尾迹。`MonsterPathFollower` 驱动飞行，8 m/s 对应 0.5 秒尾迹，抵达后走现有飞行怪核心伤害结算。
@@ -94,7 +112,7 @@
 - 项目记录版本 Unity 的 `BuildAndPreview` 正常生成并重载校验通过：1,204 个源对象，6 条货运路线 240.53…256.66 m，大怪完整足迹/净空与玩家楼梯、两座防空台缓坡、门前横向通行均通过。总览与防空台预览已目视检查；图片 `C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\12-exterior-overview.png`、`13-exterior-player.png`、`14-aa-platform.png`。
 - 隔离夹具 `Tests~/Editor/AuthoredMonsterRouteTests.cs` 7 例，加 `FacilityExteriorPlayModeTests.cs` 1 例（实际进入 PlayMode），合计 **8/8 PASS，0 失败/跳过**。真实放置 8 个哨戒机枪、2 个双联导弹发射器；六只实怪走完六分支并扣核心 12 血；同速 2.2 m/s 的控制对照旧飞行 29.85 s、新飞行 53.49 s，倍率 1.792。XML：`C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\exterior-expansion\runtime-tests\results.xml`；临时复制到 Assets/Editor 的两份夹具及 meta 已清理。飞行计时探针没有血量、未受攻击；该结果不代表完整波次平衡验收。
 - 本轮首次生成在碰撞同步前取支撑失败，已在配置玩法前补 `Physics.SyncTransforms()`。一次 NoNewWindow 启动触发 Burst 子进程 Console 的 Lock violation，改为隐藏独立进程启动后成功；最终构建日志 `exterior-expansion\build-preview-hidden.log` 含正常结束标记。未做人工 PlayMode 操作及完整 Player 构建。
-- 清理测试源码后的正常 `ValidateSavedScene` 编译与共享 `Validate Trap Grids` 已通过，20 套均对齐、无埋入/悬空/无支撑/占道。覆盖 928 个不同 XZ 坐标，12 个坐标在不同楼层重合；按楼层累计是 940 格。两座防空台中心已用正式 40 m 导弹射程验算覆盖中轴飞行线。正式哨戒机枪射程为 5 m，外场保留 12 m 净宽通道，因此外场地面阵地应选 XM777 等长射程陷阱；不把“能放置机枪”解释为“机枪能覆盖通道中心”。
+- 清理测试源码后的正常 `ValidateSavedScene` 编译与共享 `Validate Trap Grids` 已通过，20 套均对齐、无埋入/悬空/无支撑/占道。覆盖 928 个不同 XZ 坐标，12 个坐标在不同楼层重合；按楼层累计是 940 格。两座防空台中心已用正式 40 m 导弹射程验算覆盖中轴飞行线。该次外场验证时哨戒机枪射程为 5 m，外场保留 12 m 净宽通道，因此当时使用 XM777 等长射程陷阱；截至 2026-11-20，哨戒机枪默认索敌范围与射程已调为 10 m。
 - 因射程检查补强同一运行时夹具，正式外场 XM777 实际对中路地面目标造成 45 点伤害，防空台内侧的正式双联导弹对中轴空中目标造成 45 点伤害；之后六路漏怪与同速飞行对照仍通过，最终 **8/8 PASS**。外场 8 块地面阵地的生产校验改用正式 4×4 m XM777 占位。重复运行仍复用上述 XML 路径，最终日志包含 `FACILITY_COMBAT_ACCEPTANCE_PASS` 与 `FACILITY_RUNTIME_ACCEPTANCE_PASS`。
 
 ## Alpha Striker 技能维护（2026-11-18）

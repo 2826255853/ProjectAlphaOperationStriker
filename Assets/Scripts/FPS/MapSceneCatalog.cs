@@ -10,7 +10,9 @@ public static class MapSceneCatalog
         {
             BuildIndex = buildIndex;
             Path = path;
-            DisplayName = System.IO.Path.GetFileNameWithoutExtension(path ?? string.Empty);
+            DisplayName = path == "Assets/Scenes/DOUBLE_LAYER_FACILITY.unity"
+                ? "雷鸣工厂"
+                : System.IO.Path.GetFileNameWithoutExtension(path ?? string.Empty);
         }
 
         public int BuildIndex { get; }

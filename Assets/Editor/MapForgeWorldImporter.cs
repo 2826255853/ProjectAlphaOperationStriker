@@ -28,7 +28,8 @@ public static partial class MapForgeWorldImporter
         // delayCall can run after the editor has entered Play Mode (for
         // example when a domain reload completes while Play is starting).
         // Scene creation through EditorSceneManager is editor-only.
-        if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+        if (EditorApplication.isPlayingOrWillChangePlaymode ||
+            EditorSceneManager.GetActiveScene().path == EditorWorkspaceStartup.WorkspaceScenePath) return;
         var source = Path.Combine(Application.dataPath, "mapforge-world.json");
         if (!File.Exists(source)) return;
 
