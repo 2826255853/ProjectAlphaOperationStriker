@@ -12,6 +12,10 @@ public sealed class GameStartMenuView : MonoBehaviour
     public const string MapPrompt = "点击地图进入游戏";
     public const string MapLoadingMessage = "正在加载地图...";
     public const string EmptyMapMessage = "没有可用地图";
+    public const string PauseTitle = "游戏已暂停";
+    public const string PauseDescription = "按 Esc 或选择继续游戏返回战斗。";
+    public const string PauseQuitLabel = "退出游戏（返回主菜单）";
+    public const string PauseFooter = "退出后返回主菜单，本局进度将结束";
     private static TMP_FontAsset menuFont;
     private static readonly Color Panel = new Color(.025f, .07f, .105f, .93f);
     private static readonly Color ButtonColor = new Color(.045f, .14f, .20f, .96f);
@@ -32,6 +36,15 @@ public sealed class GameStartMenuView : MonoBehaviour
     [SerializeField] private Toggle fullscreenToggle;
     [SerializeField] private Transform mapListContainer;
     [SerializeField] private TextMeshProUGUI mapStatusLabel;
+    [SerializeField] private Image backdrop;
+    [SerializeField] private Image darkening;
+    [SerializeField] private GameObject leftShadow;
+    [SerializeField] private TextMeshProUGUI mainTitle;
+    [SerializeField] private TextMeshProUGUI mainDescription;
+    [SerializeField] private TextMeshProUGUI mainFooter;
+    [SerializeField] private TextMeshProUGUI settingsTitle;
+    [SerializeField] private GameObject statisticsPanel;
+    [SerializeField] private TextMeshProUGUI statisticsValues;
     private readonly List<Button> mapButtons = new List<Button>();
     private bool initialized;
 
@@ -58,9 +71,11 @@ public sealed class GameStartMenuView : MonoBehaviour
         GameStartMenuView view = Add<GameStartMenuView>(root);
 
         Image bg = Image(root.transform, "Tactical Backdrop", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, background, Color.white);
+        view.backdrop = bg;
         bg.preserveAspect = false;
-        Image(root.transform, "Darkening", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, null, new Color(.005f, .015f, .028f, .44f));
-        Image(root.transform, "Left Shadow", Vector2.zero, new Vector2(.59f, 1f), Vector2.zero, Vector2.zero, null, new Color(.006f, .018f, .032f, .70f));
+        view.darkening = Image(root.transform, "Darkening", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, null, new Color(.005f, .015f, .028f, .44f));
+        view.darkening.raycastTarget = true;
+        view.leftShadow = Image(root.transform, "Left Shadow", Vector2.zero, new Vector2(.59f, 1f), Vector2.zero, Vector2.zero, null, new Color(.006f, .018f, .032f, .70f)).gameObject;
         Image(root.transform, "Top Accent", new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -54f), new Vector2(0f, -51f), null, Cyan);
 
         view.mainPanel = PanelObject(root.transform, "Main Panel");
@@ -69,6 +84,7 @@ public sealed class GameStartMenuView : MonoBehaviour
         BuildSettings(view, view.settingsPanel.transform);
         view.mapPanel = PanelObject(root.transform, "Map Panel");
         BuildMapSelection(view, view.mapPanel.transform);
+        BuildStatistics(view, root.transform);
         view.settingsPanel.SetActive(false);
         view.mapPanel.SetActive(false);
         return view;
@@ -76,8 +92,15 @@ public sealed class GameStartMenuView : MonoBehaviour
 
     public void Initialize(GameStartMenu owner)
     {
-        if (primaryButton == null || mapPanel == null)
+        if (primaryButton == null || mapPanel == null || statisticsPanel == null)
+        {
+            foreach (Transform child in transform)
+            {
+                child.gameObject.SetActive(false);
+                Destroy(child.gameObject);
+            }
             BuildLayout(gameObject, LoadRuntimeBackground());
+        }
 
         EnsureEventSystem();
         TMP_FontAsset font = LoadMenuFont();
@@ -107,38 +130,82 @@ public sealed class GameStartMenuView : MonoBehaviour
         bool loading, IReadOnlyList<MapSceneCatalog.Entry> maps)
     {
         primaryLabel.text = started ? "继续游戏" : "开始游戏";
+        primaryButton.interactable = !loading;
+        settingsButton.interactable = !loading;
+        quitButton.interactable = !loading;
+        quitButton.GetComponentInChildren<TextMeshProUGUI>().text = started ? PauseQuitLabel : "退出游戏";
+        mainTitle.text = started ? PauseTitle : "行动打击";
+        mainTitle.fontSize = started ? 64 : 84;
+        mainDescription.text = started ? PauseDescription : "部署防御设施，守住边境前线。";
+        mainFooter.text = loading ? MapLoadingMessage : (started ? PauseFooter : "系统在线  ·  防线状态稳定");
+        settingsTitle.text = started ? PauseTitle + " · 设置" : "设置";
+        settingsTitle.fontSize = started ? 46 : 72;
+        backdrop.gameObject.SetActive(!started);
+        leftShadow.SetActive(!started);
+        darkening.color = new Color(.005f, .015f, .028f, started ? .28f : .44f);
+        Color panelColor = new Color(Panel.r, Panel.g, Panel.b, started ? .72f : Panel.a);
+        mainPanel.GetComponent<Image>().color = panelColor;
+        settingsPanel.GetComponent<Image>().color = panelColor;
         mainPanel.SetActive(!showSettings && !showMaps);
         settingsPanel.SetActive(showSettings);
         mapPanel.SetActive(showMaps);
         volumeSlider.SetValueWithoutNotify(Mathf.Clamp01(volume));
         fullscreenToggle.SetIsOnWithoutNotify(fullscreen);
+        statisticsPanel.SetActive(!started && !showSettings && !showMaps);
+        if (statisticsPanel.activeSelf)
+        {
+            GameSaveSystem.Statistics statistics = GameSaveSystem.Current;
+            double winRate = statistics.TotalGamesPlayed == 0 ? 0d
+                : (double)statistics.GamesWon / statistics.TotalGamesPlayed * 100d;
+            statisticsValues.text = $"{statistics.TotalGamesPlayed:N0}\n{statistics.GamesWon:N0}\n{statistics.GamesLost:N0}\n{winRate:F1}%";
+        }
         if (showMaps) RefreshMaps(maps, loading);
     }
 
     private static void BuildMain(GameStartMenuView view, Transform panel)
     {
         Text(panel, "作战指挥终端  //  01", new Vector2(44, -76), new Vector2(-44, -38), 18, Amber);
-        Text(panel, "行动打击", new Vector2(40, -214), new Vector2(-40, -76), 84, Color.white);
+        view.mainTitle = Text(panel, "行动打击", new Vector2(40, -214), new Vector2(-40, -76), 84, Color.white);
         Text(panel, "边境防御协议", new Vector2(44, -260), new Vector2(-44, -218), 25, Cyan);
         Image(panel, "Divider", new Vector2(0, 1), new Vector2(0, 1), new Vector2(44, -286), new Vector2(300, -282), null, Cyan);
-        Text(panel, "部署防御设施，守住边境前线。", new Vector2(44, -340), new Vector2(-44, -292), 22, Body);
+        view.mainDescription = Text(panel, "部署防御设施，守住边境前线。", new Vector2(44, -340), new Vector2(-44, -292), 22, Body);
         view.primaryButton = Button(panel, "Primary Action", new Vector2(44, -430), "开始游戏", Cyan);
         view.primaryLabel = view.primaryButton.GetComponentInChildren<TextMeshProUGUI>();
         view.settingsButton = Button(panel, "Settings", new Vector2(44, -500), "设置", Body);
         view.quitButton = Button(panel, "Quit", new Vector2(44, -570), "退出游戏", Body);
-        Footer(panel, "系统在线  ·  防线状态稳定");
+        view.mainFooter = Footer(panel, "系统在线  ·  防线状态稳定");
     }
 
     private static void BuildSettings(GameStartMenuView view, Transform panel)
     {
         Text(panel, "系统配置  //  音频与显示", new Vector2(44, -76), new Vector2(-44, -38), 18, Amber);
-        Text(panel, "设置", new Vector2(40, -188), new Vector2(-40, -76), 72, Color.white);
+        view.settingsTitle = Text(panel, "设置", new Vector2(40, -188), new Vector2(-40, -76), 72, Color.white);
         Image(panel, "Divider", new Vector2(0, 1), new Vector2(0, 1), new Vector2(44, -218), new Vector2(300, -214), null, Cyan);
         Text(panel, "主音量", new Vector2(44, -286), new Vector2(-44, -246), 24, Body);
         view.volumeSlider = Slider(panel, new Vector2(44, -326));
         view.fullscreenToggle = Toggle(panel, new Vector2(44, -418), "全屏模式");
         view.backButton = Button(panel, "Back", new Vector2(44, -536), "返回", Cyan);
         Footer(panel, "变更会立即生效");
+    }
+
+    private static void BuildStatistics(GameStartMenuView view, Transform parent)
+    {
+        view.statisticsPanel = PanelObject(parent, "Statistics Panel");
+        RectTransform rect = view.statisticsPanel.GetComponent<RectTransform>();
+        rect.anchorMin = rect.anchorMax = new Vector2(1, .5f);
+        rect.pivot = new Vector2(1, .5f);
+        rect.anchoredPosition = new Vector2(-112, 0);
+        rect.sizeDelta = new Vector2(500, 490);
+        Transform panel = view.statisticsPanel.transform;
+        Text(panel, "局外统计", new Vector2(40, -106), new Vector2(-40, -38), 44, Color.white);
+        TextMeshProUGUI labels = Text(panel, "已完成局数\n胜场\n败场\n胜率", new Vector2(44, -372), new Vector2(236, -148), 26, Body, TextAlignmentOptions.TopLeft);
+        labels.lineSpacing = 20;
+        view.statisticsValues = Text(panel, "0\n0\n0\n0.0%", new Vector2(240, -372), new Vector2(-44, -148), 26, Cyan, TextAlignmentOptions.TopRight);
+        view.statisticsValues.lineSpacing = 20;
+        view.statisticsValues.enableAutoSizing = true;
+        view.statisticsValues.fontSizeMin = 18;
+        view.statisticsValues.fontSizeMax = 26;
+        Footer(panel, "记录已完成对局的胜负，自动保存至本机。");
     }
 
     private static void BuildMapSelection(GameStartMenuView view, Transform panel)
@@ -270,7 +337,7 @@ public sealed class GameStartMenuView : MonoBehaviour
         return toggle;
     }
 
-    private static void Footer(Transform panel, string content) => Text(panel, content, new Vector2(44, 38), new Vector2(-44, 72), 16, new Color(.55f, .72f, .78f, .95f), TextAlignmentOptions.Left, Vector2.zero, new Vector2(1, 0));
+    private static TextMeshProUGUI Footer(Transform panel, string content) => Text(panel, content, new Vector2(44, 18), new Vector2(-44, 50), 16, new Color(.55f, .72f, .78f, .95f), TextAlignmentOptions.Left, Vector2.zero, new Vector2(1, 0));
 
     private static Image Image(Transform p, string n, Vector2 amin, Vector2 amax, Vector2 omin, Vector2 omax, Sprite s, Color c)
     {

@@ -65,6 +65,8 @@ public sealed class GameFlowManager : MonoBehaviour
     {
         if (CurrentResult != Result.Playing) return;
         CurrentResult = result;
+        if (result == Result.Victory || result == Result.Defeat)
+            GameSaveSystem.RecordCompletedGame(result == Result.Victory);
         if (result == Result.Defeat)
         {
             EnemySpawnPoint[] points = FindObjectsByType<EnemySpawnPoint>();

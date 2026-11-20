@@ -20,7 +20,7 @@ public sealed class GameStartMenuPlayModeTests
     [UnitySetUp]
     public IEnumerator EnterMainScene()
     {
-        EditorSceneManager.OpenScene("Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity", OpenSceneMode.Single);
+        EditorSceneManager.OpenScene("Assets/Scenes/DOUBLE_LAYER_FACILITY.unity", OpenSceneMode.Single);
         yield return new EnterPlayMode();
         originalVolume = AudioListener.volume;
         for (int i = 0; i < 5; i++) yield return null;
@@ -49,6 +49,12 @@ public sealed class GameStartMenuPlayModeTests
         Assert.That(EventSystem.current, Is.Not.Null);
         Assert.That(EventSystem.current.GetComponent<InputSystemUIInputModule>(), Is.Not.Null);
         Assert.That(Get<TextMeshProUGUI>(view, "primaryLabel").text, Is.EqualTo("开始游戏"));
+        Assert.That(Get<GameObject>(view, "statisticsPanel").activeSelf, Is.True);
+        GameSaveSystem.Statistics statistics = GameSaveSystem.Current;
+        double winRate = statistics.TotalGamesPlayed == 0 ? 0d
+            : (double)statistics.GamesWon / statistics.TotalGamesPlayed * 100d;
+        Assert.That(Get<TextMeshProUGUI>(view, "statisticsValues").text,
+            Is.EqualTo($"{statistics.TotalGamesPlayed:N0}\n{statistics.GamesWon:N0}\n{statistics.GamesLost:N0}\n{winRate:F1}%"));
         PlayerInput player = Object.FindAnyObjectByType<PlayerInput>();
         Assert.That(player, Is.Not.Null, "The real scene must bootstrap its player.");
         Assert.That(player.actions, Is.Not.Null);
@@ -58,6 +64,7 @@ public sealed class GameStartMenuPlayModeTests
         Get<Button>(view, "settingsButton").onClick.Invoke();
         Assert.That(Get<GameObject>(view, "settingsPanel").activeSelf, Is.True);
         Assert.That(Get<GameObject>(view, "mainPanel").activeSelf, Is.False);
+        Assert.That(Get<GameObject>(view, "statisticsPanel").activeSelf, Is.False);
         Get<Slider>(view, "volumeSlider").value = .37f;
         Assert.That(AudioListener.volume, Is.EqualTo(.37f).Within(.001f));
         Get<Button>(view, "backButton").onClick.Invoke();
@@ -74,6 +81,8 @@ public sealed class GameStartMenuPlayModeTests
         Assert.That(Get<GameObject>(view, "mainPanel").activeSelf, Is.True);
 
         Scene initialScene = SceneManager.GetActiveScene();
+        string initialScenePath = initialScene.path;
+        int initialBuildIndex = initialScene.buildIndex;
         Get<Button>(view, "primaryButton").onClick.Invoke();
         yield return null;
         FindMapButton(view, initialScene.buildIndex).onClick.Invoke();
@@ -85,15 +94,49 @@ public sealed class GameStartMenuPlayModeTests
         bool restored = false;
         foreach (InputAction action in player.actions) restored |= action.enabled;
         Assert.That(restored, Is.True, "Starting must restore the player's enabled actions.");
+
+        typeof(GameStartMenu).GetMethod("Open", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(menu, null);
+        AssertPausedView(view);
+        Get<Button>(view, "settingsButton").onClick.Invoke();
+        Assert.That(Get<TextMeshProUGUI>(view, "settingsTitle").text, Does.Contain(GameStartMenuView.PauseTitle));
+        Assert.That(Get<Image>(view, "backdrop").gameObject.activeSelf, Is.False);
+        Get<Button>(view, "backButton").onClick.Invoke();
+        Get<Button>(view, "quitButton").onClick.Invoke();
+        Assert.That(Get<Button>(view, "quitButton").interactable, Is.False);
+        float deadline = Time.realtimeSinceStartup + 45f;
+        while (menu != null && Time.realtimeSinceStartup < deadline) yield return null;
+        for (int i = 0; i < 5; i++) yield return null;
+        Assert.That(Application.isPlaying, Is.True);
+        Assert.That(SceneManager.GetActiveScene().path, Is.EqualTo(initialScenePath));
+        GameStartMenuView returnedView = Object.FindAnyObjectByType<GameStartMenuView>();
+        Assert.That(returnedView, Is.Not.Null);
+        Assert.That(Get<TextMeshProUGUI>(returnedView, "primaryLabel").text, Is.EqualTo("开始游戏"));
+        Assert.That(Get<GameObject>(returnedView, "statisticsPanel").activeSelf, Is.True);
+        Assert.That(GameSaveSystem.Current.TotalGamesPlayed, Is.EqualTo(statistics.TotalGamesPlayed));
+        Assert.That(GameSaveSystem.Current.GamesWon, Is.EqualTo(statistics.GamesWon));
+        Assert.That(GameSaveSystem.Current.GamesLost, Is.EqualTo(statistics.GamesLost));
+        Assert.That(GameStartMenu.CursorOwned, Is.True);
+        Assert.That(Time.timeScale, Is.Zero);
+        Assert.That(GameFlowManager.Instance.CurrentResult, Is.EqualTo(GameFlowManager.Result.Playing));
+        Get<Button>(returnedView, "primaryButton").onClick.Invoke();
+        FindMapButton(returnedView, initialBuildIndex).onClick.Invoke();
+        yield return null;
+        Assert.That(Time.timeScale, Is.EqualTo(1f));
+        Assert.That(GameStartMenu.CursorOwned, Is.False);
     }
 
     [UnityTest]
     public IEnumerator SelectingAnotherMapLoadsItAndAllowsPauseAndResume()
     {
+        yield return new ExitPlayMode();
+        EditorSceneManager.OpenScene("Assets/Scenes/EditorWorkspace.unity", OpenSceneMode.Single);
+        yield return new EnterPlayMode();
+        for (int i = 0; i < 5; i++) yield return null;
         Scene initialScene = SceneManager.GetActiveScene();
+        string initialScenePath = initialScene.path;
         GameStartMenuView view = Object.FindAnyObjectByType<GameStartMenuView>();
         Assert.That(view, Is.Not.Null);
-        Assert.That(MapSceneCatalog.TryGet(1, out var facility), Is.True);
+        Assert.That(MapSceneCatalog.TryGet(0, out var facility), Is.True);
         Assert.That(facility.Path, Does.EndWith("/DOUBLE_LAYER_FACILITY.unity"));
 
         Get<Button>(view, "primaryButton").onClick.Invoke();
@@ -128,11 +171,37 @@ public sealed class GameStartMenuPlayModeTests
         Assert.That(GameStartMenu.CursorOwned, Is.True);
         Assert.That(Time.timeScale, Is.Zero);
         Assert.That(Get<TextMeshProUGUI>(pauseView, "primaryLabel").text, Is.EqualTo("继续游戏"));
+        AssertPausedView(pauseView);
         Get<Button>(pauseView, "primaryButton").onClick.Invoke();
         yield return null;
         Assert.That(SceneManager.GetActiveScene().path, Is.EqualTo(facility.Path));
         Assert.That(GameStartMenu.CursorOwned, Is.False);
         Assert.That(Time.timeScale, Is.EqualTo(1f));
+        typeof(GameStartMenu).GetMethod("Open", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(pauseMenu, null);
+        Get<Button>(pauseView, "quitButton").onClick.Invoke();
+        deadline = Time.realtimeSinceStartup + 45f;
+        while (SceneManager.GetActiveScene().path != initialScenePath && Time.realtimeSinceStartup < deadline)
+            yield return null;
+        for (int i = 0; i < 5; i++) yield return null;
+        Assert.That(Application.isPlaying, Is.True);
+        Assert.That(SceneManager.GetActiveScene().path, Is.EqualTo(initialScenePath));
+        GameStartMenuView returnedView = Object.FindAnyObjectByType<GameStartMenuView>();
+        Assert.That(returnedView, Is.Not.Null);
+        Assert.That(Get<TextMeshProUGUI>(returnedView, "primaryLabel").text, Is.EqualTo("开始游戏"));
+        Assert.That(Get<GameObject>(returnedView, "statisticsPanel").activeSelf, Is.True);
+        Assert.That(Time.timeScale, Is.Zero);
+        Assert.That(GameStartMenu.CursorOwned, Is.True);
+    }
+
+    private static void AssertPausedView(GameStartMenuView view)
+    {
+        Assert.That(Get<TextMeshProUGUI>(view, "mainTitle").text, Is.EqualTo(GameStartMenuView.PauseTitle));
+        Assert.That(Get<Button>(view, "quitButton").GetComponentInChildren<TextMeshProUGUI>().text,
+            Is.EqualTo(GameStartMenuView.PauseQuitLabel));
+        Assert.That(Get<GameObject>(view, "statisticsPanel").activeSelf, Is.False);
+        Assert.That(Get<Image>(view, "backdrop").gameObject.activeSelf, Is.False);
+        Assert.That(Get<GameObject>(view, "mainPanel").GetComponent<Image>().color.a, Is.InRange(.1f, .8f));
+        Assert.That(Time.timeScale, Is.Zero);
     }
 
     private static Button FindMapButton(GameStartMenuView view, int buildIndex)

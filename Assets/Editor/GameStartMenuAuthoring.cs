@@ -13,7 +13,9 @@ public static class GameStartMenuAuthoring
     private const string PrefabPath = "Assets/Resources/UI/GameStartMenu.prefab";
     private const string FontPath = "Assets/Resources/UI/Fonts/MenuChinese SDF.asset";
     private const string SourceFontPath = "Assets/Resources/UI/Fonts/NotoSansCJKsc-Regular.otf";
-    private const string RuntimeLabels = "继续游戏" + GameStartMenuView.MapLoadingMessage + GameStartMenuView.EmptyMapMessage;
+    private const string RuntimeLabels = "继续游戏0123456789,.%" + GameStartMenuView.MapLoadingMessage
+        + GameStartMenuView.EmptyMapMessage + GameStartMenuView.PauseTitle + GameStartMenuView.PauseDescription
+        + GameStartMenuView.PauseQuitLabel + GameStartMenuView.PauseFooter + " · 设置";
 
     [MenuItem("Tools/行动打击/生成战术主菜单")]
     public static void Generate()
@@ -51,6 +53,8 @@ public static class GameStartMenuAuthoring
         if (prefab.transform.Find("Main Panel/Primary Action") == null
             || prefab.transform.Find("Main Panel/Map Selection") != null)
             throw new InvalidOperationException("Enter the map selection page through the main menu's primary action.");
+        if (prefab.transform.Find("Statistics Panel") == null)
+            throw new InvalidOperationException("Menu prefab is missing saved-game statistics.");
         var maps = MapSceneCatalog.GetMaps();
         if (maps.Count != UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings || maps.Count == 0)
             throw new InvalidOperationException("Build Settings map catalog is empty or inconsistent.");
@@ -82,6 +86,7 @@ public static class GameStartMenuAuthoring
         RenderFontPreview();
     }
 
+    [MenuItem("Tools/行动打击/预览战术菜单")]
     private static void RenderFontPreview()
     {
         var scene = EditorSceneManager.NewPreviewScene();
@@ -105,9 +110,11 @@ public static class GameStartMenuAuthoring
             canvas.planeDistance = 1f;
             var view = root.GetComponent<GameStartMenuView>();
             string directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "GameStartMenu");
-            for (int page = 0; page < 3; page++)
+            string[] names = { "font-main-menu.png", "font-settings.png", "font-map-selection.png", "pause-menu.png", "pause-settings.png" };
+            for (int page = 0; page < 5; page++)
             {
-                view.SetState(false, page == 1, page == 2, 1f, true, false, MapSceneCatalog.GetMaps());
+                camera.backgroundColor = page >= 3 ? new Color(.25f, .32f, .38f) : Color.black;
+                view.SetState(page >= 3, page == 1 || page == 4, page == 2, 1f, true, false, MapSceneCatalog.GetMaps());
                 Canvas.ForceUpdateCanvases();
                 foreach (TextMeshProUGUI text in root.GetComponentsInChildren<TextMeshProUGUI>()) text.ForceMeshUpdate();
                 camera.Render();
@@ -115,7 +122,7 @@ public static class GameStartMenuAuthoring
                 RenderTexture.active = target;
                 pixels.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0);
                 pixels.Apply();
-                string name = page == 0 ? "font-main-menu.png" : (page == 1 ? "font-settings.png" : "font-map-selection.png");
+                string name = names[page];
                 File.WriteAllBytes(Path.Combine(directory, name), pixels.EncodeToPNG());
             }
         }

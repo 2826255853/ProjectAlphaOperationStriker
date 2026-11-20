@@ -1,5 +1,14 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 局外统计与暂停返回入口（2026-11-20）
+
+- `GameStartMenuView` 在主菜单右侧显示 `GameSaveSystem.Current` 的已完成局数、胜场、败场和胜率，进入设置、地图选择和对局时隐藏。数据沿用本机 PlayerPrefs，零局胜率显示 0.0%，每次刷新主菜单重新读取。
+- 局内暂停时隐藏主菜单背景图，使用 0.28 alpha 的全屏遮罩及 0.72 alpha 的菜单面板，主标题显示“游戏已暂停”，设置页同样保留暂停提示。继续游戏与 Esc 沿用时间、输入和光标恢复流程。
+- `GameStartMenu.SelectMap` 记录开局前的入口场景。局内“退出游戏（返回主菜单）”异步重载入口场景，结束本局并打开初始主菜单；编辑器内支持返回未加入构建的 EditorWorkspace。加载期间禁用菜单按钮。主菜单退出入口仍调用应用退出。中途退出沿用存档系统的已完成对局口径。
+- 菜单预制体与中文字形由 `GameStartMenuAuthoring.GenerateAndValidate` 重建，新增 `Tools/行动打击/预览战术菜单` 可生成主菜单、设置、地图选择、暂停及暂停设置五页预览。暂停离屏预览使用纯色背景检查透明度。
+- `Tests~/Editor/GameStartMenuPlayModeTests.cs` 已适配当前雷鸣工厂单地图构建目录，另从 EditorWorkspace 覆盖跨场景进入与返回。Unity 按 ProjectVersion 精确匹配，图形模式 Play Mode 回归 2/2 通过，覆盖统计显示、暂停样式、继续、同地图和跨场景返回、再次开局及中途退出统计核对。临时 Assets 测试源码与 meta 已清理。未做人工 Esc 输入或独立 Player 构建验收。
+- 本轮预览、生成日志及测试 XML 归档在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\GameStartMenu\statistics-pause\`，通过报告位于 `playmode-graphics\20261120-152557-330\editmode-results.xml`。
+
 ## Unity 编辑器空白启动（2026-11-20）
 
 - `Assets/Editor/EditorWorkspaceStartup.cs` 在正常退出时关闭已加载的雷鸣工厂。退出仍保留 Unity 的保存确认，只有雷鸣工厂这一个已加载场景时切换到 `Assets/Scenes/EditorWorkspace.unity`。下次普通启动恢复退出时的场景布局。

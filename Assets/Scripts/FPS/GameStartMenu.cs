@@ -19,6 +19,7 @@ public sealed class GameStartMenu : MonoBehaviour
     private float previousTimeScale = 1f;
     private static int cursorReleasedFrame = -1;
     private static bool skipMenuOnNextSceneLoad;
+    private static string entryScenePath;
 
     public static bool CursorOwned { get; private set; }
     public static bool BlocksPlayerCursor => CursorOwned || cursorReleasedFrame == Time.frameCount;
@@ -33,7 +34,7 @@ public sealed class GameStartMenu : MonoBehaviour
 
     private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (mode == LoadSceneMode.Single && skipMenuOnNextSceneLoad)
+        if (mode == LoadSceneMode.Single)
             CreateForScene();
     }
 
@@ -103,6 +104,7 @@ public sealed class GameStartMenu : MonoBehaviour
         if (!open || !mapSelection || loading || !MapSceneCatalog.TryGet(buildIndex, out MapSceneCatalog.Entry map))
             return;
 
+        entryScenePath = SceneManager.GetActiveScene().path;
         if (buildIndex == MapSceneCatalog.GetCurrentBuildIndex()) Close();
         else LoadMap(map);
     }
@@ -114,11 +116,44 @@ public sealed class GameStartMenu : MonoBehaviour
 
     public void QuitGame()
     {
+        if (loading) return;
+        if (started)
+        {
+            ReturnToMainMenu();
+            return;
+        }
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #else
         Application.Quit();
 #endif
+    }
+
+    private void ReturnToMainMenu()
+    {
+        loading = true;
+        skipMenuOnNextSceneLoad = false;
+        RefreshView();
+        try
+        {
+            string scenePath = string.IsNullOrEmpty(entryScenePath)
+                ? SceneManager.GetActiveScene().path : entryScenePath;
+#if UNITY_EDITOR
+            if (SceneUtility.GetBuildIndexByScenePath(scenePath) < 0)
+            {
+                if (UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(scenePath,
+                    new LoadSceneParameters(LoadSceneMode.Single)) != null) return;
+            }
+            else
+#endif
+            if (SceneManager.LoadSceneAsync(scenePath, LoadSceneMode.Single) != null) return;
+        }
+        catch (System.Exception exception)
+        {
+            Debug.LogException(exception);
+        }
+        loading = false;
+        RefreshView();
     }
 
     private void PausePlayerInput()
