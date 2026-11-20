@@ -41,8 +41,10 @@ public static partial class DoubleLayerFacilityAuthoring
 
         var groundPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(MaskedSoldierAuthoring.PrefabPath);
         var flyingPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(HurricaneDroneAuthoring.EnemyPrefabPath);
-        if (groundPrefab == null || flyingPrefab == null)
-            throw new InvalidOperationException("Facility requires the existing MaskedSoldier and HurricaneDroneEnemy prefabs.");
+        var shortSpearPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(ShortSpearDroneAuthoring.PrefabPath);
+        var houndPrefab = Resources.Load<GameObject>("CrackjawHound");
+        if (groundPrefab == null || flyingPrefab == null || shortSpearPrefab == null || houndPrefab == null)
+            throw new InvalidOperationException("Facility requires MaskedSoldier, HurricaneDroneEnemy, ShortSpearDroneEnemy and CrackjawHound prefabs.");
         var authored = document.objects.Where(node => node.id.StartsWith("route-cargo-", StringComparison.Ordinal))
             .ToDictionary(node => node.id);
 
@@ -50,16 +52,17 @@ public static partial class DoubleLayerFacilityAuthoring
         {
             var mapping = node.unity.spawnPoint;
             bool flying = mapping.flyingEntrance;
+            bool shortSpear = flying && (node.id == RearLeftAirSpawnId || node.id == RearRightAirSpawnId);
             var entrance = instances[node.id].gameObject.AddComponent<EnemySpawnPoint>();
             entrance.Core = core;
             entrance.PathGrid = flying ? null : lanes;
-            entrance.EnemyPrefab = flying ? flyingPrefab : groundPrefab;
+            entrance.EnemyPrefab = shortSpear ? shortSpearPrefab : flying ? flyingPrefab : groundPrefab;
             entrance.MonsterType = flying ? MonsterType.Flying : MonsterType.Ground;
             entrance.IsFlyingEntrance = flying;
             entrance.EntranceAltitude = mapping.entranceAltitude;
             entrance.FlightHeight = mapping.flightHeight;
             entrance.FlyingSpawnSpread = 2f;
-            entrance.MoveSpeed = mapping.moveSpeed;
+            entrance.MoveSpeed = shortSpear ? ShortSpearDroneAuthoring.MoveSpeed : mapping.moveSpeed;
             entrance.SpawnInterval = mapping.spawnInterval;
             // TODO(确认): 首版外场给30秒布防、波间45秒；后续按实战调整源图波次配置。
             entrance.InitialWaveDelay = Mathf.Max(30f, mapping.initialDelay);
@@ -82,6 +85,14 @@ public static partial class DoubleLayerFacilityAuthoring
                 wave.FindPropertyRelative("enemyPrefab").objectReferenceValue = entrance.EnemyPrefab;
                 wave.FindPropertyRelative("monsterType").enumValueIndex = (int)entrance.MonsterType;
                 wave.FindPropertyRelative("flightHeight").floatValue = mapping.flightHeight;
+                bool mixesHound = (i == 1 && (node.id == "enemy-spawn-left" || node.id == "enemy-spawn-right"))
+                    || (i == 2 && (node.id == PumpSpawnId || node.id == WorkshopSpawnId));
+                if (mixesHound)
+                {
+                    wave.FindPropertyRelative("alternateEnemyPrefab").objectReferenceValue = houndPrefab;
+                    wave.FindPropertyRelative("alternateShare").floatValue = 1f / wave.FindPropertyRelative("enemyCount").intValue;
+                    wave.FindPropertyRelative("alternateMoveSpeed").floatValue = 4f;
+                }
             }
             var delays = serialized.FindProperty("waveTransitionDelays");
             delays.arraySize = 2;
@@ -229,59 +240,61 @@ public static partial class DoubleLayerFacilityAuthoring
         };
         Vector3 reference = rotation.FrontLeft.transform.position - core.Position;
         float referenceSpeed = rotation.FrontLeft.MoveSpeed;
-        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(HurricaneDroneAuthoring.EnemyPrefabPath);
-        if (prefab == null || !prefab.TryGetComponent<HurricaneDroneEnemy>(out _))
-            throw new InvalidOperationException("The facility air routes require the Hurricane Drone enemy prefab.");
-        var probe = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-        if (probe == null) throw new InvalidOperationException("Could not measure the flying monster prefab.");
-        try
+        var hurricane = AssetDatabase.LoadAssetAtPath<GameObject>(HurricaneDroneAuthoring.EnemyPrefabPath);
+        var shortSpear = AssetDatabase.LoadAssetAtPath<GameObject>(ShortSpearDroneAuthoring.PrefabPath);
+        if (hurricane == null || shortSpear == null || !hurricane.TryGetComponent<HurricaneDroneEnemy>(out _))
+            throw new InvalidOperationException("The facility air routes require both drone enemy prefabs.");
+
+        foreach (var (id, rear, right, padId) in routes)
         {
-            foreach (var (id, rear, right, padId) in routes)
+            var prefab = rear ? shortSpear : hurricane;
+            float expectedSpeed = rear ? ShortSpearDroneAuthoring.MoveSpeed : referenceSpeed;
+            var entrance = air[id];
+            var waves = new SerializedObject(entrance).FindProperty("waveSpawnSettings");
+            if (entrance.EnemyPrefab != prefab || waves.arraySize != entrance.TotalWaves ||
+                Enumerable.Range(0, waves.arraySize).Any(index => waves.GetArrayElementAtIndex(index)
+                    .FindPropertyRelative("enemyPrefab").objectReferenceValue != prefab))
+                throw new InvalidOperationException("Invalid drone prefab configuration: " + id);
+
+            Vector3 start = entrance.transform.position;
+            Vector3 expectedOffset = new Vector3(right ? -reference.x : reference.x, reference.y,
+                rear ? -reference.z : reference.z);
+            Vector3 end = core.Position + Vector3.up * entrance.FlightHeight;
+            Vector3 route = end - start;
+            float distance = route.magnitude;
+            Vector3 direction = route.normalized;
+            if (reference.x >= 0f || reference.z >= 0f ||
+                Vector3.Distance(start - core.Position, expectedOffset) > .01f ||
+                Mathf.Abs(end.y - start.y) > .01f || Mathf.Abs(entrance.EntranceAltitude - start.y) > .01f ||
+                distance < 115f || expectedSpeed <= 0f || !Mathf.Approximately(entrance.MoveSpeed, expectedSpeed) ||
+                Vector3.Dot(entrance.transform.forward, direction) < .999f ||
+                entrance.IsWaveEnabled(1) == rear || (rear && !entrance.IsWaveEnabled(2)) ||
+                !entrance.IsWaveEnabled(3))
+                throw new InvalidOperationException("Invalid facility air route: " + id);
+
+            Bounds bounds = new Bounds(start, Vector3.zero);
+            var probe = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            try
             {
-                var entrance = air[id];
-                var waves = new SerializedObject(entrance).FindProperty("waveSpawnSettings");
-                if (entrance.EnemyPrefab != prefab || waves.arraySize != entrance.TotalWaves ||
-                    Enumerable.Range(0, waves.arraySize).Any(index => waves.GetArrayElementAtIndex(index)
-                        .FindPropertyRelative("enemyPrefab").objectReferenceValue != prefab))
-                    throw new InvalidOperationException("Invalid Hurricane Drone prefab configuration: " + id);
-
-                Vector3 start = entrance.transform.position;
-                Vector3 expectedOffset = new Vector3(right ? -reference.x : reference.x, reference.y,
-                    rear ? -reference.z : reference.z);
-                Vector3 end = core.Position + Vector3.up * entrance.FlightHeight;
-                Vector3 route = end - start;
-                float distance = route.magnitude;
-                Vector3 direction = route.normalized;
-                if (reference.x >= 0f || reference.z >= 0f ||
-                    Vector3.Distance(start - core.Position, expectedOffset) > .01f ||
-                    Mathf.Abs(end.y - start.y) > .01f || Mathf.Abs(entrance.EntranceAltitude - start.y) > .01f ||
-                    distance < 115f || referenceSpeed <= 0f || !Mathf.Approximately(entrance.MoveSpeed, referenceSpeed) ||
-                    Vector3.Dot(entrance.transform.forward, direction) < .999f ||
-                    entrance.IsWaveEnabled(1) == rear || (rear && !entrance.IsWaveEnabled(2)) ||
-                    !entrance.IsWaveEnabled(3))
-                    throw new InvalidOperationException("Invalid facility air route: " + id);
-
                 probe.transform.SetPositionAndRotation(start, entrance.transform.rotation);
-                Bounds bounds = new Bounds(start, Vector3.zero);
                 foreach (var renderer in probe.GetComponentsInChildren<Renderer>())
-                    bounds.Encapsulate(renderer.bounds);
-                probe.transform.position = Vector3.up * 1000f;
-                Physics.SyncTransforms();
-                float spreadDiameter = entrance.FlyingSpawnSpread * 2f;
-                bounds.Expand(new Vector3(spreadDiameter, 0f, spreadDiameter));
-                if (Physics.CheckBox(bounds.center, bounds.extents, Quaternion.identity, ~0,
-                        QueryTriggerInteraction.Ignore) ||
-                    Physics.BoxCast(bounds.center, bounds.extents, direction, out _, Quaternion.identity, distance, ~0,
-                        QueryTriggerInteraction.Ignore))
-                    throw new InvalidOperationException("Flying monster plus spawn spread intersects scenery: " + id);
-
-                var grid = grids.Single(item => item.name == "TrapPlacementGrid_" + padId);
-                ValidateAirDefensePlacement(grid, launcherDefinition, launcher.DetectionRange, start, end);
-                Debug.Log($"FACILITY_AIR_ROUTE_PASS: {id}, {distance:F2} m / {distance / entrance.MoveSpeed:F2} s, " +
-                    $"clear for the flying prefab and covered by {padId}.");
+                    if (renderer is not TrailRenderer) bounds.Encapsulate(renderer.bounds);
             }
+            finally { UnityEngine.Object.DestroyImmediate(probe); }
+            Physics.SyncTransforms();
+            float spreadDiameter = entrance.FlyingSpawnSpread * 2f;
+            bounds.Expand(new Vector3(spreadDiameter, 0f, spreadDiameter));
+            if (Physics.CheckBox(bounds.center, bounds.extents, Quaternion.identity, ~0,
+                    QueryTriggerInteraction.Ignore) ||
+                Physics.BoxCast(bounds.center, bounds.extents, direction, out _, Quaternion.identity, distance, ~0,
+                    QueryTriggerInteraction.Ignore))
+                throw new InvalidOperationException("Flying monster plus spawn spread intersects scenery: " + id);
+
+            var grid = grids.Single(item => item.name == "TrapPlacementGrid_" + padId);
+            ValidateAirDefensePlacement(grid, launcherDefinition, launcher.DetectionRange, start, end);
+            Debug.Log($"FACILITY_AIR_ROUTE_PASS: {id}, {distance:F2} m / {distance / entrance.MoveSpeed:F2} s, " +
+                $"clear for {prefab.name} and covered by {padId}.");
         }
-        finally { UnityEngine.Object.DestroyImmediate(probe); }
 
         int[] expectedCounts = { 2, 3, 4 };
         for (int wave = 1; wave <= expectedCounts.Length; wave++)

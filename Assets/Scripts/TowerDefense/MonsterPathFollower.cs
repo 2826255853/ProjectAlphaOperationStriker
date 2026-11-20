@@ -39,6 +39,9 @@ public sealed class MonsterPathFollower : MonoBehaviour
     public MonsterPathGrid PathGrid => pathGrid;
     public bool IsFollowingCombatPath => followingCombatPath;
     public bool CombatMovementPaused { get; set; }
+    public bool MissionMovementBlocked { get; set; }
+    public Vector3 NextRouteStep => waypointIndex < waypoints.Count
+        ? waypoints[waypointIndex] - transform.position : Vector3.zero;
     public float RemainingPathDistance
     {
         get
@@ -269,6 +272,7 @@ public sealed class MonsterPathFollower : MonoBehaviour
             return;
         }
 
+        if (!followingCombatPath && MissionMovementBlocked) return;
         Vector3 step = toTarget.normalized * moveSpeed * Time.deltaTime;
         transform.position += step.magnitude >= toTarget.magnitude ? toTarget : step;
         if (toTarget.sqrMagnitude > 0.0001f)

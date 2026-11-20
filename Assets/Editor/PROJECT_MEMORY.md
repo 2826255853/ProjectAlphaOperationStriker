@@ -1,5 +1,22 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 短矛无人机接入双层设施（2026-11-20）
+
+- `ShortSpearDroneAuthoring.Build` 从现有 `ShortSpear.fbx` 生成 `Assets/Resources/ShortSpearDroneEnemy.prefab`。预制体有 100 血、受击盒、原地螺旋桨动画和红色尾迹。`MonsterPathFollower` 驱动飞行，8 m/s 对应 0.5 秒尾迹，抵达后走现有飞行怪核心伤害结算。
+- 双层设施的后场左右空口各在第 2、3 波刷一架短矛，前场继续刷飓风，三波空中总数为 2 / 3 / 4。`DoubleLayerFacilityAuthoring` 重建时保留这套配置，按各入口实际预制体验证航线净空和防空布防位覆盖。
+- 定向运行验证 1/1 通过，覆盖后场两波实刷、飞行速度、四架抵达后核心共扣 4 点，以及航线旁玩家和陷阱血量无变化。尾迹采样 4.03 m，截图和 XML 位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\短矛无人机\integration\`。临时验证源码及 `.meta` 已从 Assets 移出。完整对局平衡待验收。
+
+## 双层设施裂颌猎犬混刷（2026-11-20）
+
+- `DoubleLayerFacilityAuthoring.Gameplay.cs` 复用 `EnemySpawnPoint` 的混刷配置。第 2 波正门左右口各刷 1 只裂颌猎犬，第 3 波西侧泵房和东侧重件车间各刷 1 只。每只替换同入口同波的一名士兵，速度 4 m/s，使用该入口已有货运路线。
+- 保存场景后，定向 Play Mode 验证四处实刷及出发移动，并核对三波地面总数 9 / 14 / 10、空中总数 2 / 3 / 4。结果在桌面素材目录 `DoubleLayerFacility/crackjaw-waves/runtime-results.xml`，临时测试源码和 `.meta` 已清理。未做完整实战平衡验收。
+
+## 写实版裂颌猎犬动画（2026-11-20）
+
+- 动画以桌面「裂颌猎犬」写实建模脚本生成的模型为准。可编辑骨架、动作及 Run / Bite 动图位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\裂颌猎犬\Animation\`。游戏用贴图与带骨骼的 `CrackjawHound_Realistic.fbx` 在 `Assets/Models/CrackjawHound/`。
+- `CrackjawHoundAuthoring.Build` 配置两个 Legacy Animation 片段并生成 `Assets/Resources/CrackjawHound.prefab`，可分配给地面出怪口。Run 为 16/30 秒循环，Bite 为 1 秒单次攻击。第 17 帧（从 0 计，30 fps）闭颌结算一次伤害。
+- `CrackjawHound` 沿当前任务路径检测玩家和实体陷阱，连续受同一目标阻挡 1.25 秒后扑咬。目标让开即清除计时并恢复原路线。实际预制体通过隔离 Play Mode 的侧方、瞬时阻挡、打断蓄力、咬中玩家/陷阱和抵达终点验证。验收日志为桌面动画目录下的 `unity-play.log` 和 `unity-final.log`。本次未配置地图波次。
+
 ## 飓风无人机替换旧飞行怪（2026-11-19）
 
 - 飞行出怪口默认加载 `Resources/HurricaneDroneEnemy.prefab`。通用出怪口、双层设施生成器和双层设施场景的四个入口及逐波配置均指向该正式怪物预制体。双层设施三波仍是 2 / 3 / 4 架，航线、刷怪时序、2.2 m/s 和 16 m 飞行高度沿用场景配置，无人机使用自身的 260 血和机炮行为。
