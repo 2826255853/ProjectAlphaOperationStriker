@@ -163,12 +163,10 @@ public sealed class TrapPlacementController : MonoBehaviour
                 for (int i = 0; i < Mathf.Min(previous.Length, trapSlots.Length); i++) trapSlots[i] = previous[i];
         }
 
-        // The ceiling graybox is an editor test asset, not a playable default.
-        // Clear old serialized references so removing its scene object cannot leave
-        // the runtime hotbar selecting a stale test definition.
-        if (IsCeilingTestDefinition(selectedTrap)) selectedTrap = null;
+        // Discard stale defaults for support assets before filling empty slots.
+        if (!IsStandaloneTrap(selectedTrap)) selectedTrap = null;
         for (int i = 0; i < trapSlots.Length; i++)
-            if (IsCeilingTestDefinition(trapSlots[i])) trapSlots[i] = null;
+            if (!IsStandaloneTrap(trapSlots[i])) trapSlots[i] = null;
 
         bool hasAssignedSlot = false;
         for (int i = 0; i < trapSlots.Length; i++) hasAssignedSlot |= trapSlots[i] != null;
@@ -184,7 +182,7 @@ public sealed class TrapPlacementController : MonoBehaviour
             if (trapSlots[i] != null) continue;
             for (int j = 0; j < available.Length; j++)
             {
-                if (available[j] == null || IsCeilingTestDefinition(available[j])) continue;
+                if (!IsStandaloneTrap(available[j])) continue;
                 bool alreadyUsed = false;
                 for (int k = 0; k < i; k++) alreadyUsed |= trapSlots[k] == available[j];
                 if (!alreadyUsed) { trapSlots[i] = available[j]; break; }
@@ -196,10 +194,11 @@ public sealed class TrapPlacementController : MonoBehaviour
                 if (trapSlots[i] != null) { selectedSlot = i; break; }
     }
 
-    private static bool IsCeilingTestDefinition(TrapDefinition definition)
+    internal static bool IsStandaloneTrap(TrapDefinition definition)
     {
-        return definition != null && string.Equals(definition.TrapId, "ceiling_test",
-            System.StringComparison.OrdinalIgnoreCase);
+        return definition != null &&
+            !string.Equals(definition.TrapId, "ceiling_test", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(definition.TrapId, SentryPhalanxBranchAdapter.BranchId, StringComparison.Ordinal);
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]

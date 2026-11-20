@@ -112,12 +112,7 @@ public sealed class TrapSelectionMenu : MonoBehaviour
         available.Clear();
         foreach (TrapDefinition definition in Resources.LoadAll<TrapDefinition>(resourcesFolder))
         {
-            // These Resources assets are runtime support data, not standalone menu entries:
-            // the ceiling fixture is editor-only and Phalanx is created by the sentry's
-            // level-four branch rather than deployed as an independent trap.
-            if (definition == null ||
-                string.Equals(definition.TrapId, "ceiling_test", System.StringComparison.Ordinal) ||
-                string.Equals(definition.TrapId, SentryPhalanxBranchAdapter.BranchId, System.StringComparison.Ordinal)) continue;
+            if (!TrapPlacementController.IsStandaloneTrap(definition)) continue;
             if (!available.Contains(definition)) available.Add(definition);
         }
         available.Sort((a, b) =>
