@@ -1,5 +1,17 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## Unity 编辑器升级至 6000.6.10f1（2026-11-20）
+
+- 项目编辑器已从 `6000.6.9f1` 升级至 `6000.6.10f1`（修订 `40e81493c67d`）。`ProjectSettings/ProjectVersion.txt` 已记录新版本，本机已核实直接安装路径 `C:\Program Files\Unity 6000.6.10f1\Editor\Unity.exe` 存在。
+- 打开项目和运行验证仍以 `ProjectSettings/ProjectVersion.txt` 的 `m_EditorVersion` 为准。各项历史验证按实际运行的编辑器版本记录。
+
+## 投影枪双手握持校正（2026-11-20）
+
+- `TrapPlacementProjectionGunAuthoring.FirstPersonOffset` 现为 `(0.155, -0.125, 0.450)` m，已重建正式 Resources 预制体。相机挂点仍由预制体独占偏移，运行时根节点只叠加约 0.22 秒的举枪过渡，菜单与暂停期间冻结过渡。
+- `TrapPlacementProjectionGunController` 为正式模型实例挂载 `TrapPlacementProjectionGunGrip`。它在玩家动画后以模型 `GripAnchor` 定位双腕，右手主握、左手托握，固定当前 SK_Arms_Mono 骨骼的手指姿态。双臂使用两段 IK，极端俯仰时配合锁骨旋转抬肩，保持骨段原长。每帧动画前和退出/停用时恢复上一帧动画局部旋转，共涉及双侧锁骨、上臂、前臂、手腕与手指 38 个骨骼。
+- 项目匹配版本 Unity 图形模式隔离 Play Mode 已验证真实玩家从主武器、手枪和发射器切入，三类均覆盖水平及 ±45° / ±80° 视角，双腕误差小于 0.003 m。退出后 38 个局部旋转恢复检查通过。正式资源结构验证通过，临时探针源码与 meta 已移出 Assets。验证范围为隔离场景，主地图人工键鼠手感尚待验收。
+- 本轮第一人称及左右握持预览、验证日志、临时探针和生成器备份位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\TrapPlacementProjectionGun\grip-adjustment\`，最终运行日志为 `runtime-shoulder.log`。清理探针后正式编译及 `CreateAssetsBatch` 重建通过，日志为 `production-compile.log`。预制体生成器的自动回退备份仍写 `stage5-unity/backups/`。
+
 ## 局外统计与暂停返回入口（2026-11-20）
 
 - `GameStartMenuView` 在主菜单右侧显示 `GameSaveSystem.Current` 的已完成局数、胜场、败场和胜率，进入设置、地图选择和对局时隐藏。数据沿用本机 PlayerPrefs，零局胜率显示 0.0%，每次刷新主菜单重新读取。
@@ -192,9 +204,9 @@
 - 本次验证（2026-11-16）：Unity `6000.6.9f1` 执行 `SelfDestructBotAuthoring.CreateAll` + `ProbeBatch` 成功，日志无 C# 编译错误/异常，探针 `SELF_DESTRUCT_BOT_PASS` 且包含警示灯组件。未做 PlayMode 的灯光闪烁观感及攻击/移动实机验收。注意 `BuildController` 每次会先删除并重建 controller 资产，ID 会变化。
 - 接入关卡：给地面出怪口的 `WaveSpawnSettings.enemyPrefab`（或默认 `enemyPrefab`）填 `Assets/Resources/SelfDestructBotEnemy.prefab`。
 
-## Unity 编辑器文档版本（2026-11-15）
+## Unity 编辑器文档版本历史（2026-11-15）
 
-- 当前文档基准版本更新为 `6000.6.9f1`，默认直接安装路径为 `C:\Program Files\Unity 6000.6.9f1\Editor\Unity.exe`。
+- 当时的文档基准版本更新为 `6000.6.9f1`，默认直接安装路径为 `C:\Program Files\Unity 6000.6.9f1\Editor\Unity.exe`。
 - 本次仅同步文档，不修改 `ProjectSettings/ProjectVersion.txt`，不代表已完成项目迁移或新版编译验收；实际运行仍读取该配置并核实对应安装。
 - 下方带日期的验证、编译与测试记录保留实际使用的历史版本，不作为当前版本依据。
 

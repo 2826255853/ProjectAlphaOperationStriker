@@ -15,7 +15,7 @@ public static class TrapPlacementProjectionGunAuthoring
     public const string MaterialDirectory = "Assets/Models/TrapPlacementProjectionGun/Materials";
     public const string MountName = "FirstPersonMount";
     public const int VisualLayer = 2; // Built-in Ignore Raycast; no project layer configuration is required.
-    public static readonly Vector3 FirstPersonOffset = new Vector3(0.140f, -0.105f, 0.420f);
+    public static readonly Vector3 FirstPersonOffset = new Vector3(0.155f, -0.125f, 0.450f);
     public static readonly string[] MaterialNames = { "PG_WhiteShell", "PG_BlueArmor", "PG_DarkStructure",
         "PG_GripRubber", "PG_ProjectionLens", "PG_CyanEmission", "PG_DisplayGlass", "PG_RearDisplayCyan" };
 

@@ -24,6 +24,21 @@ public sealed class TrapPlacementProjectionGunController : MonoBehaviour
     private bool missingPrefabWarningIssued;
     private bool subscribed;
     private bool droneControlSubscribed;
+    private float equipProgress;
+    private Vector3 restingPosition;
+    private Quaternion restingRotation;
+
+    private void LateUpdate()
+    {
+        if (projectionGunInstance == null || !projectionGunInstance.activeSelf) return;
+        if (Time.timeScale <= 0f || TrapSelectionMenu.CursorOwned || GameStartMenu.CursorOwned) return;
+
+        equipProgress = Mathf.MoveTowards(equipProgress, 1f, Time.deltaTime / 0.22f);
+        float lowered = 1f - Mathf.SmoothStep(0f, 1f, equipProgress);
+        projectionGunInstance.transform.SetLocalPositionAndRotation(
+            restingPosition + new Vector3(0f, -0.12f, -0.04f) * lowered,
+            restingRotation * Quaternion.Euler(12f * lowered, 0f, 0f));
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void EnsureRuntimeController()
@@ -158,7 +173,18 @@ public sealed class TrapPlacementProjectionGunController : MonoBehaviour
             Transform anchor = projectionGunAnchor != null ? projectionGunAnchor : Camera.main != null ? Camera.main.transform : transform;
             projectionGunInstance = Instantiate(prefab, anchor);
             projectionGunInstance.name = prefab.name + " (Projection Gun)";
+            restingPosition = projectionGunInstance.transform.localPosition;
+            restingRotation = projectionGunInstance.transform.localRotation;
+            Transform model = projectionGunInstance.transform.Find("FirstPersonMount/Model");
+            if (model != null)
+            {
+                var grip = projectionGunInstance.GetComponent<TrapPlacementProjectionGunGrip>();
+                if (grip == null) grip = projectionGunInstance.AddComponent<TrapPlacementProjectionGunGrip>();
+                grip.Bind(FindAnyObjectByType<FPSPlayer>(), model, anchor);
+            }
+            equipProgress = 0f;
         }
+        if (!projectionGunInstance.activeSelf) equipProgress = 0f;
         projectionGunInstance.SetActive(true);
         SetNormalWeaponVisualsVisible(false);
     }
