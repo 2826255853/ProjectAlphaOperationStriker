@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 public static partial class DoubleLayerFacilityAuthoring
@@ -13,6 +14,14 @@ public static partial class DoubleLayerFacilityAuthoring
     private const string FrontRightAirSpawnId = "enemy-spawn-flying-front-right";
     private const string RearLeftAirSpawnId = "enemy-spawn-flying-rear-left";
     private const string RearRightAirSpawnId = "enemy-spawn-flying-rear-right";
+    private const string FacilityCeilingPanelMaterialPath = "Assets/Resources/FacilityCeilingPanel.mat";
+    private static readonly (string suffix, string name, Vector3 position)[] FacilityCeilingPanels =
+    {
+        ("Front_Beam_West", "Facility Ceiling Trap Panel Front Beam West", new Vector3(-15.5f, 5.34f, -25f)),
+        ("Front_Beam_East", "Facility Ceiling Trap Panel Front Beam East", new Vector3(15.5f, 5.34f, -25f)),
+        ("Workshop_Beam_West", "Facility Ceiling Trap Panel Workshop Beam West", new Vector3(-15.5f, 5.34f, -12f)),
+        ("Workshop_Beam_East", "Facility Ceiling Trap Panel Workshop Beam East", new Vector3(15.5f, 5.34f, -12f))
+    };
 
     // Gameplay is applied after the geometry import so the facility keeps its
     // authored multi-storey cargo routes instead of a flat imported path grid.
@@ -38,6 +47,7 @@ public static partial class DoubleLayerFacilityAuthoring
         MonsterPathGrid lanes = CreateFacilityLaneGrid(gameplay.transform, instances);
         foreach (var pad in instances.Values.Where(item => item.tags != null && item.tags.Contains("defense-reservation")))
             CreateFacilityDefenseGrid(gameplay.transform, lanes, pad);
+        CreateFacilityCeilingTrapPanels(world.transform);
 
         var groundPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(MaskedSoldierAuthoring.PrefabPath);
         var flyingPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(HurricaneDroneAuthoring.EnemyPrefabPath);
@@ -135,15 +145,18 @@ public static partial class DoubleLayerFacilityAuthoring
         var entrances = world.GetComponentsInChildren<EnemySpawnPoint>(true);
         var cores = world.GetComponentsInChildren<EnemyCore>(true);
         var grids = world.GetComponentsInChildren<TrapPlacementGrid>(true);
+        var ceilingGrids = grids.Where(grid => grid.IsCeilingSurface).ToArray();
+        var wallGrids = grids.Where(grid => grid.IsWallSurface).ToArray();
+        var groundGrids = grids.Where(grid => !grid.IsMountedSurface).ToArray();
         var pads = world.GetComponentsInChildren<MapForgeObjectProperties>(true)
             .Where(item => item.tags != null && item.tags.Contains("defense-reservation")).ToArray();
         if (cores.Length != 1 || entrances.Length != 11 || entrances.Count(item => item.IsFlyingEntrance) != 4)
             throw new InvalidOperationException("Facility requires one core, seven ground entrances and four flying entrances.");
-        if (grids.Length != pads.Length || grids.Length < 27)
+        if (groundGrids.Length != pads.Length || groundGrids.Length < 27)
             throw new InvalidOperationException("Every facility defense reservation requires a usable placement grid.");
         int exteriorCells = 0, rearCells = 0, wingCells = 0, allCells = 0;
         var lanes = world.GetComponentInChildren<MonsterPathGrid>();
-        foreach (var grid in grids)
+        foreach (var grid in groundGrids)
         {
             int count = 0;
             for (int y = 0; y < grid.Rows; y++)
@@ -208,11 +221,45 @@ public static partial class DoubleLayerFacilityAuthoring
                     throw new InvalidOperationException("Ground mission is detached from entrance/floor: " + entrance.name);
             }
         }
-        ValidateFacilityAirRoutes(world, cores[0], entrances, grids);
+        if (wallGrids.Length != 0)
+            throw new InvalidOperationException("Facility should not contain the removed legacy wall trap grids.");
+        ValidateFacilityCeilingTrapPanels(ceilingGrids);
+        ValidateFacilityAirRoutes(world, cores[0], entrances, groundGrids);
         var sentry = Resources.Load<TrapDefinition>("AutoSentryTurret").Prefab.GetComponentInChildren<AutoSentryTurret>(true);
-        Debug.Log($"FACILITY_GAMEPLAY_PASS: {entrances.Length} entrances, {grids.Length} placement grids, " +
+        Debug.Log($"FACILITY_GAMEPLAY_PASS: {entrances.Length} entrances, {groundGrids.Length} ground/platform grids and " +
+            $"{ceilingGrids.Length} ceiling grids ({ceilingGrids.Length * 64} cells), " +
             $"{exteriorCells} front yard / {rearCells} rear yard / {wingCells} side wings / {allCells} total usable 1m cells; " +
             $"current sentry prefab range {sentry.DetectionRange:F1}m. Ground missions use authored ramp heights.");
+    }
+
+    private static void ValidateFacilityCeilingTrapPanels(TrapPlacementGrid[] grids)
+    {
+        var trap = Resources.Load<TrapDefinition>("ThroatLamp");
+        if (grids.Length != 4 || trap == null || trap.MountType != TrapMountType.Ceiling)
+            throw new InvalidOperationException("Facility requires four ceiling panels and a ceiling trap definition.");
+
+        foreach (var grid in grids)
+        {
+            if (grid.Columns != 8 || grid.Rows != 8 || Mathf.Abs(grid.CellSize - 1f) > .001f
+                || grid.SupportCollider == null || !grid.SupportsDefinition(trap))
+                throw new InvalidOperationException("Invalid 8m ceiling trap grid: " + grid.name);
+
+            for (int y = 0; y < grid.Rows; y++)
+            for (int x = 0; x < grid.Columns; x++)
+            {
+                var cell = new Vector2Int(x, y);
+                if (!grid.IsOpen(cell))
+                    throw new InvalidOperationException("Ceiling panel contains a closed trap cell: " + grid.name + cell);
+                if (!grid.HasSurfaceSupport(cell, Vector2Int.one, trap, out string failure))
+                    throw new InvalidOperationException("Ceiling panel cell lacks trap support: " + grid.name + cell + " " + failure);
+            }
+
+            bool canPlace = false;
+            for (int y = 0; y < grid.Rows && !canPlace; y++)
+            for (int x = 0; x < grid.Columns && !canPlace; x++)
+                canPlace = grid.CanPlaceTrap(new Vector2Int(x, y), trap, out _);
+            if (!canPlace) throw new InvalidOperationException("No valid ceiling trap footprint on " + grid.name);
+        }
     }
 
     private static void ValidateFacilityAirRoutes(GameObject world, EnemyCore core, EnemySpawnPoint[] entrances,
@@ -414,6 +461,195 @@ public static partial class DoubleLayerFacilityAuthoring
         grid.PathGridOverride = lanes;
         // Reloaded grids discover the scene's single lane grid via ResolvePathGrid.
         if (floor > .1f) go.AddComponent<PlatformTrapGridLines>();
+    }
+
+    private static void CreateFacilityCeilingTrapPanels(Transform parent)
+    {
+        foreach (var item in FacilityCeilingPanels)
+        {
+            Transform existing = parent.Find(item.name);
+            var panel = existing != null ? existing.gameObject : GameObject.CreatePrimitive(PrimitiveType.Cube);
+            panel.name = item.name;
+            ConfigureFacilityCeilingPanel(panel, item.suffix, item.position, parent);
+        }
+    }
+
+    [MenuItem("MapForge/Clean Legacy Facility Trap Grids")]
+    public static void CleanLegacyFacilityTrapGrids()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            throw new InvalidOperationException("Stop Play Mode before changing facility ceiling panels.");
+        if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+
+        var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+        GameObject world = scene.GetRootGameObjects().FirstOrDefault(root => root.name == MapForgeWorldImporter.RootName);
+        if (world == null) throw new InvalidOperationException("Facility scene has no MapForgeWorld root.");
+
+        string backupDirectory = Path.Combine(OutputDirectory, "ceiling-trap-boards-20261121", "backup");
+        Directory.CreateDirectory(backupDirectory);
+        string sceneBackup = Path.Combine(backupDirectory, "DOUBLE_LAYER_FACILITY.before-ceiling-grid.unity");
+        if (!File.Exists(sceneBackup)) File.Copy(ScenePath, sceneBackup);
+        string metaBackup = sceneBackup + ".meta";
+        if (File.Exists(ScenePath + ".meta") && !File.Exists(metaBackup)) File.Copy(ScenePath + ".meta", metaBackup);
+
+        CreateFacilityCeilingTrapPanels(world.transform);
+
+        var newPanelTransforms = FacilityCeilingPanels
+            .Select(item => world.transform.Find(item.name))
+            .Where(transform => transform != null).ToArray();
+        var legacyGrids = world.GetComponentsInChildren<TrapPlacementGrid>(true)
+            .Where(grid => grid.IsWallSurface || (grid.IsCeilingSurface
+                && !newPanelTransforms.Any(panel => grid.transform.IsChildOf(panel))))
+            .ToArray();
+        var legacySupports = new HashSet<GameObject>();
+        foreach (var grid in legacyGrids)
+        {
+            Collider support = grid.SupportCollider;
+            if (support != null && IsLegacyTrapMountSupport(support.gameObject))
+                legacySupports.Add(support.gameObject);
+            UnityEngine.Object.DestroyImmediate(grid.gameObject);
+        }
+
+        foreach (Transform item in world.GetComponentsInChildren<Transform>(true))
+        {
+            if (newPanelTransforms.Any(panel => item == panel || item.IsChildOf(panel))) continue;
+            if (item != world.transform && IsLegacyTrapMountSupport(item.gameObject))
+                legacySupports.Add(item.gameObject);
+        }
+        foreach (var support in legacySupports)
+            if (support != null) UnityEngine.Object.DestroyImmediate(support);
+
+        foreach (var item in FacilityCeilingPanels)
+        {
+            var panel = world.GetComponentsInChildren<Transform>(true)
+                .FirstOrDefault(transform => transform.name == item.name)?.gameObject;
+            if (panel == null) throw new InvalidOperationException("Missing facility ceiling panel: " + item.name);
+            ConfigureFacilityCeilingPanel(panel, item.suffix, item.position, world.transform);
+        }
+
+        Physics.SyncTransforms();
+        var remainingGrids = world.GetComponentsInChildren<TrapPlacementGrid>(true);
+        if (remainingGrids.Any(grid => grid.IsWallSurface))
+            throw new InvalidOperationException("Legacy wall trap grids remain in the facility.");
+        ValidateFacilityCeilingTrapPanels(remainingGrids.Where(grid => grid.IsCeilingSurface).ToArray());
+        AssetDatabase.SaveAssets();
+        EditorSceneManager.MarkSceneDirty(scene);
+        if (!EditorSceneManager.SaveScene(scene, ScenePath))
+            throw new IOException("Could not save facility ceiling trap panels.");
+        Debug.Log("FACILITY_LEGACY_GRIDS_CLEAN_PASS: removed " + legacyGrids.Length
+            + " legacy wall/ceiling grids and " + legacySupports.Count + " support objects, retained four 8x8 ceiling boards.");
+    }
+
+    private static bool IsLegacyTrapMountSupport(GameObject candidate)
+    {
+        return candidate.name.StartsWith("Wall Trap Mount Plate", StringComparison.Ordinal)
+            || candidate.name.StartsWith("Ceiling Trap Mount Plate", StringComparison.Ordinal)
+            || candidate.name.StartsWith("Ceiling Panel Suspension", StringComparison.Ordinal);
+    }
+
+    private static void ConfigureFacilityCeilingPanel(GameObject panel, string suffix, Vector3 position,
+        Transform suspensionParent)
+    {
+        float panelHeight = position.y;
+        const float panelThickness = 0.12f;
+        const float suspensionTop = 6.1f;
+        panel.transform.SetParent(suspensionParent, false);
+        panel.transform.position = position;
+        panel.transform.rotation = Quaternion.identity;
+        panel.transform.localScale = new Vector3(8f, panelThickness, 8f);
+        panel.SetActive(true);
+        panel.isStatic = true;
+        var support = panel.GetComponent<BoxCollider>() ?? panel.AddComponent<BoxCollider>();
+        support.enabled = true;
+        support.isTrigger = false;
+        Material panelMaterial = LoadFacilityCeilingPanelMaterial();
+        var panelRenderer = panel.GetComponent<Renderer>();
+        if (panelRenderer != null) panelRenderer.sharedMaterial = panelMaterial;
+
+        for (int x = -1; x <= 1; x += 2)
+        for (int z = -1; z <= 1; z += 2)
+        {
+            string hangerName = "Facility Ceiling Panel Suspension " + suffix + " " + x + " " + z;
+            Transform existingHanger = suspensionParent.Find(hangerName);
+            GameObject hanger = existingHanger != null ? existingHanger.gameObject
+                : GameObject.CreatePrimitive(PrimitiveType.Cube);
+            hanger.name = hangerName;
+            hanger.transform.SetParent(suspensionParent, false);
+            hanger.transform.position = new Vector3(panel.transform.position.x + x * 4.08f,
+                (panelHeight + suspensionTop) * 0.5f, panel.transform.position.z + z * 4.08f);
+            hanger.transform.rotation = Quaternion.identity;
+            hanger.transform.localScale = new Vector3(0.12f, suspensionTop - panelHeight, 0.12f);
+            hanger.isStatic = true;
+            var hangerRenderer = hanger.GetComponent<Renderer>();
+            if (hangerRenderer != null) hangerRenderer.sharedMaterial = panelMaterial;
+        }
+
+        string gridName = "FacilityCeilingTrapPlacementGrid_" + suffix;
+        var grid = panel.GetComponentsInChildren<TrapPlacementGrid>(true).FirstOrDefault();
+        if (grid == null)
+        {
+            var gridObject = new GameObject(gridName);
+            gridObject.transform.SetParent(panel.transform, false);
+            grid = gridObject.AddComponent<TrapPlacementGrid>();
+        }
+        grid.gameObject.name = gridName;
+        var mapping = new MapForgeSceneOrganization.CeilingTrapGridMap
+        {
+            columns = 8,
+            rows = 8,
+            cellSize = 1f,
+            surfaceOffset = 0.01f,
+            autoFit = true,
+            openCells = Enumerable.Repeat(true, 64).ToArray()
+        };
+        CeilingTrapGridAuthoring.Configure(grid, support, mapping);
+    }
+
+    private static Material LoadFacilityCeilingPanelMaterial()
+    {
+        var material = AssetDatabase.LoadAssetAtPath<Material>(FacilityCeilingPanelMaterialPath);
+        if (material != null) return material;
+
+        Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+        if (shader == null) throw new InvalidOperationException("URP/Lit shader is unavailable for facility ceiling panels.");
+        material = new Material(shader)
+        {
+            name = "Facility Ceiling Panel",
+            color = new Color(0.34f, 0.39f, 0.42f)
+        };
+        if (material.HasProperty("_Metallic")) material.SetFloat("_Metallic", 0.28f);
+        if (material.HasProperty("_Smoothness")) material.SetFloat("_Smoothness", 0.42f);
+        AssetDatabase.CreateAsset(material, FacilityCeilingPanelMaterialPath);
+        return material;
+    }
+
+    public static void RenderFacilityCeilingPanelPreview()
+    {
+        ValidateSavedScene();
+        string previewDirectory = Path.Combine(OutputDirectory, "ceiling-trap-boards-20261121", "preview");
+        Directory.CreateDirectory(previewDirectory);
+        Camera camera = Camera.main;
+        Vector3 position = camera.transform.position;
+        Quaternion rotation = camera.transform.rotation;
+        float fieldOfView = camera.fieldOfView;
+        RenderTexture previous = RenderTexture.active;
+        var target = new RenderTexture(1600, 1000, 24);
+        try
+        {
+            camera.targetTexture = target;
+            camera.fieldOfView = 72f;
+            RenderShot(camera, target, new Vector3(-24f, 2.2f, -26f),
+                new Vector3(-15.5f, 5.2f, -25f), "ceiling-panel-view.png", Vector3.up, previewDirectory);
+            Debug.Log("FACILITY_CEILING_PREVIEW_PASS: " + previewDirectory);
+        }
+        finally
+        {
+            camera.targetTexture = null;
+            camera.fieldOfView = fieldOfView;
+            camera.transform.SetPositionAndRotation(position, rotation);
+            RenderTexture.active = previous;
+            UnityEngine.Object.DestroyImmediate(target);
+        }
     }
 
     private static void CollectFacilityRoute(string id, List<string> visiting,

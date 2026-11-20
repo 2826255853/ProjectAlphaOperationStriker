@@ -308,7 +308,7 @@ public static partial class DoubleLayerFacilityAuthoring
     }
 
     private static void RenderShot(Camera camera, RenderTexture target, Vector3 position, Vector3 lookAt,
-        string filename, Vector3? up = null)
+        string filename, Vector3? up = null, string outputDirectory = null)
     {
         camera.transform.SetPositionAndRotation(position, Quaternion.LookRotation(lookAt - position, up ?? Vector3.up));
         // Warm the offscreen camera before reading its render target.
@@ -320,7 +320,7 @@ public static partial class DoubleLayerFacilityAuthoring
         {
             texture.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0);
             texture.Apply();
-            File.WriteAllBytes(Path.Combine(OutputDirectory, filename), texture.EncodeToPNG());
+            File.WriteAllBytes(Path.Combine(outputDirectory ?? OutputDirectory, filename), texture.EncodeToPNG());
         }
         finally { UnityEngine.Object.DestroyImmediate(texture); }
     }

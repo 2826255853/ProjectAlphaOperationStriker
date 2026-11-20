@@ -1,5 +1,11 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 双层设施室内吊板天花板陷阱网格（2026-11-21）
+
+- `DoubleLayerFacilityAuthoring.Gameplay.cs` 在厂房内四处梁下车道生成独立的 8 × 8 m 吊板，中心为 `(±15.5, 5.34, -25/-12)`，吊杆接至二层楼板底面 `y=6.1`。每板带静态盒体支撑、8 × 8 个 1 m 天花板网格单元，并使用 `ThroatLamp` 验证支撑和 footprint。
+- 清理入口 `MapForge/Clean Legacy Facility Trap Grids` 移除了早先场景中的 4 套墙面网格、4 套旧天花板网格、专用安装板及旧吊杆；本轮新增的四块吊板、网格与吊杆保留。生成器持续只生成新吊板，不恢复旧墙面网格。`Assets/Resources/FacilityCeilingPanel.mat` 为吊板与吊杆材质。
+- Unity `6000.6.10f1` 场景校验通过：27 套地面/平台网格、4 套天花板网格（256 格），共享陷阱网格校验通过。近景预览为 `C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\ceiling-trap-boards-20261121\preview\ceiling-panel-view.png`；场景及 `.meta` 备份在同目录 `backup\`。未做人工 Play Mode 放置或完整 Player 构建。
+
 ## 局外战略资源（2026-11-20）
 
 - `GameFlowManager` 首次判定胜负时调用 `GameSaveSystem.RecordCompletedGame`。胜局发放 2000、败局发放 1000 战略资源，与已完成对局统计同时写入本机 PlayerPrefs。旧存档保留原统计，首次余额为 0。中途退出无结算奖励。
