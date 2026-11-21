@@ -93,7 +93,7 @@ public static class TrapPlacementProjectionGunContractValidation
             Check(controller.PlacementMode, "Finishing a drag stroke preserves placement mode.");
 
             grid.TryGetTrapAtCell(Vector2Int.zero, out TrapInstance existingTrap);
-            Set(controller, "hoveredTrap", existingTrap);
+            Set(controller, "hoveredCell", Vector2Int.zero);
             int secondaryActions = 0;
             controller.ProjectionGunSecondaryAction += () => secondaryActions++;
             string failure = controller.LastPlacementFailure;
@@ -149,12 +149,6 @@ public static class TrapPlacementProjectionGunContractValidation
             {
                 ClearPreview(controller);
                 Invoke(controller, "OnDisable");
-                foreach (string field in new[] { "openMaterial", "blockedMaterial", "footprintMaterial",
-                    "invalidFootprintMaterial", "hoveredMaterial" })
-                {
-                    var material = Get(controller, field) as Material;
-                    if (material != null) Object.DestroyImmediate(material);
-                }
             }
             for (int i = owned.Count - 1; i >= 0; i--)
                 if (owned[i] != null) Object.DestroyImmediate(owned[i]);

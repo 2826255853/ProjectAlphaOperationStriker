@@ -6,6 +6,8 @@ public sealed class MonsterPathGridEditor : Editor
 {
     private SerializedProperty columns, rows, cellSize, pathHeight, openCells;
 
+    private Vector2Int inspectorPage;
+
     private void OnEnable()
     {
         columns = serializedObject.FindProperty("columns");
@@ -34,10 +36,11 @@ public sealed class MonsterPathGridEditor : Editor
         if (GUILayout.Button("全部开放")) SetAll(true);
         if (GUILayout.Button("全部关闭")) SetAll(false);
         EditorGUILayout.EndHorizontal();
-        for (int y = grid.Rows - 1; y >= 0; y--)
+        RectInt visible = GridInspectorPage.VisibleCells(grid.Columns, grid.Rows, ref inspectorPage);
+        for (int y = visible.yMax - 1; y >= visible.yMin; y--)
         {
             EditorGUILayout.BeginHorizontal();
-            for (int x = 0; x < grid.Columns; x++)
+            for (int x = visible.xMin; x < visible.xMax; x++)
             {
                 var cell = openCells.GetArrayElementAtIndex(x + y * grid.Columns);
                 GUI.backgroundColor = cell.boolValue ? new Color(0.35f, 0.8f, 1f) : new Color(0.35f, 0.35f, 0.35f);

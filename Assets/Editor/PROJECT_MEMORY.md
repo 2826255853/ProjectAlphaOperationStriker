@@ -1,5 +1,28 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 付费放置失败与编辑器批量放置钱包（2026-11-22）
+
+- `TrapPurchaseService.TryPurchase` 在预留金币前拒绝引用场景物体的陷阱模板。正式预制体和未指定预制体时的默认模型继续支持购买。创建过程中遇到重入占格或换局仍由原有事务清理占格并释放预留款。
+- `TrapInstance` 在编辑模式下优先读取已有升级服务，没有可用服务时采用一级基础属性。直接用网格批量放置可在没有钱包的场景中完成。Play Mode 仍按需初始化运行时升级服务。
+- 上次失败的两个购买用例已通过。原 EditMode 回归 71/71，通过额外升级耐久回归 19/19。报告位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\purchase-wallet-fix-20261121-235918\`。
+
+## 陷阱和寻路网格的编辑器与运行时优化（2026-11-21）
+
+- 原有 `openCells`、格子编号、半格偏移和地图文件继续使用。生成雷鸣工厂时按防区与支撑面的交集计算可放置格；在原场景的 27 个地面/平台防区上，新生成掩码与已保存掩码逐格一致。四块吊板仍提供 256 格。
+- `GridMaskRuns` 从掩码缓存每行连续开放区段，适用于新旧地图。陷阱与怪物网格各用一张缓存 Mesh 绘制 Scene 辅助图形，选中时叠加格线。两个网格 Inspector 自动分页，原有画笔、全开全关及格子坐标沿用。场景关闭、物体移除或脚本重载时释放辅助 Mesh。
+- 游戏放置模式按网格合并可用、占用和悬停区域，以掩码、占用、所选陷阱和悬停状态驱动更新。平台线复用开放区段。修改可放置格仍用原 Inspector 或 `SetOpen`；地图生成仍调用 `ConfigureLayout`。
+- 实际地图的 944,176 个陷阱格位中，1,500 个开放格形成 234 个区段。DX12 开启 Gizmos 连续重绘 20 秒，31 个陷阱网格及 1 个怪物网格共用 32 张辅助 Mesh、2,132 顶点。关闭场景后辅助 Mesh 残留为 0。Play Mode 已核对放置、拆除、开关格子、切换地面/天花板陷阱、无效悬停提示和退出重进。
+- 正式场景重载校验及投影枪契约 26 项断言通过。EditMode 回归 69/71 通过；两个购买用例在本次修改前的代码上独立复现相同失败：编辑器接受场景对象作为陷阱模板，以及批量放置后钱包单例仍存在。第七阶段测试源现放在 `Tests~/Editor`，原 `RunProjectionGunStage7Tests.ps1` 负责临时导入并清理。
+- 同机 DX12 Play Mode 对照：在同一防区用哨戒机枪交替悬停两格，预热 4 次、采样 30 次。网格提示刷新主线程耗时中位数从 23.514 ms 降至 0.011 ms，P95 从 25.589 ms 降至 0.011 ms，提示渲染器从 1,244 个降至 31 个。计时覆盖一次提示刷新，不含整帧和 GPU 呈现。
+- 验收目录为 `C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\grid-performance-20261121-230924\`，图形与 Play Mode 日志为 `verified.log`，放置画面为 `play-placement.png`，刷新对照为 `timing-baseline.log` 和 `timing-verified.log`，旧版失败对照为 `baseline.xml`。
+
+## 雷鸣工厂打开场景时的编辑器崩溃（2026-11-21）
+
+- 在本机 RTX 5060 Laptop GPU 上，从空白工作场景打开 `DOUBLE_LAYER_FACILITY`，DX12 日志先确认场景加载完成，再于 Scene 视图绘制时报告 Gizmo 顶点数超过 38,347,922、图形环形缓冲区耗尽，最后发生设备丢失（`0x887A0005`）。
+- `DoubleLayerFacilityAuthoring.CreateFacilityDefenseGrid` 给 27 个地面及平台防区各分配一份全图 152 × 230 的掩码。加上四块 8 × 8 吊板，`TrapPlacementGrid.OnDrawGizmos` 每次遍历 944,176 格，为每格各调用一次 `DrawCube` 和 `DrawWireCube`，包括防区外的禁用格。普通游戏画面不执行这段编辑器辅助绘制。
+- DX11 对照能打开场景，但同样报告 Gizmo 顶点超限与图形缓冲区耗尽。默认 DX12 复现日志为 `C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\editor-crash-check-20261121-225212\default.log`，DX11 对照为同目录 `dx11-probe.log`。
+- 临时打开方法：在空白工作场景先关闭 Scene 视图工具栏的 Gizmos 总开关，再打开雷鸣工厂。相同 DX12 编辑器关闭此开关后，20 秒内收到 4,864 次 Scene 视图重绘回调，日志未出现顶点超限或设备丢失。对照日志为同目录 `dx12-scene-gizmos-off.log`。诊断结束时已切回空白工作场景并恢复开关。
+
 ## 双层设施室内吊板天花板陷阱网格（2026-11-21）
 
 - `DoubleLayerFacilityAuthoring.Gameplay.cs` 在厂房内四处梁下车道生成独立的 8 × 8 m 吊板，中心为 `(±15.5, 5.34, -25/-12)`，吊杆接至二层楼板底面 `y=6.1`。每板带静态盒体支撑、8 × 8 个 1 m 天花板网格单元，并使用 `ThroatLamp` 验证支撑和 footprint。

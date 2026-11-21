@@ -35,6 +35,8 @@ public sealed class TrapPlacementGridEditor : Editor
     private Vector2Int lastTrapCell;
     private bool hasLastTrapCell;
 
+    private Vector2Int inspectorPage;
+
     private void OnEnable()
     {
         columns = serializedObject.FindProperty("columns");
@@ -107,10 +109,11 @@ public sealed class TrapPlacementGridEditor : Editor
         else
             EditorGUILayout.HelpBox("在 Scene 视图按住左键拖动连续铺设；Shift 可临时擦除。陷阱占用范围会自动检查。", MessageType.Info);
 
-        for (int y = grid.Rows - 1; y >= 0; y--)
+        RectInt visible = GridInspectorPage.VisibleCells(grid.Columns, grid.Rows, ref inspectorPage);
+        for (int y = visible.yMax - 1; y >= visible.yMin; y--)
         {
             EditorGUILayout.BeginHorizontal();
-            for (int x = 0; x < grid.Columns; x++)
+            for (int x = visible.xMin; x < visible.xMax; x++)
             {
                 int index = x + y * grid.Columns;
                 var cell = openCells.GetArrayElementAtIndex(index);

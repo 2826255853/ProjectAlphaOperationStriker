@@ -37,13 +37,25 @@ $fixtures = @('TrapPlacementProjectionGunStage7Tests', 'TrapPurchaseTests', 'Wal
 $filter = $fixtures -join '|'
 $arguments = '-batchmode -nographics -projectPath "{0}" -runTests -testPlatform EditMode -testFilter "{1}" -extraScriptingDefines=UNITY_INCLUDE_TESTS -testResults "{2}" -logFile "{3}"' -f $ProjectPath, $filter, $xmlPath, $logPath
 Write-Host "[stage7] Unity $version; NUnit output: $xmlPath"
-$process = Start-Process -FilePath $unity -ArgumentList $arguments -PassThru -WindowStyle Hidden `
-    -RedirectStandardOutput (Join-Path $session 'stdout.txt') -RedirectStandardError (Join-Path $session 'stderr.txt')
-# Cache the native handle before waiting: Windows PowerShell can otherwise return a null ExitCode.
-$null = $process.Handle
-if (!$process.WaitForExit($TimeoutSeconds * 1000)) {
-    Stop-Process -Id $process.Id -ErrorAction SilentlyContinue
-    throw "Stage-seven tests timed out after $TimeoutSeconds seconds. See $logPath"
+$source = Join-Path $ProjectPath 'Tests~\Editor\TrapPlacementProjectionGunStage7Tests.cs'
+$staged = Join-Path $ProjectPath 'Assets\Editor\TrapPlacementProjectionGunStage7Tests.cs'
+if ((Test-Path -LiteralPath $staged) -or (Test-Path -LiteralPath "$staged.meta")) {
+    throw "A staged test fixture already exists at $staged"
+}
+[System.IO.File]::Copy($source, $staged, $false)
+try {
+    [System.IO.File]::Copy("$source.meta", "$staged.meta", $false)
+    $process = Start-Process -FilePath $unity -ArgumentList $arguments -PassThru -WindowStyle Hidden `
+        -RedirectStandardOutput (Join-Path $session 'stdout.txt') -RedirectStandardError (Join-Path $session 'stderr.txt')
+    # Cache the native handle before waiting to preserve ExitCode on Windows PowerShell.
+    $null = $process.Handle
+    if (!$process.WaitForExit($TimeoutSeconds * 1000)) {
+        Stop-Process -Id $process.Id -ErrorAction SilentlyContinue
+        throw "Stage-seven tests timed out after $TimeoutSeconds seconds. See $logPath"
+    }
+}
+finally {
+    Remove-Item -LiteralPath $staged, "$staged.meta" -Force -ErrorAction SilentlyContinue
 }
 $process.Refresh()
 if (!(Test-Path -LiteralPath $xmlPath)) {

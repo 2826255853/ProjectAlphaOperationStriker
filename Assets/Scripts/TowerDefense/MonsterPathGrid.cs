@@ -14,6 +14,8 @@ public sealed class MonsterPathGrid : MonoBehaviour
     [Tooltip("Row-major (x + y * columns). True cells are traversable by monsters.")]
     [SerializeField] private bool[] openCells;
 
+    private readonly GridMaskRuns maskRuns = new GridMaskRuns();
+
     public int Columns => columns;
     public int Rows => rows;
     public float CellSize => cellSize;
@@ -30,6 +32,7 @@ public sealed class MonsterPathGrid : MonoBehaviour
 
     private void OnValidate()
     {
+        maskRuns.Invalidate();
         columns = Mathf.Max(1, columns);
         rows = Mathf.Max(1, rows);
         cellSize = Mathf.Max(1f, cellSize);
@@ -42,6 +45,7 @@ public sealed class MonsterPathGrid : MonoBehaviour
         if (openCells != null && openCells.Length == count) return;
         bool[] previous = openCells;
         openCells = new bool[count];
+        maskRuns.Invalidate();
         if (previous != null) System.Array.Copy(previous, openCells, Mathf.Min(previous.Length, count));
     }
 
@@ -56,7 +60,11 @@ public sealed class MonsterPathGrid : MonoBehaviour
     public void SetOpen(Vector2Int cell, bool open)
     {
         EnsureCellData();
-        if (IsInside(cell)) openCells[cell.x + cell.y * columns] = open;
+        if (!IsInside(cell)) return;
+        int index = cell.x + cell.y * columns;
+        if (openCells[index] == open) return;
+        openCells[index] = open;
+        maskRuns.Invalidate();
     }
 
     public Vector3 CellToWorld(Vector2Int cell)
@@ -203,19 +211,16 @@ public sealed class MonsterPathGrid : MonoBehaviour
 
     private static int Manhattan(Vector2Int a, Vector2Int b) => Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
 
+#if UNITY_EDITOR
+    private void OnDisable() => maskRuns.ReleaseMesh();
+
     private void OnDrawGizmos()
     {
         EnsureCellData();
-        for (int y = 0; y < rows; y++) for (int x = 0; x < columns; x++)
-        {
-            Vector3 center = CellToWorld(new Vector2Int(x, y));
-            Gizmos.color = IsOpen(new Vector2Int(x, y)) ? new Color(0.2f, 0.8f, 1f, 0.25f) : new Color(0.15f, 0.15f, 0.15f, 0.12f);
-            Matrix4x4 old = Gizmos.matrix;
-            Gizmos.matrix = Matrix4x4.TRS(center, transform.rotation, Vector3.one);
-            Gizmos.DrawCube(Vector3.zero, new Vector3(cellSize * 0.96f, 0.025f, cellSize * 0.96f));
-            Gizmos.color = new Color(0f, 0f, 0f, 0.3f);
-            Gizmos.DrawWireCube(Vector3.zero, new Vector3(cellSize, 0.03f, cellSize));
-            Gizmos.matrix = old;
-        }
+        var firstCenter = new Vector3(cellSize * .5f, pathHeight, cellSize * .5f);
+        var matrix = transform.localToWorldMatrix * Matrix4x4.TRS(firstCenter,
+            Quaternion.Euler(90f, 0f, 0f), Vector3.one * cellSize);
+        maskRuns.Draw(this, openCells, columns, matrix, new Color(.2f, .8f, 1f, .25f));
     }
+#endif
 }

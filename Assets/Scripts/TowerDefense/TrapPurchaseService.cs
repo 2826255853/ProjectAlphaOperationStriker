@@ -14,6 +14,13 @@ public static class TrapPurchaseService
             failure = "未选择陷阱或放置网格。";
             return false;
         }
+        // Authoring tools may clone a scene template directly through the grid.
+        // A paid definition must reference an asset or use the built-in fallback.
+        if (definition.Prefab != null && definition.Prefab.scene.IsValid())
+        {
+            failure = "陷阱模板引用了场景对象，请在陷阱定义中指定预制体资源。";
+            return false;
+        }
         if (!grid.CanPlaceTrap(origin, definition, out failure)) return false;
 
         EconomyManager wallet = EconomyManager.Instance;

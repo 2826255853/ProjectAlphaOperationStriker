@@ -119,8 +119,17 @@ public sealed class TrapInstance : MonoBehaviour
         }
 
         EconomyManager wallet = EconomyManager.Instance;
-        TrapUpgradeService service = wallet != null && wallet.UpgradeService != null &&
-            !wallet.UpgradeService.IsDisposed ? wallet.UpgradeService : TrapUpgradeRuntime.GetOrCreate();
+        TrapUpgradeService service = wallet != null ? wallet.UpgradeService : null;
+        if (service == null || service.IsDisposed)
+        {
+            // Painting a trap outside Play Mode must not start an economy run.
+            if (!Application.isPlaying)
+            {
+                ApplyUpgradeState(TrapUpgradeState.Initial, TrapUpgradeCatalog.DefaultMultipliers(1), fillHealth);
+                return;
+            }
+            service = TrapUpgradeRuntime.GetOrCreate();
+        }
         ApplyUpgradeState(service.GetState(definition.TrapId), service.GetMultipliers(definition.TrapId), fillHealth);
     }
 

@@ -13,13 +13,14 @@ public sealed class PlatformTrapGridLines : MonoBehaviour
     private Mesh mesh;
     private Material material;
     private bool rebuild;
+    private TrapPlacementGrid grid;
+    private int maskRevision;
 
     private void OnEnable() => Rebuild();
     private void OnValidate() => rebuild = true;
     private void Update()
     {
-        if (!rebuild) return;
-        rebuild = false;
+        if (!rebuild && grid != null && maskRevision == grid.MaskRevision) return;
         Rebuild();
     }
     private void OnDisable() => Release();
@@ -27,19 +28,21 @@ public sealed class PlatformTrapGridLines : MonoBehaviour
     public void Rebuild()
     {
         Release();
-        var grid = GetComponent<TrapPlacementGrid>();
+        rebuild = false;
+        grid = GetComponent<TrapPlacementGrid>();
+        if (grid != null) maskRevision = grid.MaskRevision;
         if (grid == null || grid.IsMountedSurface || grid.Surface != TrapPlacementGrid.SurfaceKind.Platform) return;
         var vertices = new List<Vector3>();
         var triangles = new List<int>();
         float half = grid.CellSize * .5f;
-        for (int y = 0; y < grid.Rows; y++)
-        for (int x = 0; x < grid.Columns; x++)
+        var runs = grid.OpenRuns;
+        foreach (var run in runs)
+        for (int x = run.xMin; x < run.xMax; x++)
         {
-            var cell = new Vector2Int(x, y);
-            if (!grid.IsOpen(cell)) continue;
+            var cell = new Vector2Int(x, run.y);
             // Ground cells are anchored at their centres. Keep the visible
             // boundaries half a cell away from that same placement centre.
-            var center = transform.InverseTransformPoint(grid.CellToWorld(cell)) + Vector3.up * lift;
+            var center = grid.CellToLocal(cell) + Vector3.up * lift;
             var a = center + new Vector3(-half, 0f, -half);
             var b = center + new Vector3(half, 0f, -half);
             var c = center + new Vector3(half, 0f, half);

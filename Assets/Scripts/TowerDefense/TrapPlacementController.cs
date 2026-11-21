@@ -28,7 +28,7 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     private GameObject preview;
     private Vector3 previewBaseScale = Vector3.one;
-    private TrapInstance hoveredTrap;
+    private RaycastHit[] aimHits = new RaycastHit[16];
     private TrapInstance aimedTrap;
     private Vector2Int hoveredCell;
     private bool hasHoveredCell;
@@ -37,10 +37,9 @@ public sealed class TrapPlacementController : MonoBehaviour
     private bool dragPlacement;
     private Vector2Int lastPlacedCell;
     private bool hasLastPlacedCell;
-    private readonly List<GameObject> gridMarkers = new List<GameObject>();
+    private readonly Dictionary<TrapPlacementGrid, TrapPlacementOverlay> gridOverlays = new Dictionary<TrapPlacementGrid, TrapPlacementOverlay>();
     private readonly List<InputAction> suppressedWeaponActions = new List<InputAction>();
-    private Material openMaterial, blockedMaterial, footprintMaterial, invalidFootprintMaterial;
-    private Material hoveredMaterial;
+    private Material[] overlayMaterials;
     private readonly EconomyUIState economy = new EconomyUIState();
     private readonly List<Material> previewMaterials = new List<Material>();
     private float failureVisibleUntil;
@@ -295,6 +294,18 @@ public sealed class TrapPlacementController : MonoBehaviour
             for (int i = 0; i < found.Length; i++)
                 if (found[i] != null && !grids.Contains(found[i])) grids.Add(found[i]);
         }
+        // A persistent controller can enter placement again after an additive scene unload.
+        if (gridOverlays.Count > 0)
+        {
+            var stale = new List<TrapPlacementGrid>();
+            foreach (var entry in gridOverlays)
+                if (entry.Key == null || !grids.Contains(entry.Key)) stale.Add(entry.Key);
+            foreach (var removed in stale)
+            {
+                gridOverlays[removed].Dispose();
+                gridOverlays.Remove(removed);
+            }
+        }
         if (grids.Count == 0) { activeGrid = null; return; }
         if (activeGrid == null || !grids.Contains(activeGrid)) activeGrid = grids[0];
     }
@@ -351,7 +362,7 @@ public sealed class TrapPlacementController : MonoBehaviour
                 bestOccupied = candidate;
                 occupiedCell = candidateCell;
             }
-            else if (!occupied && CanPlace(candidate, candidateCell) && distance < usableDistance)
+            else if (!occupied && distance < usableDistance && candidate.IsOpen(candidateCell) && CanPlace(candidate, candidateCell))
             {
                 usableDistance = distance;
                 bestUsable = candidate;
@@ -372,19 +383,19 @@ public sealed class TrapPlacementController : MonoBehaviour
     /// </summary>
     private bool IsWallRayOccluded(TrapPlacementGrid candidate, Ray ray, float wallDistance)
     {
-        RaycastHit[] hits = Physics.RaycastAll(ray, Mathf.Max(0.1f, wallDistance + 0.25f));
+        int hitCount = RaycastAim(ray, Mathf.Max(0.1f, wallDistance + 0.25f));
         float supportTolerance = Mathf.Max(0.05f, candidate.SurfaceOffset + 0.1f);
-        for (int i = 0; i < hits.Length; i++)
+        for (int i = 0; i < hitCount; i++)
         {
-            Collider collider = hits[i].collider;
+            Collider collider = aimHits[i].collider;
             if (collider == null || collider.isTrigger) continue;
             if (collider.GetComponentInParent<TrapPlacementPreview>() != null) continue;
             // Existing trap bodies sit on the same finite plane. They should
             // remain selectable as occupied cells instead of hiding the grid.
             if (collider.GetComponentInParent<TrapInstance>() != null) continue;
             if (candidate.SupportCollider != null && collider == candidate.SupportCollider &&
-                Mathf.Abs(hits[i].distance - wallDistance) <= supportTolerance) continue;
-            if (hits[i].distance < wallDistance - 0.02f) return true;
+                Mathf.Abs(aimHits[i].distance - wallDistance) <= supportTolerance) continue;
+            if (aimHits[i].distance < wallDistance - 0.02f) return true;
         }
         return false;
     }
@@ -451,8 +462,6 @@ public sealed class TrapPlacementController : MonoBehaviour
     {
         Vector2 mousePosition = Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
         Ray ray = placementCamera.ScreenPointToRay(mousePosition);
-        bool previousHover = hasHoveredCell;
-        Vector2Int previousCell = hoveredCell;
         TrapPlacementGrid previousGrid = activeGrid;
         TrapPlacementGrid resolved = ResolveGridForRay(ray, out Vector2Int resolvedCell);
         hasHoveredCell = resolved != null;
@@ -469,16 +478,17 @@ public sealed class TrapPlacementController : MonoBehaviour
             dragPlacement = false;
             hasLastPlacedCell = false;
         }
-        hoveredTrap = hasHoveredCell ? FindTrapAt(activeGrid, hoveredCell) : FindTrapFromRay(ray);
         if (!placementMode || selectedTrap == null || !hasHoveredCell || activeGrid == null)
         {
             SetPreviewVisible(false);
+            if (placementMode) RefreshGridMarkers(false);
             return;
         }
         EnsurePreview();
         if (!activeGrid.TryGetFootprint(selectedTrap, out Vector2Int footprint))
         {
             SetPreviewVisible(false);
+            if (placementMode) RefreshGridMarkers(false);
             return;
         }
         // Keep the ghost anchored and sized exactly like the instance that
@@ -494,9 +504,9 @@ public sealed class TrapPlacementController : MonoBehaviour
             ? new Vector3(footprint.x * activeGrid.CellWorldSize.x * 0.8f, footprint.y * activeGrid.CellWorldSize.y * 0.8f, 0.15f)
             : new Vector3(previewBaseScale.x * footprint.x, previewBaseScale.y, previewBaseScale.z * footprint.y);
         SetPreviewVisible(true);
-        UpdatePreviewColor();
-        if (!previousHover || !hasHoveredCell || previousCell != hoveredCell || previousGrid != activeGrid)
-            RefreshGridMarkers();
+        bool valid = HasValidPreview;
+        ApplyPreviewColor(valid);
+        RefreshGridMarkers(valid);
     }
 
     /// <summary>
@@ -517,7 +527,6 @@ public sealed class TrapPlacementController : MonoBehaviour
         if (target == null) return;
         aimedTrap = null;
         RemoveTrap(target, sell);
-        if (hoveredTrap == target) hoveredTrap = null;
     }
 
     /// <summary>
@@ -554,23 +563,23 @@ public sealed class TrapPlacementController : MonoBehaviour
         float nearestPhysicalBlock = float.PositiveInfinity;
         TrapInstance nearestHitTrap = null;
         float nearestHitTrapDistance = float.PositiveInfinity;
-        RaycastHit[] hits = Physics.RaycastAll(ray, 1000f);
-        for (int i = 0; i < hits.Length; i++)
+        int hitCount = RaycastAim(ray, 1000f);
+        for (int i = 0; i < hitCount; i++)
         {
-            Collider collider = hits[i].collider;
+            Collider collider = aimHits[i].collider;
             if (collider == null || collider.isTrigger) continue;
             if (collider.GetComponentInParent<TrapPlacementPreview>() != null) continue;
             TrapInstance hitTrap = collider.GetComponentInParent<TrapInstance>();
             if (hitTrap != null)
             {
-                if (hits[i].distance < nearestHitTrapDistance)
+                if (aimHits[i].distance < nearestHitTrapDistance)
                 {
                     nearestHitTrap = hitTrap;
-                    nearestHitTrapDistance = hits[i].distance;
+                    nearestHitTrapDistance = aimHits[i].distance;
                 }
                 continue;
             }
-            nearestPhysicalBlock = Mathf.Min(nearestPhysicalBlock, hits[i].distance);
+            nearestPhysicalBlock = Mathf.Min(nearestPhysicalBlock, aimHits[i].distance);
         }
         if (nearestHitTrap != null && nearestHitTrapDistance <= nearestPhysicalBlock + 0.05f)
             return nearestHitTrap;
@@ -614,9 +623,11 @@ public sealed class TrapPlacementController : MonoBehaviour
         RefreshGridMarkers();
     }
 
-    private void UpdatePreviewColor()
+    private void UpdatePreviewColor() => ApplyPreviewColor(HasValidPreview);
+
+    private void ApplyPreviewColor(bool valid)
     {
-        Color color = HasValidPreview ? new Color(0.2f, 1f, 0.3f, 0.45f)
+        Color color = valid ? new Color(0.2f, 1f, 0.3f, 0.45f)
             : new Color(1f, 0.18f, 0.12f, 0.6f);
         foreach (Material material in previewMaterials)
             if (material != null) material.color = color;
@@ -656,10 +667,15 @@ public sealed class TrapPlacementController : MonoBehaviour
         }
     }
 
-    private TrapInstance FindTrapAt(TrapPlacementGrid target, Vector2Int cell)
+    private int RaycastAim(Ray ray, float distance)
     {
-        if (target == null) return null;
-        return target.TryGetTrapAtCell(cell, out TrapInstance trap) ? trap : null;
+        // A full NonAlloc buffer can omit the nearest blocker. Grow it once
+        // and retry so dense scenes keep the same occlusion result.
+        int count;
+        while ((count = Physics.RaycastNonAlloc(ray, aimHits, distance, Physics.DefaultRaycastLayers,
+                   QueryTriggerInteraction.Ignore)) == aimHits.Length)
+            Array.Resize(ref aimHits, aimHits.Length * 2);
+        return count;
     }
 
     private void SetPlacementMode(bool enabled)
@@ -675,7 +691,7 @@ public sealed class TrapPlacementController : MonoBehaviour
             Debug.Log("进入陷阱放置状态");
         SetWeaponInputSuppressed(enabled);
         if (!enabled) { SetPreviewVisible(false); ClearGridMarkers(); }
-        else { EnsureMaterials(); RefreshGridMarkers(); }
+        else RefreshGridMarkers();
         if (wasPlacementMode != enabled) PlacementModeChanged?.Invoke(enabled);
     }
 
@@ -689,21 +705,29 @@ public sealed class TrapPlacementController : MonoBehaviour
             return;
         }
 
-        foreach (PlayerInput input in FindObjectsByType<PlayerInput>())
+        if (!Application.isPlaying)
         {
-            if (input.actions == null) continue;
-            foreach (InputAction action in input.actions)
-            {
-                string actionName = action.name.ToLowerInvariant();
-                if (!actionName.Contains("attack") && !actionName.Contains("fire") &&
-                    !actionName.Contains("shoot") && !actionName.Contains("aim") &&
-                    !actionName.Contains("reload")) continue;
-                if (action.enabled)
-                {
-                    action.Disable();
-                    suppressedWeaponActions.Add(action);
-                }
-            }
+            foreach (var input in FindObjectsByType<PlayerInput>()) SuppressActions(input);
+            return;
+        }
+        foreach (var input in PlayerInput.all) SuppressActions(input);
+    }
+
+    private void SuppressActions(PlayerInput input)
+    {
+        if (input.actions == null) return;
+        foreach (var map in input.actions.actionMaps)
+        foreach (var action in map.actions)
+        {
+            if (!action.enabled) continue;
+            string name = action.name;
+            if (name.IndexOf("attack", StringComparison.OrdinalIgnoreCase) < 0 &&
+                name.IndexOf("fire", StringComparison.OrdinalIgnoreCase) < 0 &&
+                name.IndexOf("shoot", StringComparison.OrdinalIgnoreCase) < 0 &&
+                name.IndexOf("aim", StringComparison.OrdinalIgnoreCase) < 0 &&
+                name.IndexOf("reload", StringComparison.OrdinalIgnoreCase) < 0) continue;
+            action.Disable();
+            suppressedWeaponActions.Add(action);
         }
     }
 
@@ -764,85 +788,50 @@ public sealed class TrapPlacementController : MonoBehaviour
         previewMaterials.Clear();
     }
 
-    private void EnsureMaterials()
-    {
-        if (openMaterial != null) return;
-        openMaterial = CreateOverlayMaterial(new Color(0.1f, 1f, 0.25f, 0.75f));
-        blockedMaterial = CreateOverlayMaterial(new Color(1f, 0.15f, 0.1f, 0.12f));
-        footprintMaterial = CreateOverlayMaterial(new Color(1f, 0.85f, 0.1f, 0.45f));
-        invalidFootprintMaterial = CreateOverlayMaterial(new Color(1f, 0.05f, 0.05f, 0.5f));
-        hoveredMaterial = CreateOverlayMaterial(new Color(0.15f, 0.9f, 1f, 0.75f));
-    }
+    private void RefreshGridMarkers() => RefreshGridMarkers(HasValidPreview);
 
-    private void RefreshGridMarkers()
+    private void RefreshGridMarkers(bool valid)
     {
         if (!placementMode || grids.Count == 0) return;
-        EnsureMaterials();
-        int used = 0;
-        // Every authored grid is drawn, so the player sees the usable cells of
-        // both the ground level and the raised platform level at the same time.
-        for (int g = 0; g < grids.Count; g++)
+        if (overlayMaterials == null)
+            overlayMaterials = new[] {
+                CreateOverlayMaterial(new Color(.1f, 1f, .25f, .75f)),
+                CreateOverlayMaterial(new Color(1f, .15f, .1f, .12f)),
+                CreateOverlayMaterial(new Color(1f, .85f, .1f, .45f)),
+                CreateOverlayMaterial(new Color(1f, .05f, .05f, .5f)),
+                CreateOverlayMaterial(new Color(.15f, .9f, 1f, .75f))
+            };
+        RectInt highlight = default;
+        if (hasHoveredCell && activeGrid != null && activeGrid.TryGetFootprint(selectedTrap, out var size))
+            highlight = new RectInt(hoveredCell, size);
+        foreach (var target in grids)
         {
-            TrapPlacementGrid target = grids[g];
             if (target == null) continue;
-            bool hoveringThisGrid = hasHoveredCell && target == activeGrid;
-            for (int y = 0; y < target.Rows; y++) for (int x = 0; x < target.Columns; x++)
+            if (!gridOverlays.TryGetValue(target, out var overlay))
             {
-                Vector2Int cell = new Vector2Int(x, y);
-                bool occupied = target.IsOccupied(cell);
-                bool open = target.IsOpenForTrap(cell, selectedTrap);
-                bool inFootprint = hoveringThisGrid && selectedTrap != null && IsFootprintCell(hoveredCell, cell);
-                // Only usable cells are drawn, plus the footprint the player is
-                // about to occupy. Drawing every blocked cell of every grid would
-                // spawn thousands of extra overlays for no added information.
-                if (!open && !occupied && !inFootprint) continue;
-                Material material = open && !occupied ? openMaterial : blockedMaterial;
-                if (inFootprint && cell != hoveredCell)
-                    material = CanPurchaseAt(target, hoveredCell) ? footprintMaterial : invalidFootprintMaterial;
-                if (hoveringThisGrid && cell == hoveredCell)
-                    material = CanPurchaseAt(target, hoveredCell) ? hoveredMaterial : invalidFootprintMaterial;
-                GameObject marker = RentMarker(used++);
-                marker.transform.SetParent(transform, true);
-                Vector3 markerNormal = target.IsMountedSurface ? target.SurfaceNormal : target.transform.up;
-                marker.transform.SetPositionAndRotation(target.CellToWorld(cell) + markerNormal * 0.015f, target.transform.rotation);
-                marker.transform.localScale = target.IsMountedSurface
-                    ? new Vector3(target.CellSize * 0.92f, target.CellSize * 0.92f, 0.018f)
-                    : new Vector3(target.CellSize * 0.92f, 0.018f, target.CellSize * 0.92f);
-                marker.GetComponent<Renderer>().sharedMaterial = material;
+                overlay = new TrapPlacementOverlay(target, overlayMaterials);
+                gridOverlays.Add(target, overlay);
             }
+            bool hovered = target == activeGrid && highlight.width > 0;
+            overlay.Refresh(selectedTrap, hovered ? highlight : default, hovered && valid);
         }
-        for (int i = used; i < gridMarkers.Count; i++) if (gridMarkers[i] != null) gridMarkers[i].SetActive(false);
-    }
-
-    /// <summary>
-    /// Reuses marker objects between rebuilds. A hovered cell change repaints
-    /// the overlay, and recreating thousands of primitives each move is far more
-    /// expensive than re-positioning them.
-    /// </summary>
-    private GameObject RentMarker(int index)
-    {
-        while (gridMarkers.Count <= index)
-        {
-            GameObject created = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            created.name = "Trap Grid Marker";
-            created.transform.SetParent(transform, true);
-            Destroy(created.GetComponent<Collider>());
-            gridMarkers.Add(created);
-        }
-        GameObject marker = gridMarkers[index];
-        if (!marker.activeSelf) marker.SetActive(true);
-        return marker;
-    }
-
-    private bool IsFootprintCell(Vector2Int origin, Vector2Int cell)
-    {
-        if (activeGrid == null || !activeGrid.TryGetFootprint(selectedTrap, out Vector2Int size)) return false;
-        return cell.x >= origin.x && cell.x < origin.x + size.x && cell.y >= origin.y && cell.y < origin.y + size.y;
     }
 
     private void ClearGridMarkers()
     {
-        for (int i = 0; i < gridMarkers.Count; i++) if (gridMarkers[i] != null) gridMarkers[i].SetActive(false);
+        foreach (var overlay in gridOverlays.Values) overlay.Hide();
+    }
+
+    private void ReleaseGridOverlays()
+    {
+        foreach (var overlay in gridOverlays.Values) overlay.Dispose();
+        gridOverlays.Clear();
+        if (overlayMaterials == null) return;
+        foreach (var material in overlayMaterials)
+        {
+            if (Application.isPlaying) Destroy(material); else DestroyImmediate(material);
+        }
+        overlayMaterials = null;
     }
 
     private static Material CreateOverlayMaterial(Color color)
@@ -853,6 +842,7 @@ public sealed class TrapPlacementController : MonoBehaviour
         material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
         material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
         material.SetInt("_ZWrite", 0);
+        if (material.HasProperty("_Cull")) material.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
         material.renderQueue = 3000;
         return material;
     }
@@ -913,7 +903,7 @@ public sealed class TrapPlacementController : MonoBehaviour
         ReleasePreviewMaterials();
         if (preview != null) Destroy(preview);
         preview = null;
-        ClearGridMarkers();
+        ReleaseGridOverlays();
     }
 
 #if ENABLE_DRONE_CODE

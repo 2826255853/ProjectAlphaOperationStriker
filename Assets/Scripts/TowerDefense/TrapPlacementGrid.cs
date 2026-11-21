@@ -53,6 +53,23 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     private readonly Vector3[] probeBuffer = new Vector3[5];
     private MonsterPathGrid cachedPathGrid;
 
+    private readonly GridMaskRuns maskRuns = new GridMaskRuns();
+
+    // Coordinates stay on the authored lattice, including for legacy full-map masks.
+    public IReadOnlyList<RectInt> OpenRuns
+    {
+        get { EnsureCellData(); return maskRuns.Get(openCells, columns); }
+    }
+    internal Dictionary<Vector2Int, TrapInstance>.KeyCollection OccupiedCells => occupiedCells.Keys;
+    internal int MaskRevision => maskRuns.Revision;
+    internal int VisualRevision { get; private set; }
+
+    private void InvalidateMask()
+    {
+        maskRuns.Invalidate();
+        VisualRevision++;
+    }
+
     public int Columns => columns;
     public int Rows => rows;
     public float CellSize => cellSize;
@@ -111,6 +128,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         SurfaceKind newSurfaceKind, TrapMountType newSurfaceType, Collider newSupportCollider = null,
         float newSurfaceOffset = 0.01f)
     {
+        InvalidateMask();
         surfaceType = newSurfaceType;
         supportCollider = newSupportCollider;
         surfaceOffset = Mathf.Max(0f, newSurfaceOffset);
@@ -150,6 +168,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
 
     private void OnValidate()
     {
+        InvalidateMask();
         columns = Mathf.Max(1, columns);
         rows = Mathf.Max(1, rows);
         cellSize = Mathf.Max(0.01f, cellSize);
@@ -162,12 +181,14 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         if (openCells != null && openCells.Length == count) return;
         var previous = openCells;
         openCells = new bool[count];
+        InvalidateMask();
         if (previous != null) System.Array.Copy(previous, openCells, Mathf.Min(previous.Length, openCells.Length));
     }
 
     /// <summary>Reconstructs runtime/editor occupancy from serialized TrapInstance data.</summary>
     public void RebuildOccupancy()
     {
+        VisualRevision++;
         occupiedCells.Clear();
         placedTraps.Clear();
         var traps = new List<TrapInstance>(GetComponentsInChildren<TrapInstance>(true));
@@ -218,8 +239,9 @@ public sealed class TrapPlacementGrid : MonoBehaviour
 
     public bool IsOccupied(Vector2Int cell) => occupiedCells.ContainsKey(cell);
 
-    public bool IsOpenForTrap(Vector2Int cell, TrapDefinition definition) => IsOpen(cell)
-        && SupportsDefinition(definition)
+    public bool IsOpenForTrap(Vector2Int cell, TrapDefinition definition) => IsOpen(cell) && AllowsOpenCell(definition);
+
+    internal bool AllowsOpenCell(TrapDefinition definition) => SupportsDefinition(definition)
         && (SurfaceType == TrapMountType.Wall || Surface != SurfaceKind.Platform || definition.AllowsPlatformPlacement);
 
     public bool TryGetFootprint(TrapDefinition definition, out Vector2Int footprint)
@@ -540,7 +562,11 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         Vector3 center = TrapWorldPosition(origin, footprint);
         SurfaceAxes(out Vector3 right, out Vector3 forward);
         Vector2 half = new Vector2(footprint.x * CellWorldSize.x, footprint.y * CellWorldSize.y) * 0.5f;
-        foreach (TrapInstance other in FindObjectsByType<TrapInstance>(FindObjectsSortMode.None))
+        // Scene editing can inspect instances before play-mode OnEnable registration.
+        IReadOnlyCollection<TrapInstance> candidates = Application.isPlaying ? TrapInstance.ActiveTraps
+            : FindObjectsByType<TrapInstance>(FindObjectsSortMode.None);
+        if (candidates.Count == 0) return false;
+        foreach (TrapInstance other in candidates)
         {
             if (!other.isActiveAndEnabled || other.Definition == null) continue;
             TrapPlacementGrid owner = other.OwnerGrid != null ? other.OwnerGrid : other.GetComponentInParent<TrapPlacementGrid>();
@@ -555,14 +581,13 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             owner.SurfaceAxes(out Vector3 otherRight, out Vector3 otherForward);
             Vector2 otherHalf = new Vector2(otherFootprint.x * owner.CellWorldSize.x,
                 otherFootprint.y * owner.CellWorldSize.y) * 0.5f;
-            bool separated = false;
-            foreach (Vector3 axis in new[] { right, forward, otherRight, otherForward })
+            bool Separated(Vector3 axis)
             {
                 float extent = Mathf.Abs(Vector3.Dot(right, axis)) * half.x + Mathf.Abs(Vector3.Dot(forward, axis)) * half.y
                     + Mathf.Abs(Vector3.Dot(otherRight, axis)) * otherHalf.x + Mathf.Abs(Vector3.Dot(otherForward, axis)) * otherHalf.y;
-                if (Mathf.Abs(Vector3.Dot(delta, axis)) >= extent - 0.001f) { separated = true; break; }
+                return Mathf.Abs(Vector3.Dot(delta, axis)) >= extent - 0.001f;
             }
-            if (!separated) return true;
+            if (!Separated(right) && !Separated(forward) && !Separated(otherRight) && !Separated(otherForward)) return true;
         }
         return false;
     }
@@ -606,20 +631,25 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     public void SetOpen(Vector2Int cell, bool open)
     {
         EnsureCellData();
-        if (IsInside(cell)) openCells[cell.x + cell.y * columns] = open;
+        if (!IsInside(cell)) return;
+        int index = cell.x + cell.y * columns;
+        if (openCells[index] == open) return;
+        openCells[index] = open;
+        InvalidateMask();
     }
 
-    public Vector3 CellToWorld(Vector2Int cell)
+    public Vector3 CellToWorld(Vector2Int cell) => transform.TransformPoint(CellToLocal(cell));
+
+    internal Vector3 CellToLocal(Vector2Int cell)
     {
         // Wall markers and gizmos are centered inside each cell so the first
         // row no longer extends below the support's lower edge and the last
         // row reaches the platform top. The grid transform itself remains the
         // lower-left boundary, which keeps cell lookup and footprint bounds
         // unchanged. Ground grids retain their historical anchor convention.
-        Vector3 local = IsMountedSurface
+        return IsMountedSurface
             ? new Vector3((cell.x + 0.5f) * cellSize, (cell.y + 0.5f) * cellSize, SurfaceOffset)
             : new Vector3(cell.x * cellSize, placementHeight, cell.y * cellSize);
-        return transform.TransformPoint(local);
     }
 
     private Vector3 CellOriginToWorld(Vector2Int cell)
@@ -792,6 +822,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             placedTraps.Add(instance);
             instance.OwnerGrid = this;
             foreach (var cell in cells) occupiedCells[cell] = instance;
+            VisualRevision++;
             return true;
         }
         catch
@@ -931,6 +962,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     internal bool ForgetTrap(TrapInstance instance)
     {
         if (instance == null || !placedTraps.Remove(instance)) return false;
+        VisualRevision++;
         var toRemove = new List<Vector2Int>();
         foreach (var pair in occupiedCells) if (pair.Value == instance) toRemove.Add(pair.Key);
         foreach (var cell in toRemove) occupiedCells.Remove(cell);
@@ -987,33 +1019,25 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         return intersection + transform.TransformVector(localOffset);
     }
 
+#if UNITY_EDITOR
+    private void OnDisable() => maskRuns.ReleaseMesh();
+
     private void OnDrawGizmos()
     {
         EnsureCellData();
-        for (int y = 0; y < rows; y++) for (int x = 0; x < columns; x++)
-        {
-            var cell = new Vector2Int(x, y);
-            Gizmos.color = IsOccupied(cell) ? new Color(1f, 0.65f, 0.1f, 0.75f) :
-                (IsOpen(cell) ? new Color(0.2f, 1f, 0.35f, 0.28f) : new Color(1f, 0.15f, 0.15f, 0.12f));
-            Vector3 center = CellToWorld(cell);
-            Matrix4x4 old = Gizmos.matrix;
-            Gizmos.matrix = Matrix4x4.TRS(center, transform.rotation, Vector3.one);
-            // Ground marks lie flat in X/Z; wall marks lie in the X/Y plane so the
-            // Scene view shows where a trap would actually hang.
-            if (IsMountedSurface)
-            {
-                Gizmos.DrawCube(Vector3.zero, new Vector3(cellSize * 0.96f, cellSize * 0.96f, 0.02f));
-                Gizmos.color = new Color(0f, 0f, 0f, 0.35f);
-                Gizmos.DrawWireCube(Vector3.zero, new Vector3(cellSize, cellSize, 0.03f));
-            }
-            else
-            {
-                Gizmos.DrawCube(Vector3.zero, new Vector3(cellSize * 0.96f, 0.025f, cellSize * 0.96f));
-                Gizmos.color = new Color(0f, 0f, 0f, 0.35f);
-                Gizmos.DrawWireCube(Vector3.zero, new Vector3(cellSize, 0.03f, cellSize));
-            }
-            Gizmos.matrix = old;
-        }
+        var rotation = IsMountedSurface ? Quaternion.identity : Quaternion.Euler(90f, 0f, 0f);
+        var matrix = transform.localToWorldMatrix * Matrix4x4.TRS(CellToLocal(Vector2Int.zero),
+            rotation, Vector3.one * cellSize);
+        maskRuns.Draw(this, openCells, columns, matrix, new Color(.2f, 1f, .35f, .28f));
+        if (occupiedCells.Count == 0) return;
+        var previousMatrix = Gizmos.matrix;
+        var previousColor = Gizmos.color;
+        Gizmos.matrix = matrix;
+        Gizmos.color = new Color(1f, .65f, .1f, .75f);
+        foreach (var cell in occupiedCells.Keys)
+            Gizmos.DrawCube(new Vector3(cell.x, cell.y), new Vector3(.96f, .96f, .02f));
+        Gizmos.matrix = previousMatrix;
+        Gizmos.color = previousColor;
     }
+#endif
 }
-

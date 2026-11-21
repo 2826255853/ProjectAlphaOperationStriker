@@ -438,20 +438,8 @@ public static partial class DoubleLayerFacilityAuthoring
             .Where(hit => hit.normal.y > .99f && Mathf.Abs(hit.point.y - floor) < .04f).OrderBy(hit => hit.distance).ToArray();
         if (hits.Length == 0) throw new InvalidOperationException("No support under defense pad " + pad.objectId);
         Vector3 anchor = TrapGridAuthoring.GroundAnchor(lanes);
-        bool[] mask;
-        if (floor < .1f)
-            mask = TrapGridAuthoring.BuildGroundMask(lanes, anchor, Quaternion.identity, null, out _);
-        else
-            mask = TrapGridAuthoring.BuildPlatformMask(lanes, anchor, Quaternion.identity,
-                new List<Collider> { hits[0].collider }, out _, out _);
-        if (mask == null) throw new InvalidOperationException("No placement cells on defense pad " + pad.objectId);
-        for (int y = 0; y < lanes.Rows; y++)
-        for (int x = 0; x < lanes.Columns; x++)
-        {
-            Vector3 center = TrapGridAuthoring.CellCenter(lanes, anchor, Quaternion.identity, x, y);
-            mask[x + y * lanes.Columns] &= center.x - .5f >= bounds.min.x - .001f && center.x + .5f <= bounds.max.x + .001f
-                && center.z - .5f >= bounds.min.z - .001f && center.z + .5f <= bounds.max.z + .001f;
-        }
+        Bounds? support = floor < .1f ? (Bounds?)null : hits[0].collider.bounds;
+        bool[] mask = TrapGridAuthoring.BuildDefensePadMask(lanes, anchor, bounds, support);
         var go = new GameObject("TrapPlacementGrid_" + pad.objectId);
         go.transform.SetParent(parent, false);
         go.transform.position = anchor;

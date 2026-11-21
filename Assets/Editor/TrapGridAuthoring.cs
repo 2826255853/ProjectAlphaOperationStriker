@@ -222,6 +222,30 @@ public static class TrapGridAuthoring
         return mask;
     }
 
+    // Facility pads share an axis-aligned lattice. Keep its cell IDs while visiting
+    // only cells fully inside this pad and, for raised pads, its supporting surface.
+    internal static bool[] BuildDefensePadMask(MonsterPathGrid lanes, Vector3 anchor, Bounds pad, Bounds? support)
+    {
+        float size = lanes.CellSize;
+        float half = size * .5f;
+        Vector3 min = pad.min - Vector3.one * .001f;
+        Vector3 max = pad.max + Vector3.one * .001f;
+        if (support.HasValue)
+        {
+            min = Vector3.Max(min, support.Value.min);
+            max = Vector3.Min(max, support.Value.max);
+        }
+        int firstX = Mathf.Max(0, Mathf.CeilToInt((min.x + half - anchor.x) / size));
+        int lastX = Mathf.Min(lanes.Columns - 1, Mathf.FloorToInt((max.x - half - anchor.x) / size));
+        int firstY = Mathf.Max(0, Mathf.CeilToInt((min.z + half - anchor.z) / size));
+        int lastY = Mathf.Min(lanes.Rows - 1, Mathf.FloorToInt((max.z - half - anchor.z) / size));
+        var mask = new bool[lanes.Columns * lanes.Rows];
+        for (int y = firstY; y <= lastY; y++)
+        for (int x = firstX; x <= lastX; x++)
+            mask[x + y * lanes.Columns] = !lanes.IsOpen(new Vector2Int(x, y));
+        return mask;
+    }
+
     private static bool CellFitsBounds(Vector3 center, Vector3 right, Vector3 forward, Bounds bounds)
     {
         for (int i = 0; i < 5; i++)

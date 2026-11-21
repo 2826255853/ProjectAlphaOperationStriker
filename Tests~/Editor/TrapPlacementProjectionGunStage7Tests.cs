@@ -43,17 +43,7 @@ public sealed class TrapPlacementProjectionGunStage7Tests
             var instance = (GameObject)Get(gun, "projectionGunInstance");
             if (instance != null) Object.DestroyImmediate(instance);
         }
-        if (placement != null)
-        {
-            Invoke(placement, "OnDisable");
-            // These transient materials are created by entering placement mode.
-            foreach (string field in new[] { "openMaterial", "blockedMaterial", "footprintMaterial",
-                "invalidFootprintMaterial", "hoveredMaterial" })
-            {
-                var material = (Material)Get(placement, field);
-                if (material != null) Object.DestroyImmediate(material);
-            }
-        }
+        if (placement != null) Invoke(placement, "OnDisable");
         if (host != null) Object.DestroyImmediate(host);
         if (prefab != null) Object.DestroyImmediate(prefab);
         for (int i = owned.Count - 1; i >= 0; i--)
@@ -199,8 +189,7 @@ public sealed class TrapPlacementProjectionGunStage7Tests
         Set(definition, "cost", 40);
         Set(placement, "selectedTrap", definition);
         placement.EnterPlacementMode();
-        // Inject the purchase target after entry: grid-marker rendering belongs to
-        // runtime presentation and uses deferred Destroy, not EditMode lifecycle.
+        // Supply a deterministic hovered cell for the purchase action.
         var grid = Track(new GameObject("Projection purchase grid")).AddComponent<TrapPlacementGrid>();
         grid.ConfigureLayout(3, 1, 1f, 0f, new[] { true, true, true });
         Set(placement, "activeGrid", grid);
@@ -209,7 +198,6 @@ public sealed class TrapPlacementProjectionGunStage7Tests
         Assert.That(placement.OnProjectionGunPrimaryAction(), Is.True, placement.LastPlacementFailure);
         Assert.That(wallet.Balance, Is.EqualTo(60));
         Assert.That(grid.TryGetTrapAtCell(Vector2Int.zero, out TrapInstance trap), Is.True);
-        Set(placement, "hoveredTrap", trap);
         int secondary = 0;
         placement.ProjectionGunSecondaryAction += () => secondary++;
         placement.OnProjectionGunSecondaryAction();
