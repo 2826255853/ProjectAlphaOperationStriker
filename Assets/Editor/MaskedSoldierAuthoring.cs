@@ -9,13 +9,14 @@ using UnityEngine;
 /// <summary>
 /// 蒙面士兵（普通小怪）模型导入工具。
 /// 生成 URP 材质并把模型封装成可直接作为地面怪预制体使用的 Assets/Prefabs/MaskedSoldier.prefab。
-/// 刀是独立的蒙皮网格对象（MaskedSoldier_Knife，权重全部在 Knife 骨骼上），
+/// 警棍是独立的蒙皮网格对象（MaskedSoldier_Baton，沿用右手的 Knife 挂点），
 /// 后续可以单独隐藏/替换/掉落，不会和身体网格混在一起。
 /// </summary>
 public static class MaskedSoldierAuthoring
 {
     public const string ModelPath = "Assets/Models/MaskedSoldier/MaskedSoldier.fbx";
     public const string TexturePath = "Assets/Models/MaskedSoldier/Textures/MaskedSoldier_Camo.png";
+    const string WeavePath = "Assets/Models/MaskedSoldier/Textures/MaskedSoldier_Weave.png";
     public const string MaterialDir = "Assets/Models/MaskedSoldier/Materials";
     public const string PrefabPath = "Assets/Prefabs/MaskedSoldier.prefab";
 
@@ -26,25 +27,24 @@ public static class MaskedSoldierAuthoring
         public float Metallic;
         public float Smoothness;
         public bool UseCamo;
+        public bool Woven;
     }
 
     static readonly MatSpec[] Palette =
     {
-        new MatSpec { Name = "MS_Camo_Uniform", BaseColor = new Color(0.92f, 0.92f, 0.92f), Metallic = 0f, Smoothness = 0.18f, UseCamo = true },
-        new MatSpec { Name = "MS_Camo_Helmet", BaseColor = new Color(0.82f, 0.85f, 0.80f), Metallic = 0f, Smoothness = 0.28f, UseCamo = true },
-        new MatSpec { Name = "MS_Gear_Vest", BaseColor = new Color(0.034f, 0.036f, 0.039f), Metallic = 0f, Smoothness = 0.38f },
-        new MatSpec { Name = "MS_Gear_Webbing", BaseColor = new Color(0.024f, 0.025f, 0.027f), Metallic = 0f, Smoothness = 0.30f },
-        new MatSpec { Name = "MS_Gear_Glove", BaseColor = new Color(0.021f, 0.022f, 0.023f), Metallic = 0f, Smoothness = 0.46f },
-        new MatSpec { Name = "MS_Boot_Leather", BaseColor = new Color(0.024f, 0.024f, 0.026f), Metallic = 0f, Smoothness = 0.52f },
-        new MatSpec { Name = "MS_Boot_Sole", BaseColor = new Color(0.012f, 0.012f, 0.013f), Metallic = 0f, Smoothness = 0.20f },
-        new MatSpec { Name = "MS_Fabric_Mask", BaseColor = new Color(0.016f, 0.016f, 0.018f), Metallic = 0f, Smoothness = 0.08f },
-        new MatSpec { Name = "MS_Skin", BaseColor = new Color(0.50f, 0.36f, 0.28f), Metallic = 0f, Smoothness = 0.40f },
-        new MatSpec { Name = "MS_Eye_White", BaseColor = new Color(0.62f, 0.58f, 0.53f), Metallic = 0f, Smoothness = 0.55f },
-        new MatSpec { Name = "MS_Eye_Dark", BaseColor = new Color(0.020f, 0.016f, 0.012f), Metallic = 0f, Smoothness = 0.60f },
-        new MatSpec { Name = "MS_Knife_Steel", BaseColor = new Color(0.400f, 0.420f, 0.440f), Metallic = 0.65f, Smoothness = 0.62f },
-        new MatSpec { Name = "MS_Knife_Handle", BaseColor = new Color(0.020f, 0.020f, 0.021f), Metallic = 0f, Smoothness = 0.35f },
-        new MatSpec { Name = "MS_Metal_Buckle", BaseColor = new Color(0.090f, 0.090f, 0.095f), Metallic = 0.75f, Smoothness = 0.55f },
-        new MatSpec { Name = "MS_Patch", BaseColor = new Color(0.120f, 0.160f, 0.090f), Metallic = 0f, Smoothness = 0.16f },
+        new MatSpec { Name = "MS_Camo_Uniform", BaseColor = new Color32(201, 196, 174, 255), Metallic = 0f, Smoothness = 0.15f, UseCamo = true, Woven = true },
+        new MatSpec { Name = "MS_Camo_Helmet", BaseColor = new Color32(170, 169, 148, 255), Metallic = 0f, Smoothness = 0.26f, UseCamo = true },
+        new MatSpec { Name = "MS_Gear_Vest", BaseColor = new Color32(73, 78, 66, 255), Metallic = 0f, Smoothness = 0.12f, Woven = true },
+        new MatSpec { Name = "MS_Gear_Webbing", BaseColor = new Color32(51, 56, 49, 255), Metallic = 0f, Smoothness = 0.14f, Woven = true },
+        new MatSpec { Name = "MS_Gear_Glove", BaseColor = new Color32(57, 59, 53, 255), Metallic = 0f, Smoothness = 0.32f },
+        new MatSpec { Name = "MS_Boot_Leather", BaseColor = new Color32(59, 57, 52, 255), Metallic = 0f, Smoothness = 0.4f },
+        new MatSpec { Name = "MS_Boot_Sole", BaseColor = new Color32(38, 39, 37, 255), Metallic = 0f, Smoothness = 0.19f },
+        new MatSpec { Name = "MS_Fabric_Mask", BaseColor = new Color32(65, 70, 65, 255), Metallic = 0f, Smoothness = 0.08f, Woven = true },
+        new MatSpec { Name = "MS_Metal_Buckle", BaseColor = new Color32(83, 89, 85, 255), Metallic = 0.5f, Smoothness = 0.46f },
+        new MatSpec { Name = "MS_Patch", BaseColor = new Color32(179, 168, 146, 255), Metallic = 0f, Smoothness = 0.19f, Woven = true },
+        new MatSpec { Name = "MS_Goggle_Lens", BaseColor = new Color32(71, 79, 71, 255), Metallic = 0.42f, Smoothness = 0.82f },
+        new MatSpec { Name = "MS_Baton_Finish", BaseColor = new Color32(67, 73, 74, 255), Metallic = 0.52f, Smoothness = 0.52f },
+        new MatSpec { Name = "MS_Baton_Grip", BaseColor = new Color32(41, 44, 44, 255), Metallic = 0f, Smoothness = 0.23f },
     };
 
     [MenuItem("Tools/塔防/蒙面士兵/生成材质与预制体")]
@@ -139,6 +139,7 @@ public static class MaskedSoldierAuthoring
             {
                 ("unity_preview_front.png", new Vector3(0f, 1.05f, 3.4f), new Vector3(0f, 0.95f, 0f)),
                 ("unity_preview_three_quarter.png", new Vector3(1.9f, 1.55f, 3.0f), new Vector3(0f, 0.95f, 0f)),
+                ("unity_preview_head.png", new Vector3(0.39f, 1.67f, 0.83f), new Vector3(0f, 1.55f, 0f)),
                 ("unity_preview_back.png", new Vector3(0f, 1.05f, -3.4f), new Vector3(0f, 0.95f, 0f)),
             };
 
@@ -193,8 +194,8 @@ public static class MaskedSoldierAuthoring
                 walkAnimator.RestoreRestPose();
                 Debug.Log("[MaskedSoldier] walk previews rendered, missingBones=" + walkAnimator.MissingBones.Count);
 
-                // 挥刀姿态预览：起手 / 接触 / 收招三个关键帧；正面机位便于看挥刀平面，
-                // 再补一张斜前方机位确认刀不会穿进胸腔。
+                // 挥棍姿态预览：起手 / 接触 / 收招三个关键帧，
+                // 再补一张斜前方机位检查警棍与胸前装备的间距。
                 var attackShots = new (string name, float progress, Vector3 pos)[]
                 {
                     ("attack_pose_windup.png", 0.30f, new Vector3(0.45f, 1.30f, 3.1f)),
@@ -238,6 +239,12 @@ public static class MaskedSoldierAuthoring
     public static void CreateAssetsBatch()
     {
         ConfigureImporter();
+        var weaveImporter = AssetImporter.GetAtPath(WeavePath) as TextureImporter;
+        if (weaveImporter != null && weaveImporter.textureType != TextureImporterType.NormalMap)
+        {
+            weaveImporter.textureType = TextureImporterType.NormalMap;
+            weaveImporter.SaveAndReimport();
+        }
 
         var model = AssetDatabase.LoadAssetAtPath<GameObject>(ModelPath);
         if (model == null)
@@ -272,7 +279,7 @@ public static class MaskedSoldierAuthoring
         instance.transform.localScale = Vector3.one;
 
         var remapped = 0;
-        var knifeObjects = new List<string>();
+        var batonObjects = new List<string>();
         foreach (var renderer in instance.GetComponentsInChildren<Renderer>(true))
         {
             var source = renderer.sharedMaterials;
@@ -300,9 +307,9 @@ public static class MaskedSoldierAuthoring
 
         foreach (var smr in instance.GetComponentsInChildren<SkinnedMeshRenderer>(true))
         {
-            if (smr.name.IndexOf("Knife", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (smr.name.IndexOf("Baton", StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                knifeObjects.Add(smr.name);
+                batonObjects.Add(smr.name);
             }
         }
 
@@ -331,7 +338,7 @@ public static class MaskedSoldierAuthoring
 
         Debug.Log("[MaskedSoldier] prefab=" + PrefabPath
                   + " materialsRemapped=" + remapped
-                  + " knifeObjects=" + string.Join(",", knifeObjects)
+                  + " batonObjects=" + string.Join(",", batonObjects)
                   + " shader=" + shader.name
                   + " saved=" + (prefab != null));
     }
@@ -378,9 +385,9 @@ public static class MaskedSoldierAuthoring
         {
             var smr = smrs[i];
             var bones = smr.bones.Where(b => b != null).Select(b => b.name).ToArray();
-            var isKnife = smr.name.IndexOf("Knife", StringComparison.OrdinalIgnoreCase) >= 0;
-            var knifeWeightViolations = 0;
-            if (isKnife && smr.sharedMesh != null)
+            var isBaton = smr.name.IndexOf("Baton", StringComparison.OrdinalIgnoreCase) >= 0;
+            var batonWeightViolations = 0;
+            if (isBaton && smr.sharedMesh != null)
             {
                 var bw = smr.sharedMesh.boneWeights;
                 foreach (var w in bw)
@@ -399,7 +406,7 @@ public static class MaskedSoldierAuthoring
                             : "(missing)";
                         if (bn != "Knife")
                         {
-                            knifeWeightViolations++;
+                            batonWeightViolations++;
                         }
                     }
                 }
@@ -407,7 +414,7 @@ public static class MaskedSoldierAuthoring
 
             sb.AppendLine("    {");
             sb.AppendLine("      \"name\": \"" + smr.name + "\",");
-            sb.AppendLine("      \"is_knife\": " + (isKnife ? "true" : "false") + ",");
+            sb.AppendLine("      \"is_baton\": " + (isBaton ? "true" : "false") + ",");
             sb.AppendLine("      \"vertices\": " + (smr.sharedMesh != null ? smr.sharedMesh.vertexCount : 0) + ",");
             sb.AppendLine("      \"lossy_scale\": [" + smr.transform.lossyScale.x.ToString("F4") + ", " + smr.transform.lossyScale.y.ToString("F4") + ", " + smr.transform.lossyScale.z.ToString("F4") + "],");
             var parentChain = new List<string>();
@@ -426,7 +433,7 @@ public static class MaskedSoldierAuthoring
 
             sb.AppendLine("      \"bones\": " + bones.Length + ",");
             sb.AppendLine("      \"bone_names\": [" + string.Join(", ", bones.Select(b => "\"" + b + "\"")) + "],");
-            sb.AppendLine("      \"knife_weight_violations\": " + knifeWeightViolations + ",");
+            sb.AppendLine("      \"baton_weight_violations\": " + batonWeightViolations + ",");
             sb.AppendLine("      \"materials\": [" + string.Join(", ", smr.sharedMaterials.Select(m => "\"" + (m != null ? m.name : "null") + "\"")) + "]");
             sb.Append("    }");
             sb.AppendLine(i == smrs.Length - 1 ? string.Empty : ",");
@@ -442,7 +449,7 @@ public static class MaskedSoldierAuthoring
         File.WriteAllText(outPath, sb.ToString(), new UTF8Encoding(false));
 
         Debug.Log("[MaskedSoldier] probe " + outPath + " size=" + bounds.size + " smrs=" + smrs.Length
-                  + " knife=" + string.Join(",", smrs.Where(s => s.name.IndexOf("Knife", StringComparison.OrdinalIgnoreCase) >= 0).Select(s => s.name)));
+                  + " baton=" + string.Join(",", smrs.Where(s => s.name.IndexOf("Baton", StringComparison.OrdinalIgnoreCase) >= 0).Select(s => s.name)));
 
         UnityEngine.Object.DestroyImmediate(instance);
     }
@@ -513,6 +520,14 @@ public static class MaskedSoldierAuthoring
             {
                 Debug.LogWarning("[MaskedSoldier] camo texture missing: " + TexturePath);
             }
+        }
+
+        if (spec.Woven && mat.HasProperty("_DetailNormalMap"))
+        {
+            mat.SetTexture("_DetailNormalMap", AssetDatabase.LoadAssetAtPath<Texture2D>(WeavePath));
+            mat.SetTextureScale("_DetailAlbedoMap", new Vector2(7f, 7f));
+            mat.SetFloat("_DetailNormalMapScale", 0.55f);
+            mat.EnableKeyword("_DETAIL_MULX2");
         }
 
         EditorUtility.SetDirty(mat);

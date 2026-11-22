@@ -1,5 +1,16 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## FastRunner 防暴装备与写实材质（2026-11-22）
+
+- 模型沿用 `Assets/Models/FastRunner/FastRunner.fbx`。身体 29,392 个三角面，独立警棍 560 个三角面。防撕裂布料的颜色、法线及 R-02 识别章贴图位于同目录的 `Textures`。运行 `FastRunnerAuthoring.CreateAssetsBatch` 可重建材质并更新原预制体。
+- Blender 源件、生成脚本和新旧对照图在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\FastRunner\riot-revision\`。Unity 正式预制体校验 12/12 通过，导入骨骼 21 根，警棍骨骼权重违规数为零。待机、跑步和挥棍的编辑器采样见该目录下的 `previews`。
+
+## MaskedSoldier 巡逻装备与警棍（2026-11-22）
+
+- 已在原 FBX 和预制体路径更新蒙面士兵。身体为 25,294 个三角面，独立武器网格 `MaskedSoldier_Baton` 为 1,204 个三角面。警棍沿用 `Hand.R` 下的历史挂点 `Knife`，行走和近战仍由 `MonsterWalkAnimator` 驱动。
+- 当前 Blender 源文件和生成脚本为 `C:\Users\ASUS\Desktop\陷阱素材文件夹\MaskedSoldier\patrol-revision\MaskedSoldier.blend` 与同目录 `build_patrol.py`。脚本导出 FBX、迷彩及织纹法线。复制到正式模型目录后，运行 `MaskedSoldierAuthoring.CreateAssetsBatch` 重建 13 个 URP 材质槽与预制体。
+- Unity 导入探针检查到 21 根骨骼，警棍权重违规数为零。已用正式预制体渲染头部特写、待机、行走和挥棍姿态，图像在上述目录的 `previews` 下。验证范围为编辑器姿态采样。
+
 ## 付费放置失败与编辑器批量放置钱包（2026-11-22）
 
 - `TrapPurchaseService.TryPurchase` 在预留金币前拒绝引用场景物体的陷阱模板。正式预制体和未指定预制体时的默认模型继续支持购买。创建过程中遇到重入占格或换局仍由原有事务清理占格并释放预留款。

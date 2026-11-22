@@ -36,26 +36,29 @@ public static class FastRunnerAuthoring
         public float Metallic;
         public float Smoothness;
         public bool Transparent;
+        public string BaseMap;
+        public bool Woven;
     }
 
-    // 与 build_fast_runner.py 的 MAT 表一一对应：颜色是 sRGB 近似值，透明面罩单独处理。
+    const string TextureDir = "Assets/Models/FastRunner/Textures/";
+
     static readonly MatSpec[] Palette =
     {
-        new MatSpec { Name = "FR_Helmet_Shell", BaseColor = new Color(0.030f, 0.032f, 0.036f), Metallic = 0.12f, Smoothness = 0.74f },
-        new MatSpec { Name = "FR_Visor_Glass", BaseColor = new Color(0.020f, 0.026f, 0.032f, 0.22f), Metallic = 0f, Smoothness = 0.95f, Transparent = true },
-        new MatSpec { Name = "FR_Face_Skin", BaseColor = new Color(0.55f, 0.41f, 0.32f), Metallic = 0f, Smoothness = 0.42f },
-        new MatSpec { Name = "FR_Eye_Dark", BaseColor = new Color(0.014f, 0.011f, 0.009f), Metallic = 0f, Smoothness = 0.65f },
-        new MatSpec { Name = "FR_Uniform_Cloth", BaseColor = new Color(0.024f, 0.025f, 0.028f), Metallic = 0f, Smoothness = 0.14f },
-        new MatSpec { Name = "FR_Armor_Plate", BaseColor = new Color(0.020f, 0.021f, 0.024f), Metallic = 0.08f, Smoothness = 0.66f },
-        new MatSpec { Name = "FR_Webbing_Nylon", BaseColor = new Color(0.016f, 0.017f, 0.019f), Metallic = 0f, Smoothness = 0.24f },
-        new MatSpec { Name = "FR_Glove_Leather", BaseColor = new Color(0.014f, 0.014f, 0.016f), Metallic = 0f, Smoothness = 0.50f },
-        new MatSpec { Name = "FR_Boot_Leather", BaseColor = new Color(0.017f, 0.017f, 0.019f), Metallic = 0f, Smoothness = 0.60f },
-        new MatSpec { Name = "FR_Boot_Sole", BaseColor = new Color(0.008f, 0.008f, 0.009f), Metallic = 0f, Smoothness = 0.12f },
-        new MatSpec { Name = "FR_Metal_Fitting", BaseColor = new Color(0.080f, 0.085f, 0.095f), Metallic = 0.88f, Smoothness = 0.70f },
-        new MatSpec { Name = "FR_Baton_Rubber", BaseColor = new Color(0.011f, 0.011f, 0.013f), Metallic = 0f, Smoothness = 0.20f },
-        new MatSpec { Name = "FR_Baton_Grip", BaseColor = new Color(0.006f, 0.006f, 0.007f), Metallic = 0f, Smoothness = 0.08f },
-        new MatSpec { Name = "FR_Face_Mask", BaseColor = new Color(0.012f, 0.012f, 0.014f), Metallic = 0f, Smoothness = 0.08f },
-        new MatSpec { Name = "FR_Shoulder_Patch", BaseColor = new Color(0.040f, 0.052f, 0.072f), Metallic = 0f, Smoothness = 0.38f },
+        new MatSpec { Name = "FR_Helmet_Shell", BaseColor = new Color32(62, 70, 74, 255), Metallic = 0.08f, Smoothness = 0.38f },
+        new MatSpec { Name = "FR_Visor_Glass", BaseColor = new Color32(139, 165, 172, 40), Metallic = 0f, Smoothness = 0.9f, Transparent = true },
+        new MatSpec { Name = "FR_Face_Skin", BaseColor = new Color32(158, 119, 99, 255), Metallic = 0f, Smoothness = 0.3f },
+        new MatSpec { Name = "FR_Eye_Dark", BaseColor = new Color32(64, 60, 50, 255), Metallic = 0.34f, Smoothness = 0.78f },
+        new MatSpec { Name = "FR_Uniform_Cloth", BaseColor = new Color32(78, 90, 98, 255), Metallic = 0f, Smoothness = 0.17f, BaseMap = "FR_Ripstop", Woven = true },
+        new MatSpec { Name = "FR_Armor_Plate", BaseColor = new Color32(50, 57, 60, 255), Metallic = 0.04f, Smoothness = 0.38f },
+        new MatSpec { Name = "FR_Webbing_Nylon", BaseColor = new Color32(65, 70, 68, 255), Metallic = 0f, Smoothness = 0.17f },
+        new MatSpec { Name = "FR_Glove_Leather", BaseColor = new Color32(51, 53, 52, 255), Metallic = 0f, Smoothness = 0.3f },
+        new MatSpec { Name = "FR_Boot_Leather", BaseColor = new Color32(49, 48, 46, 255), Metallic = 0f, Smoothness = 0.38f },
+        new MatSpec { Name = "FR_Boot_Sole", BaseColor = new Color32(34, 35, 35, 255), Metallic = 0f, Smoothness = 0.17f },
+        new MatSpec { Name = "FR_Metal_Fitting", BaseColor = new Color32(98, 106, 109, 255), Metallic = 0.55f, Smoothness = 0.48f },
+        new MatSpec { Name = "FR_Baton_Rubber", BaseColor = new Color32(48, 50, 50, 255), Metallic = 0f, Smoothness = 0.3f },
+        new MatSpec { Name = "FR_Baton_Grip", BaseColor = new Color32(37, 39, 39, 255), Metallic = 0f, Smoothness = 0.2f },
+        new MatSpec { Name = "FR_Face_Mask", BaseColor = new Color32(65, 68, 68, 255), Metallic = 0f, Smoothness = 0.14f, Woven = true },
+        new MatSpec { Name = "FR_Shoulder_Patch", BaseColor = new Color32(255, 255, 255, 255), Metallic = 0f, Smoothness = 0.16f, BaseMap = "FR_UnitTab" },
     };
 
     [MenuItem("Tools/塔防/快速小怪/生成材质与预制体")]
@@ -627,6 +630,7 @@ public static class FastRunnerAuthoring
             var shots = new (string name, Vector3 pos, Vector3 target)[]
             {
                 ("unity_preview_front.png", new Vector3(0f, 1.02f, 3.3f), new Vector3(0f, 0.92f, 0f)),
+                ("unity_preview_head.png", new Vector3(0.24f, 1.50f, 0.71f), new Vector3(0f, 1.46f, 0f)),
                 ("unity_preview_side.png", new Vector3(3.3f, 1.02f, 0f), new Vector3(0f, 0.92f, 0f)),
                 ("unity_preview_back.png", new Vector3(0f, 1.02f, -3.3f), new Vector3(0f, 0.92f, 0f)),
                 ("unity_preview_three_quarter.png", new Vector3(1.9f, 1.50f, 2.9f), new Vector3(0f, 0.92f, 0f)),
@@ -662,6 +666,9 @@ public static class FastRunnerAuthoring
                     SaveShot(shot.name);
                 }
 
+                walkAnimator.RestoreRestPose();
+                walkAnimator.ApplyPose(0f, 0f, 0.44f);
+                SaveShot("attack_pose_contact.png");
                 walkAnimator.RestoreRestPose();
                 Debug.Log("[FastRunner] walk previews rendered, missingBones=" + walkAnimator.MissingBones.Count);
             }
@@ -723,6 +730,13 @@ public static class FastRunnerAuthoring
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
+    static Texture2D LoadTexture(string name)
+    {
+        var path = TextureDir + name + ".png";
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(path)
+            ?? throw new FileNotFoundException("找不到快速小怪贴图", path);
+    }
+
     static Material GetOrCreateMaterial(MatSpec spec, Shader shader)
     {
         var path = MaterialDir + "/" + spec.Name + ".mat";
@@ -742,6 +756,18 @@ public static class FastRunnerAuthoring
         if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", spec.Metallic);
         if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", spec.Smoothness);
         if (mat.HasProperty("_Glossiness")) mat.SetFloat("_Glossiness", spec.Smoothness);
+
+        if (spec.BaseMap != null)
+        {
+            mat.SetTexture("_BaseMap", LoadTexture(spec.BaseMap));
+        }
+
+        if (spec.Woven)
+        {
+            mat.SetTexture("_BumpMap", LoadTexture("FR_RipstopNormal"));
+            mat.SetFloat("_BumpScale", 0.46f);
+            mat.EnableKeyword("_NORMALMAP");
+        }
 
         if (spec.Transparent)
         {

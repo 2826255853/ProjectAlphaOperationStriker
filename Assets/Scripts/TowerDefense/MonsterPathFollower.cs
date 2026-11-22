@@ -244,44 +244,67 @@ public sealed class MonsterPathFollower : MonoBehaviour
         }
     }
 
-    private void Update()
+    private void Update() => Tick(Time.deltaTime);
+
+    private void Tick(float deltaTime)
     {
         if (!initialized || HasArrived) return;
         if (followingCombatPath && CombatMovementPaused) return;
-        if (!followingCombatPath && !hasAuthoredMissionRoute && targetCore != null && targetCore.IsWithinArrivalRange(transform.position))
+        bool checkCoreArrival = !followingCombatPath && !hasAuthoredMissionRoute && targetCore != null;
+        if (checkCoreArrival && targetCore.IsWithinArrivalRange(transform.position))
         {
             CompleteArrival();
             return;
         }
         if (!followingCombatPath && !hasAuthoredMissionRoute && destination != null && pathGrid != null && (destination.position - lastPathTarget).sqrMagnitude > pathGrid.CellSize * pathGrid.CellSize)
             RebuildPath();
-        if (waypointIndex >= waypoints.Count)
+        float remainingDistance = moveSpeed * deltaTime;
+        while (waypointIndex < waypoints.Count)
         {
-            HandleCurrentDestinationReached();
-            return;
-        }
+            Vector3 target = waypoints[waypointIndex];
+            Vector3 position = transform.position;
+            if (!flying && (!hasAuthoredMissionRoute || followingCombatPath)) target.y = position.y;
+            Vector3 toTarget = target - position;
+            float distance = toTarget.magnitude;
+            bool isLastWaypoint = waypointIndex == waypoints.Count - 1;
 
-        Vector3 target = waypoints[waypointIndex];
-        if (!flying && (!hasAuthoredMissionRoute || followingCombatPath)) target.y = transform.position.y;
-        Vector3 toTarget = target - transform.position;
-        if (toTarget.sqrMagnitude <= stoppingDistance * stoppingDistance)
-        {
+            // Preserve the stopping tolerance at the destination. Intermediate points
+            // must be reached before turning so the route stays inside its corridor.
+            if (distance > (isLastWaypoint ? stoppingDistance : 0f))
+            {
+                if (!followingCombatPath && MissionMovementBlocked) return;
+
+                float step = Mathf.Min(distance, remainingDistance);
+                bool reachedWaypoint = step >= distance;
+                if (step > 0f)
+                    transform.position = reachedWaypoint ? target : position + toTarget * (step / distance);
+
+                float turnTime = moveSpeed > 0f ? step / moveSpeed : deltaTime;
+                TurnTowards(toTarget, turnTime);
+
+                if (step > 0f && checkCoreArrival && targetCore.IsWithinArrivalRange(transform.position))
+                {
+                    CompleteArrival();
+                    return;
+                }
+
+                if (!reachedWaypoint && (!isLastWaypoint || distance - step > stoppingDistance)) return;
+                remainingDistance -= step;
+            }
+
             waypointIndex++;
             if (hasAuthoredMissionRoute && !followingCombatPath) authoredNextWaypoint = waypointIndex;
-            if (waypointIndex >= waypoints.Count) HandleCurrentDestinationReached();
-            return;
         }
 
-        if (!followingCombatPath && MissionMovementBlocked) return;
-        Vector3 step = toTarget.normalized * moveSpeed * Time.deltaTime;
-        transform.position += step.magnitude >= toTarget.magnitude ? toTarget : step;
-        if (toTarget.sqrMagnitude > 0.0001f)
-        {
-            Vector3 facing = flying ? toTarget : new Vector3(toTarget.x, 0f, toTarget.z);
-            if (facing.sqrMagnitude < .0001f) return;
-            Quaternion desired = Quaternion.LookRotation(facing, Vector3.up);
-            transform.rotation = Quaternion.RotateTowards(transform.rotation, desired, turnSpeed * Time.deltaTime);
-        }
+        HandleCurrentDestinationReached();
+    }
+
+    private void TurnTowards(Vector3 direction, float deltaTime)
+    {
+        if (!flying) direction.y = 0f;
+        if (deltaTime <= 0f || direction.sqrMagnitude < 0.0001f) return;
+        Quaternion desired = Quaternion.LookRotation(direction, Vector3.up);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, desired, turnSpeed * deltaTime);
     }
 
     private void HandleCurrentDestinationReached()
