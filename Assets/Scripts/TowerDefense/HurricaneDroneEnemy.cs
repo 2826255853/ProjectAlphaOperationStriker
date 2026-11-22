@@ -119,6 +119,7 @@ public sealed class HurricaneDroneEnemy : MonoBehaviour
         Unsubscribe();
         if (unit != null)
         {
+            unit.SetAimPoint(null);
             unit.StopAttack();
         }
         ResumeMovement();
@@ -147,6 +148,7 @@ public sealed class HurricaneDroneEnemy : MonoBehaviour
             }
         }
 
+        unit.SetAimPoint(null);
         if (health.IsDead)
         {
             HaltAfterDeath();
@@ -156,6 +158,7 @@ public sealed class HurricaneDroneEnemy : MonoBehaviour
         // 只有空中出怪口初始化过的飞行怪才接管；地面怪物不会挂这个组件。
         if (!follower.IsInitialized || !follower.IsFlying || follower.HasArrived)
         {
+            unit.StopAttack();
             UpdateFlightAnimation(Time.deltaTime);
             return;
         }
@@ -171,6 +174,7 @@ public sealed class HurricaneDroneEnemy : MonoBehaviour
         {
             target = null;
             targetIsPlayer = false;
+            unit.StopAttack();
             ResumeMovement();
             UpdateFlightAnimation(Time.deltaTime);
             return;
@@ -180,6 +184,7 @@ public sealed class HurricaneDroneEnemy : MonoBehaviour
         if (!IsInsideAimCone(targetPoint) || !HasLineOfSight(targetPoint))
         {
             // 目标在射界外：继续飞向核心，不悬停。
+            unit.StopAttack();
             ResumeMovement();
             UpdateFlightAnimation(Time.deltaTime);
             return;
@@ -187,6 +192,7 @@ public sealed class HurricaneDroneEnemy : MonoBehaviour
 
         // 进入攻击姿态：悬停 + 播攻击动画；动画事件负责逐发结算。
         PauseMovement();
+        unit.SetAimPoint(targetPoint);
         FaceTarget(targetPoint);
         if (!IsAttacking && Time.time >= nextBurstTime)
         {

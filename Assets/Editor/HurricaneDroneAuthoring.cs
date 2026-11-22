@@ -8,7 +8,7 @@ using UnityEngine;
 /// 飓风无人机：导入设置 / URP 材质 / 动画控制器 / 预制体 的生成入口。
 ///
 /// 模型与动画由桌面素材目录的 Blender 脚本产出：
-///   C:\Users\ASUS\Desktop\陷阱素材文件夹\HurricaneDrone\build_drone_v3.py
+///   C:\Users\ASUS\Desktop\陷阱素材文件夹\HurricaneDrone\airframe-revision\build_airframe.py
 /// 该脚本重新导出后，本工具可重复运行（幂等）：材质按名字补齐、导入设置按名字回填、
 /// 预制体整体重建。手工改预制体会在下次重建时丢失，要改请改这里。
 ///
@@ -36,9 +36,6 @@ public static class HurricaneDroneAuthoring
     public const float EnemyMoveSpeed = 3.4f;
     public const float EnemyFlightHeight = 10f;
 
-    /// <summary>炮口在 Unity 坐标系下的本地位置（Blender 里机头朝 -Y，导出后朝 +Z）。</summary>
-    public static readonly Vector3 MuzzleLocalPosition = new Vector3(0f, -1.18f, 2.42f);
-
     public const string MuzzleObjectName = "Muzzle";
 
     // 循环播放的空中位移类动画；攻击是单次播放。
@@ -47,7 +44,7 @@ public static class HurricaneDroneAuthoring
 
     // 攻击动画里 6 次开火的帧号（30 fps）。这里的值必须与 Blender 脚本 FIRE_FRAMES 一致。
     static readonly int[] FireFrames = { 22, 26, 30, 46, 50, 54 };
-    const float ClipFps = 30f;
+    const int AttackLastFrame = 89;
 
     struct MatDef
     {
@@ -72,15 +69,16 @@ public static class HurricaneDroneAuthoring
 
     static readonly MatDef[] Materials =
     {
-        new MatDef("M_HD_WhiteShell", new Color(0.86f, 0.86f, 0.85f), 0.10f, 0.42f),
+        new MatDef("M_HD_WhiteShell", new Color(0.68f, 0.72f, 0.73f), 0.24f, 0.46f),
         new MatDef("M_HD_DarkMetal", new Color(0.075f, 0.082f, 0.095f), 0.85f, 0.55f),
         new MatDef("M_HD_BlackCarbon", new Color(0.025f, 0.028f, 0.035f), 0.30f, 0.58f),
         new MatDef("M_HD_Steel", new Color(0.46f, 0.48f, 0.51f), 0.90f, 0.72f),
         new MatDef("M_HD_OrdnanceBrass", new Color(0.62f, 0.44f, 0.14f), 0.85f, 0.58f),
         new MatDef("M_HD_CoreGlow", new Color(0.10f, 0.38f, 1.0f), 0.0f, 0.55f,
-                   new Color(0.16f, 0.45f, 1.0f), 6.0f),
+                   new Color(0.10f, 0.52f, 0.88f), 2.0f),
         new MatDef("M_HD_LensGlass", new Color(0.02f, 0.05f, 0.18f), 0.30f, 0.92f),
         new MatDef("M_HD_MidGrey", new Color(0.34f, 0.35f, 0.37f), 0.55f, 0.60f),
+        new MatDef("M_HD_AmberPaint", new Color(0.88f, 0.42f, 0.12f), 0.18f, 0.48f),
     };
 
     [MenuItem("Tools/塔防/生成飓风无人机预制体")]
@@ -144,6 +142,23 @@ public static class HurricaneDroneAuthoring
             mat.SetFloat("_Metallic", def.Metallic);
             mat.SetFloat("_Smoothness", def.Smoothness);
             mat.SetFloat("_Glossiness", def.Smoothness);
+            if (def.Name == "M_HD_WhiteShell")
+            {
+                var paint = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Models/HurricaneDrone/HD_PanelCoat.png");
+                if (paint == null) throw new FileNotFoundException("缺少 HurricaneDrone 外壳涂装贴图");
+                mat.SetTexture("_BaseMap", paint);
+                const string normalPath = "Assets/Models/HurricaneDrone/HD_PanelNormal.png";
+                var normalImporter = AssetImporter.GetAtPath(normalPath) as TextureImporter;
+                if (normalImporter == null) throw new FileNotFoundException("缺少 HurricaneDrone 外壳法线贴图");
+                if (normalImporter.textureType != TextureImporterType.NormalMap)
+                {
+                    normalImporter.textureType = TextureImporterType.NormalMap;
+                    normalImporter.SaveAndReimport();
+                }
+                mat.SetTexture("_BumpMap", AssetDatabase.LoadAssetAtPath<Texture2D>(normalPath));
+                mat.SetFloat("_BumpScale", 0.65f);
+                mat.EnableKeyword("_NORMALMAP");
+            }
 
             if (def.EmissionIntensity > 0f)
             {
@@ -226,7 +241,7 @@ public static class HurricaneDroneAuthoring
         {
             return 0;
         }
-        if (clipName.Contains("HD_Attack")) return 89;      // 90 帧 = 2.97 s
+        if (clipName.Contains("HD_Attack")) return AttackLastFrame;
         if (clipName.Contains("HD_Hover")) return 59;       // 60 帧 = 1.97 s
         if (clipName.Contains("HD_FlyForward")) return 39;  // 40 帧 = 1.30 s
         if (clipName.Contains("HD_BankTurn")) return 47;    // 48 帧 = 1.57 s
@@ -260,7 +275,8 @@ public static class HurricaneDroneAuthoring
             events[i] = new AnimationEvent
             {
                 functionName = HurricaneDroneUnit.GunFireEventName,
-                time = FireFrames[i] / ClipFps,
+                // ModelImporter consumes normalized clip time. Blender frames start at 1.
+                time = (FireFrames[i] - 1f) / AttackLastFrame,
                 messageOptions = SendMessageOptions.DontRequireReceiver
             };
         }
@@ -301,8 +317,8 @@ public static class HurricaneDroneAuthoring
     static AnimatorController BuildController(List<AnimationClip> clips)
     {
         Directory.CreateDirectory(AnimDir);
-        AssetDatabase.DeleteAsset(ControllerPath);
-        var controller = AnimatorController.CreateAnimatorControllerAtPath(ControllerPath);
+        var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(ControllerPath)
+            ?? AnimatorController.CreateAnimatorControllerAtPath(ControllerPath);
         var machine = controller.layers[0].stateMachine;
 
         var entries = new (string key, string state, float speed)[]
@@ -322,7 +338,8 @@ public static class HurricaneDroneAuthoring
                 Debug.LogWarning($"[HurricaneDrone] 缺少动画片段 {entry.key}");
                 continue;
             }
-            var state = machine.AddState(entry.state);
+            var state = System.Array.Find(machine.states, child => child.state.name == entry.state).state
+                ?? machine.AddState(entry.state);
             state.motion = clip;
             state.speed = entry.speed;
             state.writeDefaultValues = true;
@@ -356,8 +373,13 @@ public static class HurricaneDroneAuthoring
         animator.runtimeAnimatorController = controller;
         animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
 
-        // 炮口挂点：挂在 Gun_Pitch 骨骼下，随俯仰一起动
-        var muzzle = EnsureMuzzle(instance);
+        var pitch = FindDeep(instance.transform, "Gun_Pitch");
+        var tip = FindDeep(instance.transform, "BoreTip");
+        if (pitch == null || tip == null || !tip.IsChildOf(pitch))
+            throw new InvalidDataException("HurricaneDrone 缺少机炮骨骼或管口标记");
+        var muzzle = new GameObject(MuzzleObjectName).transform;
+        muzzle.SetParent(tip, false);
+        muzzle.rotation = Quaternion.LookRotation(tip.position - pitch.position, instance.transform.up);
 
         var unit = instance.GetComponent<HurricaneDroneUnit>();
         if (unit == null)
@@ -366,6 +388,15 @@ public static class HurricaneDroneAuthoring
         }
         unit.animator = animator;
         unit.muzzle = muzzle;
+        var rig = new SerializedObject(unit);
+        rig.FindProperty("gunYaw").objectReferenceValue = pitch.parent;
+        rig.FindProperty("gunPitch").objectReferenceValue = pitch;
+        var fxPrefab = XM777VfxAuthoring.LoadMuzzlePrefab();
+        var flash = fxPrefab != null ? fxPrefab.transform.Find("Muzzle Flash") : null;
+        if (flash == null || !flash.TryGetComponent<ParticleSystem>(out var emitter))
+            throw new InvalidDataException("找不到共享的 Muzzle Flash 粒子，请检查 " + XM777VfxAuthoring.MuzzlePrefabPath);
+        rig.FindProperty("muzzleFlashTemplate").objectReferenceValue = emitter;
+        rig.ApplyModifiedPropertiesWithoutUndo();
         return instance;
     }
 
@@ -417,45 +448,6 @@ public static class HurricaneDroneAuthoring
         PrefabUtility.SaveAsPrefabAsset(instance, EnemyPrefabPath);
         Object.DestroyImmediate(instance);
         return AssetDatabase.LoadAssetAtPath<GameObject>(EnemyPrefabPath);
-    }
-
-    static Transform EnsureMuzzle(GameObject instance)
-    {
-        Transform gunPitch = null;
-        foreach (var t in instance.GetComponentsInChildren<Transform>(true))
-        {
-            if (t.name == "Gun_Pitch")
-            {
-                gunPitch = t;
-                break;
-            }
-        }
-
-        var existing = instance.transform.Find(MuzzleObjectName);
-        if (existing != null)
-        {
-            Object.DestroyImmediate(existing.gameObject);
-        }
-
-        var go = new GameObject(MuzzleObjectName);
-        var muzzle = go.transform;
-        if (gunPitch != null)
-        {
-            muzzle.SetParent(gunPitch, false);
-        }
-        else
-        {
-            // 骨骼名找不到时退回挂在根节点，位置仍然正确（模型根在原点）
-            Debug.LogWarning("[HurricaneDrone] 找不到 Gun_Pitch 骨骼，炮口挂到根节点。");
-            muzzle.SetParent(instance.transform, false);
-        }
-        // 局部位置：相对 Gun_Pitch 骨骼原点
-        muzzle.localPosition = gunPitch != null
-            ? gunPitch.InverseTransformPoint(new Vector3(MuzzleLocalPosition.x, MuzzleLocalPosition.y, MuzzleLocalPosition.z))
-            : MuzzleLocalPosition;
-        muzzle.localRotation = Quaternion.identity;
-        muzzle.localScale = Vector3.one;
-        return muzzle;
     }
 
     /// <summary>探针：输出预制体的层级、骨骼、动画片段与朝向，供人工核对。</summary>

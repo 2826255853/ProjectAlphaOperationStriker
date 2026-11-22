@@ -34,8 +34,19 @@ public class HurricaneDroneUnit : MonoBehaviour
     [Tooltip("留空则自动从同物体取 Animator。")]
     public Animator animator;
 
-    [Tooltip("炮口挂点，由 HurricaneDroneAuthoring 生成时自动挂到 Gun_Pitch 骨骼下。")]
+    [Tooltip("实际管口挂点，随炮管后坐。")]
     public Transform muzzle;
+
+    [SerializeField] Transform gunYaw;
+    [SerializeField] Transform gunPitch;
+    [SerializeField] ParticleSystem muzzleFlashTemplate;
+    ParticleSystem muzzleFlash;
+    Quaternion yawRest, pitchRest, sightFrame;
+    Quaternion animatedYaw, animatedPitch;
+    Vector3? aimPoint;
+    float yawAngle, pitchAngle, yawVelocity, pitchVelocity, aimWeight;
+    bool poseApplied;
+    int pendingShots;
 
     [Header("状态")]
     [SerializeField] HurricaneDroneMode mode = HurricaneDroneMode.Hover;
@@ -88,6 +99,78 @@ public class HurricaneDroneUnit : MonoBehaviour
                 muzzle = found;
             }
         }
+        if (gunYaw != null && gunPitch != null && muzzle != null)
+        {
+            yawRest = gunYaw.localRotation;
+            pitchRest = gunPitch.localRotation;
+            sightFrame = Quaternion.Inverse(gunYaw.parent.rotation) *
+                         Quaternion.LookRotation(muzzle.forward, transform.up);
+        }
+    }
+
+    public void SetAimPoint(Vector3? worldPoint) => aimPoint = worldPoint;
+
+    // Restore the Animator's previous sample before it evaluates the next frame.
+    void RestoreWeaponPose()
+    {
+        if (!poseApplied) return;
+        gunYaw.localRotation = animatedYaw;
+        gunPitch.localRotation = animatedPitch;
+        poseApplied = false;
+    }
+
+    void OnDisable()
+    {
+        RestoreWeaponPose();
+        if (muzzleFlash != null)
+            muzzleFlash.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
+        aimPoint = null;
+        pendingShots = 0;
+        aimWeight = yawAngle = pitchAngle = yawVelocity = pitchVelocity = 0f;
+    }
+
+    void LateUpdate()
+    {
+        UpdateWeaponPose(Time.deltaTime);
+        // Animation events arrive before the final bone transforms are available.
+        int shots = pendingShots;
+        pendingShots = 0;
+        for (int i = 0; i < shots && isActiveAndEnabled && mode == HurricaneDroneMode.Attack; i++)
+            EmitShot();
+    }
+
+    void UpdateWeaponPose(float dt)
+    {
+        if (gunYaw == null || gunPitch == null || muzzle == null) return;
+        if (dt <= 0f) return;
+        aimWeight = Mathf.MoveTowards(aimWeight, aimPoint.HasValue ? 1f : 0f, dt * 5f);
+        if (aimWeight <= 0f)
+        {
+            yawAngle = pitchAngle = yawVelocity = pitchVelocity = 0f;
+            return;
+        }
+
+        if (aimPoint.HasValue)
+        {
+            Quaternion frame = gunYaw.parent.rotation * sightFrame;
+            Vector3 direction = Quaternion.Inverse(frame) * (aimPoint.Value - gunPitch.position);
+            float horizontal = new Vector2(direction.x, direction.z).magnitude;
+            float yaw = horizontal > 0.001f ? Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg : yawAngle;
+            float pitch = -Mathf.Atan2(direction.y, horizontal) * Mathf.Rad2Deg;
+            yawAngle = Mathf.SmoothDampAngle(yawAngle, Mathf.Clamp(yaw, -65f, 65f),
+                ref yawVelocity, 0.095f, 215f, dt);
+            pitchAngle = Mathf.SmoothDampAngle(pitchAngle, Mathf.Clamp(pitch, -30f, 90f),
+                ref pitchVelocity, 0.085f, 185f, dt);
+        }
+
+        animatedYaw = gunYaw.localRotation;
+        animatedPitch = gunPitch.localRotation;
+        Vector3 pitchAxis = Quaternion.Inverse(yawRest) * (sightFrame * Vector3.right);
+        gunYaw.localRotation = Quaternion.Slerp(animatedYaw,
+            Quaternion.AngleAxis(yawAngle, sightFrame * Vector3.up) * yawRest, aimWeight);
+        gunPitch.localRotation = Quaternion.Slerp(animatedPitch,
+            Quaternion.AngleAxis(pitchAngle, pitchAxis) * pitchRest, aimWeight);
+        poseApplied = true;
     }
 
     void Start()
@@ -97,6 +180,7 @@ public class HurricaneDroneUnit : MonoBehaviour
 
     void Update()
     {
+        if (Time.deltaTime > 0f) RestoreWeaponPose();
         // HD_Attack 的 clip.length 比实际动画长（见 attackClipSeconds 注释），
         // 所以用计时器收尾，而不是等 Animator 自己播完。
         if (autoExitAttack && mode == HurricaneDroneMode.Attack &&
@@ -192,11 +276,42 @@ public class HurricaneDroneUnit : MonoBehaviour
     /// </summary>
     public void OnGunFire()
     {
-        ShotsThisBurst++;
+        // A clip that's fading out can still deliver an event after target loss.
+        if (!isActiveAndEnabled || mode != HurricaneDroneMode.Attack) return;
+        if (Application.isPlaying && aimPoint.HasValue)
+        {
+            pendingShots++;
+            return;
+        }
+        EmitShot();
+    }
 
-        // TODO(确认): 这里决定「一发」是什么——瞬时射线、曳光弹对象、还是纯特效。
-        // 目前只广播事件，不产生伤害，避免与既有 WeaponDamageStats / MissileProjectile 两套结算重复。
+    void EmitShot()
+    {
+        ShotsThisBurst++;
+        if (Application.isPlaying && muzzle != null && muzzleFlashTemplate != null)
+            FlashMuzzle();
         ShotFired?.Invoke(this);
+    }
+
+    void FlashMuzzle()
+    {
+        if (muzzleFlash == null)
+        {
+            muzzleFlash = Instantiate(muzzleFlashTemplate, muzzle, false);
+            var main = muzzleFlash.main;
+            main.scalingMode = ParticleSystemScalingMode.Shape;
+            main.startLifetime = 0.06f;
+            main.startSize = new ParticleSystem.MinMaxCurve(0.16f, 0.26f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(3f, 6f);
+            var shape = muzzleFlash.shape;
+            shape.angle = 8f;
+            shape.radius = 0.025f;
+            var emission = muzzleFlash.emission;
+            emission.enabled = false;
+        }
+        if (!muzzleFlash.isPlaying) muzzleFlash.Play(false);
+        muzzleFlash.Emit(5);
     }
 
     void OnDrawGizmosSelected()

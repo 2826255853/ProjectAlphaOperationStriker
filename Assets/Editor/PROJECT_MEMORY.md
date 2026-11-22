@@ -1,5 +1,12 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## HurricaneDrone 机体与机炮（2026-11-22）
+
+- 正式模型沿用 `Assets/Models/HurricaneDrone/HurricaneDrone.fbx`。四涵道机体、九叶风扇、光学组件及机炮合并为一个蒙皮网格，共 29,848 个三角面、10 根导入骨骼和 9 个材质槽。外壳使用同目录的 `HD_PanelCoat.png` 和 `HD_PanelNormal.png`。
+- 美术源、生成脚本和预览在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\HurricaneDrone\airframe-revision\`。运行该目录的 `build_airframe.py` 可用现成涂装贴图重建源件与 FBX。更新正式资源后，运行 `HurricaneDroneAuthoring.CreateAll` 同步材质与两套预制体。生成器就地更新 Animator Controller。
+- 敌人将当前可攻击目标的世界坐标传给 `HurricaneDroneUnit`。Animator 更新后叠加 `Gun_Yaw` 和 `Gun_Pitch` 的跟瞄，`Gun_Recoil` 的轴向行程由攻击片段驱动。`Muzzle` 挂在随滑轨移动的 `BoreTip` 上。导入事件采用归一化时间，每次事件共用一份炮口焰实例及原有伤害回调。
+- 正式怪物预制体在隔离 Play Mode 中对横移陷阱完成两组三连发，记录到 6 次炮口焰、36 点伤害、0.135 m 后坐行程。捕获目标 0.52 秒后的最大跟瞄偏差为 0.61°。下一轮首发后移除目标，剩余开火事件未触发，飞行恢复。记录见上述目录的 `combat-final.log`。
+
 ## FastRunner 防暴装备与写实材质（2026-11-22）
 
 - 模型沿用 `Assets/Models/FastRunner/FastRunner.fbx`。身体 29,392 个三角面，独立警棍 560 个三角面。防撕裂布料的颜色、法线及 R-02 识别章贴图位于同目录的 `Textures`。运行 `FastRunnerAuthoring.CreateAssetsBatch` 可重建材质并更新原预制体。

@@ -11,15 +11,15 @@ using UnityEngine;
 ///
 /// 菜单：Tools/塔防/预览飓风无人机
 /// 批处理：HurricaneDronePreview.RenderPreviewBatch
-/// 输出：%TEMP%\alpha-striker-unity\hurricane-drone-preview
-/// 需要留档的图按规范复制到桌面「陷阱素材文件夹\HurricaneDrone」。
+/// 输出到桌面素材目录下的 HurricaneDrone/airframe-revision/unity-preview。
 /// </summary>
 public static class HurricaneDronePreview
 {
     const int Size = 1024;
 
     static string OutputDir =>
-        Path.Combine(Path.GetTempPath(), "alpha-striker-unity", "hurricane-drone-preview");
+        Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.DesktopDirectory),
+            "陷阱素材文件夹", "HurricaneDrone", "airframe-revision", "unity-preview");
 
     [MenuItem("Tools/塔防/预览飓风无人机")]
     public static void RenderPreview() => RenderPreviewBatch();
@@ -62,7 +62,7 @@ public static class HurricaneDronePreview
         var camGo = new GameObject("HurricanePreviewCamera");
         var cam = camGo.AddComponent<Camera>();
         cam.clearFlags = CameraClearFlags.SolidColor;
-        cam.backgroundColor = new Color(0.58f, 0.60f, 0.64f, 1f);
+        cam.backgroundColor = new Color(0.13f, 0.17f, 0.21f, 1f);
         cam.fieldOfView = 42f;
         cam.nearClipPlane = 0.1f;
         cam.farClipPlane = 200f;
@@ -93,10 +93,10 @@ public static class HurricaneDronePreview
         // 三个机位：3/4 俯视、正侧、特写
         var views = new (string name, Vector3 position, Vector3 lookAt, float fov)[]
         {
-            ("persp", new Vector3(8.5f, 7.0f, -11.5f), new Vector3(0f, 0f, 0f), 40f),
-            ("side", new Vector3(17f, 0.8f, 0f), new Vector3(0f, -0.1f, 0f), 26f),
-            ("top", new Vector3(0.01f, 17f, 0f), new Vector3(0f, 0f, 0f), 26f),
-            ("gun", new Vector3(4.5f, -3.4f, -6.5f), new Vector3(0f, -2.6f, 1.6f), 40f),
+            ("persp", new Vector3(5.1f, 7.8f, 10.8f), Vector3.zero, 45f),
+            ("side", new Vector3(17f, 0.8f, 0f), new Vector3(0f, -0.4f, 0f), 29f),
+            ("top", new Vector3(0f, 19f, 0.01f), Vector3.zero, 26f),
+            ("gun", new Vector3(-3.4f, -2.0f, 4.9f), new Vector3(0f, -1f, 0.8f), 34f),
         };
 
         foreach (var view in views)
@@ -107,10 +107,10 @@ public static class HurricaneDronePreview
 
         // 攻击动画的两个关键帧（含后坐）
         Pose(animator, HurricaneDroneUnit.StateAttack, 0.9f);
-        Render(cam, new Vector3(7.0f, 3.0f, -9.5f), new Vector3(0f, -1.2f, 0.6f), 38f,
+        Render(cam, new Vector3(-3.4f, -2.0f, 4.9f), new Vector3(0f, -1f, 0.8f), 34f,
                $"{OutputDir}/attack_aim.png");
-        Pose(animator, HurricaneDroneUnit.StateAttack, 1.55f);
-        Render(cam, new Vector3(4.5f, -3.4f, -6.5f), new Vector3(0f, -2.6f, 1.6f), 40f,
+        Pose(animator, HurricaneDroneUnit.StateAttack, 1.5f);
+        Render(cam, new Vector3(-3.4f, -2.0f, 4.9f), new Vector3(0f, -1f, 0.8f), 34f,
                $"{OutputDir}/attack_recoil.png");
 
         ReportClips();
@@ -138,11 +138,10 @@ public static class HurricaneDronePreview
         animator.Play(hash, 0, 0f);
         animator.Update(0f);
         // 分批推进，避免采样跨度过大
-        float t = 0f;
-        while (t < seconds)
+        int frames = Mathf.RoundToInt(seconds * 30f);
+        for (int i = 0; i < frames; i++)
         {
             animator.Update(1f / 30f);
-            t += 1f / 30f;
         }
     }
 
@@ -154,7 +153,7 @@ public static class HurricaneDronePreview
 
         // URP 下直接 Camera.Render() 在 batchmode 里只出背景色（实测），
         // 正确做法是走 SRP 的 SubmitRenderRequest；不支持时再退回 Camera.Render()。
-        var request = new UnityEngine.Rendering.RenderPipeline.StandardRequest();
+        var request = new UnityEngine.Rendering.RenderPipeline.StandardRequest { destination = cam.targetTexture };
         if (UnityEngine.Rendering.RenderPipeline.SupportsRenderRequest(cam, request))
         {
             UnityEngine.Rendering.RenderPipeline.SubmitRenderRequest(cam, request);

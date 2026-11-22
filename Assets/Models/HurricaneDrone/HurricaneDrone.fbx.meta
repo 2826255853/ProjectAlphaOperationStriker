@@ -7,6 +7,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: M_HD_AmberPaint
+    second: {fileID: 2100000, guid: c76c6aab78d907a4bbc0688482e79974, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: M_HD_BlackCarbon
     second: {fileID: 2100000, guid: 02fb52c1a29c12a458f6eb2038ba9d79, type: 2}
   - first:
@@ -58,7 +63,7 @@ ModelImporter:
     removeConstantScaleCurves: 0
     motionNodeName: 
     animationImportErrors: 
-    animationImportWarnings: Event OnGunFire has a time (4.548889) outside the clip's valid range (0.000000..2.966667). It will never be firedEvent OnGunFire has a time (4.944444) outside the clip's valid range (0.000000..2.966667). It will never be firedEvent OnGunFire has a time (5.340000) outside the clip's valid range (0.000000..2.966667). It will never be fired
+    animationImportWarnings:
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
@@ -183,42 +188,42 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000u
       curves: []
       events:
-      - time: 0.73333335
+      - time: 0.23595506
         functionName: OnGunFire
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 1
-      - time: 0.8666667
+      - time: 0.28089887
         functionName: OnGunFire
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 1
-      - time: 1
+      - time: 0.3258427
         functionName: OnGunFire
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 1
-      - time: 1.5333333
+      - time: 0.505618
         functionName: OnGunFire
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 1
-      - time: 1.6666666
+      - time: 0.5505618
         functionName: OnGunFire
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
         messageOptions: 1
-      - time: 1.8
+      - time: 0.5955056
         functionName: OnGunFire
         data: 
         objectReferenceParameter: {instanceID: 0}

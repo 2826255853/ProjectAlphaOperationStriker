@@ -24,12 +24,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 339797513451042019}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.000000069242205, y: 2.4199991, z: -0.2599995}
+  m_LocalRotation: {x: -0.0000000716805, y: -0.7071068, z: -0.7071068, w: 0.00000007168051}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 5647092933528707964}
+  m_Father: {fileID: 7236473292340861346}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &7505700802174816918
 PrefabInstance:
@@ -86,7 +86,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 2771712711617573354, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 883977673316666164, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1948311093055318745}
     m_AddedComponents:
@@ -97,9 +97,19 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 3213552180477332725}
   m_SourcePrefab: {fileID: 100100000, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+--- !u!4 &3012850973684281829 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -4474800240765262989, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+  m_PrefabInstance: {fileID: 7505700802174816918}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5647092933528707964 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2771712711617573354, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+  m_PrefabInstance: {fileID: 7505700802174816918}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &7236473292340861346 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 883977673316666164, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
   m_PrefabInstance: {fileID: 7505700802174816918}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &7271328561543491527 stripped
@@ -143,6 +153,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HurricaneDroneUnit
   animator: {fileID: 558866812627733361}
   muzzle: {fileID: 1948311093055318745}
+  gunYaw: {fileID: 3012850973684281829}
+  gunPitch: {fileID: 5647092933528707964}
+  muzzleFlashTemplate: {fileID: 1510171613340402720, guid: 95c9b19e49e0ec44b9eb351cf59ce3be, type: 3}
   mode: 0
   crossFadeSeconds: 0.25
   attackClipSeconds: 2.97

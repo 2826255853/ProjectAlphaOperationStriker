@@ -24,12 +24,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7688877202509177567}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.000000069242205, y: 2.4199991, z: -0.2599995}
+  m_LocalRotation: {x: -0.0000000716805, y: -0.7071068, z: -0.7071068, w: 0.00000007168051}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3114675162748453454}
+  m_Father: {fileID: 74893831095875728}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &958869282630726564
 PrefabInstance:
@@ -86,7 +86,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 2771712711617573354, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 883977673316666164, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3266102527711245274}
     m_AddedComponents:
@@ -106,6 +106,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1241130464984085438}
   m_SourcePrefab: {fileID: 100100000, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+--- !u!4 &74893831095875728 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 883977673316666164, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+  m_PrefabInstance: {fileID: 958869282630726564}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &112589276196228853 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
@@ -147,6 +152,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HurricaneDroneUnit
   animator: {fileID: 5859254123799934189}
   muzzle: {fileID: 3266102527711245274}
+  gunYaw: {fileID: 5523883110017945815}
+  gunPitch: {fileID: 3114675162748453454}
+  muzzleFlashTemplate: {fileID: 1510171613340402720, guid: 95c9b19e49e0ec44b9eb351cf59ce3be, type: 3}
   mode: 0
   crossFadeSeconds: 0.25
   attackClipSeconds: 2.97
@@ -216,5 +224,10 @@ MonoBehaviour:
 --- !u!4 &3114675162748453454 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2771712711617573354, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
+  m_PrefabInstance: {fileID: 958869282630726564}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &5523883110017945815 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -4474800240765262989, guid: 7c1307b3a46ed84418e3f85233d13c10, type: 3}
   m_PrefabInstance: {fileID: 958869282630726564}
   m_PrefabAsset: {fileID: 0}
