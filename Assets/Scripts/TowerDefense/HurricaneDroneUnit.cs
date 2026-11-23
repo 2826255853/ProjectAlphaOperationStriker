@@ -30,6 +30,12 @@ public class HurricaneDroneUnit : MonoBehaviour
     public const string StateAttack = "HD_Attack";
     public const string GunFireEventName = "OnGunFire";
 
+    const float VelocityResponseSeconds = 0.24f;
+    const float TiltResponseSeconds = 0.09f;
+    const float CruiseTiltPerMeterPerSecond = 0.11f;
+    const float AccelerationTiltGain = 0.5f;
+    const float MaxTiltDegrees = 25f;
+
     [Header("引用")]
     [Tooltip("留空则自动从同物体取 Animator。")]
     public Animator animator;
@@ -47,6 +53,16 @@ public class HurricaneDroneUnit : MonoBehaviour
     float yawAngle, pitchAngle, yawVelocity, pitchVelocity, aimWeight;
     bool poseApplied;
     int pendingShots;
+
+    Transform body;
+    Quaternion bodyRestInRoot;
+    Quaternion animatedBodyRotation;
+    Vector3 lastFlightPosition;
+    Vector3 smoothedPlanarVelocity;
+    Vector3 flightTilt;
+    float flightPoseWeight;
+    bool flightPoseEnabled;
+    bool flightPoseApplied;
 
     [Header("状态")]
     [SerializeField] HurricaneDroneMode mode = HurricaneDroneMode.Hover;
@@ -106,9 +122,71 @@ public class HurricaneDroneUnit : MonoBehaviour
             sightFrame = Quaternion.Inverse(gunYaw.parent.rotation) *
                          Quaternion.LookRotation(muzzle.forward, transform.up);
         }
+        foreach (Transform bone in GetComponentsInChildren<Transform>(true))
+        {
+            if (bone.name != "Body") continue;
+            body = bone;
+            bodyRestInRoot = Quaternion.Inverse(transform.rotation) * body.rotation;
+            break;
+        }
     }
 
     public void SetAimPoint(Vector3? worldPoint) => aimPoint = worldPoint;
+
+    public void SetFlightPoseEnabled(bool enabled)
+    {
+        if (flightPoseEnabled == enabled) return;
+        flightPoseEnabled = enabled;
+        lastFlightPosition = transform.position;
+        smoothedPlanarVelocity = Vector3.zero;
+        flightTilt = Vector3.zero;
+        flightPoseWeight = enabled ? 1f : 0f;
+
+        if (!enabled)
+        {
+            RestoreFlightPose();
+        }
+    }
+
+    void RestoreFlightPose()
+    {
+        if (!flightPoseApplied) return;
+        if (body != null) body.localRotation = animatedBodyRotation;
+        flightPoseApplied = false;
+    }
+
+    void UpdateFlightPose(float deltaTime)
+    {
+        if (!flightPoseEnabled || body == null) return;
+
+        Vector3 position = transform.position;
+        if (deltaTime > 0f)
+        {
+            Vector3 velocity = Vector3.ProjectOnPlane((position - lastFlightPosition) / deltaTime, Vector3.up);
+            smoothedPlanarVelocity = Vector3.Lerp(smoothedPlanarVelocity, velocity,
+                1f - Mathf.Exp(-deltaTime / VelocityResponseSeconds));
+
+            // Forward thrust balances drag in cruise. Changes in velocity add a brief lean or braking tilt.
+            Vector3 targetTilt = smoothedPlanarVelocity * CruiseTiltPerMeterPerSecond
+                + (velocity - smoothedPlanarVelocity) * AccelerationTiltGain;
+            targetTilt = Vector3.ClampMagnitude(targetTilt, Mathf.Tan(MaxTiltDegrees * Mathf.Deg2Rad));
+            flightTilt = Vector3.Lerp(flightTilt, targetTilt, 1f - Mathf.Exp(-deltaTime / TiltResponseSeconds));
+            flightPoseWeight = Mathf.MoveTowards(flightPoseWeight, mode == HurricaneDroneMode.Attack ? 0f : 1f,
+                deltaTime / Mathf.Max(0.01f, crossFadeSeconds));
+        }
+        lastFlightPosition = position;
+        if (flightPoseWeight <= 0f) return;
+
+        Vector3 heading = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
+        Quaternion yaw = heading.sqrMagnitude > 0.0001f
+            ? Quaternion.LookRotation(heading, Vector3.up)
+            : Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
+        Quaternion tilt = Quaternion.FromToRotation(Vector3.up, Vector3.up + flightTilt);
+        Quaternion localFlightPose = Quaternion.Inverse(body.parent.rotation) * tilt * yaw * bodyRestInRoot;
+        if (!flightPoseApplied) animatedBodyRotation = body.localRotation;
+        body.localRotation = Quaternion.Slerp(animatedBodyRotation, localFlightPose, flightPoseWeight);
+        flightPoseApplied = true;
+    }
 
     // Restore the Animator's previous sample before it evaluates the next frame.
     void RestoreWeaponPose()
@@ -121,6 +199,7 @@ public class HurricaneDroneUnit : MonoBehaviour
 
     void OnDisable()
     {
+        SetFlightPoseEnabled(false);
         RestoreWeaponPose();
         if (muzzleFlash != null)
             muzzleFlash.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
@@ -131,6 +210,7 @@ public class HurricaneDroneUnit : MonoBehaviour
 
     void LateUpdate()
     {
+        UpdateFlightPose(Time.deltaTime);
         UpdateWeaponPose(Time.deltaTime);
         // Animation events arrive before the final bone transforms are available.
         int shots = pendingShots;
@@ -147,7 +227,7 @@ public class HurricaneDroneUnit : MonoBehaviour
         if (aimWeight <= 0f)
         {
             yawAngle = pitchAngle = yawVelocity = pitchVelocity = 0f;
-            return;
+            if (mode == HurricaneDroneMode.Attack) return;
         }
 
         if (aimPoint.HasValue)
@@ -166,9 +246,12 @@ public class HurricaneDroneUnit : MonoBehaviour
         animatedYaw = gunYaw.localRotation;
         animatedPitch = gunPitch.localRotation;
         Vector3 pitchAxis = Quaternion.Inverse(yawRest) * (sightFrame * Vector3.right);
-        gunYaw.localRotation = Quaternion.Slerp(animatedYaw,
+        // Keep the gun aligned with its mount through flight clips and their transitions.
+        Quaternion baseYaw = mode == HurricaneDroneMode.Attack ? animatedYaw : yawRest;
+        Quaternion basePitch = mode == HurricaneDroneMode.Attack ? animatedPitch : pitchRest;
+        gunYaw.localRotation = Quaternion.Slerp(baseYaw,
             Quaternion.AngleAxis(yawAngle, sightFrame * Vector3.up) * yawRest, aimWeight);
-        gunPitch.localRotation = Quaternion.Slerp(animatedPitch,
+        gunPitch.localRotation = Quaternion.Slerp(basePitch,
             Quaternion.AngleAxis(pitchAngle, pitchAxis) * pitchRest, aimWeight);
         poseApplied = true;
     }
@@ -180,6 +263,7 @@ public class HurricaneDroneUnit : MonoBehaviour
 
     void Update()
     {
+        RestoreFlightPose();
         if (Time.deltaTime > 0f) RestoreWeaponPose();
         // HD_Attack 的 clip.length 比实际动画长（见 attackClipSeconds 注释），
         // 所以用计时器收尾，而不是等 Animator 自己播完。

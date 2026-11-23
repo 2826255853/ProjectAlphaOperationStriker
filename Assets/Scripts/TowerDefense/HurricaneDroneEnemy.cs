@@ -96,20 +96,12 @@ public sealed class HurricaneDroneEnemy : MonoBehaviour
         ResolveReferences();
         lastPosition = transform.position;
         lastYaw = transform.eulerAngles.y;
-        if (follower != null)
-        {
-            baseMoveSpeed = follower.MoveSpeed;
-        }
     }
 
     private void OnEnable()
     {
         ResolveReferences();
         Subscribe();
-        if (follower != null && baseMoveSpeed <= 0f)
-        {
-            baseMoveSpeed = follower.MoveSpeed;
-        }
         lastPosition = transform.position;
         lastYaw = transform.eulerAngles.y;
     }
@@ -119,6 +111,7 @@ public sealed class HurricaneDroneEnemy : MonoBehaviour
         Unsubscribe();
         if (unit != null)
         {
+            unit.SetFlightPoseEnabled(false);
             unit.SetAimPoint(null);
             unit.StopAttack();
         }
@@ -148,6 +141,7 @@ public sealed class HurricaneDroneEnemy : MonoBehaviour
             }
         }
 
+        unit.SetFlightPoseEnabled(follower.IsInitialized && follower.IsFlying);
         unit.SetAimPoint(null);
         if (health.IsDead)
         {
@@ -418,7 +412,7 @@ public sealed class HurricaneDroneEnemy : MonoBehaviour
         {
             return;
         }
-        baseMoveSpeed = Mathf.Max(baseMoveSpeed, follower.MoveSpeed);
+        baseMoveSpeed = follower.MoveSpeed;
         follower.MoveSpeed = 0f;
         follower.enabled = false;
         movementPaused = true;

@@ -6,6 +6,10 @@
 - 美术源、生成脚本和预览在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\HurricaneDrone\airframe-revision\`。运行该目录的 `build_airframe.py` 可用现成涂装贴图重建源件与 FBX。更新正式资源后，运行 `HurricaneDroneAuthoring.CreateAll` 同步材质与两套预制体。生成器就地更新 Animator Controller。
 - 敌人将当前可攻击目标的世界坐标传给 `HurricaneDroneUnit`。Animator 更新后叠加 `Gun_Yaw` 和 `Gun_Pitch` 的跟瞄，`Gun_Recoil` 的轴向行程由攻击片段驱动。`Muzzle` 挂在随滑轨移动的 `BoreTip` 上。导入事件采用归一化时间，每次事件共用一份炮口焰实例及原有伤害回调。
 - 正式怪物预制体在隔离 Play Mode 中对横移陷阱完成两组三连发，记录到 6 次炮口焰、36 点伤害、0.135 m 后坐行程。捕获目标 0.52 秒后的最大跟瞄偏差为 0.61°。下一轮首发后移除目标，剩余开火事件未触发，飞行恢复。记录见上述目录的 `combat-final.log`。
+- 飞行怪物的 `HurricaneDroneUnit` 在路径跟随和 Animator 更新后采样实际水平位移。机身按速度持续前倾，按速度变化向加速方向倾斜，刹停时短暂抬头，悬停时回平。姿态在炮塔跟瞄前应用，开火期间平滑交给攻击片段。结束战斗后恢复进入悬停前的路线速度。
+- 正式预制体的隔离 Play Mode 覆盖两个前飞动画接缝、刹停和回平、六发机炮结算及恢复 2.2 m/s。巡航俯仰 13.604° 至 13.814°，最大帧间变化 0.014°。采样与预览在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\HurricaneDrone\flight-pose\`，临时探针源码与 meta 已移出 Assets。
+- `HD_Hover` 的炮塔偏航曲线最大偏离安装姿态约 0.75°，`HD_FlyForward` 的炮管俯仰曲线偏离 6°。`HurricaneDroneUnit` 将非攻击状态的炮塔基准固定为安装姿态，丢失目标时沿原跟瞄权重平滑归位。攻击片段仍驱动 `Gun_Recoil` 的轴向后坐。
+- 正式怪物预制体的隔离 Play Mode 连续采样 6 秒，覆盖前飞、悬停及相互切换，炮口相对机身的角度偏差低于 0.001°。横移目标的跟瞄误差最高 0.603°，后坐 0.135 m。移除目标后恢复飞行并停止结算伤害，重新捕获时恢复开火。日志为 `C:\Users\ASUS\Desktop\陷阱素材文件夹\HurricaneDrone\idle-gun\playmode-final.log`。
 
 ## FastRunner 防暴装备与写实材质（2026-11-22）
 
