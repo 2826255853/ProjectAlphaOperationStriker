@@ -1244,9 +1244,3 @@
 - 校验 `DoubleLayerFacilityAuthoring.ValidateSavedScene`：194 个 MapForge 对象、188 个 Renderer、190 个 Collider（含禁用的辅助几何碰撞器）；出生净空、楼梯表面高度、地图列表注册、无玩法组件通过。使用 FPSPlayer 真实 CharacterController 的尺寸、stepOffset/slopeLimit/skinWidth，在编辑器内模拟 Move，上下两侧楼梯均通过 `FACILITY_STAIRS_PASS`；临时探针在 finally 销毁，不写入场景。
 - Unity 按 `ProjectVersion.txt` 选择已安装版本，本次为 6000.6.9f1。Build 与 Validate/RenderPreview 正常完成，无 C# 编译错误或方法异常。验证为编辑器碰撞探针及离屏渲染，未做人工 PlayMode 操作、跨场景菜单操作或完整 Player 构建。
 - 预览入口 `DoubleLayerFacilityAuthoring.RenderPreview`（批处理带 `-WithGraphics`）。预览与日志：`C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\`，含 `01-overview.png`、`02-ground-floor.png`、`03-upper-floor.png`、`04-stairs.png`。场景重建使用专用入口；普通全量导入或 MapForge 实时同步不应用本阶段的玩法过滤与楼梯补充。
-
-## 第一人称手雷投掷模型（2026-11-24）
-
-- KINEMATION 当前有手雷投掷动画和音效，但没有可直接实例化的手雷网格或预制体。`FPSPlayer.OnThrowGrenade` 只触发动画、收起当前武器并在延迟后恢复武器。
-- `FirstPersonPlayerBootstrap` 给包内玩家挂载 `FPSGrenadeVisuals` 并绑定 `Player/ThrowGrenade` 输入。投掷期间在相机前显示由运行时基础几何组合的手雷，在动作中段生成带刚体的可见投射物并向视线方向抛出。
-- 项目 Unity `6000.6.10f1` 批处理编译正常退出，无 C# 编译错误。未做运行时画面或投掷手感验收。日志：`C:\Users\ASUS\Desktop\陷阱素材文件夹\Grenade-20261124\compile.log`。
