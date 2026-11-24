@@ -186,7 +186,7 @@ public sealed class EnemySpawnPoint : MonoBehaviour
     public bool IsWaveEnabled(int waveNumber)
     {
         WaveSpawnSettings settings = GetWaveSettings(waveNumber);
-        return settings == null || (settings.enabled && settings.enemyCount > 0);
+        return (settings == null || settings.enabled) && GetEnemiesPerWave(waveNumber) > 0;
     }
 
     internal void SetWaveEnabled(int waveNumber, bool enabled)
@@ -219,6 +219,37 @@ public sealed class EnemySpawnPoint : MonoBehaviour
 
     /// <summary>Seconds remaining before this spawn point creates the next wave's first enemy.</summary>
     public float RemainingWaitTime => IsWaitingForWave ? Mathf.Max(0f, timeUntilNextSpawn) : 0f;
+
+    internal static int GetWaveStatus(EnemySpawnPoint[] points, out int totalWaves, out float wait, out bool complete)
+    {
+        int wave = 0;
+        totalWaves = 0;
+        wait = 0f;
+        complete = true;
+        foreach (EnemySpawnPoint point in points)
+        {
+            if (point == null || !point.isActiveAndEnabled) continue;
+            if (!point.SpawningEnabled && !point.AllWavesAreCompleted) continue;
+            wave = Mathf.Max(wave, point.CurrentWave);
+            totalWaves = Mathf.Max(totalWaves, point.TotalWaves);
+            complete &= point.AllWavesAreCompleted;
+        }
+
+        if (wave == 0 || complete) return wave;
+
+        float nextSpawn = float.PositiveInfinity;
+        foreach (EnemySpawnPoint point in points)
+        {
+            if (point == null || !point.IsForecastEntrance(wave)) continue;
+            if (!point.IsWaitingForWave) return wave;
+            nextSpawn = Mathf.Min(nextSpawn, point.RemainingWaitTime);
+        }
+        if (!float.IsPositiveInfinity(nextSpawn)) wait = nextSpawn;
+        return wave;
+    }
+
+    internal bool IsForecastEntrance(int wave) => isActiveAndEnabled && SpawningEnabled
+        && CurrentWave == wave && IsWaveEnabled(wave);
 
     /// <summary>Immediately ends the current pre-wave wait, if one is active.</summary>
     public void SkipWait()

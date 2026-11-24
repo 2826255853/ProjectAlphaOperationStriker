@@ -59,7 +59,8 @@ public sealed class MiniMapUI : MonoBehaviour
         enemies = FindObjectsByType<EnemyInstance>(FindObjectsSortMode.None);
         hasWorldBounds = false;
         previewWave = 0;
-        int waitingWave = 0;
+        int wave = EnemySpawnPoint.GetWaveStatus(spawnPoints, out _, out float wait, out _);
+        previewWave = wait > 0f ? wave : 0;
         EnemyCore sceneCore = FindAnyObjectByType<EnemyCore>();
 
         for (int i = 0; i < spawnPoints.Length; i++)
@@ -98,26 +99,21 @@ public sealed class MiniMapUI : MonoBehaviour
             if (core != null) IncludeInBounds(core.Position);
             if (spawnPoint.TargetPoint != null) IncludeInBounds(spawnPoint.TargetPoint.position);
             else IncludeInBounds(spawnPoint.TargetPosition);
-
-            if (spawnPoint.SpawningEnabled && !spawnPoint.AllWavesAreCompleted && spawnPoint.IsWaitingForWave)
-                waitingWave = Mathf.Max(waitingWave, Mathf.Max(1, spawnPoint.CurrentWave));
         }
 
-        if (waitingWave > 0)
+        if (previewWave > 0)
         {
-            previewWave = waitingWave;
             var routeEntrances = new List<EnemySpawnPoint>();
             for (int i = 0; i < spawnPoints.Length; i++)
             {
                 EnemySpawnPoint spawnPoint = spawnPoints[i];
-                if (spawnPoint == null || !spawnPoint.SpawningEnabled || spawnPoint.AllWavesAreCompleted
-                    || spawnPoint.CurrentWave != waitingWave || !spawnPoint.IsWaveEnabled(waitingWave))
+                if (spawnPoint == null || !spawnPoint.IsForecastEntrance(previewWave))
                     continue;
                 routeEntrances.Add(spawnPoint);
             }
 
             int sceneHandle = SceneManager.GetActiveScene().GetHashCode();
-            if (ShouldRebuildRoutePreviews(waitingWave, sceneHandle, routeEntrances))
+            if (ShouldRebuildRoutePreviews(previewWave, sceneHandle, routeEntrances))
             {
                 routePreviews.Clear();
                 for (int i = 0; i < routeEntrances.Count; i++)
@@ -125,18 +121,13 @@ public sealed class MiniMapUI : MonoBehaviour
                     EnemySpawnPoint spawnPoint = routeEntrances[i];
                     AuthoredMonsterRoute authoredRoute = spawnPoint.GetComponent<AuthoredMonsterRoute>();
                     EnemyCore core = spawnPoint.Core != null ? spawnPoint.Core : sceneCore;
-                    routePreviews.Add(BuildRoutePreview(spawnPoint, authoredRoute, core, waitingWave));
+                    routePreviews.Add(BuildRoutePreview(spawnPoint, authoredRoute, core, previewWave));
                 }
-                cachedRouteWave = waitingWave;
+                cachedRouteWave = previewWave;
                 cachedRouteSceneHandle = sceneHandle;
                 cachedRouteEntrances = routeEntrances.ToArray();
             }
         }
-        else
-        {
-            previewWave = 0;
-        }
-
         for (int i = 0; i < enemies.Length; i++)
         {
             EnemyInstance enemy = enemies[i];
@@ -257,12 +248,13 @@ public sealed class MiniMapUI : MonoBehaviour
 
     private void OnGUI()
     {
-        if (GameStartMenu.CursorOwned || Screen.height < 250f) return;
+        if (GameStartMenu.CursorOwned || TrapSelectionMenu.IsOpen) return;
         EnsureTexturesAndStyles();
 
-        float side = Mathf.Min(MapSide, Screen.width - 36f, Screen.height - 213f);
-        if (side < 200f) return;
-        Rect panel = new Rect(18f, 166f, side, side + 47f);
+        float top = TrapPlacementController.IsPlacementModeActive ? 368f : 244f;
+        float side = Mathf.Min(MapSide, Screen.width - 36f, Screen.height - top - 65f);
+        if (side < 164f) return;
+        Rect panel = new Rect(18f, top, side, side + 47f);
         DrawRect(panel, PanelColor);
         GUI.Label(new Rect(panel.x + 9f, panel.y + 5f, side - 18f, 20f),
             previewWave > 0 ? $"路线预览  ·  第 {previewWave} 波" : "小地图", titleStyle);
@@ -329,15 +321,20 @@ public sealed class MiniMapUI : MonoBehaviour
 
     private void DrawLegend(Rect rect)
     {
-        DrawCircle(new Vector2(rect.x + 5f, rect.center.y), 7f, GroundColor);
-        GUI.Label(new Rect(rect.x + 10f, rect.y, 34f, rect.height), "地面", legendStyle);
-        DrawCircle(new Vector2(rect.x + 48f, rect.center.y), 7f, FlyingColor);
-        GUI.Label(new Rect(rect.x + 53f, rect.y, 34f, rect.height), "空中", legendStyle);
-        DrawLine(new Vector2(rect.x + 91f, rect.center.y), new Vector2(rect.x + 103f, rect.center.y), 2f, RouteColor);
-        GUI.Label(new Rect(rect.x + 106f, rect.y, 34f, rect.height), "路线", legendStyle);
-        DrawCircle(new Vector2(rect.x + 146f, rect.center.y), 9f, EntranceColor);
-        DrawCircle(new Vector2(rect.x + 146f, rect.center.y), 4f, RouteColor);
-        GUI.Label(new Rect(rect.x + 153f, rect.y, 36f, rect.height), "入口", legendStyle);
+        float column = rect.width / 4f;
+        var icon = new Vector2(rect.x + 5f, rect.center.y);
+        DrawCircle(icon, 7f, GroundColor);
+        GUI.Label(new Rect(icon.x + 6f, rect.y, column - 10f, rect.height), "地面", legendStyle);
+        icon.x += column;
+        DrawCircle(icon, 7f, FlyingColor);
+        GUI.Label(new Rect(icon.x + 6f, rect.y, column - 10f, rect.height), "空中", legendStyle);
+        icon.x += column;
+        DrawLine(icon - Vector2.right * 4f, icon + Vector2.right * 4f, 2f, RouteColor);
+        GUI.Label(new Rect(icon.x + 6f, rect.y, column - 10f, rect.height), "路线", legendStyle);
+        icon.x += column;
+        DrawCircle(icon, 9f, EntranceColor);
+        DrawCircle(icon, 4f, RouteColor);
+        GUI.Label(new Rect(icon.x + 6f, rect.y, column - 10f, rect.height), "入口", legendStyle);
     }
 
     private Vector2 WorldToMap(Vector3 worldPosition)

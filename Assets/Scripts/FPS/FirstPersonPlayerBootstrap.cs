@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using KINEMATION.FPSAnimationPack.Scripts.Player;
 
@@ -104,6 +105,8 @@ public static class FirstPersonPlayerBootstrap
 
     private static void EnsureBridgeComponents(GameObject player)
     {
+        ApplyGrenadeKeyboardBinding(player.GetComponentInChildren<PlayerInput>(true)?.actions);
+
         if (player.GetComponent<PlayerHealth>() == null)
             player.AddComponent<PlayerHealth>();
         EnsureObserverMode(player);
@@ -139,6 +142,21 @@ public static class FirstPersonPlayerBootstrap
 
         EnsureHipFireCrosshair(player);
         EnsureWeaponScopeSight(player);
+    }
+
+    private static void ApplyGrenadeKeyboardBinding(InputActionAsset actions)
+    {
+        InputAction throwGrenade = actions?.FindAction("Player/ThrowGrenade", false);
+        if (throwGrenade == null) return;
+
+        for (int index = 0; index < throwGrenade.bindings.Count; index++)
+        {
+            if (!string.Equals(throwGrenade.bindings[index].effectivePath, "<Keyboard>/g",
+                    System.StringComparison.OrdinalIgnoreCase)) continue;
+
+            // Temporarily reserve G for skipping the wave preparation timer.
+            throwGrenade.ApplyBindingOverride(index, "<Keyboard>/q");
+        }
     }
 
     private static void EnsureHipFireCrosshair(GameObject player)

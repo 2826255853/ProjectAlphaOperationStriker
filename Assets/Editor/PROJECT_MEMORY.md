@@ -1,5 +1,12 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 波次 HUD 路线预告与漏怪提示（2026-11-24）
+
+- `EnemySpawnPoint.GetWaveStatus` 统一波次 HUD 与小地图的准备阶段判定。预告读取当前波实际启用的出怪口及敌人类型，包含雷鸣工厂第二波空袭入口轮换。楼层摘要取自地面路线的实际途经高度，普通单层寻路网格显示为一层。
+- `EnemyInstance.CoreReached` 在本局敌人结算抵达核心时通知 HUD。提示按来源累计本波漏怪数，波次切换后最多保留至最后一次漏怪满 6 秒。切图或换局清空记录。
+- 首局引导与预告同屏，提示看小地图、用 4–8 选陷阱并左键放置，进入战斗后提示沿小地图寻找漏网敌人。战斗引导累计显示 10 秒后，通过 `AlphaStriker.WaveHud.GuideSeen` 保存到本机。
+- 雷鸣工厂与三路汇合图的隔离 Play Mode 验证通过 16 项断言，覆盖空袭轮换、楼层、真实敌人抵达核心、切图和引导持久化。日志与两张 HUD 预览位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\WaveHud-20261124\`，临时验证源码和 meta 已移出 Assets。
+
 ## HurricaneDrone 机体与机炮（2026-11-22）
 
 - 正式模型沿用 `Assets/Models/HurricaneDrone/HurricaneDrone.fbx`。四涵道机体、九叶风扇、光学组件及机炮合并为一个蒙皮网格，共 29,848 个三角面、10 根导入骨骼和 9 个材质槽。外壳使用同目录的 `HD_PanelCoat.png` 和 `HD_PanelNormal.png`。

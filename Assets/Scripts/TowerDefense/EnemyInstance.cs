@@ -5,6 +5,7 @@ using UnityEngine;
 public sealed class EnemyInstance : MonoBehaviour
 {
     public enum ResolutionState { Alive, Killed, Leaked, Despawned }
+    internal static event Action<EnemyInstance> CoreReached;
 
     public ResolutionState Resolution { get; private set; } = ResolutionState.Despawned;
     public int KillReward { get; private set; }
@@ -99,7 +100,10 @@ public sealed class EnemyInstance : MonoBehaviour
         if (follower.HasCoreTarget && TryResolve(ResolutionState.Leaked))
         {
             if (IsCurrentRun && SpawnPoint != null && SpawnPoint.Core != null)
+            {
+                CoreReached?.Invoke(this);
                 SpawnPoint.Core.TakeDamage(MonsterType);
+            }
             Destroy(gameObject);
         }
     }
