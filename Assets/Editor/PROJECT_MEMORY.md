@@ -1,5 +1,11 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 角色与无人机临时标记（2026-11-24）
+
+- `FirstPersonPlayerBootstrap` 为包内玩家、旧控制器玩家及动态生成玩家幂等挂载 `TacticalPingHUD`。沿用新版 Input System 的 Z 键与当前视角中心射线，在最近地图碰撞面放置标记；角色标记黄，无人机标记蓝，各自保留一个并在 20 秒后过期。相同来源再次标记会替换原标记。
+- 标记位置在角色和无人机视角互相切换时保留并双向显示。距离每帧以当前操纵对象根节点至地图标记的三维直线距离计算。无人机视角补中心准星，使 Z 键瞄准点与射线投射位置一致。菜单/暂停和角色死亡时不接收输入或显示 HUD。
+- 隔离 Play Mode 探针确认了场景装配、菜单输入门控和地图碰撞射线；合成键盘事件未触发 `Keyboard.current.zKey.wasPressedThisFrame`，完整的实机 Z/V 操作验收未通过该探针。临时探针源码及 `.meta` 已移除。随后使用项目版本 `ProjectVersion.txt` 指定的 Unity 完成正式源码编译，日志 `C:\Users\ASUS\Desktop\陷阱素材文件夹\TacticalPing-20261124\compile-final.log` 正常退出且无 C# 编译错误。
+
 ## 波次 HUD 路线预告与漏怪提示（2026-11-24）
 
 - `EnemySpawnPoint.GetWaveStatus` 统一波次 HUD 与小地图的准备阶段判定。预告读取当前波实际启用的出怪口及敌人类型，包含雷鸣工厂第二波空袭入口轮换。楼层摘要取自地面路线的实际途经高度，普通单层寻路网格显示为一层。
@@ -1238,3 +1244,9 @@
 - 校验 `DoubleLayerFacilityAuthoring.ValidateSavedScene`：194 个 MapForge 对象、188 个 Renderer、190 个 Collider（含禁用的辅助几何碰撞器）；出生净空、楼梯表面高度、地图列表注册、无玩法组件通过。使用 FPSPlayer 真实 CharacterController 的尺寸、stepOffset/slopeLimit/skinWidth，在编辑器内模拟 Move，上下两侧楼梯均通过 `FACILITY_STAIRS_PASS`；临时探针在 finally 销毁，不写入场景。
 - Unity 按 `ProjectVersion.txt` 选择已安装版本，本次为 6000.6.9f1。Build 与 Validate/RenderPreview 正常完成，无 C# 编译错误或方法异常。验证为编辑器碰撞探针及离屏渲染，未做人工 PlayMode 操作、跨场景菜单操作或完整 Player 构建。
 - 预览入口 `DoubleLayerFacilityAuthoring.RenderPreview`（批处理带 `-WithGraphics`）。预览与日志：`C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\`，含 `01-overview.png`、`02-ground-floor.png`、`03-upper-floor.png`、`04-stairs.png`。场景重建使用专用入口；普通全量导入或 MapForge 实时同步不应用本阶段的玩法过滤与楼梯补充。
+
+## 第一人称手雷投掷模型（2026-11-24）
+
+- KINEMATION 当前有手雷投掷动画和音效，但没有可直接实例化的手雷网格或预制体。`FPSPlayer.OnThrowGrenade` 只触发动画、收起当前武器并在延迟后恢复武器。
+- `FirstPersonPlayerBootstrap` 给包内玩家挂载 `FPSGrenadeVisuals` 并绑定 `Player/ThrowGrenade` 输入。投掷期间在相机前显示由运行时基础几何组合的手雷，在动作中段生成带刚体的可见投射物并向视线方向抛出。
+- 项目 Unity `6000.6.10f1` 批处理编译正常退出，无 C# 编译错误。未做运行时画面或投掷手感验收。日志：`C:\Users\ASUS\Desktop\陷阱素材文件夹\Grenade-20261124\compile.log`。

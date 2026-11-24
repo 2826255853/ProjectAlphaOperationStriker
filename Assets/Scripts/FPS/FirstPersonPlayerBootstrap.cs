@@ -29,6 +29,7 @@ public static class FirstPersonPlayerBootstrap
         {
             EnsureBridgeComponents(existingPackagePlayer.transform.root.gameObject);
             SetupDroneIntegration(existingPackagePlayer.transform.root.gameObject);
+            EnsureTacticalPing(existingPackagePlayer.transform.root.gameObject);
             return;
         }
 
@@ -46,6 +47,7 @@ public static class FirstPersonPlayerBootstrap
             EnsureHipFireCrosshair(legacyPlayer.gameObject);
             EnsureLadderClimbStateLogger(legacyPlayer.gameObject);
             SetupDroneIntegration(legacyPlayer.gameObject);
+            EnsureTacticalPing(legacyPlayer.gameObject);
             return;
         }
 
@@ -77,6 +79,7 @@ public static class FirstPersonPlayerBootstrap
         player.name = "FPS Player";
         EnsureBridgeComponents(player);
         SetupDroneIntegration(player);
+        EnsureTacticalPing(player);
 
         Camera packageCamera = player.GetComponentInChildren<Camera>(true);
         if (packageCamera != null)
@@ -124,6 +127,7 @@ public static class FirstPersonPlayerBootstrap
         {
             player.AddComponent<PlayerWeaponCategorySwitcher>();
         }
+        EnsureGrenadeVisuals(player);
         if (player.GetComponent<LadderClimbing>() == null)
         {
             player.AddComponent<LadderClimbing>();
@@ -163,6 +167,22 @@ public static class FirstPersonPlayerBootstrap
     {
         if (player.GetComponent<HipFireCrosshairUI>() == null)
             player.AddComponent<HipFireCrosshairUI>();
+    }
+
+    private static void EnsureTacticalPing(GameObject player)
+    {
+        if (player.GetComponent<TacticalPingHUD>() == null)
+            player.AddComponent<TacticalPingHUD>();
+    }
+
+    private static void EnsureGrenadeVisuals(GameObject player)
+    {
+        FPSGrenadeVisuals visuals = player.GetComponent<FPSGrenadeVisuals>();
+        if (visuals == null) visuals = player.AddComponent<FPSGrenadeVisuals>();
+
+        PlayerInput input = player.GetComponentInChildren<PlayerInput>(true);
+        Camera viewCamera = player.GetComponentInChildren<Camera>(true);
+        visuals.Bind(input, viewCamera != null ? viewCamera.transform : player.transform);
     }
 
     private static void EnsureWeaponScopeSight(GameObject player)

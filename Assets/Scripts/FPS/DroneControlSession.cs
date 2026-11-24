@@ -21,6 +21,7 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
     public static event Action<DroneControlSession> ControlModeChanged;
     public Camera ControlCamera => State == DroneControlState.Drone ? droneCamera_cam : originalPlayerCamera;
     public bool IsDroneControlled => State == DroneControlState.Drone;
+    internal Transform DroneTransform => droneRoot != null ? droneRoot.transform : null;
 
     private GameObject playerRoot;
     private GameObject droneRoot;
