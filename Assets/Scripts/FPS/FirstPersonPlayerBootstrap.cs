@@ -127,7 +127,6 @@ public static class FirstPersonPlayerBootstrap
         {
             player.AddComponent<PlayerWeaponCategorySwitcher>();
         }
-        EnsureGrenadeVisuals(player);
         if (player.GetComponent<LadderClimbing>() == null)
         {
             player.AddComponent<LadderClimbing>();
@@ -173,16 +172,6 @@ public static class FirstPersonPlayerBootstrap
     {
         if (player.GetComponent<TacticalPingHUD>() == null)
             player.AddComponent<TacticalPingHUD>();
-    }
-
-    private static void EnsureGrenadeVisuals(GameObject player)
-    {
-        FPSGrenadeVisuals visuals = player.GetComponent<FPSGrenadeVisuals>();
-        if (visuals == null) visuals = player.AddComponent<FPSGrenadeVisuals>();
-
-        PlayerInput input = player.GetComponentInChildren<PlayerInput>(true);
-        Camera viewCamera = player.GetComponentInChildren<Camera>(true);
-        visuals.Bind(input, viewCamera != null ? viewCamera.transform : player.transform);
     }
 
     private static void EnsureWeaponScopeSight(GameObject player)
