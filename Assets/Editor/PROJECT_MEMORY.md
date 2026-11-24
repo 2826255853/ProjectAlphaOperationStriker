@@ -1,5 +1,11 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 局外作战大厅（2026-11-24）
+
+- `GameStartMenuView.BuildLayout` 同时供正式预制体生成与运行时后备布局使用。大厅底栏从 `GameSaveSystem.Current` 刷新四项战绩和战略资源，设置页实时显示音量百分比。
+- 选图目录继续取自 Build Settings。雷鸣工厂卡片使用 `Resources/UI/ThunderFactoryPlan.png` 展示设施轴测示意图，其他地图自动生成名称卡片。加工示意图的脚本、五页 Unity 预览及菜单回归报告在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\GameStartMenu\command-lobby\`。
+- 运行 `GameStartMenuAuthoring.GenerateAndValidate` 可重建菜单、校验中文字形并渲染预览。菜单 Play Mode 回归通过 2/2，覆盖同图开局、跨场景开局、暂停、返回大厅、战绩与余额刷新及音量数值。
+
 ## 角色与无人机临时标记（2026-11-24）
 
 - `FirstPersonPlayerBootstrap` 为包内玩家、旧控制器玩家及动态生成玩家幂等挂载 `TacticalPingHUD`。沿用新版 Input System 的 Z 键与当前视角中心射线，在最近地图碰撞面放置标记；角色标记黄，无人机标记蓝，各自保留一个并在 20 秒后过期。相同来源再次标记会替换原标记。

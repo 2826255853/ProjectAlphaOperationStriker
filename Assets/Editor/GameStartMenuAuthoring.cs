@@ -13,9 +13,11 @@ public static class GameStartMenuAuthoring
     private const string PrefabPath = "Assets/Resources/UI/GameStartMenu.prefab";
     private const string FontPath = "Assets/Resources/UI/Fonts/MenuChinese SDF.asset";
     private const string SourceFontPath = "Assets/Resources/UI/Fonts/NotoSansCJKsc-Regular.otf";
+    private static string PreviewDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+        "陷阱素材文件夹", "GameStartMenu", "command-lobby");
     private const string RuntimeLabels = "继续游戏0123456789,.%" + GameStartMenuView.MapLoadingMessage
         + GameStartMenuView.EmptyMapMessage + GameStartMenuView.PauseTitle + GameStartMenuView.PauseDescription
-        + GameStartMenuView.PauseQuitLabel + GameStartMenuView.PauseFooter + " · 设置";
+        + GameStartMenuView.PauseQuitLabel + GameStartMenuView.PauseFooter + " · 设置大厅地图选择雷鸣工厂双层设施地空防守";
 
     [MenuItem("Tools/行动打击/生成战术主菜单")]
     public static void Generate()
@@ -47,7 +49,7 @@ public static class GameStartMenuAuthoring
         if (prefab == null || prefab.GetComponent<Canvas>() == null || prefab.GetComponent<GameStartMenuView>() == null)
             throw new System.InvalidOperationException("Menu prefab is missing or incomplete: " + PrefabPath);
         if (prefab.transform.Find("Map Panel") == null
-            || prefab.transform.Find("Map Panel/Map List") == null
+            || prefab.transform.Find("Map Panel/Map Viewport/Map List") == null
             || prefab.transform.Find("Map Panel/Map Back") == null)
             throw new InvalidOperationException("Menu prefab is missing the map selection page.");
         if (prefab.transform.Find("Main Panel/Primary Action") == null
@@ -76,7 +78,7 @@ public static class GameStartMenuAuthoring
             ValidateCharacters(font, label.text);
         }
         ValidateCharacters(font, RuntimeLabels);
-        string output = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "GameStartMenu", "font-validation.txt");
+        string output = Path.Combine(PreviewDirectory, "font-validation.txt");
         Directory.CreateDirectory(Path.GetDirectoryName(output));
         File.WriteAllText(output, "PASS: bundled Chinese font covers all " + labels.Length + " menu labels, including inactive settings and resume text.\nFont: " + font.name + "\n" + string.Join("\n", labels.Select(t => t.text)) + "\n继续游戏\n");
         Debug.Log("Tactical menu Chinese font validation passed. " + output);
@@ -112,7 +114,8 @@ public static class GameStartMenuAuthoring
             canvas.worldCamera = camera;
             canvas.planeDistance = 1f;
             var view = root.GetComponent<GameStartMenuView>();
-            string directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "GameStartMenu");
+            string directory = PreviewDirectory;
+            Directory.CreateDirectory(directory);
             string[] names = { "font-main-menu.png", "font-settings.png", "font-map-selection.png", "pause-menu.png", "pause-settings.png" };
             for (int page = 0; page < 5; page++)
             {

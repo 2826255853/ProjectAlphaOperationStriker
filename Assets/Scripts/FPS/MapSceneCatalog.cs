@@ -4,13 +4,15 @@ using UnityEngine.SceneManagement;
 /// <summary>Discovers playable maps from the enabled Unity Build Settings scenes.</summary>
 public static class MapSceneCatalog
 {
+    public const string ThunderFactoryPath = "Assets/Scenes/DOUBLE_LAYER_FACILITY.unity";
+
     public readonly struct Entry
     {
         public Entry(int buildIndex, string path)
         {
             BuildIndex = buildIndex;
             Path = path;
-            DisplayName = path == "Assets/Scenes/DOUBLE_LAYER_FACILITY.unity"
+            DisplayName = path == ThunderFactoryPath
                 ? "雷鸣工厂"
                 : System.IO.Path.GetFileNameWithoutExtension(path ?? string.Empty);
         }

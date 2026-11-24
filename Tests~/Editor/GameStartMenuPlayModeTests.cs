@@ -53,8 +53,12 @@ public sealed class GameStartMenuPlayModeTests
         GameSaveSystem.Statistics statistics = GameSaveSystem.Current;
         double winRate = statistics.TotalGamesPlayed == 0 ? 0d
             : (double)statistics.GamesWon / statistics.TotalGamesPlayed * 100d;
-        Assert.That(Get<TextMeshProUGUI>(view, "statisticsValues").text,
-            Is.EqualTo($"{statistics.TotalGamesPlayed:N0}\n{statistics.GamesWon:N0}\n{statistics.GamesLost:N0}\n{winRate:F1}%"));
+        TextMeshProUGUI[] totals = Get<TextMeshProUGUI[]>(view, "statisticValues");
+        Assert.That(totals.Length, Is.EqualTo(4));
+        Assert.That(totals[0].text, Is.EqualTo(statistics.TotalGamesPlayed.ToString("N0")));
+        Assert.That(totals[1].text, Is.EqualTo(statistics.GamesWon.ToString("N0")));
+        Assert.That(totals[2].text, Is.EqualTo(statistics.GamesLost.ToString("N0")));
+        Assert.That(totals[3].text, Is.EqualTo($"{winRate:F1}%"));
         Assert.That(Get<TextMeshProUGUI>(view, "strategicResourcesValue").text,
             Is.EqualTo(statistics.StrategicResources.ToString("N0")));
         PlayerInput player = Object.FindAnyObjectByType<PlayerInput>();
@@ -69,6 +73,7 @@ public sealed class GameStartMenuPlayModeTests
         Assert.That(Get<GameObject>(view, "statisticsPanel").activeSelf, Is.False);
         Get<Slider>(view, "volumeSlider").value = .37f;
         Assert.That(AudioListener.volume, Is.EqualTo(.37f).Within(.001f));
+        Assert.That(Get<TextMeshProUGUI>(view, "volumeValue").text, Is.EqualTo("37%"));
         Get<Button>(view, "backButton").onClick.Invoke();
         Assert.That(Get<GameObject>(view, "mainPanel").activeSelf, Is.True);
         Assert.That(Time.timeScale, Is.Zero);
@@ -211,7 +216,7 @@ public sealed class GameStartMenuPlayModeTests
 
     private static Button FindMapButton(GameStartMenuView view, int buildIndex)
     {
-        Transform option = view.transform.Find("Map Panel/Map List/Map Option " + buildIndex);
+        Transform option = Get<Transform>(view, "mapListContainer").Find("Map Option " + buildIndex);
         Assert.That(option, Is.Not.Null);
         return option.GetComponent<Button>();
     }
