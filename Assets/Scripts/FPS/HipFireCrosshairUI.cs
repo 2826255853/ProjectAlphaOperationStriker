@@ -13,6 +13,10 @@ public sealed class HipFireCrosshairUI : MonoBehaviour
     [SerializeField] private Color outlineColor = Color.black;
 
     [Header("Movement Spread")]
+    // TODO(确认): 根据实际手感调整普通跑动的扩散量和速度阈值。
+    [SerializeField, Min(0f)] private float runSpread = 4f;
+    [Tooltip("Grounded horizontal speed in m/s required to widen the reticle during regular movement.")]
+    [SerializeField, Min(0.1f)] private float minimumRunSpeed = 2.5f;
     [SerializeField, Min(0f)] private float sprintSpread = 8f;
     [SerializeField, Min(0f)] private float airborneSpread = 12f;
     [SerializeField, Min(0f)] private float landingSpread = 10f;
@@ -75,15 +79,19 @@ public sealed class HipFireCrosshairUI : MonoBehaviour
         Vector3 velocity = (transform.position - previousPosition) / deltaTime;
         previousPosition = transform.position;
         velocity.y = 0f;
+        float horizontalSpeedSquared = velocity.sqrMagnitude;
         bool movingForward = Vector3.Dot(velocity, transform.forward) > 0.1f;
         bool sprinting = legacyController != null && legacyController.isActiveAndEnabled
             ? legacyController.IsSprinting && !legacyController.IsQuietWalking && movingForward
             : aimBridge != null && aimBridge.isActiveAndEnabled && aimBridge.IsSprintRequested
               && !aimBridge.IsAiming && movingForward
-              && velocity.sqrMagnitude >= minimumSprintSpeed * minimumSprintSpeed;
+              && horizontalSpeedSquared >= minimumSprintSpeed * minimumSprintSpeed;
 
         bool grounded = characterController.isGrounded;
-        float baseSpread = (sprinting ? sprintSpread : 0f) + (grounded ? 0f : airborneSpread);
+        bool running = grounded && horizontalSpeedSquared >= minimumRunSpeed * minimumRunSpeed;
+        float horizontalSpread = running ? runSpread : 0f;
+        if (sprinting) horizontalSpread = sprintSpread;
+        float baseSpread = horizontalSpread + (grounded ? 0f : airborneSpread);
         if (hasGroundSample && !wasGrounded && grounded)
         {
             // Add a visible landing kick even when the airborne reticle was already wide.
