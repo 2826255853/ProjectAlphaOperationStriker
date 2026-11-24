@@ -2,9 +2,9 @@
 
 ## 局外作战大厅（2026-11-24）
 
-- `GameStartMenuView.BuildLayout` 同时供正式预制体生成与运行时后备布局使用。大厅底栏从 `GameSaveSystem.Current` 刷新四项战绩和战略资源，设置页实时显示音量百分比。
+- `GameStartMenuView.BuildLayout` 同时供正式预制体生成与运行时后备布局使用。大厅首页显示双色标题「阿尔法项目：强袭行动」和战略资源。从「统计数据」进入独立页面，读取 `GameSaveSystem.Current` 的已完成局数、胜场、败场和胜率，可用返回按钮或 Esc 回到大厅。设置页实时显示音量百分比。
 - 选图目录继续取自 Build Settings。雷鸣工厂卡片使用 `Resources/UI/ThunderFactoryPlan.png` 展示设施轴测示意图，其他地图自动生成名称卡片。加工示意图的脚本、五页 Unity 预览及菜单回归报告在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\GameStartMenu\command-lobby\`。
-- 运行 `GameStartMenuAuthoring.GenerateAndValidate` 可重建菜单、校验中文字形并渲染预览。菜单 Play Mode 回归通过 2/2，覆盖同图开局、跨场景开局、暂停、返回大厅、战绩与余额刷新及音量数值。
+- 运行 `GameStartMenuAuthoring.GenerateAndValidate` 可重建菜单、校验中文字形并渲染预览，统计页预览文件为 `font-statistics.png`。菜单 Play Mode 回归通过 2/2，覆盖同图开局、跨场景开局、暂停、返回大厅、统计页按钮切换、战绩与余额及音量数值。
 
 ## 角色与无人机临时标记（2026-11-24）
 

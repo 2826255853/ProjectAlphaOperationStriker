@@ -49,8 +49,21 @@ public sealed class GameStartMenuPlayModeTests
         Assert.That(EventSystem.current, Is.Not.Null);
         Assert.That(EventSystem.current.GetComponent<InputSystemUIInputModule>(), Is.Not.Null);
         Assert.That(Get<TextMeshProUGUI>(view, "primaryLabel").text, Is.EqualTo("开始游戏"));
-        Assert.That(Get<GameObject>(view, "statisticsPanel").activeSelf, Is.True);
+        var statisticsPanel = Get<GameObject>(view, "statisticsPanel");
+        var resourcesValue = Get<TextMeshProUGUI>(view, "strategicResourcesValue");
+        Assert.That(statisticsPanel.activeSelf, Is.False);
+        Assert.That(resourcesValue.gameObject.activeInHierarchy, Is.True);
+        TextMeshProUGUI title = Get<TextMeshProUGUI>(view, "mainTitle");
+        title.ForceMeshUpdate();
+        Assert.That(title.GetParsedText(), Is.EqualTo("阿尔法项目：强袭行动"));
         GameSaveSystem.Statistics statistics = GameSaveSystem.Current;
+        Assert.That(resourcesValue.text, Is.EqualTo(statistics.StrategicResources.ToString("N0")));
+
+        Get<Button>(view, "statisticsButton").onClick.Invoke();
+        Assert.That(statisticsPanel.activeSelf, Is.True);
+        Assert.That(Get<GameObject>(view, "mainPanel").activeSelf, Is.False);
+        Assert.That(resourcesValue.gameObject.activeInHierarchy, Is.False);
+        Assert.That(Time.timeScale, Is.Zero);
         double winRate = statistics.TotalGamesPlayed == 0 ? 0d
             : (double)statistics.GamesWon / statistics.TotalGamesPlayed * 100d;
         TextMeshProUGUI[] totals = Get<TextMeshProUGUI[]>(view, "statisticValues");
@@ -59,8 +72,10 @@ public sealed class GameStartMenuPlayModeTests
         Assert.That(totals[1].text, Is.EqualTo(statistics.GamesWon.ToString("N0")));
         Assert.That(totals[2].text, Is.EqualTo(statistics.GamesLost.ToString("N0")));
         Assert.That(totals[3].text, Is.EqualTo($"{winRate:F1}%"));
-        Assert.That(Get<TextMeshProUGUI>(view, "strategicResourcesValue").text,
-            Is.EqualTo(statistics.StrategicResources.ToString("N0")));
+        Get<Button>(view, "statisticsBackButton").onClick.Invoke();
+        Assert.That(statisticsPanel.activeSelf, Is.False);
+        Assert.That(Get<GameObject>(view, "mainPanel").activeSelf, Is.True);
+        Assert.That(resourcesValue.gameObject.activeInHierarchy, Is.True);
         PlayerInput player = Object.FindAnyObjectByType<PlayerInput>();
         Assert.That(player, Is.Not.Null, "The real scene must bootstrap its player.");
         Assert.That(player.actions, Is.Not.Null);
@@ -118,7 +133,7 @@ public sealed class GameStartMenuPlayModeTests
         GameStartMenuView returnedView = Object.FindAnyObjectByType<GameStartMenuView>();
         Assert.That(returnedView, Is.Not.Null);
         Assert.That(Get<TextMeshProUGUI>(returnedView, "primaryLabel").text, Is.EqualTo("开始游戏"));
-        Assert.That(Get<GameObject>(returnedView, "statisticsPanel").activeSelf, Is.True);
+        Assert.That(Get<GameObject>(returnedView, "statisticsPanel").activeSelf, Is.False);
         Assert.That(GameSaveSystem.Current.TotalGamesPlayed, Is.EqualTo(statistics.TotalGamesPlayed));
         Assert.That(GameSaveSystem.Current.GamesWon, Is.EqualTo(statistics.GamesWon));
         Assert.That(GameSaveSystem.Current.GamesLost, Is.EqualTo(statistics.GamesLost));
@@ -198,7 +213,7 @@ public sealed class GameStartMenuPlayModeTests
         GameStartMenuView returnedView = Object.FindAnyObjectByType<GameStartMenuView>();
         Assert.That(returnedView, Is.Not.Null);
         Assert.That(Get<TextMeshProUGUI>(returnedView, "primaryLabel").text, Is.EqualTo("开始游戏"));
-        Assert.That(Get<GameObject>(returnedView, "statisticsPanel").activeSelf, Is.True);
+        Assert.That(Get<GameObject>(returnedView, "statisticsPanel").activeSelf, Is.False);
         Assert.That(Time.timeScale, Is.Zero);
         Assert.That(GameStartMenu.CursorOwned, Is.True);
     }
@@ -209,6 +224,7 @@ public sealed class GameStartMenuPlayModeTests
         Assert.That(Get<Button>(view, "quitButton").GetComponentInChildren<TextMeshProUGUI>().text,
             Is.EqualTo(GameStartMenuView.PauseQuitLabel));
         Assert.That(Get<GameObject>(view, "statisticsPanel").activeSelf, Is.False);
+        Assert.That(Get<Button>(view, "statisticsButton").gameObject.activeInHierarchy, Is.False);
         Assert.That(Get<Image>(view, "backdrop").gameObject.activeSelf, Is.False);
         Assert.That(Get<GameObject>(view, "mainPanel").GetComponent<Image>().color.a, Is.InRange(.1f, .8f));
         Assert.That(Time.timeScale, Is.Zero);

@@ -9,6 +9,8 @@ using UnityEngine.UI;
 public sealed class GameStartMenuView : MonoBehaviour
 {
     public const string MenuFontResourcePath = "UI/Fonts/MenuChinese SDF";
+    private const string ColoredLobbyTitle = "<color=#BF2947>阿尔法项目</color>：<color=#A8DFFF>强袭行动</color>";
+    public const string StatisticsTitle = "统计数据";
     public const string MapPrompt = "点击地图进入游戏";
     public const string MapLoadingMessage = "正在加载地图...";
     public const string EmptyMapMessage = "没有可用地图";
@@ -45,6 +47,8 @@ public sealed class GameStartMenuView : MonoBehaviour
     [SerializeField] private TextMeshProUGUI mainFooter;
     [SerializeField] private TextMeshProUGUI settingsTitle;
     [SerializeField] private GameObject statisticsPanel;
+    [SerializeField] private Button statisticsButton;
+    [SerializeField] private Button statisticsBackButton;
     [SerializeField] private TextMeshProUGUI[] statisticValues;
     [SerializeField] private TextMeshProUGUI pageLabel;
     [SerializeField] private TextMeshProUGUI volumeValue;
@@ -92,15 +96,18 @@ public sealed class GameStartMenuView : MonoBehaviour
         BuildSettings(view, view.settingsPanel.transform);
         view.mapPanel = PanelObject(root.transform, "Map Panel");
         BuildMapSelection(view, view.mapPanel.transform);
-        BuildStatistics(view, root.transform);
+        BuildStrategicResources(view, root.transform);
+        view.statisticsPanel = PanelObject(root.transform, "Statistics Panel");
+        BuildStatistics(view, view.statisticsPanel.transform);
         view.settingsPanel.SetActive(false);
         view.mapPanel.SetActive(false);
+        view.statisticsPanel.SetActive(false);
         return view;
     }
 
     public void Initialize(GameStartMenu owner)
     {
-        if (primaryButton == null || mapPanel == null || pageLabel == null)
+        if (primaryButton == null || mapPanel == null || pageLabel == null || statisticsButton == null)
         {
             foreach (Transform child in transform)
             {
@@ -122,6 +129,8 @@ public sealed class GameStartMenuView : MonoBehaviour
         quitButton.onClick.AddListener(owner.QuitGame);
         backButton.onClick.AddListener(owner.CloseSettings);
         mapBackButton.onClick.AddListener(owner.CloseMapSelection);
+        statisticsButton.onClick.AddListener(owner.OpenStatistics);
+        statisticsBackButton.onClick.AddListener(owner.CloseStatistics);
         volumeSlider.onValueChanged.AddListener(owner.SetMasterVolume);
         volumeSlider.onValueChanged.AddListener(UpdateVolumeLabel);
         fullscreenToggle.onValueChanged.AddListener(owner.SetFullscreen);
@@ -136,19 +145,22 @@ public sealed class GameStartMenuView : MonoBehaviour
     }
 
     public void SetState(bool started, bool showSettings, bool showMaps, float volume, bool fullscreen,
-        bool loading, IReadOnlyList<MapSceneCatalog.Entry> maps)
+        bool loading, IReadOnlyList<MapSceneCatalog.Entry> maps, bool showStatistics = false)
     {
         primaryLabel.text = started ? "继续游戏" : "开始游戏";
         primaryButton.interactable = !loading;
         settingsButton.interactable = !loading;
         quitButton.interactable = !loading;
+        statisticsButton.gameObject.SetActive(!started);
+        statisticsButton.interactable = !loading;
         quitLabel.text = started ? PauseQuitLabel : "退出游戏";
-        mainTitle.text = started ? PauseTitle : "行动打击";
-        mainTitle.fontSize = started ? 69 : 118;
+        mainTitle.text = started ? PauseTitle : ColoredLobbyTitle;
+        mainTitle.fontSize = started ? 69 : 80;
         mainDescription.text = started ? PauseDescription : "部署防御设施，守住边境前线。";
         mainFooter.text = loading ? MapLoadingMessage : PauseFooter;
         mainFooter.gameObject.SetActive(started);
-        pageLabel.text = showMaps ? "大厅   /   地图选择" : showSettings ? "大厅   /   设置" : "作战大厅";
+        pageLabel.text = showMaps ? "大厅   /   地图选择" : showSettings ? "大厅   /   设置"
+            : showStatistics ? "大厅   /   " + StatisticsTitle : "作战大厅";
         settingsTitle.text = started ? PauseTitle + " · 设置" : "设置";
         settingsTitle.fontSize = started ? 46 : 65;
         backdrop.gameObject.SetActive(!started);
@@ -157,23 +169,29 @@ public sealed class GameStartMenuView : MonoBehaviour
         Color panelColor = new Color(Panel.r, Panel.g, Panel.b, started ? .72f : Panel.a);
         mainPanel.GetComponent<Image>().color = started ? panelColor : Color.clear;
         settingsPanel.GetComponent<Image>().color = panelColor;
-        mainPanel.SetActive(!showSettings && !showMaps);
+        mainPanel.SetActive(!showSettings && !showMaps && !showStatistics);
         settingsPanel.SetActive(showSettings);
         mapPanel.SetActive(showMaps);
+        statisticsPanel.SetActive(showStatistics);
+        bool showResources = !started && mainPanel.activeSelf;
+        strategicResourcesValue.transform.parent.gameObject.SetActive(showResources);
         volumeSlider.SetValueWithoutNotify(Mathf.Clamp01(volume));
         UpdateVolumeLabel(volume);
         fullscreenToggle.SetIsOnWithoutNotify(fullscreen);
-        statisticsPanel.SetActive(!started && !showSettings && !showMaps);
-        if (statisticsPanel.activeSelf)
+        if (showResources || showStatistics)
         {
             GameSaveSystem.Statistics statistics = GameSaveSystem.Current;
-            double winRate = statistics.TotalGamesPlayed == 0 ? 0d
-                : (double)statistics.GamesWon / statistics.TotalGamesPlayed * 100d;
-            statisticValues[0].text = statistics.TotalGamesPlayed.ToString("N0");
-            statisticValues[1].text = statistics.GamesWon.ToString("N0");
-            statisticValues[2].text = statistics.GamesLost.ToString("N0");
-            statisticValues[3].text = $"{winRate:F1}%";
-            strategicResourcesValue.text = statistics.StrategicResources.ToString("N0");
+            if (showResources)
+                strategicResourcesValue.text = statistics.StrategicResources.ToString("N0");
+            if (showStatistics)
+            {
+                double winRate = statistics.TotalGamesPlayed == 0 ? 0d
+                    : (double)statistics.GamesWon / statistics.TotalGamesPlayed * 100d;
+                statisticValues[0].text = statistics.TotalGamesPlayed.ToString("N0");
+                statisticValues[1].text = statistics.GamesWon.ToString("N0");
+                statisticValues[2].text = statistics.GamesLost.ToString("N0");
+                statisticValues[3].text = $"{winRate:F1}%";
+            }
         }
         if (showMaps) RefreshMaps(maps, loading);
     }
@@ -201,7 +219,7 @@ public sealed class GameStartMenuView : MonoBehaviour
     {
         var series = Text(panel, "边 境 防 御 协 议", new Vector2(45, -119), new Vector2(-30, -77), 23, Amber);
         series.fontStyle = FontStyles.Bold;
-        view.mainTitle = Text(panel, "行动打击", new Vector2(36, -275), new Vector2(-20, -105), 118, Color.white);
+        view.mainTitle = Text(panel, ColoredLobbyTitle, new Vector2(36, -275), new Vector2(300, -105), 80, Color.white);
         view.mainTitle.fontStyle = FontStyles.Bold;
         view.mainDescription = Text(panel, "部署防御设施，守住边境前线。", new Vector2(45, -337), new Vector2(-20, -275), 27, Body);
         view.primaryButton = Button(panel, "Primary Action", new Vector2(44, -397), "开始游戏", Amber, 502, true);
@@ -209,6 +227,7 @@ public sealed class GameStartMenuView : MonoBehaviour
         view.settingsButton = Button(panel, "Settings", new Vector2(44, -489), "设置", Body, 162);
         view.quitButton = Button(panel, "Quit", new Vector2(218, -489), "退出游戏", Body, 328);
         view.quitLabel = view.quitButton.GetComponentInChildren<TextMeshProUGUI>();
+        view.statisticsButton = Button(panel, "Statistics", new Vector2(44, -563), StatisticsTitle, Body);
         view.mainFooter = Footer(panel, PauseFooter);
         view.mainFooter.gameObject.SetActive(false);
     }
@@ -231,34 +250,42 @@ public sealed class GameStartMenuView : MonoBehaviour
         Footer(panel, "变更会立即生效");
     }
 
-    private static void BuildStatistics(GameStartMenuView view, Transform parent)
+    private static void BuildStrategicResources(GameStartMenuView view, Transform parent)
     {
-        view.statisticsPanel = Image(parent, "Statistics Panel", Vector2.zero, Vector2.right,
-            new Vector2(84, 42), new Vector2(-84, 192), null, Panel).gameObject;
-        Transform strip = view.statisticsPanel.transform;
-        Image(strip, "Top Rule", new Vector2(0, 1), Vector2.one, new Vector2(0, -2), Vector2.zero, null, ButtonColor);
-        Image(strip, "Accent", new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, -4), new Vector2(68, 0), null, Amber);
-        Text(strip, "作战记录", new Vector2(32, -107), new Vector2(220, -42), 33, Color.white,
-            TextAlignmentOptions.Left, Vector2.up, Vector2.up).fontStyle = FontStyles.Bold;
-        string[] labels = { "已完成局数", "胜场", "败场", "胜率", "战略资源" };
-        float[] columns = { .18f, .35f, .50f, .65f, .81f, 1f };
-        view.statisticValues = new TextMeshProUGUI[4];
+        Transform card = Image(parent, "Strategic Resources", Vector2.zero, Vector2.zero,
+            new Vector2(88, 42), new Vector2(356, 174), null, Panel).transform;
+        Image(card, "Accent", Vector2.up, Vector2.up, new Vector2(0, -4), new Vector2(68, 0), null, Amber);
+        Text(card, "战略资源", new Vector2(24, -58), new Vector2(-24, -22), 23, Body);
+        view.strategicResourcesValue = BuildStatValue(card, "0", new Vector2(24, -112), new Vector2(-24, -58), Amber);
+    }
+
+    private static void BuildStatistics(GameStartMenuView view, Transform panel)
+    {
+        Text(panel, StatisticsTitle, new Vector2(40, -140), new Vector2(-40, -38), 65, Color.white).fontStyle = FontStyles.Bold;
+        Image(panel, "Rule", Vector2.up, Vector2.one, new Vector2(44, -174), new Vector2(-44, -172), null, ButtonColor);
+        string[] labels = { "已完成局数", "胜场", "败场", "胜率" };
+        view.statisticValues = new TextMeshProUGUI[labels.Length];
         for (int i = 0; i < labels.Length; i++)
         {
-            Vector2 from = new Vector2(columns[i], 0);
-            Vector2 to = new Vector2(columns[i + 1], 0);
-            Image(strip, "Divider", from, from, new Vector2(0, 34), new Vector2(1, 116), null, ButtonColor);
-            Text(strip, labels[i], new Vector2(30, 91), new Vector2(-12, 123), 20, Body, TextAlignmentOptions.Left, from, to);
-            bool resource = i == labels.Length - 1;
-            var value = Text(strip, i == 3 ? "0.0%" : "0", new Vector2(30, 20), new Vector2(-16, 90),
-                46, resource ? Amber : Color.white, TextAlignmentOptions.Left, from, to);
-            value.enableAutoSizing = true;
-            value.fontSizeMin = 16;
-            value.fontSizeMax = 46;
-            value.textWrappingMode = TextWrappingModes.NoWrap;
-            if (resource) view.strategicResourcesValue = value;
-            else view.statisticValues[i] = value;
+            float x = 44 + i % 2 * 256;
+            float y = -210 - i / 2 * 134;
+            Transform card = Image(panel, labels[i], Vector2.up, Vector2.up, new Vector2(x, y - 118),
+                new Vector2(x + 246, y), null, ButtonColor).transform;
+            Text(card, labels[i], new Vector2(20, -53), new Vector2(-20, -18), 23, Body);
+            view.statisticValues[i] = BuildStatValue(card, i == 3 ? "0.0%" : "0",
+                new Vector2(20, -104), new Vector2(-20, -53), Color.white);
         }
+        view.statisticsBackButton = Button(panel, "Statistics Back", new Vector2(44, -507), "返回", Amber, 502, true);
+    }
+
+    private static TextMeshProUGUI BuildStatValue(Transform parent, string value, Vector2 bottomLeft, Vector2 topRight, Color color)
+    {
+        TextMeshProUGUI label = Text(parent, value, bottomLeft, topRight, 46, color);
+        label.enableAutoSizing = true;
+        label.fontSizeMin = 16;
+        label.fontSizeMax = 46;
+        label.textWrappingMode = TextWrappingModes.NoWrap;
+        return label;
     }
 
     private static void BuildMapSelection(GameStartMenuView view, Transform panel)

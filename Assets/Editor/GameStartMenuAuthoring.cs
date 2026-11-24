@@ -55,10 +55,15 @@ public static class GameStartMenuAuthoring
         if (prefab.transform.Find("Main Panel/Primary Action") == null
             || prefab.transform.Find("Main Panel/Map Selection") != null)
             throw new InvalidOperationException("Enter the map selection page through the main menu's primary action.");
-        if (prefab.transform.Find("Statistics Panel") == null)
+        Transform statistics = prefab.transform.Find("Statistics Panel");
+        if (statistics == null || statistics.gameObject.activeSelf
+            || prefab.transform.Find("Main Panel/Statistics") == null
+            || statistics.Find("Statistics Back") == null)
             throw new InvalidOperationException("Menu prefab is missing saved-game statistics.");
-        if (new SerializedObject(prefab.GetComponent<GameStartMenuView>())
-            .FindProperty("strategicResourcesValue").objectReferenceValue == null)
+        Transform resources = prefab.transform.Find("Strategic Resources");
+        var resourcesValue = new SerializedObject(prefab.GetComponent<GameStartMenuView>())
+            .FindProperty("strategicResourcesValue").objectReferenceValue as TextMeshProUGUI;
+        if (resources == null || resourcesValue == null || !resourcesValue.transform.IsChildOf(resources))
             throw new InvalidOperationException("Menu prefab is missing the strategic resources balance.");
         var maps = MapSceneCatalog.GetMaps();
         if (maps.Count != UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings || maps.Count == 0)
@@ -116,11 +121,13 @@ public static class GameStartMenuAuthoring
             var view = root.GetComponent<GameStartMenuView>();
             string directory = PreviewDirectory;
             Directory.CreateDirectory(directory);
-            string[] names = { "font-main-menu.png", "font-settings.png", "font-map-selection.png", "pause-menu.png", "pause-settings.png" };
-            for (int page = 0; page < 5; page++)
+            string[] names = { "font-main-menu.png", "font-settings.png", "font-map-selection.png",
+                "pause-menu.png", "pause-settings.png", "font-statistics.png" };
+            for (int page = 0; page < names.Length; page++)
             {
-                camera.backgroundColor = page >= 3 ? new Color(.25f, .32f, .38f) : Color.black;
-                view.SetState(page >= 3, page == 1 || page == 4, page == 2, 1f, true, false, MapSceneCatalog.GetMaps());
+                bool paused = page == 3 || page == 4;
+                camera.backgroundColor = paused ? new Color(.25f, .32f, .38f) : Color.black;
+                view.SetState(paused, page == 1 || page == 4, page == 2, 1f, true, false, MapSceneCatalog.GetMaps(), page == 5);
                 Canvas.ForceUpdateCanvases();
                 foreach (TextMeshProUGUI text in root.GetComponentsInChildren<TextMeshProUGUI>()) text.ForceMeshUpdate();
                 camera.Render();

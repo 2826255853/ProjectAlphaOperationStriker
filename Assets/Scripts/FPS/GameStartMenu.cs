@@ -11,6 +11,7 @@ public sealed class GameStartMenu : MonoBehaviour
     private bool open;
     private bool settings;
     private bool mapSelection;
+    private bool statistics;
     private bool started;
     private bool loading;
     private bool restoreInputPending;
@@ -64,6 +65,7 @@ public sealed class GameStartMenu : MonoBehaviour
         {
             if (settings) ShowSettings(false);
             else if (mapSelection) CloseMapSelection();
+            else if (statistics) CloseStatistics();
             else if (started) Close();
         }
         else if (!TrapSelectionMenu.CursorOwned) Open();
@@ -79,7 +81,7 @@ public sealed class GameStartMenu : MonoBehaviour
 
     public void BeginOrResume()
     {
-        if (!open || loading || settings || mapSelection) return;
+        if (!open || loading || settings || mapSelection || statistics) return;
         if (started) Close();
         else OpenMapSelection();
     }
@@ -111,6 +113,20 @@ public sealed class GameStartMenu : MonoBehaviour
 
     public void OpenSettings() => ShowSettings(true);
     public void CloseSettings() => ShowSettings(false);
+    public void OpenStatistics()
+    {
+        if (!open || started || loading || settings || mapSelection || statistics) return;
+        statistics = true;
+        RefreshView();
+    }
+
+    public void CloseStatistics()
+    {
+        if (!open || !statistics) return;
+        statistics = false;
+        RefreshView();
+    }
+
     public void SetMasterVolume(float value) => AudioListener.volume = Mathf.Clamp01(value);
     public void SetFullscreen(bool value) => Screen.fullScreen = value;
 
@@ -192,6 +208,7 @@ public sealed class GameStartMenu : MonoBehaviour
         open = false;
         settings = false;
         mapSelection = false;
+        statistics = false;
         started = true;
         CursorOwned = false;
         cursorReleasedFrame = Time.frameCount;
@@ -207,7 +224,11 @@ public sealed class GameStartMenu : MonoBehaviour
     {
         if (!open || loading || settings == show) return;
         settings = show;
-        if (show) mapSelection = false;
+        if (show)
+        {
+            mapSelection = false;
+            statistics = false;
+        }
         RefreshView();
     }
 
@@ -241,7 +262,7 @@ public sealed class GameStartMenu : MonoBehaviour
         view.SetVisible(open);
         if (open)
             view.SetState(started, settings, mapSelection, AudioListener.volume, Screen.fullScreen,
-                loading, MapSceneCatalog.GetMaps());
+                loading, MapSceneCatalog.GetMaps(), statistics);
     }
 
     private void RestoreInputAfterClick()
