@@ -99,7 +99,8 @@ public sealed class RepairStationTrap : MonoBehaviour
     {
         if (self == null) self = GetComponent<TrapInstance>();
         CaptureRest();
-        if (!isActiveAndEnabled || !TrapPlacementGeometry.TryGetGroundFootprint(self, sourceCorners))
+        if (!isActiveAndEnabled || self == null || !self.IsOperational
+            || !TrapPlacementGeometry.TryGetGroundFootprint(self, sourceCorners))
         {
             ClearTargetsAndPose();
             return;
@@ -115,6 +116,7 @@ public sealed class RepairStationTrap : MonoBehaviour
         {
             TrapInstance target = targets[i];
             if (now >= readyAt[i] && target != null && target.isActiveAndEnabled
+                && target.IsOperational
                 && TrapPlacementGeometry.FindSharedGroundSide(self, target, sourceCorners, targetCorners) == i
                 && target.Repair(self.GetEffectiveRepair(repairAmount)) > 0f)
             {

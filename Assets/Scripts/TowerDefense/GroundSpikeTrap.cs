@@ -60,7 +60,7 @@ public sealed class GroundSpikeTrap : MonoBehaviour
     // Explicit simulation entry point allows deterministic editor verification.
     public void Tick(float deltaTime)
     {
-        if (!isActiveAndEnabled || trap == null || trap.IsDestroyed) return;
+        if (!isActiveAndEnabled || trap == null || !trap.IsOperational) return;
         EnemyHealth[] enemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
         float remaining = Mathf.Max(0f, deltaTime);
         float offset = 0f;
@@ -80,7 +80,7 @@ public sealed class GroundSpikeTrap : MonoBehaviour
             float step = Mathf.Min(remaining, Mathf.Max(0f, duration - elapsed));
             if (State == AttackState.Extending || State == AttackState.Holding)
                 HasContact(enemies, deltaTime, offset, step, true, out _);
-            if (trap.IsDestroyed || !isActiveAndEnabled) return;
+            if (!trap.IsOperational || !isActiveAndEnabled) return;
             elapsed += step;
             offset += step;
             remaining -= step;
@@ -104,7 +104,7 @@ public sealed class GroundSpikeTrap : MonoBehaviour
         delay = step;
         foreach (EnemyHealth enemy in enemies)
         {
-            if (trap.IsDestroyed || !isActiveAndEnabled) break;
+            if (!trap.IsOperational || !isActiveAndEnabled) break;
             if (!IsGroundTarget(enemy)) continue;
             Vector3 current = FeetPosition(enemy);
             if (!previousPositions.TryGetValue(enemy, out Vector3 previous)) previous = current;

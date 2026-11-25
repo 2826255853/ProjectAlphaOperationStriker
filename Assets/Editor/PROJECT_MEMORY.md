@@ -1,5 +1,10 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 陷阱放置部署冷却（2026-11-25）
+
+- `TrapPlacementGrid.TryPlaceTrap` 成功占格后为运行时陷阱启动 1 秒部署计时；编辑器绘制和场景预置实例不启动计时。计时由 `TrapInstance.IsOperational` 统一提供。
+- 自动攻击、地刺/跳雷、喷火、导弹、等离子炮、XM777、密集阵与维修站在模拟入口检查该状态。部署期间不推进攻击状态，不发射或维修；冷却结束后从待机开始。
+
 ## 玩家枪械击杀反馈（2026-11-25）
 
 - `FPSHitscanShooter` 使用 `EnemyHealth.ApplyWeaponDamage` 的致命伤害结果触发 `HipFireCrosshairUI`。敌人血量在同一结算中从正数降到零才归给这一发，伤害回调里追加的陷阱伤害独立结算。

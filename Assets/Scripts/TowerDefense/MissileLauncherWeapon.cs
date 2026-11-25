@@ -197,6 +197,8 @@ public sealed class MissileLauncherWeapon : MonoBehaviour
     /// </summary>
     public void Advance(float deltaTime)
     {
+        TrapInstance trap = GetComponent<TrapInstance>();
+        if (trap != null && !trap.IsOperational) return;
         if (turret == null) turret = GetComponent<MissileLauncherTurret>();
         if (deltaTime < 0f) deltaTime = 0f;
 

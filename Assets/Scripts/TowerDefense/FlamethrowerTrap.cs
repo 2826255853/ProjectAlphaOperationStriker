@@ -76,7 +76,7 @@ public sealed class FlamethrowerTrap : MonoBehaviour
 
     public void Tick(float deltaTime)
     {
-        if (!isActiveAndEnabled || trap == null || trap.IsDestroyed
+        if (!isActiveAndEnabled || trap == null || !trap.IsOperational
             || deltaTime <= 0f || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime)) return;
         double remaining = deltaTime;
         while (remaining > StateBoundaryTolerance)
@@ -90,13 +90,13 @@ public sealed class FlamethrowerTrap : MonoBehaviour
             double duration = StateDuration();
             double step = System.Math.Min(remaining, System.Math.Max(0d, duration - stateTime));
             if (state == AttackState.Spraying) ApplyBurstDamage();
-            if (!isActiveAndEnabled || trap == null || trap.IsDestroyed) return;
+            if (!isActiveAndEnabled || trap == null || !trap.IsOperational) return;
             stateTime += step; remaining -= step;
             if (stateTime + StateBoundaryTolerance < duration) continue;
             if (state == AttackState.Delay) EnterState(AttackState.Spraying);
             else if (state == AttackState.Spraying) EnterState(AttackState.Cooldown);
             else if (state == AttackState.Cooldown) EnterState(AttackState.Ready);
-            if (!isActiveAndEnabled || trap == null || trap.IsDestroyed) return;
+            if (!isActiveAndEnabled || trap == null || !trap.IsOperational) return;
         }
     }
 

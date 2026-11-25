@@ -153,7 +153,7 @@ public sealed class Betty7JumpMineTrap : MonoBehaviour
     /// <summary>Explicit simulation entry point so editor tests need no frame timing.</summary>
     public void Tick(float deltaTime)
     {
-        if (!isActiveAndEnabled || trap == null || trap.IsDestroyed) return;
+        if (!isActiveAndEnabled || trap == null || !trap.IsOperational) return;
         float dt = Mathf.Max(0f, deltaTime);
 
         EnemyHealth target = FindNearestGroundTarget(detectRadius);

@@ -4,6 +4,7 @@ using UnityEngine;
 
 public sealed class TrapInstance : MonoBehaviour
 {
+    public const float DeploymentCooldownSeconds = 1f;
     // Serialized so editor-authored traps retain their identity after a domain
     // reload or when the scene is reopened. The grid rebuilds its occupancy map
     // from these values on enable.
@@ -16,6 +17,7 @@ public sealed class TrapInstance : MonoBehaviour
     private TrapUpgradeState upgradeState = TrapUpgradeState.Initial;
     private TrapUpgradeMultipliers upgradeMultipliers = TrapUpgradeCatalog.DefaultMultipliers(1);
     private bool healthInitialized;
+    private float operationalAt;
 
     private static readonly HashSet<TrapInstance> activeTraps = new HashSet<TrapInstance>();
     public static IReadOnlyCollection<TrapInstance> ActiveTraps => activeTraps;
@@ -24,6 +26,7 @@ public sealed class TrapInstance : MonoBehaviour
     public float MaxHealth => maxHealth * upgradeMultipliers.MaxHealth;
     public float CurrentHealth { get; private set; }
     public bool IsDestroyed => CurrentHealth <= 0f;
+    public bool IsOperational => !IsDestroyed && Time.time >= operationalAt;
     public TrapUpgradeState UpgradeState => upgradeState;
     public int UpgradeLevel => upgradeState.Level;
     public TrapUpgradeDirection UpgradeDirection => upgradeState.Direction;
@@ -54,6 +57,11 @@ public sealed class TrapInstance : MonoBehaviour
 
     public TrapDefinition Definition => definition;
     public Vector2Int OriginCell => originCell;
+
+    internal void BeginDeployment()
+    {
+        operationalAt = Time.time + DeploymentCooldownSeconds;
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics() => activeTraps.Clear();

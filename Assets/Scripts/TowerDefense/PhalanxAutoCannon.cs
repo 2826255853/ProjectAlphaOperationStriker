@@ -70,6 +70,13 @@ public sealed class PhalanxAutoCannon : MonoBehaviour
     {
         if (deltaTime < 0f) deltaTime = 0f;
         ResolveReferences();
+        if (trap != null && !trap.IsOperational)
+        {
+            target = null;
+            shotAccumulator = 0f;
+            rig?.SetBarrelSpinActive(false);
+            return;
+        }
         AcquireTarget();
         if (target == null)
         {

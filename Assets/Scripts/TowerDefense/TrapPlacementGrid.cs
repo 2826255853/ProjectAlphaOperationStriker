@@ -822,6 +822,7 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             placedTraps.Add(instance);
             instance.OwnerGrid = this;
             foreach (var cell in cells) occupiedCells[cell] = instance;
+            if (Application.isPlaying) instance.BeginDeployment();
             VisualRevision++;
             return true;
         }

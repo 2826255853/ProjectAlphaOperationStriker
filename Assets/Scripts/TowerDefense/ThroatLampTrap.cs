@@ -53,6 +53,8 @@ public sealed class ThroatLampTrap : MonoBehaviour
 
     public void Advance(float deltaTime)
     {
+        TrapInstance trap = GetComponent<TrapInstance>();
+        if (trap != null && !trap.IsOperational) return;
         if (!isActiveAndEnabled || !HasBoundRig || deltaTime <= 0f
             || GetComponentInParent<TrapPlacementPreview>() != null) return;
         clock += deltaTime;
@@ -103,7 +105,6 @@ public sealed class ThroatLampTrap : MonoBehaviour
 
         PlasmaProjectile shot = Instantiate(projectilePrefab, nozzle.position, nozzle.rotation);
         // Charging keeps its progress; only the emitted projectile samples the current level.
-        TrapInstance trap = GetComponent<TrapInstance>();
         float shotDirect = trap != null ? trap.GetEffectiveDamage(directDamage) : directDamage;
         float shotSplash = trap != null ? trap.GetEffectiveDamage(splashDamage) : splashDamage;
         shot.Initialize(nozzle.forward, projectileSpeed, detectionRange, shotDirect, shotSplash, splashRadius, transform);

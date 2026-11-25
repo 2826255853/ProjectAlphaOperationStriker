@@ -170,6 +170,13 @@ public sealed class MissileLauncherTurret : MonoBehaviour
 
     private void Update()
     {
+        TrapInstance trap = GetComponent<TrapInstance>();
+        if (trap != null && !trap.IsOperational)
+        {
+            target = null;
+            hasAimPoint = false;
+            return;
+        }
         if (!HasRig)
         {
             if (autoBuildRigIfMissing) BuildRig();

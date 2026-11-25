@@ -234,7 +234,7 @@ public sealed class XM777Trap : MonoBehaviour
     /// <summary>Deterministic simulation entry point, also used by EditMode tests.</summary>
     public void Tick(float deltaTime)
     {
-        if (!isActiveAndEnabled || trap == null || trap.IsDestroyed
+        if (!isActiveAndEnabled || trap == null || !trap.IsOperational
             || deltaTime < 0f || GetComponentInParent<TrapPlacementPreview>() != null)
             return;
         EnsureRestPose();

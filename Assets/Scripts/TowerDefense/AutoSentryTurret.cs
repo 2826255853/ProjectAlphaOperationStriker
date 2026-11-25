@@ -127,6 +127,12 @@ public sealed class AutoSentryTurret : MonoBehaviour
     /// </summary>
     public void Tick(float deltaTime)
     {
+        TrapInstance trap = GetComponent<TrapInstance>();
+        if (trap != null && !trap.IsOperational)
+        {
+            target = null;
+            return;
+        }
         if (deltaTime < 0f) deltaTime = 0f;
 
         if (cooldownTime > 0f)
