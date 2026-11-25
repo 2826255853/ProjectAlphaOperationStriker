@@ -1,9 +1,13 @@
 using UnityEngine;
 
-/// <summary>Draws the configurable hip-fire reticle for the player view.</summary>
+/// <summary>Draws the hip-fire reticle and presents weapon kill feedback.</summary>
 [DefaultExecutionOrder(1000)]
 public sealed class HipFireCrosshairUI : MonoBehaviour
 {
+    private const float KillMarkerDuration = 0.18f;
+    private const float KillMarkerExpandTime = 0.05f;
+    private const float KillSoundInterval = 0.12f;
+
     [Header("Appearance")]
     [SerializeField] private Color color = Color.white;
     [SerializeField, Min(1f)] private float lineLength = 7f;
@@ -11,6 +15,11 @@ public sealed class HipFireCrosshairUI : MonoBehaviour
     [SerializeField, Min(0f)] private float centerGap = 4f;
     [SerializeField, Min(0f)] private float outlineThickness = 1f;
     [SerializeField] private Color outlineColor = Color.black;
+
+    [Header("Weapon Kill")]
+    [SerializeField] private Color killMarkerColor = new Color(1f, 0.91f, 0.83f);
+    [SerializeField] private AudioClip killConfirmClip;
+    [SerializeField, Range(0f, 1f)] private float killConfirmVolume = 0.65f;
 
     [Header("Movement Spread")]
     // TODO(确认): 根据实际手感调整普通跑动的扩散量和速度阈值。
@@ -31,7 +40,12 @@ public sealed class HipFireCrosshairUI : MonoBehaviour
     private CharacterController characterController;
     private FirstPersonController legacyController;
     private LadderClimbing ladderClimbing;
+    private PlayerHealth playerHealth;
     private Texture2D pixel;
+    private AudioSource killAudioSource;
+    private Camera killViewCamera;
+    private float killMarkerStarted = float.NegativeInfinity;
+    private float lastKillSound = float.NegativeInfinity;
     private float movementSpread;
     private float landingImpulse;
     private Vector3 previousPosition;
@@ -44,12 +58,62 @@ public sealed class HipFireCrosshairUI : MonoBehaviour
         characterController = GetComponent<CharacterController>();
         legacyController = GetComponent<FirstPersonController>();
         ladderClimbing = GetComponent<LadderClimbing>();
+        playerHealth = GetComponent<PlayerHealth>();
         pixel = Texture2D.whiteTexture;
+    }
+
+    private void Start()
+    {
+        if (killConfirmClip == null && GetComponent<FPSHitscanShooter>() != null)
+            killConfirmClip = Resources.Load<AudioClip>("GunKillConfirm");
     }
 
     private void OnEnable()
     {
         ResetMovementSpread();
+    }
+
+    private void OnDisable()
+    {
+        ClearKillFeedback();
+        lastKillSound = float.NegativeInfinity;
+    }
+
+    internal void ShowWeaponKill(Camera viewCamera)
+    {
+        if (!CanShowWeaponKill(viewCamera)) return;
+
+        float now = Time.unscaledTime;
+        killViewCamera = viewCamera;
+        killMarkerStarted = now;
+        if (killConfirmClip == null || now - lastKillSound < KillSoundInterval) return;
+
+        if (killAudioSource == null)
+        {
+            GameObject audioObject = new GameObject("Gun Kill Confirm Audio");
+            audioObject.transform.SetParent(transform, false);
+            killAudioSource = audioObject.AddComponent<AudioSource>();
+            killAudioSource.playOnAwake = false;
+            killAudioSource.spatialBlend = 0f;
+        }
+
+        killAudioSource.PlayOneShot(killConfirmClip, killConfirmVolume);
+        lastKillSound = now;
+    }
+
+    private bool CanShowWeaponKill(Camera viewCamera)
+    {
+        return isActiveAndEnabled && viewCamera != null && viewCamera.isActiveAndEnabled
+            && (playerHealth == null || !playerHealth.IsDead)
+            && !TrapSelectionMenu.CursorOwned && !GameStartMenu.CursorOwned
+            && !TrapPlacementController.IsPlacementModeActive;
+    }
+
+    private void ClearKillFeedback()
+    {
+        killViewCamera = null;
+        killMarkerStarted = float.NegativeInfinity;
+        if (killAudioSource != null) killAudioSource.Stop();
     }
 
     private void ResetMovementSpread()
@@ -62,6 +126,8 @@ public sealed class HipFireCrosshairUI : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (killViewCamera != null && !CanShowWeaponKill(killViewCamera)) ClearKillFeedback();
+
         // Both movement implementations (and ladders) have finished moving by now.
         if (characterController == null || !characterController.enabled
             || GameStartMenu.CursorOwned || TrapSelectionMenu.CursorOwned
@@ -112,19 +178,55 @@ public sealed class HipFireCrosshairUI : MonoBehaviour
 
     private void OnGUI()
     {
-        if (!ShouldDraw()) return;
+        if (Event.current.type != EventType.Repaint) return;
 
         float scale = Mathf.Max(0.5f, Screen.height / 1080f);
-        float length = lineLength * scale;
-        float thickness = lineThickness * scale;
-        float gap = (centerGap + movementSpread) * scale;
         float x = Screen.width * 0.5f;
         float y = Screen.height * 0.5f;
+        if (ShouldDraw())
+        {
+            float length = lineLength * scale;
+            float thickness = lineThickness * scale;
+            float gap = (centerGap + movementSpread) * scale;
 
-        DrawSegment(new Rect(x - gap - length, y - thickness * 0.5f, length, thickness), color, scale);
-        DrawSegment(new Rect(x + gap, y - thickness * 0.5f, length, thickness), color, scale);
-        DrawSegment(new Rect(x - thickness * 0.5f, y - gap - length, thickness, length), color, scale);
-        DrawSegment(new Rect(x - thickness * 0.5f, y + gap, thickness, length), color, scale);
+            DrawSegment(new Rect(x - gap - length, y - thickness * 0.5f, length, thickness), color, outlineColor, scale);
+            DrawSegment(new Rect(x + gap, y - thickness * 0.5f, length, thickness), color, outlineColor, scale);
+            DrawSegment(new Rect(x - thickness * 0.5f, y - gap - length, thickness, length), color, outlineColor, scale);
+            DrawSegment(new Rect(x - thickness * 0.5f, y + gap, thickness, length), color, outlineColor, scale);
+        }
+
+        float killAge = Time.unscaledTime - killMarkerStarted;
+        if (killAge < KillMarkerDuration && CanShowWeaponKill(killViewCamera))
+            DrawKillMarker(new Vector2(x, y), scale, killAge);
+    }
+
+    private void DrawKillMarker(Vector2 center, float scale, float age)
+    {
+        float expansion = Mathf.SmoothStep(0f, 1f, age / KillMarkerExpandTime);
+        float alpha = 1f - Mathf.SmoothStep(0f, 1f,
+            (age - KillMarkerExpandTime) / (KillMarkerDuration - KillMarkerExpandTime));
+        float gap = Mathf.Lerp(7f, 13f, expansion) * scale;
+        float length = Mathf.Lerp(8f, 11f, expansion) * scale;
+        float thickness = Mathf.Lerp(2.5f, 3.5f, expansion) * scale;
+        Color tint = killMarkerColor;
+        tint.a *= alpha;
+        Color outline = outlineColor;
+        outline.a *= alpha;
+
+        Matrix4x4 originalMatrix = GUI.matrix;
+        Color originalColor = GUI.color;
+        int originalDepth = GUI.depth;
+        GUI.depth = -1; // The marker sits over the ADS reticle as well as the hip-fire reticle.
+        Rect segment = new Rect(center.x + gap, center.y - thickness * 0.5f, length, thickness);
+        for (int angle = 45; angle < 360; angle += 90)
+        {
+            GUI.matrix = originalMatrix;
+            GUIUtility.RotateAroundPivot(angle, center);
+            DrawSegment(segment, tint, outline, scale);
+        }
+        GUI.matrix = originalMatrix;
+        GUI.color = originalColor;
+        GUI.depth = originalDepth;
     }
 
     private bool ShouldDraw()
@@ -135,12 +237,12 @@ public sealed class HipFireCrosshairUI : MonoBehaviour
                && !GameStartMenu.CursorOwned;
     }
 
-    private void DrawSegment(Rect rect, Color tint, float scale)
+    private void DrawSegment(Rect rect, Color tint, Color outlineTint, float scale)
     {
         float outline = outlineThickness * scale;
         if (outline > 0f)
         {
-            GUI.color = outlineColor;
+            GUI.color = outlineTint;
             GUI.DrawTexture(new Rect(rect.x - outline, rect.y - outline, rect.width + outline * 2f, rect.height + outline * 2f), pixel);
         }
 

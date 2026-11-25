@@ -636,15 +636,10 @@ public sealed class FPSHitscanShooter : MonoBehaviour
 
                 Debug.Log($"[FPSHitscanShooter] {observedStats.WeaponClass} 造成伤害: {appliedDamage:0.##}" +
                           $"（基础 {observedStats.BaseDamage:0.##}，距离 {hit.distance:0.##}m，目标 {targetType}）", this);
-                if (observedHasDamageType)
+                if (enemyHealth.ApplyWeaponDamage(appliedDamage, CurrentWeaponDamageType)
+                    && TryGetComponent(out HipFireCrosshairUI crosshair))
                 {
-                    // Categorized hit: EnemyHealth settles the matching resistance exactly once.
-                    enemyHealth.TakeDamage(appliedDamage, observedDamageType);
-                }
-                else
-                {
-                    // Unknown / uncategorized weapon: never guess a category, keep raw damage.
-                    enemyHealth.TakeDamage(appliedDamage);
+                    crosshair.ShowWeaponKill(playerCamera);
                 }
 
                 return;

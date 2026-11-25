@@ -1,5 +1,11 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 玩家枪械击杀反馈（2026-11-25）
+
+- `FPSHitscanShooter` 使用 `EnemyHealth.ApplyWeaponDamage` 的致命伤害结果触发 `HipFireCrosshairUI`。敌人血量在同一结算中从正数降到零才归给这一发，伤害回调里追加的陷阱伤害独立结算。
+- 腰射和开镜共用 0.18 秒的四斜线击杀标记。默认音效从 `Resources/GunKillConfirm.wav` 加载，经独立 2D 音源播放，跟随全局音量。120 毫秒内的连续击杀刷新标记并合并音效。
+- 隔离 Play Mode 通过 15 项断言。三路汇合图 Game View 预览和验证日志位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\GunKillFeedback\`。临时探针源码及对应 meta 已移出 Assets。
+
 ## 局外作战大厅（2026-11-24）
 
 - `GameStartMenuView.BuildLayout` 同时供正式预制体生成与运行时后备布局使用。大厅首页显示双色标题「阿尔法项目：强袭行动」和战略资源。从「统计数据」进入独立页面，读取 `GameSaveSystem.Current` 的已完成局数、胜场、败场和胜率，可用返回按钮或 Esc 回到大厅。设置页实时显示音量百分比。

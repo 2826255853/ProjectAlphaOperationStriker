@@ -58,6 +58,11 @@ public sealed class EnemyHealth : MonoBehaviour
         ApplyDamage(amount, true, type, false, default);
     }
 
+    internal bool ApplyWeaponDamage(float amount, DamageType? type)
+    {
+        return ApplyDamage(amount, type.HasValue, type.GetValueOrDefault(), false, default);
+    }
+
     /// <summary>
     /// Compatibility entry for existing trap callers. Known categories forward through the fixed
     /// mapping in <see cref="TrapDamageTypeCompatibility"/> and settle resistance once;
@@ -154,24 +159,26 @@ public sealed class EnemyHealth : MonoBehaviour
     /// Applies resistance at most once, deducts health, publishes the actually deducted amount
     /// and runs the existing death-deduplication flow.
     /// </summary>
-    /// <returns>Health actually deducted; zero when the request was ignored or fully resisted.</returns>
-    private float ApplyDamage(float requestedAmount, bool categorized, DamageType damageType, bool legacyTyped, TrapDamageType legacyType)
+    /// <returns>Whether this request reduced the enemy from alive to zero health.</returns>
+    private bool ApplyDamage(float requestedAmount, bool categorized, DamageType damageType, bool legacyTyped, TrapDamageType legacyType)
     {
-        if (deathRaised || requestedAmount <= 0f || float.IsNaN(requestedAmount))
+        if (deathRaised || IsDead || requestedAmount <= 0f || float.IsNaN(requestedAmount))
         {
-            return 0f;
+            return false;
         }
 
         float finalDamage = categorized ? requestedAmount * GetDamageMultiplier(damageType) : requestedAmount;
         if (float.IsNaN(finalDamage) || finalDamage <= 0f)
         {
             // Fully resisted (resistance >= 100%) or a non-finite scale: no health change, no events, no death.
-            return 0f;
+            return false;
         }
 
         float previousHealth = CurrentHealth;
         CurrentHealth = Mathf.Max(0f, CurrentHealth - finalDamage);
         float appliedDamage = previousHealth - CurrentHealth;
+        // Damage subscribers can apply their own damage before this call returns.
+        bool lethalHit = CurrentHealth <= 0f;
 
         Debug.Log($"[EnemyHealth] {gameObject.name} 受到伤害: {appliedDamage:0.##}，剩余血量: {CurrentHealth:0.##}/{MaxHealth:0.##}", this);
         Damaged?.Invoke(this);
@@ -186,15 +193,15 @@ public sealed class EnemyHealth : MonoBehaviour
             TypedDamaged?.Invoke(this, appliedDamage, damageType);
         }
 
-        if (CurrentHealth > 0f)
+        if (!lethalHit || CurrentHealth > 0f || deathRaised)
         {
-            return appliedDamage;
+            return false;
         }
 
         deathRaised = true;
         GetComponent<FireStatusEffect>()?.Clear();
         Died?.Invoke(this);
         Destroy(gameObject);
-        return appliedDamage;
+        return true;
     }
 }
