@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ public static class XM777TrapAuthoring
     public const string ModelPath = "Assets/Models/XM777/XM777.fbx";
     public const string PrefabPath = "Assets/Prefabs/XM777.prefab";
     public const string DefinitionPath = "Assets/Resources/XM777.asset";
+    public const string MaterialPath = "Assets/Models/XM777/Materials/XM777_Field.mat";
     public const string TrapId = "xm777";
     private const float FootprintMeters = 4f;
 
@@ -26,6 +28,19 @@ public static class XM777TrapAuthoring
             importer.importCameras = false;
             importer.importLights = false;
             importer.SaveAndReimport();
+        }
+        Material fieldMaterial = CreateFieldMaterial();
+        if (fieldMaterial == null) return;
+        if (AssetImporter.GetAtPath(ModelPath) is ModelImporter materialImporter)
+        {
+            Material embedded = AssetDatabase.LoadAllAssetsAtPath(ModelPath)
+                .OfType<Material>().FirstOrDefault(item => item.name == "XM777_Field");
+            if (embedded != null)
+            {
+                materialImporter.AddRemap(
+                    new AssetImporter.SourceAssetIdentifier(typeof(Material), embedded.name), fieldMaterial);
+                materialImporter.SaveAndReimport();
+            }
         }
         GameObject model = AssetDatabase.LoadAssetAtPath<GameObject>(ModelPath);
         if (model == null)
@@ -84,6 +99,26 @@ public static class XM777TrapAuthoring
         if (trapInstance == null) trapInstance = root.AddComponent<TrapInstance>();
         SetObjectReference(trapInstance, "definition", definition);
 
+        XM777DeploymentAnimation deployment = root.GetComponent<XM777DeploymentAnimation>();
+        if (deployment == null) deployment = root.AddComponent<XM777DeploymentAnimation>();
+        var deploymentSerialized = new SerializedObject(deployment);
+        Transform[] legs = new Transform[4];
+        Transform[] spades = new Transform[4];
+        for (int i = 0; i < 4; i++)
+        {
+            legs[i] = FindDeepChild(baseRoot, $"Leg_{i}_Pivot");
+            spades[i] = legs[i] != null ? FindDeepChild(legs[i], $"Leg_Spade_{i}") : null;
+            if (legs[i] == null || spades[i] == null)
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+                Debug.LogError($"XM777 deployment rig is missing outrigger {i} or its spade pivot.");
+                return;
+            }
+        }
+        SetTransformArray(deploymentSerialized.FindProperty("legPivots"), legs);
+        SetTransformArray(deploymentSerialized.FindProperty("spadePivots"), spades);
+        deploymentSerialized.ApplyModifiedPropertiesWithoutUndo();
+
         XM777Trap weapon = root.GetComponent<XM777Trap>();
         if (weapon == null) weapon = root.AddComponent<XM777Trap>();
         var weaponSerialized = new SerializedObject(weapon);
@@ -129,6 +164,16 @@ public static class XM777TrapAuthoring
             || prefab.GetComponentsInChildren<Light>(true).Length != 0
             || prefab.GetComponentsInChildren<AudioListener>(true).Length != 0)
             throw new InvalidOperationException("XM777 prefab contains staging presentation components; rebuild it.");
+        XM777DeploymentAnimation deployment = prefab.GetComponent<XM777DeploymentAnimation>();
+        if (deployment == null || deployment.LegPivots.Length != 4 || deployment.SpadePivots.Length != 4
+            || deployment.LegPivots.Any(pivot => pivot == null)
+            || deployment.SpadePivots.Any(pivot => pivot == null))
+            throw new InvalidOperationException("XM777 prefab must wire four outrigger and spade pivots.");
+        Material fieldMaterial = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath);
+        Renderer[] modelRenderers = prefab.GetComponentsInChildren<Renderer>(true);
+        if (fieldMaterial == null || modelRenderers.Length == 0
+            || modelRenderers.Any(renderer => !renderer.sharedMaterials.Contains(fieldMaterial)))
+            throw new InvalidOperationException("XM777 prefab model renderers must use the XM777_Field URP material.");
         XM777Trap trap = prefab.GetComponent<XM777Trap>();
         if (trap == null || trap.PitchPivot == null || trap.Muzzle == null || trap.YawPivot == null
             || !trap.Muzzle.IsChildOf(trap.PitchPivot) || !trap.PitchPivot.IsChildOf(trap.YawPivot))
@@ -155,6 +200,64 @@ public static class XM777TrapAuthoring
                 || impactFx.transform.Find("Ground Shockwave") == null))
             throw new InvalidOperationException("Generated XM777_Impact fallback is missing playback, emitters or the ground shockwave.");
         Debug.Log("XM777_PRESENTATION_PASS: yaw/pitch/muzzle and both particle prefabs wired; no cameras, lights or audio listeners.");
+    }
+
+    private static Material CreateFieldMaterial()
+    {
+        ConfigureTextureImport("Assets/Models/XM777/XM777_SurfaceNormal.png", true);
+        ConfigureTextureImport("Assets/Models/XM777/XM777_MetalSmooth.png", false);
+        Texture2D albedo = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Models/XM777/XM777_FieldCoat.png");
+        Texture2D normal = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Models/XM777/XM777_SurfaceNormal.png");
+        Texture2D metal = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Models/XM777/XM777_MetalSmooth.png");
+        if (albedo == null || normal == null || metal == null)
+        {
+            Debug.LogError("XM777 PBR texture atlas is incomplete.");
+            return null;
+        }
+
+        Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+        if (shader == null)
+        {
+            Debug.LogError("XM777 requires the URP/Lit shader.");
+            return null;
+        }
+        Material material = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath);
+        if (material == null)
+        {
+            material = new Material(shader) { name = "XM777_Field" };
+            AssetDatabase.CreateAsset(material, MaterialPath);
+        }
+        material.shader = shader;
+        material.SetTexture("_BaseMap", albedo);
+        material.SetTexture("_BumpMap", normal);
+        material.SetFloat("_BumpScale", 0.5f);
+        material.SetTexture("_MetallicGlossMap", metal);
+        material.SetFloat("_Metallic", 1f);
+        material.SetFloat("_Smoothness", 0.68f);
+        material.SetFloat("_SmoothnessTextureChannel", 1f);
+        material.EnableKeyword("_NORMALMAP");
+        material.EnableKeyword("_METALLICSPECGLOSSMAP");
+        EditorUtility.SetDirty(material);
+        AssetDatabase.SaveAssets();
+        return material;
+    }
+
+    private static void ConfigureTextureImport(string path, bool normalMap)
+    {
+        if (AssetImporter.GetAtPath(path) is not TextureImporter importer) return;
+        bool changed = importer.textureType != (normalMap ? TextureImporterType.NormalMap : TextureImporterType.Default)
+            || importer.sRGBTexture != !normalMap;
+        if (!changed) return;
+        importer.textureType = normalMap ? TextureImporterType.NormalMap : TextureImporterType.Default;
+        importer.sRGBTexture = !normalMap;
+        importer.SaveAndReimport();
+    }
+
+    private static void SetTransformArray(SerializedProperty array, Transform[] values)
+    {
+        array.arraySize = values.Length;
+        for (int i = 0; i < values.Length; i++)
+            array.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
     }
 
     private static string NameOf(UnityEngine.Object asset) => asset != null ? asset.name : "<none>";

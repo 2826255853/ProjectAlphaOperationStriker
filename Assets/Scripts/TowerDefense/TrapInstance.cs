@@ -27,6 +27,7 @@ public sealed class TrapInstance : MonoBehaviour
     public float CurrentHealth { get; private set; }
     public bool IsDestroyed => CurrentHealth <= 0f;
     public bool IsOperational => !IsDestroyed && Time.time >= operationalAt;
+    public float DeploymentProgress => Mathf.Clamp01(1f - (operationalAt - Time.time) / DeploymentCooldownSeconds);
     public TrapUpgradeState UpgradeState => upgradeState;
     public int UpgradeLevel => upgradeState.Level;
     public TrapUpgradeDirection UpgradeDirection => upgradeState.Direction;

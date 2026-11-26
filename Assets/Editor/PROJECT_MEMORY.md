@@ -1,5 +1,11 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## XM777 写实材质与支腿部署动画（2026-11-26）
+
+- 定稿 FBX Assets/Models/XM777/XM777.fbx 与 2K 图集 XM777_FieldCoat.png、XM777_SurfaceNormal.png、XM777_MetalSmooth.png 由桌面 C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\field-revision\build.py 从原源模型重建。FBX 保留转炮/俯仰挂点，固定件各合并为刚性网格，四条助锄与四块铲板保留枢轴。贴图包含涂层分区、边角磨损、擦痕、钢材和橡胶；URP 材质及贴图导入设置由 XM777TrapAuthoring.CreateAssets 创建。
+- XM777DeploymentAnimation 使用 TrapInstance.DeploymentProgress，在既有 1 秒运行时部署窗口内将四条支腿从向上收拢姿态展开至支撑姿态，再下压助锄。助锄部署使用 `-spadeSetDegrees`：正角度数值定义展开幅度，负旋转方向才是落地支撑姿态；`DeploymentProgress` 在完成后保持为 1。修改模型后运行 XM777TrapAuthoring.CreateAssetsBatch 重建预制体，运行 ValidatePresentationBatch 校验材质、武器挂点及四组活动枢轴。
+- 旧 FBX 和预制体备份，以及 Blender 源件/脚本、贴图图集和主视图/展开/特写预览，位于 C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\field-revision\。Unity 验证使用项目当前版本 6000.6.10f1；该版本的验证日志也在素材目录。
+
 ## 陷阱放置部署冷却（2026-11-25）
 
 - `TrapPlacementGrid.TryPlaceTrap` 成功占格后为运行时陷阱启动 1 秒部署计时；编辑器绘制和场景预置实例不启动计时。计时由 `TrapInstance.IsOperational` 统一提供。

@@ -3,7 +3,12 @@ guid: 3b64bcb1f6a799442985ff4ab33f0ca8
 ModelImporter:
   serializedVersion: 24600
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: XM777_Field
+    second: {fileID: 2100000, guid: 0f496c0a60d60fb4788c0422e0e07d86, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
