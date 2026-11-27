@@ -5,7 +5,8 @@ using KINEMATION.FPSAnimationPack.Scripts.Weapon;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-/// <summary>1 = primary, 2 = pistols/revolvers, 3 = launchers. Repeat a key to cycle its category.</summary>
+/// <summary>Selects one of the three weapons carried into the match.</summary>
+[DefaultExecutionOrder(100)]
 [DisallowMultipleComponent]
 public sealed class PlayerWeaponCategorySwitcher : MonoBehaviour
 {
@@ -15,7 +16,8 @@ public sealed class PlayerWeaponCategorySwitcher : MonoBehaviour
     private static readonly FieldInfo WeaponsField = typeof(FPSPlayer).GetField("_weapons", Flags);
     private static readonly FieldInfo IndexField = typeof(FPSPlayer).GetField("_activeWeaponIndex", Flags);
     private static readonly MethodInfo EquipMethod = typeof(FPSPlayer).GetMethod("EquipWeapon", Flags, null, new[] { typeof(bool), typeof(bool) }, null);
-    private readonly int[] remembered = { -1, -1, -1, -1 };
+    private readonly Dictionary<string, FPSWeapon> arsenal = new Dictionary<string, FPSWeapon>();
+    public PlayerWeaponLoadout Loadout { get; private set; }
     private readonly List<int> overriddenBindings = new List<int>();
     private readonly List<string> previousOverrides = new List<string>();
     private FPSPlayer player;
@@ -24,8 +26,7 @@ public sealed class PlayerWeaponCategorySwitcher : MonoBehaviour
     private TrapPlacementController placement;
     private PlayerHealth health;
     private PlayerObserverMode observer;
-    private bool warned;
-    private InputActionMap categoryActions;
+    private InputActionMap slotActions;
 
     private void Awake()
     {
@@ -33,26 +34,62 @@ public sealed class PlayerWeaponCategorySwitcher : MonoBehaviour
         playerInput = GetComponentInChildren<PlayerInput>(true);
         health = GetComponent<PlayerHealth>();
         observer = GetComponent<PlayerObserverMode>();
-        categoryActions = new InputActionMap("Weapon Categories");
-        AddCategoryAction("Primary", "1", "numpad1", PlayerWeaponCategory.Primary);
-        AddCategoryAction("Secondary", "2", "numpad2", PlayerWeaponCategory.Secondary);
-        AddCategoryAction("Launcher", "3", "numpad3", PlayerWeaponCategory.Launcher);
-    }
-
-    private void AddCategoryAction(string name, string digit, string numpad, PlayerWeaponCategory category)
-    {
-        InputAction action = categoryActions.AddAction(name, InputActionType.Button, "<Keyboard>/" + digit);
-        action.AddBinding("<Keyboard>/" + numpad);
-        action.performed += _ => TrySelectCategory(category);
+        slotActions = new InputActionMap("Weapon Slots");
+        for (int i = 0; i < PlayerWeaponLoadout.SlotCount; i++)
+        {
+            int slot = i;
+            InputAction action = slotActions.AddAction("Slot" + (slot + 1), InputActionType.Button, "<Keyboard>/" + (slot + 1));
+            action.AddBinding("<Keyboard>/numpad" + (slot + 1));
+            action.performed += _ => TrySelectSlot(slot);
+        }
     }
 
     private void OnEnable()
     {
         OverrideLegacyKeyboardBinding();
-        categoryActions?.Enable();
+        slotActions?.Enable();
     }
 
-    private void Start() => OverrideLegacyKeyboardBinding();
+    private void Start()
+    {
+        OverrideLegacyKeyboardBinding();
+        if (player == null || IndexField == null || EquipMethod == null ||
+            !(WeaponsField?.GetValue(player) is List<FPSWeapon> weapons) || weapons.Count == 0)
+        {
+            Debug.LogError("Player weapon inventory is unavailable.", this);
+            return;
+        }
+        Loadout = new PlayerWeaponLoadout();
+        foreach (FPSWeapon weapon in weapons)
+        {
+            if (weapon == null) continue;
+            string id = weapon.name.Replace("(Clone)", string.Empty).Trim();
+            if (!arsenal.TryAdd(id, weapon)) continue;
+            Loadout.AddWeapon(id, PlayerWeaponCategories.Resolve(weapon));
+        }
+        Loadout.Restore();
+        ApplyLoadout();
+    }
+
+    public void ApplyLoadout()
+    {
+        if (Loadout == null) return;
+        var weapons = (List<FPSWeapon>)WeaponsField.GetValue(player);
+        var carried = new List<FPSWeapon>(PlayerWeaponLoadout.SlotCount);
+        for (int slot = 0; slot < PlayerWeaponLoadout.SlotCount; slot++)
+        {
+            if (Loadout[slot] == null)
+            {
+                Debug.LogError($"Missing weapon for loadout slot {slot + 1}.", this);
+                return;
+            }
+            carried.Add(arsenal[Loadout[slot]]);
+        }
+        var outgoing = player.GetActiveWeapon();
+        weapons.Clear();
+        weapons.AddRange(carried);
+        Equip(weapons, outgoing, 0);
+    }
 
     private void OverrideLegacyKeyboardBinding()
     {
@@ -70,7 +107,7 @@ public sealed class PlayerWeaponCategorySwitcher : MonoBehaviour
 
     private void OnDisable()
     {
-        categoryActions?.Disable();
+        slotActions?.Disable();
         for (int i = 0; i < overriddenBindings.Count; i++)
         {
             if (previousOverrides[i] == null) changeWeapon.RemoveBindingOverride(overriddenBindings[i]);
@@ -81,56 +118,30 @@ public sealed class PlayerWeaponCategorySwitcher : MonoBehaviour
         changeWeapon = null;
     }
 
-    private void OnDestroy() => categoryActions?.Dispose();
+    private void OnDestroy() => slotActions?.Dispose();
 
-    public bool TrySelectCategory(PlayerWeaponCategory category)
+    public bool TrySelectSlot(int slot)
     {
-        if (!isActiveAndEnabled || player == null || !player.isActiveAndEnabled
+        if (!isActiveAndEnabled || Loadout == null || player == null || !player.isActiveAndEnabled
             || (playerInput != null && !playerInput.inputIsActive)
             || (health != null && health.IsDead) || (observer != null && observer.IsActive)
             || GameStartMenu.BlocksPlayerCursor || TrapSelectionMenu.CursorOwned || Time.timeScale <= 0f) return false;
-        if (WeaponsField == null || IndexField == null || EquipMethod == null)
-        {
-            if (!warned) Debug.LogError("[PlayerWeaponCategorySwitcher] 当前 FPSPlayer 缺少索引切枪接口，请更新桥接适配。", this);
-            warned = true;
-            return false;
-        }
-        var weapons = WeaponsField.GetValue(player) as List<FPSWeapon>;
-        int current = (int)IndexField.GetValue(player);
-        if (weapons == null || current < 0 || current >= weapons.Count) return false;
-        if (category < PlayerWeaponCategory.Primary || category > PlayerWeaponCategory.Launcher) return false;
-        int target = FindWeaponIndex(weapons, current, category, remembered[(int)category]);
-        if (target < 0) return false;
+        var weapons = (List<FPSWeapon>)WeaponsField.GetValue(player);
+        if (weapons.Count != PlayerWeaponLoadout.SlotCount || slot < 0 || slot >= weapons.Count) return false;
         if (placement == null) placement = FindAnyObjectByType<TrapPlacementController>();
-        // Exit before hiding/equipping so the projection controller restores the
-        // outgoing renderers even when its Update runs after this component.
         if (placement != null && placement.PlacementMode) placement.ExitPlacementMode();
-        if (target == current) return true;
-        remembered[(int)PlayerWeaponCategories.Resolve(weapons[current])] = current;
-        remembered[(int)category] = target;
-        player.CancelInvoke("EquipWeapon_Incremental");
-        player.CancelInvoke("SetWeaponVisible");
-        if (weapons[current] != null) weapons[current].gameObject.SetActive(false);
-        IndexField.SetValue(player, target);
-        weapons[target].gameObject.SetActive(true);
-        EquipMethod.Invoke(player, new object[] { false, true });
+        if (slot != (int)IndexField.GetValue(player) || player.IsInvoking("EquipWeapon_Incremental"))
+            Equip(weapons, player.GetActiveWeapon(), slot);
         return true;
     }
 
-    public static int FindWeaponIndex(IReadOnlyList<FPSWeapon> weapons, int current, PlayerWeaponCategory category, int rememberedIndex = -1)
+    private void Equip(List<FPSWeapon> weapons, FPSWeapon outgoing, int slot)
     {
-        if (weapons == null || weapons.Count == 0) return -1;
-        bool inCategory = current >= 0 && current < weapons.Count && weapons[current] != null
-            && PlayerWeaponCategories.Resolve(weapons[current]) == category;
-        if (!inCategory && rememberedIndex >= 0 && rememberedIndex < weapons.Count
-            && weapons[rememberedIndex] != null && PlayerWeaponCategories.Resolve(weapons[rememberedIndex]) == category)
-            return rememberedIndex;
-        int start = inCategory ? current + 1 : 0;
-        for (int offset = 0; offset < weapons.Count; offset++)
-        {
-            int index = (start + offset) % weapons.Count;
-            if (weapons[index] != null && PlayerWeaponCategories.Resolve(weapons[index]) == category) return index;
-        }
-        return -1;
+        player.CancelInvoke("EquipWeapon_Incremental");
+        player.CancelInvoke("SetWeaponVisible");
+        if (outgoing != null && outgoing != weapons[slot]) outgoing.gameObject.SetActive(false);
+        IndexField.SetValue(player, slot);
+        weapons[slot].gameObject.SetActive(true);
+        EquipMethod.Invoke(player, new object[] { false, true });
     }
 }

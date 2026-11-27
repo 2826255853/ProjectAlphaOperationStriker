@@ -61,6 +61,10 @@ public static class GameStartMenuAuthoring
             || statistics.Find("Statistics Back") == null)
             throw new InvalidOperationException("Menu prefab is missing saved-game statistics.");
         Transform resources = prefab.transform.Find("Strategic Resources");
+        Transform loadout = prefab.transform.Find("Weapon Loadout Panel");
+        if (prefab.transform.Find("Main Panel/Weapon Loadout") == null || loadout == null || loadout.gameObject.activeSelf
+            || loadout.Find("Loadout Back") == null)
+            throw new InvalidOperationException("Menu prefab is missing the weapon loadout page.");
         var resourcesValue = new SerializedObject(prefab.GetComponent<GameStartMenuView>())
             .FindProperty("strategicResourcesValue").objectReferenceValue as TextMeshProUGUI;
         if (resources == null || resourcesValue == null || !resourcesValue.transform.IsChildOf(resources))
@@ -122,12 +126,20 @@ public static class GameStartMenuAuthoring
             string directory = PreviewDirectory;
             Directory.CreateDirectory(directory);
             string[] names = { "font-main-menu.png", "font-settings.png", "font-map-selection.png",
-                "pause-menu.png", "pause-settings.png", "font-statistics.png" };
+                "pause-menu.png", "pause-settings.png", "font-statistics.png", "weapon-loadout.png" };
             for (int page = 0; page < names.Length; page++)
             {
                 bool paused = page == 3 || page == 4;
                 camera.backgroundColor = paused ? new Color(.25f, .32f, .38f) : Color.black;
-                view.SetState(paused, page == 1 || page == 4, page == 2, 1f, true, false, MapSceneCatalog.GetMaps(), page == 5);
+                view.SetState(paused, page == 1 || page == 4, page == 2, 1f, true, false, MapSceneCatalog.GetMaps(), page == 5, page == 6);
+                if (page == 6)
+                {
+                    var sample = new PlayerWeaponLoadout();
+                    foreach (string id in new[] { "M1911", "X18", "AK", "Mk14EBR", "MGX5" })
+                        sample.AddWeapon(id, PlayerWeaponCategories.FromClass(WeaponDamageStats.DefaultsFor(id).WeaponClass));
+                    sample.Restore();
+                    view.ShowWeapons(sample);
+                }
                 Canvas.ForceUpdateCanvases();
                 foreach (TextMeshProUGUI text in root.GetComponentsInChildren<TextMeshProUGUI>()) text.ForceMeshUpdate();
                 camera.Render();

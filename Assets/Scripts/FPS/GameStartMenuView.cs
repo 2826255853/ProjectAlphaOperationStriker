@@ -11,6 +11,7 @@ public sealed class GameStartMenuView : MonoBehaviour
     public const string MenuFontResourcePath = "UI/Fonts/MenuChinese SDF";
     private const string ColoredLobbyTitle = "<color=#BF2947>阿尔法项目</color>：<color=#A8DFFF>强袭行动</color>";
     public const string StatisticsTitle = "统计数据";
+    public const string LoadoutTitle = "武器配置";
     public const string MapPrompt = "点击地图进入游戏";
     public const string MapLoadingMessage = "正在加载地图...";
     public const string EmptyMapMessage = "没有可用地图";
@@ -49,6 +50,14 @@ public sealed class GameStartMenuView : MonoBehaviour
     [SerializeField] private GameObject statisticsPanel;
     [SerializeField] private Button statisticsButton;
     [SerializeField] private Button statisticsBackButton;
+    [SerializeField] private GameObject loadoutPanel;
+    [SerializeField] private Button loadoutButton;
+    [SerializeField] private Button loadoutBackButton;
+    [SerializeField] private Button[] previousWeapons;
+    [SerializeField] private Button[] nextWeapons;
+    [SerializeField] private TextMeshProUGUI[] weaponNames;
+    [SerializeField] private Image[] weaponPortraits;
+    public const string WeaponPortraitFolder = "UI/WeaponPortraits/";
     [SerializeField] private TextMeshProUGUI[] statisticValues;
     [SerializeField] private TextMeshProUGUI pageLabel;
     [SerializeField] private TextMeshProUGUI volumeValue;
@@ -99,6 +108,9 @@ public sealed class GameStartMenuView : MonoBehaviour
         BuildStrategicResources(view, root.transform);
         view.statisticsPanel = PanelObject(root.transform, "Statistics Panel");
         BuildStatistics(view, view.statisticsPanel.transform);
+        view.loadoutPanel = PanelObject(root.transform, "Weapon Loadout Panel");
+        BuildWeaponLoadout(view, view.loadoutPanel.transform);
+        view.loadoutPanel.SetActive(false);
         view.settingsPanel.SetActive(false);
         view.mapPanel.SetActive(false);
         view.statisticsPanel.SetActive(false);
@@ -107,7 +119,8 @@ public sealed class GameStartMenuView : MonoBehaviour
 
     public void Initialize(GameStartMenu owner)
     {
-        if (primaryButton == null || mapPanel == null || pageLabel == null || statisticsButton == null)
+        if (primaryButton == null || mapPanel == null || pageLabel == null || statisticsButton == null
+            || loadoutPanel == null || weaponPortraits == null || weaponPortraits.Length != PlayerWeaponLoadout.SlotCount)
         {
             foreach (Transform child in transform)
             {
@@ -131,6 +144,14 @@ public sealed class GameStartMenuView : MonoBehaviour
         mapBackButton.onClick.AddListener(owner.CloseMapSelection);
         statisticsButton.onClick.AddListener(owner.OpenStatistics);
         statisticsBackButton.onClick.AddListener(owner.CloseStatistics);
+        loadoutButton.onClick.AddListener(owner.OpenWeaponLoadout);
+        loadoutBackButton.onClick.AddListener(owner.CloseWeaponLoadout);
+        for (int i = 0; i < weaponNames.Length; i++)
+        {
+            int slot = i;
+            previousWeapons[i].onClick.AddListener(() => owner.CycleWeapon(slot, -1));
+            nextWeapons[i].onClick.AddListener(() => owner.CycleWeapon(slot, 1));
+        }
         volumeSlider.onValueChanged.AddListener(owner.SetMasterVolume);
         volumeSlider.onValueChanged.AddListener(UpdateVolumeLabel);
         fullscreenToggle.onValueChanged.AddListener(owner.SetFullscreen);
@@ -145,7 +166,7 @@ public sealed class GameStartMenuView : MonoBehaviour
     }
 
     public void SetState(bool started, bool showSettings, bool showMaps, float volume, bool fullscreen,
-        bool loading, IReadOnlyList<MapSceneCatalog.Entry> maps, bool showStatistics = false)
+        bool loading, IReadOnlyList<MapSceneCatalog.Entry> maps, bool showStatistics = false, bool showLoadout = false)
     {
         primaryLabel.text = started ? "继续游戏" : "开始游戏";
         primaryButton.interactable = !loading;
@@ -153,6 +174,8 @@ public sealed class GameStartMenuView : MonoBehaviour
         quitButton.interactable = !loading;
         statisticsButton.gameObject.SetActive(!started);
         statisticsButton.interactable = !loading;
+        loadoutButton.gameObject.SetActive(!started);
+        loadoutButton.interactable = !loading;
         quitLabel.text = started ? PauseQuitLabel : "退出游戏";
         mainTitle.text = started ? PauseTitle : ColoredLobbyTitle;
         mainTitle.fontSize = started ? 69 : 80;
@@ -160,7 +183,7 @@ public sealed class GameStartMenuView : MonoBehaviour
         mainFooter.text = loading ? MapLoadingMessage : PauseFooter;
         mainFooter.gameObject.SetActive(started);
         pageLabel.text = showMaps ? "大厅   /   地图选择" : showSettings ? "大厅   /   设置"
-            : showStatistics ? "大厅   /   " + StatisticsTitle : "作战大厅";
+            : showStatistics ? "大厅   /   " + StatisticsTitle : showLoadout ? "大厅   /   " + LoadoutTitle : "作战大厅";
         settingsTitle.text = started ? PauseTitle + " · 设置" : "设置";
         settingsTitle.fontSize = started ? 46 : 65;
         backdrop.gameObject.SetActive(!started);
@@ -169,10 +192,11 @@ public sealed class GameStartMenuView : MonoBehaviour
         Color panelColor = new Color(Panel.r, Panel.g, Panel.b, started ? .72f : Panel.a);
         mainPanel.GetComponent<Image>().color = started ? panelColor : Color.clear;
         settingsPanel.GetComponent<Image>().color = panelColor;
-        mainPanel.SetActive(!showSettings && !showMaps && !showStatistics);
+        mainPanel.SetActive(!showSettings && !showMaps && !showStatistics && !showLoadout);
         settingsPanel.SetActive(showSettings);
         mapPanel.SetActive(showMaps);
         statisticsPanel.SetActive(showStatistics);
+        loadoutPanel.SetActive(showLoadout);
         bool showResources = !started && mainPanel.activeSelf;
         strategicResourcesValue.transform.parent.gameObject.SetActive(showResources);
         volumeSlider.SetValueWithoutNotify(Mathf.Clamp01(volume));
@@ -227,7 +251,8 @@ public sealed class GameStartMenuView : MonoBehaviour
         view.settingsButton = Button(panel, "Settings", new Vector2(44, -489), "设置", Body, 162);
         view.quitButton = Button(panel, "Quit", new Vector2(218, -489), "退出游戏", Body, 328);
         view.quitLabel = view.quitButton.GetComponentInChildren<TextMeshProUGUI>();
-        view.statisticsButton = Button(panel, "Statistics", new Vector2(44, -563), StatisticsTitle, Body);
+        view.loadoutButton = Button(panel, "Weapon Loadout", new Vector2(44, -563), LoadoutTitle, Cyan, 244);
+        view.statisticsButton = Button(panel, "Statistics", new Vector2(300, -563), StatisticsTitle, Body, 246);
         view.mainFooter = Footer(panel, PauseFooter);
         view.mainFooter.gameObject.SetActive(false);
     }
@@ -235,6 +260,48 @@ public sealed class GameStartMenuView : MonoBehaviour
     private void UpdateVolumeLabel(float volume)
     {
         volumeValue.text = Mathf.RoundToInt(Mathf.Clamp01(volume) * 100) + "%";
+    }
+
+    private static void BuildWeaponLoadout(GameStartMenuView view, Transform panel)
+    {
+        panel.GetComponent<RectTransform>().sizeDelta = new Vector2(1030, 774);
+        Text(panel, LoadoutTitle, new Vector2(40, -115), new Vector2(-40, -30), 65, Color.white).fontStyle = FontStyles.Bold;
+        Text(panel, "选择两把不同的主武器", new Vector2(44, -158), new Vector2(-44, -115), 24, Body);
+        int count = PlayerWeaponLoadout.SlotCount;
+        view.weaponNames = new TextMeshProUGUI[count];
+        view.weaponPortraits = new Image[count];
+        view.previousWeapons = new Button[count];
+        view.nextWeapons = new Button[count];
+        for (int i = 0; i < count; i++)
+        {
+            float y = -180 - i * 143;
+            Image(panel, "Slot Card", Vector2.up, Vector2.one, new Vector2(44, y - 132), new Vector2(-44, y), null, new Color32(39, 49, 54, 255));
+            view.previousWeapons[i] = Button(panel, "Previous " + (i + 1), new Vector2(58, y - 35), "‹", Body, 66);
+            view.weaponPortraits[i] = Image(panel, "Weapon Portrait " + (i + 1), Vector2.up, Vector2.up,
+                new Vector2(140, y - 129), new Vector2(602, y - 3), null, Color.white);
+            view.weaponPortraits[i].preserveAspect = true;
+            view.weaponPortraits[i].enabled = false;
+            Text(panel, (i + 1) + (i == 0 ? "  手枪" : "  主武器"), new Vector2(630, y - 56), new Vector2(-130, y - 18), 24, Cyan);
+            view.weaponNames[i] = Text(panel, "—", new Vector2(630, y - 112), new Vector2(-130, y - 56), 36, Color.white);
+            view.nextWeapons[i] = Button(panel, "Next " + (i + 1), new Vector2(906, y - 35), "›", Body, 66);
+        }
+        view.loadoutBackButton = Button(panel, "Loadout Back", new Vector2(44, -624), "返回大厅", Amber, 942, true);
+        Footer(panel, "配置自动保存，开局时装备。");
+    }
+
+    public void ShowWeapons(PlayerWeaponLoadout loadout)
+    {
+        for (int i = 0; i < weaponNames.Length; i++)
+        {
+            string id = loadout?[i];
+            weaponNames[i].text = id ?? "—";
+            Image portrait = weaponPortraits[i];
+            portrait.sprite = id == null ? null : Resources.Load<Sprite>(WeaponPortraitFolder + id);
+            portrait.enabled = portrait.sprite != null;
+            bool canChange = loadout?.NextOption(i, 1) != null;
+            previousWeapons[i].interactable = canChange;
+            nextWeapons[i].interactable = canChange;
+        }
     }
 
     private static void BuildSettings(GameStartMenuView view, Transform panel)

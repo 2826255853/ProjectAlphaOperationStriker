@@ -12,6 +12,8 @@ public sealed class GameStartMenu : MonoBehaviour
     private bool settings;
     private bool mapSelection;
     private bool statistics;
+    private bool configuringWeapons;
+    private PlayerWeaponCategorySwitcher weaponSwitcher;
     private bool started;
     private bool loading;
     private bool restoreInputPending;
@@ -66,6 +68,7 @@ public sealed class GameStartMenu : MonoBehaviour
             if (settings) ShowSettings(false);
             else if (mapSelection) CloseMapSelection();
             else if (statistics) CloseStatistics();
+            else if (configuringWeapons) CloseWeaponLoadout();
             else if (started) Close();
         }
         else if (!TrapSelectionMenu.CursorOwned) Open();
@@ -81,7 +84,7 @@ public sealed class GameStartMenu : MonoBehaviour
 
     public void BeginOrResume()
     {
-        if (!open || loading || settings || mapSelection || statistics) return;
+        if (!open || loading || settings || mapSelection || statistics || configuringWeapons) return;
         if (started) Close();
         else OpenMapSelection();
     }
@@ -107,7 +110,11 @@ public sealed class GameStartMenu : MonoBehaviour
             return;
 
         entryScenePath = SceneManager.GetActiveScene().path;
-        if (buildIndex == MapSceneCatalog.GetCurrentBuildIndex()) Close();
+        if (buildIndex == MapSceneCatalog.GetCurrentBuildIndex())
+        {
+            weaponSwitcher?.ApplyLoadout();
+            Close();
+        }
         else LoadMap(map);
     }
 
@@ -115,7 +122,7 @@ public sealed class GameStartMenu : MonoBehaviour
     public void CloseSettings() => ShowSettings(false);
     public void OpenStatistics()
     {
-        if (!open || started || loading || settings || mapSelection || statistics) return;
+        if (!open || started || loading || settings || mapSelection || statistics || configuringWeapons) return;
         statistics = true;
         RefreshView();
     }
@@ -128,6 +135,29 @@ public sealed class GameStartMenu : MonoBehaviour
     }
 
     public void SetMasterVolume(float value) => AudioListener.volume = Mathf.Clamp01(value);
+
+    public void OpenWeaponLoadout()
+    {
+        if (!open || started || loading || settings || mapSelection || statistics) return;
+        weaponSwitcher = FindAnyObjectByType<PlayerWeaponCategorySwitcher>();
+        configuringWeapons = true;
+        RefreshView();
+    }
+
+    public void CloseWeaponLoadout()
+    {
+        if (!configuringWeapons) return;
+        configuringWeapons = false;
+        RefreshView();
+    }
+
+    public void CycleWeapon(int slot, int direction)
+    {
+        if (!configuringWeapons || weaponSwitcher == null || weaponSwitcher.Loadout == null) return;
+        var loadout = weaponSwitcher.Loadout;
+        if (loadout.TryChoose(slot, loadout.NextOption(slot, direction)))
+            view.ShowWeapons(loadout);
+    }
     public void SetFullscreen(bool value) => Screen.fullScreen = value;
 
     public void QuitGame()
@@ -209,6 +239,7 @@ public sealed class GameStartMenu : MonoBehaviour
         settings = false;
         mapSelection = false;
         statistics = false;
+        configuringWeapons = false;
         started = true;
         CursorOwned = false;
         cursorReleasedFrame = Time.frameCount;
@@ -222,7 +253,7 @@ public sealed class GameStartMenu : MonoBehaviour
 
     private void ShowSettings(bool show)
     {
-        if (!open || loading || settings == show) return;
+        if (!open || loading || configuringWeapons || settings == show) return;
         settings = show;
         if (show)
         {
@@ -262,7 +293,8 @@ public sealed class GameStartMenu : MonoBehaviour
         view.SetVisible(open);
         if (open)
             view.SetState(started, settings, mapSelection, AudioListener.volume, Screen.fullScreen,
-                loading, MapSceneCatalog.GetMaps(), statistics);
+                loading, MapSceneCatalog.GetMaps(), statistics, configuringWeapons);
+        if (configuringWeapons) view.ShowWeapons(weaponSwitcher != null ? weaponSwitcher.Loadout : null);
     }
 
     private void RestoreInputAfterClick()

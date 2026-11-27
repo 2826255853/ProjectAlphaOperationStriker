@@ -1,5 +1,13 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 局外武器配置与三槽配备（2026-11-27）
+
+- 枪械侧视图由 `WeaponPortraitAuthoring.Generate` 从 FPSPlayer 引用的可选武器预制体正交渲染，按型号存入 `Assets/Resources/UI/WeaponPortraits/`。更新模型后使用菜单「Tools/行动打击/生成武器侧视图」重建。配置页的槽位、型号和图片随选择同步刷新，Play Mode 回归逐一验证了 18 个型号。总览在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\WeaponLoadout\portraits\all-models.png`。
+
+- 大厅的「武器配置」由 `GameStartMenuView.BuildLayout` 生成。1 号位可选手枪（含左轮），2、3 号位各选一把不同的主武器。左右箭头跳过另一主武器槽已占用的型号，选择后按型号名写入 PlayerPrefs。没有配置时按玩家实际武器库顺序补齐。
+- `PlayerWeaponCategorySwitcher.Start` 在 FPSPlayer 完成武器初始化后建立目录，沿用 `PlayerWeaponCategories.Resolve` 的分类，再将玩家实际可切换列表按槽位收为三把。同图开局应用大厅选择，跨图开局由新玩家恢复。开局持手枪，数字键与小键盘直选槽位，滚轮沿三槽循环。
+- `Assets/Editor/RunEnemyDamageResistanceTests.ps1 -Fixtures PlayerWeaponCategoryTests` 临时载入 `Tests~/Editor/PlayerWeaponCategoryTests.cs`，结束时清除测试源码与 meta。14 项通过，含同图、跨图、局内按键、滚轮与菜单输入门控。报告在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\WeaponLoadout\20261127-231833-098\editmode-results.xml`。配置页预览由 `GameStartMenuAuthoring.GenerateAndValidate` 输出到 `C:\Users\ASUS\Desktop\陷阱素材文件夹\GameStartMenu\command-lobby\weapon-loadout.png`。
+
 ## 玩家四轴无人机外观（2026-11-27）
 
 - 玩家经 `Resources/QuadcopterDrone` 加载正式预制体。美术源位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\QuadcopterDrone\field-survey\`。先运行 `textures.py` 生成三张 2K 图集，再由 Blender 运行 `airframe.py` 生成模型及预览。建模脚本复用上一级目录的原始机身和枢轴定义。

@@ -47,15 +47,34 @@ $xmlPath = Join-Path $session 'editmode-results.xml'
 $filter = $Fixtures -join '|'
 $arguments = '-batchmode -nographics -projectPath "{0}" -runTests -testPlatform EditMode -testFilter "{1}" -extraScriptingDefines=UNITY_INCLUDE_TESTS -testResults "{2}" -logFile "{3}"' -f $ProjectPath, $filter, $xmlPath, $logPath
 Write-Host "[damage-resistance] Unity $version; NUnit output: $xmlPath"
-$process = Start-Process -FilePath $unity -ArgumentList $arguments -PassThru -WindowStyle Hidden `
-    -RedirectStandardOutput (Join-Path $session 'stdout.txt') -RedirectStandardError (Join-Path $session 'stderr.txt')
-# Cache the native handle before waiting: Windows PowerShell can otherwise return a null ExitCode.
-$null = $process.Handle
-if (!$process.WaitForExit($TimeoutSeconds * 1000)) {
-    Stop-Process -Id $process.Id -ErrorAction SilentlyContinue
-    throw "Damage-resistance tests timed out after $TimeoutSeconds seconds. See $logPath"
+$stagedFixtures = @()
+try {
+    foreach ($fixture in $Fixtures) {
+        $source = Join-Path $ProjectPath "Tests~\Editor\$fixture.cs"
+        if (!(Test-Path -LiteralPath $source)) { continue }
+        $target = Join-Path $ProjectPath "Assets\Editor\$fixture.cs"
+        if ((Test-Path -LiteralPath $target) -or (Test-Path -LiteralPath "$target.meta")) {
+            throw "Temporary fixture path already occupied: $target"
+        }
+        Copy-Item -LiteralPath $source -Destination $target
+        $stagedFixtures += $target
+    }
+    $process = Start-Process -FilePath $unity -ArgumentList $arguments -PassThru -WindowStyle Hidden `
+        -RedirectStandardOutput (Join-Path $session 'stdout.txt') -RedirectStandardError (Join-Path $session 'stderr.txt')
+    # Cache the native handle before waiting: Windows PowerShell can otherwise return a null ExitCode.
+    $null = $process.Handle
+    if (!$process.WaitForExit($TimeoutSeconds * 1000)) {
+        Stop-Process -Id $process.Id -ErrorAction SilentlyContinue
+        throw "Damage-resistance tests timed out after $TimeoutSeconds seconds. See $logPath"
+    }
+    $process.Refresh()
 }
-$process.Refresh()
+finally {
+    foreach ($target in $stagedFixtures) {
+        Remove-Item -LiteralPath $target
+        if (Test-Path -LiteralPath "$target.meta") { Remove-Item -LiteralPath "$target.meta" }
+    }
+}
 if (!(Test-Path -LiteralPath $xmlPath)) {
     throw "Unity exit code $($process.ExitCode) produced no NUnit XML; this is NOT a passing run. See $logPath"
 }
