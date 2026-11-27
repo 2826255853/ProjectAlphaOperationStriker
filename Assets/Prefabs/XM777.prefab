@@ -465,7 +465,8 @@ MonoBehaviour:
   - {fileID: 4883577970799269111}
   - {fileID: 4766196982556772834}
   - {fileID: 3012874378608739828}
-  legDropDegrees: 76
+  legFoldDegrees: 76
+  legDeployDegrees: 44.85
   spadeSetDegrees: 28
   legStaggerSeconds: 0.12
 --- !u!114 &7191115668276159778

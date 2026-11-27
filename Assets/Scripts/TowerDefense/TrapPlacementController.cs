@@ -503,7 +503,7 @@ public sealed class TrapPlacementController : MonoBehaviour
             : activeGrid.IsMountedSurface
             ? new Vector3(footprint.x * activeGrid.CellWorldSize.x * 0.8f, footprint.y * activeGrid.CellWorldSize.y * 0.8f, 0.15f)
             : new Vector3(previewBaseScale.x * footprint.x, previewBaseScale.y, previewBaseScale.z * footprint.y);
-        SetPreviewVisible(true);
+        ShowHoveredPreview();
         bool valid = HasValidPreview;
         ApplyPreviewColor(valid);
         RefreshGridMarkers(valid);
@@ -636,6 +636,7 @@ public sealed class TrapPlacementController : MonoBehaviour
     private bool PlaceAt(Vector2Int cell)
     {
         bool purchased = TrapPurchaseService.TryPurchase(activeGrid, cell, selectedTrap, out _, out string failure);
+        if (purchased && hasHoveredCell && cell == hoveredCell) ShowHoveredPreview();
         LastPlacementFailure = failure;
         failureVisibleUntil = Time.unscaledTime + 3f;
         UpdatePreviewColor();
@@ -768,6 +769,8 @@ public sealed class TrapPlacementController : MonoBehaviour
         foreach (RepairStationTrap station in preview.GetComponentsInChildren<RepairStationTrap>(true)) station.enabled = false;
         foreach (ThroatLampTrap lamp in preview.GetComponentsInChildren<ThroatLampTrap>(true)) lamp.enabled = false;
         foreach (XM777Trap artillery in preview.GetComponentsInChildren<XM777Trap>(true)) artillery.enabled = false;
+        foreach (XM777DeploymentAnimation deployment in preview.GetComponentsInChildren<XM777DeploymentAnimation>(true))
+            deployment.enabled = false; // Keep the folded pose initialized by Awake while hovering.
         foreach (TrapInstance trap in preview.GetComponentsInChildren<TrapInstance>(true)) trap.enabled = false;
         foreach (Collider collider in preview.GetComponentsInChildren<Collider>()) collider.enabled = false;
         foreach (Renderer renderer in preview.GetComponentsInChildren<Renderer>())
@@ -777,6 +780,15 @@ public sealed class TrapPlacementController : MonoBehaviour
     }
 
     private void SetPreviewVisible(bool visible) { if (preview != null) preview.SetActive(visible); }
+
+    private void ShowHoveredPreview()
+    {
+        // Keep the folded ghost from covering the deploying artillery at the same anchor.
+        bool coversArtillery = activeGrid.TryGetTrapAtCell(hoveredCell, out TrapInstance placed)
+            && placed.OriginCell == hoveredCell && placed.Definition == selectedTrap
+            && placed.TryGetComponent<XM777DeploymentAnimation>(out _);
+        SetPreviewVisible(!coversArtillery);
+    }
 
     private void ReleasePreviewMaterials()
     {
