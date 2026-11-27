@@ -71,6 +71,7 @@ MonoBehaviour:
       - rid: 902836725365080064
       - rid: 902836725365080065
       - rid: 902836725365080066
+      - rid: 31046436712611840
     m_RuntimeSettings:
       m_List: []
   m_AssetVersion: 11
@@ -103,6 +104,10 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
+    - rid: 31046436712611840
+      type: {class: AlphaUpscaler/RuntimeResources, ns: UnityEngine.Rendering, asm: Unity.RenderPipelines.Core.Runtime}
+      data:
+        m_AlphaUpscaleCS: {fileID: 7200000, guid: f10c23179af641eea368ee165b2e97cf, type: 3}
     - rid: 902836725365080064
       type: {class: ScreenSpaceReflectionPersistentResources, ns: UnityEngine.Rendering.Universal, asm: Unity.RenderPipelines.Universal.Runtime}
       data:
