@@ -85,37 +85,40 @@ public static class QuadcopterDroneAuthoring
         try
         {
             var runtimeBody = instance.GetComponent<Rigidbody>();
-            var runtimeFlight = instance.GetComponent<TowerDefense.QuadcopterFlightController>();
-            var runtimeCamera = instance.GetComponent<DroneCameraController>();
-            var camera = instance.GetComponentInChildren<Camera>(true);
-            var audioListener = instance.GetComponentInChildren<AudioListener>(true);
-            Check("runtime Rigidbody exists", runtimeBody != null, runtimeBody != null ? runtimeBody.mass.ToString("0.##") : "missing");
-            Check("runtime flight controller exists", runtimeFlight != null, runtimeFlight != null ? runtimeFlight.GetType().Name : "missing");
-            Check("runtime camera controller exists", runtimeCamera != null, runtimeCamera != null ? runtimeCamera.GetType().Name : "missing");
-            Check("runtime camera exists", camera != null, camera != null ? camera.name : "missing");
-            Check("runtime audio listener exists", audioListener != null, audioListener != null ? audioListener.name : "missing");
-            Check("camera starts looking toward ground", camera != null && camera.transform.forward.y < -0.49f,
-                camera != null ? "forward.y=" + F(camera.transform.forward.y) : "missing");
-            var cameraLens = FindDeep(instance.transform, "Camera_Lens")
-                             ?? FindDeep(instance.transform, "Camera_Gimbal");
-            Check("camera is positioned 5 cm ahead of model lens", camera != null && cameraLens != null
-                  && Mathf.Abs(Vector3.Distance(camera.transform.position, cameraLens.position) - 0.05f) < 0.005f,
-                camera != null && cameraLens != null
-                    ? "offset=" + F(Vector3.Distance(camera.transform.position, cameraLens.position))
-                    : "camera or lens missing");
-            if (runtimeCamera != null)
+            if (requireUrpMaterials)
             {
-                var cameraSettings = new SerializedObject(runtimeCamera);
-                var maxPitchDown = cameraSettings.FindProperty("maxPitchDown");
-                var initialPitchDown = cameraSettings.FindProperty("initialPitchDown");
-                Check("camera can pitch down 85 degrees", maxPitchDown != null && maxPitchDown.floatValue >= 85f,
-                    maxPitchDown != null ? F(maxPitchDown.floatValue) : "missing");
-                Check("camera starts at 30 degree downward pitch", initialPitchDown != null && Mathf.Abs(initialPitchDown.floatValue - 30f) < 0.01f,
-                    initialPitchDown != null ? F(initialPitchDown.floatValue) : "missing");
+                var runtimeFlight = instance.GetComponent<TowerDefense.QuadcopterFlightController>();
+                var runtimeCamera = instance.GetComponent<DroneCameraController>();
+                var camera = instance.GetComponentInChildren<Camera>(true);
+                var audioListener = instance.GetComponentInChildren<AudioListener>(true);
+                Check("runtime Rigidbody exists", runtimeBody != null, runtimeBody != null ? runtimeBody.mass.ToString("0.##") : "missing");
+                Check("runtime flight controller exists", runtimeFlight != null, runtimeFlight != null ? runtimeFlight.GetType().Name : "missing");
+                Check("runtime camera controller exists", runtimeCamera != null, runtimeCamera != null ? runtimeCamera.GetType().Name : "missing");
+                Check("runtime camera exists", camera != null, camera != null ? camera.name : "missing");
+                Check("runtime audio listener exists", audioListener != null, audioListener != null ? audioListener.name : "missing");
+                Check("camera starts looking toward ground", camera != null && camera.transform.forward.y < -0.49f,
+                    camera != null ? "forward.y=" + F(camera.transform.forward.y) : "missing");
+                var cameraLens = FindDeep(instance.transform, "Camera_Lens")
+                                 ?? FindDeep(instance.transform, "Camera_Gimbal");
+                Check("camera is positioned 5 cm ahead of model lens", camera != null && cameraLens != null
+                      && Mathf.Abs(Vector3.Distance(camera.transform.position, cameraLens.position) - 0.05f) < 0.005f,
+                    camera != null && cameraLens != null
+                        ? "offset=" + F(Vector3.Distance(camera.transform.position, cameraLens.position))
+                        : "camera or lens missing");
+                if (runtimeCamera != null)
+                {
+                    var cameraSettings = new SerializedObject(runtimeCamera);
+                    var maxPitchDown = cameraSettings.FindProperty("maxPitchDown");
+                    var initialPitchDown = cameraSettings.FindProperty("initialPitchDown");
+                    Check("camera can pitch down 85 degrees", maxPitchDown != null && maxPitchDown.floatValue >= 85f,
+                        maxPitchDown != null ? F(maxPitchDown.floatValue) : "missing");
+                    Check("camera starts at 30 degree downward pitch", initialPitchDown != null && Mathf.Abs(initialPitchDown.floatValue - 30f) < 0.01f,
+                        initialPitchDown != null ? F(initialPitchDown.floatValue) : "missing");
+                }
             }
 
             var renderers = instance.GetComponentsInChildren<Renderer>(true);
-            Check("renderer count", renderers.Length > 100, renderers.Length.ToString());
+            Check("model contains renderable geometry", renderers.Length > 0, renderers.Length.ToString());
 
             var bounds = renderers[0].bounds;
             foreach (var r in renderers)
@@ -188,7 +191,8 @@ public static class QuadcopterDroneAuthoring
 
                 Check(name + " blades inside guard ring", maxRadius < 0.108f,
                     "max radius=" + F(maxRadius));
-                Check(name + " pivot has blades", blades.Length >= 6, blades.Length.ToString());
+                Check(name + " pivot has three blades",
+                    blades.Count(b => b.name.StartsWith(name + "_Blade_")) == 3, blades.Length.ToString());
 
                 // 真实自转测试：绕约定轴转 30°，桨盘中心不应平移
                 var before = BladeCentre(blades, instance.transform);
@@ -224,6 +228,13 @@ public static class QuadcopterDroneAuthoring
                 Check("materials use URP shaders",
                     materials.All(m => m.Contains("Universal Render Pipeline")),
                     materials.Length + " distinct");
+                var finish = renderers.SelectMany(r => r.sharedMaterials)
+                    .FirstOrDefault(m => m != null && m.name == "M_DR_FieldFinish");
+                Check("airframe coating, normal and metallic/smoothness maps are bound",
+                    finish != null && finish.GetTexture("_BaseMap") != null
+                    && finish.GetTexture("_BumpMap") != null && finish.IsKeywordEnabled("_NORMALMAP")
+                    && finish.GetTexture("_MetallicGlossMap") != null && finish.IsKeywordEnabled("_METALLICSPECGLOSSMAP"),
+                    finish != null ? finish.name : "missing");
             }
         }
         finally
@@ -237,7 +248,7 @@ public static class QuadcopterDroneAuthoring
         var json = "{\n  \"result\": \"" + (ok ? "PASS" : "FAIL") + "\",\n"
                    + "  \"asset\": \"" + assetPath + "\",\n"
                    + "  \"report\": [" + string.Join(", ", report.ToString()
-                       .Split('\n')
+                       .Split('\r', '\n')
                        .Where(l => !string.IsNullOrWhiteSpace(l))
                        .Select(l => "\"" + l.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"")) + "]\n}";
         File.WriteAllText(path, json);
@@ -276,35 +287,18 @@ public static class QuadcopterDroneAuthoring
     {
         new MatSpec
         {
-            Name = "DR_WhiteShell", BaseColor = new Color(0.855f, 0.870f, 0.888f),
-            Metallic = 0.05f, Smoothness = 0.72f, Emission = Color.black, EmissionIntensity = 0f,
-        },
-        new MatSpec
-        {
-            Name = "DR_OffWhite", BaseColor = new Color(0.480f, 0.500f, 0.522f),
-            Metallic = 0.10f, Smoothness = 0.58f, Emission = Color.black, EmissionIntensity = 0f,
-        },
-        new MatSpec
-        {
-            Name = "DR_BlackCarbon", BaseColor = new Color(0.010f, 0.010f, 0.012f),
-            Metallic = 0.08f, Smoothness = 0.60f, Emission = Color.black, EmissionIntensity = 0f,
-        },
-        new MatSpec
-        {
-            Name = "DR_DarkMetal", BaseColor = new Color(0.055f, 0.060f, 0.070f),
-            Metallic = 0.95f, Smoothness = 0.70f, Emission = Color.black, EmissionIntensity = 0f,
+            Name = "DR_FieldFinish", BaseColor = Color.white, Metallic = 1f, Smoothness = 1f,
         },
         new MatSpec
         {
             Name = "DR_CyanEmission", BaseColor = new Color(0.040f, 0.400f, 0.520f),
             Metallic = 0f, Smoothness = 0.75f,
-            Emission = new Color(0.070f, 0.760f, 1.000f), EmissionIntensity = 6.5f,
+            Emission = new Color(0.050f, 0.640f, 0.830f), EmissionIntensity = 1.65f,
         },
         new MatSpec
         {
-            Name = "DR_LensGlass", BaseColor = new Color(0.004f, 0.010f, 0.018f),
-            Metallic = 0.65f, Smoothness = 0.96f,
-            Emission = new Color(0.030f, 0.180f, 0.240f), EmissionIntensity = 0.12f,
+            Name = "DR_LensGlass", BaseColor = new Color(0.072f, 0.158f, 0.190f),
+            Metallic = 0.42f, Smoothness = 0.95f,
         },
     };
 
@@ -356,6 +350,16 @@ public static class QuadcopterDroneAuthoring
             if (mat.HasProperty("_Glossiness"))
             {
                 mat.SetFloat("_Glossiness", spec.Smoothness);
+            }
+
+            if (spec.Name == "DR_FieldFinish")
+            {
+                mat.SetTexture("_BaseMap", LoadFinishMap("QC_Coating", TextureImporterType.Default, true));
+                mat.SetTexture("_BumpMap", LoadFinishMap("QC_Surface", TextureImporterType.NormalMap, false));
+                mat.SetFloat("_BumpScale", 0.65f);
+                mat.EnableKeyword("_NORMALMAP");
+                mat.SetTexture("_MetallicGlossMap", LoadFinishMap("QC_MetalSmooth", TextureImporterType.Default, false));
+                mat.EnableKeyword("_METALLICSPECGLOSSMAP");
             }
 
             if (spec.EmissionIntensity > 0f)
@@ -476,6 +480,22 @@ public static class QuadcopterDroneAuthoring
         AssetDatabase.Refresh();
         Debug.Log("[drone] prefab saved: " + PrefabPath + " materials remapped=" + remapped
                   + " shader=" + shader.name + " ok=" + (prefab != null));
+    }
+
+    static Texture2D LoadFinishMap(string name, TextureImporterType type, bool sRGB)
+    {
+        string path = Path.GetDirectoryName(ModelPath).Replace('\\', '/') + "/" + name + ".png";
+        var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (importer == null)
+            throw new FileNotFoundException("Missing quadcopter surface map", path);
+        if (importer.textureType != type || importer.sRGBTexture != sRGB || importer.alphaIsTransparency)
+        {
+            importer.textureType = type;
+            importer.sRGBTexture = sRGB;
+            importer.alphaIsTransparency = false;
+            importer.SaveAndReimport();
+        }
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
     }
 
     static Transform FindDeep(Transform root, string name)

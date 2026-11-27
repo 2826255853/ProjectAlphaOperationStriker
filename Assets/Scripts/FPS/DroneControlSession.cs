@@ -39,6 +39,8 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
     private bool playerAudioListenerWasEnabled;
     private MonoBehaviour[] playerInputBehaviours;
     private bool[] playerInputBehavioursWereEnabled;
+    private GameObject engineerBody;
+    private readonly List<Renderer> hiddenViewMeshes = new List<Renderer>();
 
     private static readonly string[] PlayerInputComponentNames =
     {
@@ -88,6 +90,7 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
     {
         if (State == DroneControlState.Drone) ExitDroneMode();
         SceneManager.sceneUnloaded -= OnSceneUnloaded;
+        if (this.playerRoot != playerRoot) ReleaseEngineerBody();
         if (this.playerRoot != null)
         {
             PlayerHealth oldHealth = this.playerRoot.GetComponent<PlayerHealth>();
@@ -198,6 +201,7 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
     private void EnterDroneMode()
     {
         State = DroneControlState.Drone;
+        ShowEngineerBody();
 
         if (playerInput != null)
         {
@@ -284,6 +288,7 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
         if (placement != null && placement.PlacementMode) placement.ExitPlacementMode();
 
         State = DroneControlState.Player;
+        HideEngineerBody();
 
         // 1. Reset drone velocity and freeze
         if (droneController != null)
@@ -349,6 +354,48 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
         Debug.Log("Exited Drone mode");
     }
 
+    private void ShowEngineerBody()
+    {
+        if (playerRoot == null) return;
+        if (engineerBody == null)
+        {
+            var prefab = Resources.Load<GameObject>("FieldEngineer");
+            if (prefab == null) return;
+            engineerBody = Instantiate(prefab, playerRoot.transform, false);
+        }
+
+        var capsule = playerRoot.GetComponent<CharacterController>();
+        if (capsule != null)
+            engineerBody.transform.localPosition = capsule.center - Vector3.up * (capsule.height * 0.5f);
+        engineerBody.SetActive(true);
+        if (engineerBody.TryGetComponent<DroneOperatorPose>(out var pose))
+            pose.Bind(droneController);
+        foreach (Renderer renderer in playerRoot.GetComponentsInChildren<Renderer>(true))
+        {
+            if (!(renderer is SkinnedMeshRenderer || renderer is MeshRenderer)
+                || renderer.forceRenderingOff || renderer.transform.IsChildOf(engineerBody.transform)) continue;
+            renderer.forceRenderingOff = true;
+            hiddenViewMeshes.Add(renderer);
+        }
+    }
+
+    private void HideEngineerBody()
+    {
+        if (engineerBody != null) engineerBody.SetActive(false);
+        foreach (Renderer renderer in hiddenViewMeshes)
+            if (renderer != null) renderer.forceRenderingOff = false;
+        hiddenViewMeshes.Clear();
+    }
+
+    private void ReleaseEngineerBody()
+    {
+        if (engineerBody == null) return;
+        HideEngineerBody();
+        if (Application.isPlaying) Destroy(engineerBody);
+        else DestroyImmediate(engineerBody);
+        engineerBody = null;
+    }
+
     // IObserverModeDriver implementation
     public bool CanEnter(PlayerHealth health)
     {
@@ -388,6 +435,7 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
             ExitDroneMode();
         }
 
+        ReleaseEngineerBody();
         // Unsubscribe from events
         if (playerRoot != null)
         {

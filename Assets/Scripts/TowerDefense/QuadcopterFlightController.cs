@@ -63,6 +63,10 @@ namespace TowerDefense
         float _smoothYawRate;
         float _yawDamp;
         float _pendingMouseYawDegrees;
+        float _appliedMouseYawDegrees;
+        Vector2 _yawAndLiftInput;
+        public Vector2 LeftStick { get; private set; }
+        public Vector2 RightStick { get; private set; }
 
         // 旋翼名与 QuadcopterDroneAuthoring 保持一致
         static readonly string[] RotorNames = { "Rotor_FL", "Rotor_FR", "Rotor_RL", "Rotor_RR" };
@@ -112,6 +116,10 @@ namespace TowerDefense
 
         void Update()
         {
+            // Several physics steps can consume one mouse delta before the next rendered pose.
+            float mouseYaw = _appliedMouseYawDegrees / Mathf.Max(0.001f, yawSpeed * Time.deltaTime);
+            LeftStick = Vector2.ClampMagnitude(_yawAndLiftInput + Vector2.right * mouseYaw, 1f);
+            _appliedMouseYawDegrees = 0f;
             AnimateRotors();
         }
 
@@ -164,6 +172,9 @@ namespace TowerDefense
 
             // The physics controller is the sole owner of root rotation, including interpolated pose updates.
             var yawDelta = _pendingMouseYawDegrees + _smoothYawRate * Time.fixedDeltaTime;
+            _appliedMouseYawDegrees += _pendingMouseYawDegrees;
+            _yawAndLiftInput = new Vector2(inputYaw, inputY);
+            RightStick = Vector2.ClampMagnitude(new Vector2(inputX, inputZ), 1f);
             _pendingMouseYawDegrees = 0f;
             _rb.MoveRotation(_rb.rotation * Quaternion.Euler(0f, yawDelta, 0f));
         }
@@ -199,7 +210,11 @@ namespace TowerDefense
         /// <summary>切换回玩家模式前由协调器调用，清除速度残留。</summary>
         public void ResetVelocity()
         {
+            LeftStick = RightStick = Vector2.zero;
+            _pendingMouseYawDegrees = 0f;
             _smoothLocalVel = Vector3.zero;
+            _appliedMouseYawDegrees = 0f;
+            _yawAndLiftInput = Vector2.zero;
             _velDamp        = Vector3.zero;
             _smoothYawRate  = 0f;
             _yawDamp        = 0f;

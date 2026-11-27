@@ -1,5 +1,23 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 玩家四轴无人机外观（2026-11-27）
+
+- 玩家经 `Resources/QuadcopterDrone` 加载正式预制体。美术源位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\QuadcopterDrone\field-survey\`。先运行 `textures.py` 生成三张 2K 图集，再由 Blender 运行 `airframe.py` 生成模型及预览。建模脚本复用上一级目录的原始机身和枢轴定义。
+- 定稿 FBX 和底色、切线法线、金属度/光滑度图集位于 `Assets/Models/QuadcopterDrone/`。用 `QuadcopterDroneAuthoring.CreateMaterialsAndPrefab` 重建材质和预制体。机壳、碳纤维和金属共用图集，指示灯与光学玻璃各用独立材质。模型有 25 个网格渲染器、43,656 个三角面，每组旋翼保留三片独立桨叶。
+- 桌面制作目录中的 `QC04-unity.png` 由 Unity 重新加载正式预制体渲染。`unity-saved-prefab.log` 记录了四轴枢轴、自转、碰撞包围、镜头偏移及机载相机中央视野检查。
+
+## 工兵双手遥控无人机（2026-11-27）
+
+- 无人机模式下，`FieldEngineerAuthoring.Build` 先用站姿模型校准脚底和朝向，再装配 `FieldEngineer_Operator.fbx`。操控姿态、手持终端和双侧摇杆共用工兵的蒙皮与材质图集。生成器按 `Stick`、`Cap`、`Thumb` 的左右骨骼挂接 `DroneOperatorPose`。
+- `DroneControlSession` 在显示工兵时绑定当前飞控。右杆读取本地横移和前进输入，左杆读取升降、键盘偏航和物理步实际消费的鼠标偏航。鼠标偏航按渲染帧汇总，松开后手指随摇杆回中。菜单暂停期间使用未缩放时间复位。
+- 在隔离 Play Mode 使用正式玩家、无人机预制体及新版输入系统的 V 键事件，验证双向切换、两杆组合输入、鼠标偏航、菜单回中、脚底位置、模型复用及玩家死亡收起。75 帧无人机相机画面合成为 `drone-operation.mp4`。制作源、备份、截图及验证日志位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\FieldEngineer\drone-operator\`。
+
+## 第三人称玩家工兵（2026-11-27）
+
+- 定稿模型在 `Assets/Models/FieldEngineer/`，背部为检修线盘与开口扳手，腕部配诊断屏。单蒙皮网格共 80,057 个三角面、21 根骨骼，使用一套 2K 底色、切线法线及金属度/光滑度图集。Blender 源文件、建模脚本、正背面预览与验证记录位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\FieldEngineer\`。
+- `FieldEngineerAuthoring.Build` 配置 URP 材质并生成 `Assets/Resources/FieldEngineer.prefab`，按脚部骨骼校准 Unity +Z 朝向，脚底位于根节点。无人机模式通过 `DroneControlSession` 首次进入时实例化工兵，暂停显示第一人称网格，退出时恢复显示并收起工兵。当前外观使用站立姿态。
+- 隔离 Play Mode 经正式玩家和无人机预制体验证切换、脚底、朝向、返回第一人称、再次进入复用模型及禁用会话恢复。测试入口为无人机会话公开切换方法，验证日志为桌面目录中的 `view-test.log`。
+
 ## RG777 野战涂层与通电部署（2026-11-27）
 
 - RG777.fbx 的刚性装甲、铭牌与助锄共用 2K 底色、切线法线与金属度/光滑度图集，蓝光部件独立。桌面 `C:\Users\ASUS\Desktop\陷阱素材文件夹\RG777\field-deployment\` 保留生成脚本、原件备份、预览和 Play Mode 实录。
