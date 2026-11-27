@@ -142,7 +142,7 @@ public static class RG777TrapPreview
         }
 
         int segments = all.Count(t => t.name.StartsWith("ChargeSegment_"));
-        int coils = all.Count(t => t.name.EndsWith("_Ring") && t.name.StartsWith("Coil_"));
+        int coils = all.Count(t => t.name.EndsWith("_Glow") && t.name.StartsWith("Coil_"));
         Debug.Log("[RG777] 结构：枢轴齐备=" + ok + "，充能段=" + segments + "，加速线圈=" + coils);
         if (segments != 8)
         {
@@ -187,7 +187,7 @@ public static class RG777TrapPreview
     /// <summary>打印关键部件实际绑定的材质与 BaseColor，用于肉眼核对配色是否真的生效。</summary>
     private static void ProbeKeyParts(GameObject root)
     {
-        string[] probes = { "Base_Chassis", "Base_TurnRingGlow", "Yaw_Deck", "Coil_0_Ring",
+        string[] probes = { "XM777_Base_Root_Shell", "Base_TurnRingGlow", "Yaw_Deck", "Coil_0_Ring",
                             "Coil_0_Glow", "ChargeSegment_0", "ChargeSegment_7", "Barrel_Housing" };
         Transform[] all = root.GetComponentsInChildren<Transform>(true);
         foreach (string probe in probes)

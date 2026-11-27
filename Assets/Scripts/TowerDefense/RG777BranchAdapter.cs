@@ -126,6 +126,7 @@ public sealed class RG777BranchAdapter : MonoBehaviour
         rgYawPivot.rotation = rgYawRestRotation;
         rgPitchPivot.localRotation = rgPitchRestRotation;
         rg777Visual.SetActive(true);
+        rg777Visual.GetComponent<RG777DeploymentAnimation>().Begin(GetComponent<TrapPlacementPreview>() != null);
         weapon.ConfigureAimRig(rgYawPivot, rgPitchPivot, rgMuzzle);
         SetXM777Renderers(false);
     }

@@ -9,7 +9,7 @@ using UnityEngine;
 /// RG777「雷锤」电磁炮的 URP 材质库生成器。
 ///
 /// 背景：Blender 导出的 FBX 里带的是内置 Standard 材质，URP 工程里会渲染成品红。
-/// 这里把 9 个材质槽（6 个不透明 PBR + 3 档蓝色自发光）生成为 URP 材质资产，
+/// 这里把野战涂层图集与三档蓝色自发光生成为 URP 材质资产，
 /// 再通过 ModelImporter.AddRemap 绑回 <see cref="ModelPath"/>，导入后不会再有品红面。
 ///
 /// 绑定流程沿用工程里 SentryMachineGunAuthoring 的既有做法：
@@ -24,6 +24,7 @@ public static class RG777MaterialAuthoring
     public const string ModelPath = "Assets/Models/RG777/RG777.fbx";
     public const string MaterialFolder = "Assets/Models/RG777/Materials";
 
+    private const string FieldMaterial = "RG777_Field";
     private const string UrpLit = "Universal Render Pipeline/Lit";
 
     // 三档蓝色自发光材质的固定名字：充能灯带按这三档切换。
@@ -57,13 +58,7 @@ public static class RG777MaterialAuthoring
 
     private static readonly Spec[] Specs =
     {
-        // ---- 不透明 PBR：白 / 灰 / 蓝 三主色 + 镀铬 + 橡胶 ----
-        new Spec("RG777_WhiteArmor", new Color(0.52f, 0.55f, 0.59f), 0.12f, 0.45f),
-        new Spec("RG777_PlateGray", new Color(0.155f, 0.170f, 0.195f), 0.70f, 0.55f),
-        new Spec("RG777_DarkMetal", new Color(0.045f, 0.052f, 0.062f), 0.88f, 0.68f),
-        new Spec("RG777_BlueMetal", new Color(0.028f, 0.105f, 0.300f), 0.85f, 0.74f),
-        new Spec("RG777_ChromeRod", new Color(0.62f, 0.66f, 0.72f), 0.95f, 0.82f),
-        new Spec("RG777_Rubber", new Color(0.018f, 0.020f, 0.024f), 0.10f, 0.18f),
+        new Spec(FieldMaterial, Color.white, 1f, 1f),
 
         // ---- 蓝色自发光三档：充能灯带满亮 / 半亮 / 待机 ----
         // 发光强度沿用 Blender 里的 2.4 / 1.2 / 0.45，乘在 HDR 自发光色上。
@@ -129,6 +124,7 @@ public static class RG777MaterialAuthoring
             }
 
             Apply(material, spec);
+            if (spec.Name == FieldMaterial) BindFieldMaps(material);
             EditorUtility.SetDirty(material);
             materials[spec.Name] = material;
         }
@@ -165,6 +161,31 @@ public static class RG777MaterialAuthoring
             material.DisableKeyword("_EMISSION");
             material.SetColor("_EmissionColor", Color.black);
         }
+    }
+
+    private static void BindFieldMaps(Material material)
+    {
+        material.SetTexture("_BaseMap", LoadFieldMap("FieldCoat", TextureImporterType.Default, true));
+        material.SetTexture("_BumpMap", LoadFieldMap("SurfaceNormal", TextureImporterType.NormalMap, false));
+        material.SetTexture("_MetallicGlossMap", LoadFieldMap("MetalSmooth", TextureImporterType.Default, false));
+        material.SetFloat("_BumpScale", .55f);
+        material.SetFloat("_SmoothnessTextureChannel", 0f);
+        material.EnableKeyword("_NORMALMAP");
+        material.EnableKeyword("_METALLICSPECGLOSSMAP");
+    }
+
+    private static Texture2D LoadFieldMap(string suffix, TextureImporterType type, bool srgb)
+    {
+        string path = $"Assets/Models/RG777/RG777_{suffix}.png";
+        var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (importer == null) throw new InvalidOperationException("Missing RG777 texture " + path);
+        if (importer.textureType != type || importer.sRGBTexture != srgb)
+        {
+            importer.textureType = type;
+            importer.sRGBTexture = srgb;
+            importer.SaveAndReimport();
+        }
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
     }
 
     private static void EnsureFolder(string folder)

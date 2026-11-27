@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -115,6 +116,7 @@ public static class RG777BranchAuthoring
                 || !Mathf.Approximately(weapon.EffectiveElevationForDistance(90f), 15f)
                 || !Mathf.Approximately(weapon.EffectiveElevationForDistance(180f), 30f))
                 throw new InvalidOperationException("RG777 branch runtime tuning or visual switch did not match its specification.");
+            adapter.RG777Visual.GetComponent<RG777DeploymentAnimation>().SetProgress(1f);
             float rg777Footprint = GetFootprint(adapter.RG777Visual.GetComponentsInChildren<Renderer>(true));
             if (Mathf.Abs(rg777Footprint - xm777Footprint) > Mathf.Max(0.1f, xm777Footprint * 0.1f))
                 throw new InvalidOperationException($"RG777 visual footprint ({rg777Footprint:0.##} m) does not match "
@@ -193,7 +195,44 @@ public static class RG777BranchAuthoring
         muzzle.position = muzzleBore.position + muzzleDirection * 0.08f;
         muzzle.rotation = Quaternion.LookRotation(muzzleDirection, Vector3.up);
         FitToFootprint(root, FootprintMeters);
+        WireDeployment(root);
         return root;
+    }
+
+    private static void WireDeployment(GameObject root)
+    {
+        var data = new SerializedObject(root.AddComponent<RG777DeploymentAnimation>());
+        var legs = data.FindProperty("legs");
+        var spades = data.FindProperty("spades");
+        legs.arraySize = spades.arraySize = 4;
+        for (int i = 0; i < 4; i++)
+        {
+            var leg = FindDeepChild(root.transform, $"Leg_{i}_Pivot");
+            var spade = leg == null ? null : FindDeepChild(leg, $"Leg_Spade_{i}");
+            if (spade == null) throw new InvalidOperationException($"Missing RG777 outrigger {i}.");
+            legs.GetArrayElementAtIndex(i).objectReferenceValue = leg;
+            spades.GetArrayElementAtIndex(i).objectReferenceValue = spade;
+        }
+
+        var emitters = root.GetComponentsInChildren<MeshRenderer>(true)
+            .Where(r => r.sharedMaterial.IsKeywordEnabled("_EMISSION")).ToArray();
+        var lamps = data.FindProperty("lamps");
+        lamps.arraySize = emitters.Length;
+        if (emitters.Count(r => r.name.StartsWith("ChargeSegment_")) != 8)
+            throw new InvalidOperationException("RG777 requires eight independently emissive charge segments.");
+        for (int i = 0; i < emitters.Length; i++)
+        {
+            var lamp = lamps.GetArrayElementAtIndex(i);
+            string name = emitters[i].name;
+            float ignition = .75f;
+            if (name.StartsWith("Leg_") || name.StartsWith("Base_")) ignition = .67f;
+            if (name.StartsWith("ChargeSegment_")) ignition = .77f + .021f * int.Parse(name.Split('_')[1]);
+            if (name.StartsWith("Coil_")) ignition = .77f + .03f * int.Parse(name.Split('_')[1]);
+            if (name.StartsWith("Muzzle_")) ignition = .93f;
+            lamp.FindPropertyRelative("renderer").objectReferenceValue = emitters[i];
+            lamp.FindPropertyRelative("ignition").floatValue = ignition;
+        }
+        data.ApplyModifiedPropertiesWithoutUndo();
     }
 
     private static void EnsureBranchCatalogEntry()

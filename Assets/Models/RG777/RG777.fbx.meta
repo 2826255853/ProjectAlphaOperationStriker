@@ -22,6 +22,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: RG777_Field
+    second: {fileID: 2100000, guid: 1d16222e79b7f9e4b893332dbedb6028, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: RG777_GlowBlueDim
     second: {fileID: 2100000, guid: 9690061aa045e0e45bab962b2fa6ae42, type: 2}
   - first:

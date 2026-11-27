@@ -1,5 +1,11 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## RG777 野战涂层与通电部署（2026-11-27）
+
+- RG777.fbx 的刚性装甲、铭牌与助锄共用 2K 底色、切线法线与金属度/光滑度图集，蓝光部件独立。桌面 `C:\Users\ASUS\Desktop\陷阱素材文件夹\RG777\field-deployment\` 保留生成脚本、原件备份、预览和 Play Mode 实录。
+- `RG777BranchAuthoring.CreateAssetsBatch` 从模型挂接四对支腿/铲板枢轴与发光件。`RG777BranchAdapter` 激活分支时启动一秒表现，覆盖原地升级和升级后的放置。预览由 `TrapPlacementController` 固定在收起断电姿态。运行时用每实例的材质属性块控制承环、六组线圈、八段灯带和炮口的点亮顺序。
+- 铲板的 FBX 静止姿态即接地姿态。展开时铲板先调平、支腿再落稳。隔离 Play Mode 经真实升级、预览与付费放置入口采样 73 帧，验证四脚接地、预览首帧连续和充能扫光；日志为素材目录的 `playmode-final.log`。
+
 ## XM777 写实材质与支腿部署动画（2026-11-26）
 
 - 定稿 FBX Assets/Models/XM777/XM777.fbx 与 2K 图集 XM777_FieldCoat.png、XM777_SurfaceNormal.png、XM777_MetalSmooth.png 由桌面 C:\Users\ASUS\Desktop\陷阱素材文件夹\XM777\field-revision\build.py 从原源模型重建。FBX 保留转炮/俯仰挂点，固定件各合并为刚性网格，四条助锄与四块铲板保留枢轴。贴图包含涂层分区、边角磨损、擦痕、钢材和橡胶；URP 材质及贴图导入设置由 XM777TrapAuthoring.CreateAssets 创建。

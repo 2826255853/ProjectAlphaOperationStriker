@@ -771,6 +771,8 @@ public sealed class TrapPlacementController : MonoBehaviour
         foreach (XM777Trap artillery in preview.GetComponentsInChildren<XM777Trap>(true)) artillery.enabled = false;
         foreach (XM777DeploymentAnimation deployment in preview.GetComponentsInChildren<XM777DeploymentAnimation>(true))
             deployment.enabled = false; // Keep the folded pose initialized by Awake while hovering.
+        foreach (RG777DeploymentAnimation deployment in preview.GetComponentsInChildren<RG777DeploymentAnimation>(true))
+            deployment.Begin(true);
         foreach (TrapInstance trap in preview.GetComponentsInChildren<TrapInstance>(true)) trap.enabled = false;
         foreach (Collider collider in preview.GetComponentsInChildren<Collider>()) collider.enabled = false;
         foreach (Renderer renderer in preview.GetComponentsInChildren<Renderer>())
