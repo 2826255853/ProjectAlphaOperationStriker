@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Factory_IndustrialSky
-  m_Shader: {fileID: 108, guid: 0000000000000000f000000000000000, type: 0}
+  m_Shader: {fileID: 4800000, guid: 87b6e073799d9eb48ae75499adb2243f, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -30,13 +30,15 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Exposure: 1
+    - _Exposure: 0.53
     - _ImageType: 0
     - _Layout: 0
     - _Mapping: 1
     - _MirrorOnBack: 0
     - _Rotation: 0
     m_Colors:
+    - _HaloColor: {r: 1, g: 0.66, b: 0.35, a: 1}
+    - _SunColor: {r: 4.5, g: 3.9, b: 2.9, a: 1}
     - _Tint: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

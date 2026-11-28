@@ -117,9 +117,13 @@ public static partial class DoubleLayerFacilityAuthoring
         RenderSettings.ambientIntensity = 1f;
         var sun = UnityEngine.Object.FindAnyObjectByType<Light>();
         sun.transform.rotation = Quaternion.Euler(45f, -35f, 0f);
-        sun.intensity = 1.2f;
+        sun.intensity = 1.45f;
+        sun.color = new Color(1f, .965f, .91f);
         sun.shadows = LightShadows.Soft;
         RenderSettings.sun = sun;
+        var sunPosition = sun.GetComponent<SunPositionController>() ?? sun.gameObject.AddComponent<SunPositionController>();
+        sunPosition.Configure(SunPositionController.ProgressSource.CompletedWaves, 9f, 12f, 600f, 3,
+            AnimationCurve.Linear(0f, 0f, 1f, 1f));
 
         var lights = new GameObject("Facility Interior Lighting");
         foreach (float x in new[] { -24f, 0f, 24f })

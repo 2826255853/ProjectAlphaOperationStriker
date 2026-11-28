@@ -318,6 +318,7 @@ public sealed class EnemySpawnPoint : MonoBehaviour
 
             int resolvedWave = waitingForWaveResolution;
             waitingForWaveResolution = 0;
+            waveManager.ReportWaveCompleted(resolvedWave);
             if (resolvedWave >= TotalWaves)
             {
                 CompleteAllWaves();
@@ -344,6 +345,7 @@ public sealed class EnemySpawnPoint : MonoBehaviour
     /// <summary>Clears wave progress and starts again from wave one.</summary>
     public void RestartWaves()
     {
+        waveManager?.ResetCompletedWaves();
         ResetWaveProgress();
         spawningEnabled = true;
     }

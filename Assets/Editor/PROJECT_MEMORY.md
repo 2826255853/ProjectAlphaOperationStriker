@@ -7,9 +7,16 @@
 
 ## 雷鸣工厂全景天空盒（2026-11-28）
 
-- `Assets/Textures/Skyboxes/Factory_IndustrialSky_4K.jpg` 是工厂地图用的 4096×2048 2:1 全景天空图。2026-11-28 修订为均匀阴天照明，移除固定太阳盘和定向强光，并对左右两侧各 96 像素做环绕融合；编码后左右边缘平均 RGB 差为 0.53/255。`Assets/Materials/Skyboxes/Factory_IndustrialSky.mat` 使用 `Skybox/Panoramic`，纹理以 sRGB、重复环绕、mipmap 和高质量压缩导入。
+- `Assets/Textures/Skyboxes/Factory_IndustrialSky_4K.jpg` 是工厂地图用的 4096×2048 2:1 全景云图。2026-11-28 修订为均匀阴天照明，移除固定太阳盘和定向强光，并对左右两侧各 96 像素做环绕融合；编码后左右边缘平均 RGB 差为 0.53/255。纹理以 sRGB、重复环绕、mipmap 和高质量压缩导入。
 - `Assets/Scenes/DOUBLE_LAYER_FACILITY.unity` 已引用该天空盒，并以 Skybox 环境采样替代原三色环境光。`DoubleLayerFacilityAuthoring.ConfigurePresentation` 同步此设置，后续重建地图会继续使用该材质。
+- `Assets/Materials/Skyboxes/Factory_IndustrialSky.mat` 使用 `Assets/Shaders/FactoryDynamicSky.shader`。云层曝光为 0.53，天顶过渡到平面投影以减少正午仰视时的接缝。亮盘和暖色光晕使用 URP 主方向光的方向，地表直射强度由 1.2 提至 1.45。重建地图时沿用该材质及方向光设置。
 - Unity 批处理确认场景保存并输出 `FACTORY_SKYBOX_PASS`；贴图更新后 `FactorySkyboxRefresh.Verify` 确认 4K 尺寸、Repeat 环绕、材质及场景引用，`DoubleLayerFacilityAuthoring.ValidateSavedScene` 通过，31 套陷阱网格校验完成。天空贴图旧版副本在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\FactorySkybox\backups\revision-2-20261128\`，场景副本在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\FactorySkybox\backups\20261128-183702\`，批处理记录位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\FactorySkybox\`。
+
+## 雷鸣工厂太阳位置推进（2026-11-28）
+
+- `SunPositionController` 可按局内秒数或 `WaveManager.CompletedWaves` 推进方向光时间，`AnimationCurve` 支持线性与自定义非线性。太阳轨迹暂按零纬度、无地轴倾斜处理，正午过天顶。
+- 工厂方向光由场景和 `DoubleLayerFacilityAuthoring.ConfigurePresentation` 同时挂接控制器，当前使用线性波次模式：0/1/2/3 个已完成波次对应 9/10/11/12 点。`EnemySpawnPoint` 仅在共享波次敌人全部结算后通知 `WaveManager`，重开波次会清零进度。
+- Unity `6000.6.11f1` 下 `DoubleLayerFacilityAuthoring.Build` 与 `ValidateSavedScene` 均通过。Play Mode 加快刷怪并通过正式伤害入口结算三波，确认每波最后一只敌人仍存活时太阳保持原角度。四个阶段的亮盘与主方向光投影位置一致，仰角为 45°／60°／75°／90°。改动前后截图、机位对比和验证记录位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\DoubleLayerFacility\sun-progression\visible-sun-20261128-202717\`。
 
 ## 雷鸣工厂旧厂区两翼入侵（2026-11-28）
 

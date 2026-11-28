@@ -17,6 +17,9 @@ public sealed class WaveManager : MonoBehaviour
 
     public static WaveManager Instance { get; private set; }
     public event Action<int> TotalWavesChanged;
+    public event Action<int> CompletedWavesChanged;
+
+    public int CompletedWaves { get; private set; }
 
     public int TotalWaves
     {
@@ -78,5 +81,21 @@ public sealed class WaveManager : MonoBehaviour
             return;
 
         if (legacyValue > TotalWaves) TotalWaves = legacyValue;
+    }
+
+    internal void ReportWaveCompleted(int waveNumber)
+    {
+        if (waveNumber <= CompletedWaves) return;
+
+        CompletedWaves = waveNumber;
+        CompletedWavesChanged?.Invoke(CompletedWaves);
+    }
+
+    internal void ResetCompletedWaves()
+    {
+        if (CompletedWaves == 0) return;
+
+        CompletedWaves = 0;
+        CompletedWavesChanged?.Invoke(CompletedWaves);
     }
 }
