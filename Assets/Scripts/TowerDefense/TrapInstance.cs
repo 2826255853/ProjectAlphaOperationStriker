@@ -39,6 +39,7 @@ public sealed class TrapInstance : MonoBehaviour
     public float GetEffectiveRepair(float baseRepair) => baseRepair * RepairMultiplier;
     public event Action<TrapInstance> Damaged;
     public event Action<TrapInstance> Destroyed;
+    internal event Action DeploymentStarted;
     /// <summary>Refresh hook; durability/combat adapters read the service's committed state here.</summary>
     public event Action<TrapInstance, TrapUpgradeState> UpgradeStateChanged;
 
@@ -62,6 +63,7 @@ public sealed class TrapInstance : MonoBehaviour
     internal void BeginDeployment()
     {
         operationalAt = Time.time + DeploymentCooldownSeconds;
+        DeploymentStarted?.Invoke();
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

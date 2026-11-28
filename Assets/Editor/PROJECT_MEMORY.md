@@ -1,5 +1,12 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 扼喉之灯顶装总成与部署（2026-11-28）
+
+- 正式预制体沿本地 +Z 向下挂装。四块检修面板共用 1.92 × 1.92 米顶板，展开深度为 1.1075 米。五种非发光材质按 UV 取样同一套 2K 底色、切线法线与金属度／光滑度图集。透镜、约束环和等离子核心保留独立的动画材质。
+- 制作源位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\ThroatLamp\industrial\`。运行 `surface.py` 生成图集，再用 Blender 运行 `assembly.py` 生成 FBX、源文件和工作室预览。更新正式 FBX 与三张 PNG 后运行 `ThroatLampAuthoring.CreateAssetsBatch`，再以图形模式运行 `TrapSelectionMenuAuthoring.RegenerateThroatLampIconBatch` 更新选卡图。
+- `TrapInstance.BeginDeployment` 在运行时放置成功后通知灯体。预览和落地首帧共用收拢姿态，部署窗口内按进度伸出轴承、转正灯头，再交回 Animator 与原瞄准逻辑。待机扫描绕本地 Z 轴，与天花板安装法线一致。
+- 隔离 Play Mode 使用正式预制体、2 × 2 米天花板网格和购买入口，采样 66 帧核对预览与首帧连续、轴承下伸、灯头转正及冷却结束后开火。制作目录中的 `TL04-deployment.gif` 为 Unity 实录，`TL04-studio.png` 为 Blender 外观预览，`prefab-report.json` 记录安装包围盒。
+
 ## 局外武器配置与三槽配备（2026-11-27）
 
 - 枪械侧视图由 `WeaponPortraitAuthoring.Generate` 从 FPSPlayer 引用的可选武器预制体正交渲染，按型号存入 `Assets/Resources/UI/WeaponPortraits/`。更新模型后使用菜单「Tools/行动打击/生成武器侧视图」重建。配置页的槽位、型号和图片随选择同步刷新，Play Mode 回归逐一验证了 18 个型号。总览在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\WeaponLoadout\portraits\all-models.png`。

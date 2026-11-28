@@ -27,6 +27,9 @@ public sealed class ThroatLampTrap : MonoBehaviour
     private float nextShotTime;
     private float dischargeUntil;
     private float clock;
+    private Vector3 deployedBearingPosition;
+    private bool deploying;
+    private TrapInstance trap;
     public EnemyInstance CurrentTarget { get; private set; }
     public Vector3 InterceptPoint { get; private set; }
     public ThroatLampState State { get; private set; }
@@ -44,7 +47,36 @@ public sealed class ThroatLampTrap : MonoBehaviour
         if (pitchPivot == null && yawPivot != null) pitchPivot = yawPivot.Find("Pitch Pivot");
         if (nozzle == null && pitchPivot != null) nozzle = pitchPivot.Find("Nozzle");
         if (animator == null) animator = GetComponent<Animator>();
+        if (yawPivot != null) deployedBearingPosition = yawPivot.localPosition;
+        trap = GetComponent<TrapInstance>();
         clock = Time.time;
+    }
+
+    private void OnEnable()
+    {
+        if (trap != null) trap.DeploymentStarted += BeginDeployment;
+    }
+
+    private void BeginDeployment()
+    {
+        deploying = true;
+        HoldPlacementPose();
+    }
+
+    public void HoldPlacementPose()
+    {
+        if (animator != null) animator.enabled = false;
+        ApplyDeploymentPose(0f);
+    }
+
+    private void ApplyDeploymentPose(float progress)
+    {
+        if (yawPivot == null || pitchPivot == null) return;
+        float extension = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0f, 0.66f, progress));
+        float tilt = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.25f, 0.95f, progress));
+        yawPivot.localPosition = deployedBearingPosition - Vector3.forward * (0.20f * (1f - extension));
+        yawPivot.localRotation = Quaternion.AngleAxis(-32f * (1f - extension), Vector3.forward);
+        pitchPivot.localRotation = Quaternion.AngleAxis(65f * (1f - tilt), Vector3.right);
     }
 
     // Run after Animator evaluation; both the alignment gate and the emitted shot
@@ -53,7 +85,13 @@ public sealed class ThroatLampTrap : MonoBehaviour
 
     public void Advance(float deltaTime)
     {
-        TrapInstance trap = GetComponent<TrapInstance>();
+        if (deploying && trap != null)
+        {
+            ApplyDeploymentPose(trap.DeploymentProgress);
+            if (trap.DeploymentProgress < 1f) return;
+            if (animator != null) animator.enabled = true;
+            deploying = false;
+        }
         if (trap != null && !trap.IsOperational) return;
         if (!isActiveAndEnabled || !HasBoundRig || deltaTime <= 0f
             || GetComponentInParent<TrapPlacementPreview>() != null) return;
@@ -156,6 +194,7 @@ public sealed class ThroatLampTrap : MonoBehaviour
 
     private void OnDisable()
     {
+        if (trap != null) trap.DeploymentStarted -= BeginDeployment;
         CancelCharge();
         CurrentTarget = null;
         HasInterceptPoint = false;

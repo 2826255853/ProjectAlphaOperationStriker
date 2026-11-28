@@ -767,7 +767,11 @@ public sealed class TrapPlacementController : MonoBehaviour
         foreach (GroundSpikeTrap spikes in preview.GetComponentsInChildren<GroundSpikeTrap>(true)) spikes.enabled = false;
         foreach (Betty7JumpMineTrap mines in preview.GetComponentsInChildren<Betty7JumpMineTrap>(true)) mines.enabled = false;
         foreach (RepairStationTrap station in preview.GetComponentsInChildren<RepairStationTrap>(true)) station.enabled = false;
-        foreach (ThroatLampTrap lamp in preview.GetComponentsInChildren<ThroatLampTrap>(true)) lamp.enabled = false;
+        foreach (ThroatLampTrap lamp in preview.GetComponentsInChildren<ThroatLampTrap>(true))
+        {
+            lamp.enabled = false;
+            lamp.HoldPlacementPose();
+        }
         foreach (XM777Trap artillery in preview.GetComponentsInChildren<XM777Trap>(true)) artillery.enabled = false;
         foreach (XM777DeploymentAnimation deployment in preview.GetComponentsInChildren<XM777DeploymentAnimation>(true))
             deployment.enabled = false; // Keep the folded pose initialized by Awake while hovering.
@@ -785,11 +789,11 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     private void ShowHoveredPreview()
     {
-        // Keep the folded ghost from covering the deploying artillery at the same anchor.
-        bool coversArtillery = activeGrid.TryGetTrapAtCell(hoveredCell, out TrapInstance placed)
+        // Keep the stowed preview from covering the mechanism at its placement anchor.
+        bool coversDeployingTrap = activeGrid.TryGetTrapAtCell(hoveredCell, out TrapInstance placed)
             && placed.OriginCell == hoveredCell && placed.Definition == selectedTrap
-            && placed.TryGetComponent<XM777DeploymentAnimation>(out _);
-        SetPreviewVisible(!coversArtillery);
+            && (placed.TryGetComponent<XM777DeploymentAnimation>(out _) || placed.TryGetComponent<ThroatLampTrap>(out _));
+        SetPreviewVisible(!coversDeployingTrap);
     }
 
     private void ReleasePreviewMaterials()

@@ -23,6 +23,6 @@ MonoBehaviour:
   walkableFloorTrap: 0
   worldFootprint: {x: 2, y: 2}
   mountType: 2
-  installBoundsCenter: {x: 0, y: 0, z: 0.205}
-  installBoundsSize: {x: 0.456, y: 0.456, z: 0.41000003}
+  installBoundsCenter: {x: 0, y: 0, z: 0.5537499}
+  installBoundsSize: {x: 1.92, y: 1.9199998, z: 1.1075001}
   skipMonsterClearanceCheck: 0

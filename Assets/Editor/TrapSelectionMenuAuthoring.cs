@@ -58,6 +58,8 @@ public static class TrapSelectionMenuAuthoring
 
     public static void RegenerateXM777IconBatch() => GenerateIcons(false, "xm777");
 
+    public static void RegenerateThroatLampIconBatch() => GenerateIcons(true, "throat-lamp");
+
     /// <summary>Batch entry for the anti-air launcher: its icon is rendered from the prefab,
     /// so it has to be refreshed whenever the launcher materials change.</summary>
     public static void RegenerateDualMissileLauncherIconBatch() =>
@@ -521,12 +523,10 @@ public static class TrapSelectionMenuAuthoring
             camera.farClipPlane = 1000f;
             GameObject keyLight = new GameObject("Icon Key Light", typeof(Light));
             SceneManager.MoveGameObjectToScene(keyLight, scene);
-            keyLight.transform.rotation = Quaternion.Euler(42, -35, 0);
             keyLight.GetComponent<Light>().type = LightType.Directional;
             keyLight.GetComponent<Light>().intensity = 1.3f;
             GameObject fillLight = new GameObject("Icon Fill Light", typeof(Light));
             SceneManager.MoveGameObjectToScene(fillLight, scene);
-            fillLight.transform.rotation = Quaternion.Euler(25, 145, 0);
             fillLight.GetComponent<Light>().type = LightType.Directional;
             fillLight.GetComponent<Light>().intensity = .55f;
 
@@ -551,11 +551,16 @@ public static class TrapSelectionMenuAuthoring
                 CopyMeshesOnly(sourceModel.transform, visualRoot.transform, renderers);
                 if (renderers.Count == 0) throw new InvalidOperationException("No renderable model meshes found at " + AssetDatabase.GetAssetPath(sourceModel) + " for " + group.Key);
                 visualRoot.transform.rotation = Quaternion.Euler(0, 32, 0);
+                bool ceilingLamp = group.Key == "throat-lamp";
+                if (ceilingLamp) visualRoot.transform.rotation *= Quaternion.LookRotation(Vector3.down, Vector3.forward);
+                keyLight.transform.rotation = Quaternion.Euler(ceilingLamp ? -42f : 42f, -35f, 0f);
+                fillLight.transform.rotation = Quaternion.Euler(ceilingLamp ? -25f : 25f, 145f, 0f);
                 Bounds bounds = renderers[0].bounds;
                 for (int i = 1; i < renderers.Count; i++) bounds.Encapsulate(renderers[i].bounds);
                 Vector3 center = bounds.center;
                 float radius = Mathf.Max(bounds.extents.magnitude, .25f);
-                camera.transform.position = center + new Vector3(radius * 1.25f, radius * .92f, -radius * 1.65f);
+                float cameraHeight = ceilingLamp ? -1.8f : .92f;
+                camera.transform.position = center + new Vector3(1.25f, cameraHeight, -1.65f) * radius;
                 camera.transform.LookAt(center);
                 camera.orthographicSize = bounds.extents.magnitude * .92f;
                 camera.farClipPlane = radius * 12f + 20f;

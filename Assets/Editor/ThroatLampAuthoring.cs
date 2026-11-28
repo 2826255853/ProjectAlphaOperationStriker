@@ -30,10 +30,10 @@ public static class ThroatLampAuthoring
     public const string PitchGroupName = "Pitch Pivot";
     public const string NozzleMarkerName = "Nozzle";
 
-    // Distances from the ceiling plane, metres. They mirror build_throat_lamp.py.
-    public const float YawPivotDepth = 0.075f;
-    public const float PitchPivotDepth = 0.270f;
-    public const float NozzleDepth = 0.400f;
+    // Axis centres and aperture exit on the extended TL-04 assembly, in metres.
+    public const float YawPivotDepth = 0.365f;
+    public const float PitchPivotDepth = 0.794f;
+    public const float NozzleDepth = 1.105f;
 
     private struct MatSpec
     {
@@ -189,11 +189,11 @@ public static class ThroatLampAuthoring
 
             var shots = new[]
             {
-                new PreviewShot("01_front", new Vector3(0f, 1.75f, 0.20f), new Vector3(0f, 0f, 0.20f), Vector3.back),
-                new PreviewShot("02_side", new Vector3(1.75f, 0f, 0.20f), new Vector3(0f, 0f, 0.20f), Vector3.back),
-                new PreviewShot("03_underside", new Vector3(0f, 0f, 1.95f), new Vector3(0f, 0f, 0.30f), Vector3.up),
-                new PreviewShot("04_three_quarter", new Vector3(1.00f, 1.15f, 1.20f), new Vector3(0f, 0f, 0.18f), Vector3.back),
-                new PreviewShot("05_nozzle_detail", new Vector3(0.34f, 0.42f, 0.86f), new Vector3(0f, 0f, 0.40f), Vector3.back),
+                new PreviewShot("01_front", new Vector3(0f, 4.7f, 0.85f), new Vector3(0f, 0f, 0.50f), Vector3.back),
+                new PreviewShot("02_side", new Vector3(4.7f, 0f, 0.85f), new Vector3(0f, 0f, 0.50f), Vector3.back),
+                new PreviewShot("03_underside", new Vector3(0f, 0f, 4.5f), Vector3.zero, Vector3.up),
+                new PreviewShot("04_three_quarter", new Vector3(2.9f, 2.8f, 3.2f), new Vector3(0f, 0f, 0.45f), Vector3.back),
+                new PreviewShot("05_nozzle_detail", new Vector3(0.70f, 0.90f, 2.1f), new Vector3(0f, 0f, 0.9f), Vector3.back),
             };
 
             foreach (PreviewShot shot in shots)
@@ -329,8 +329,8 @@ public static class ThroatLampAuthoring
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = new Color(0.74f, 0.73f, 0.70f);
             camera.targetTexture = target;
-            camera.transform.position = new Vector3(1.00f, 1.15f, 1.20f);
-            camera.transform.LookAt(new Vector3(0f, 0f, 0.18f), Vector3.back);
+            camera.transform.position = new Vector3(2.9f, 2.8f, 3.2f);
+            camera.transform.LookAt(new Vector3(0f, 0f, 0.45f), Vector3.back);
 
             keyObject = MakeDirectional("Preview Key", new Vector3(-0.45f, 1f, -0.85f),
                 new Color(1f, 0.96f, 0.90f), 1.30f, root.transform);
@@ -410,7 +410,7 @@ public static class ThroatLampAuthoring
     {
         Transform yaw = lamp.transform.Find(YawGroupName);
         Transform pitch = yaw != null ? yaw.Find(PitchGroupName) : null;
-        if (yaw != null) yaw.localRotation = Quaternion.Euler(0f, pose.Yaw, 0f);
+        if (yaw != null) yaw.localRotation = Quaternion.AngleAxis(pose.Yaw, Vector3.forward);
         if (pitch != null) pitch.localRotation = Quaternion.Euler(pose.Pitch, 0f, 0f);
 
         ApplyEmission(lamp.transform, CoreRendererPath, CoreEmission, 5.5f * pose.EmissionScale,
@@ -480,7 +480,7 @@ public static class ThroatLampAuthoring
             GameObject ceiling = GameObject.CreatePrimitive(PrimitiveType.Cube);
             ceiling.transform.SetParent(root.transform, false);
             ceiling.transform.localPosition = new Vector3(0, 0.045f, 0);
-            ceiling.transform.localScale = new Vector3(1.5f, 0.08f, 1.5f);
+            ceiling.transform.localScale = new Vector3(2f, 0.08f, 2f);
             UnityEngine.Object.DestroyImmediate(ceiling.GetComponent<Collider>());
             ceilingMaterial = new Material(Shader.Find(UrpLitShader));
             ceilingMaterial.SetColor("_BaseColor", new Color(0.3f, 0.35f, 0.42f));
@@ -496,8 +496,8 @@ public static class ThroatLampAuthoring
             camera.backgroundColor = new Color(0.065f, 0.08f, 0.12f);
             camera.fieldOfView = 38f;
             camera.nearClipPlane = 0.01f;
-            camera.transform.position = new Vector3(1.05f, -0.95f, 1.35f);
-            camera.transform.LookAt(new Vector3(0.08f, -0.25f, 0.03f));
+            camera.transform.position = new Vector3(2.6f, -2.7f, 2.7f);
+            camera.transform.LookAt(new Vector3(0f, -0.45f, 0f));
             target = new RenderTexture(1280, 960, 24) { antiAliasing = 4 };
             camera.targetTexture = target;
             for (int i = 0; i < 2; i++) camera.Render();
@@ -874,6 +874,9 @@ public static class ThroatLampAuthoring
             AssetDatabase.CreateFolder("Assets/Models/ThroatLamp", "Materials");
         }
 
+        Texture2D coating = LoadSurfaceMap("Coating", TextureImporterType.Default, true);
+        Texture2D normals = LoadSurfaceMap("Normal", TextureImporterType.NormalMap, false);
+        Texture2D metalSmooth = LoadSurfaceMap("MetalSmooth", TextureImporterType.Default, false);
         foreach (KeyValuePair<string, MatSpec> entry in Palette)
         {
             string path = MaterialPath(entry.Key);
@@ -894,6 +897,17 @@ public static class ThroatLampAuthoring
             material.SetFloat("_Smoothness", spec.Smoothness);
 
             bool emissive = spec.EmissionIntensity > 0f;
+            if (!emissive)
+            {
+                material.SetColor("_BaseColor", Color.white);
+                material.SetTexture("_BaseMap", coating);
+                material.SetTexture("_BumpMap", normals);
+                material.SetTexture("_MetallicGlossMap", metalSmooth);
+                material.SetFloat("_Metallic", 1f);
+                material.SetFloat("_Smoothness", 1f);
+                material.EnableKeyword("_NORMALMAP");
+                material.EnableKeyword("_METALLICSPECGLOSSMAP");
+            }
             material.SetColor("_EmissionColor", spec.Emission * spec.EmissionIntensity);
             if (emissive) material.EnableKeyword("_EMISSION");
             else material.DisableKeyword("_EMISSION");
@@ -920,6 +934,21 @@ public static class ThroatLampAuthoring
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         return true;
+    }
+
+    private static Texture2D LoadSurfaceMap(string suffix, TextureImporterType type, bool sRgb)
+    {
+        string path = "Assets/Models/ThroatLamp/TL_" + suffix + ".png";
+        var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (importer == null) throw new FileNotFoundException("Missing TL-04 surface atlas", path);
+        if (importer.textureType != type || importer.sRGBTexture != sRgb || importer.alphaIsTransparency)
+        {
+            importer.textureType = type;
+            importer.sRGBTexture = sRgb;
+            importer.alphaIsTransparency = false;
+            importer.SaveAndReimport();
+        }
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
     }
 
     // ------------------------------------------------------------ animation
@@ -1014,7 +1043,7 @@ public static class ThroatLampAuthoring
         if (clip == null) return null;
 
         // Slow yaw sweep + gentle nod, one loop every IdleSeconds.
-        AddCurve(clip, YawBindPath, "localEulerAnglesRaw.y", Sampled(IdleSeconds,
+        AddCurve(clip, YawBindPath, "localEulerAnglesRaw.z", Sampled(IdleSeconds,
             t => 26f * Mathf.Sin(2f * Mathf.PI * t / IdleSeconds)));
         AddCurve(clip, PitchBindPath, "localEulerAnglesRaw.x", Sampled(IdleSeconds,
             t => 4f + 3.2f * Mathf.Sin(2f * Mathf.PI * t / 3f)));
@@ -1036,7 +1065,7 @@ public static class ThroatLampAuthoring
         if (clip == null) return null;
 
         // Recentre the head and ramp the plasma up; no discharge yet.
-        AddCurve(clip, YawBindPath, "localEulerAnglesRaw.y",
+        AddCurve(clip, YawBindPath, "localEulerAnglesRaw.z",
             Sampled(ChargeSeconds, t => Mathf.Lerp(0f, 0f, Ease(t / ChargeSeconds))));
         AddCurve(clip, PitchBindPath, "localEulerAnglesRaw.x", Sampled(ChargeSeconds,
             t => Mathf.Lerp(4f, 0f, Ease(t / ChargeSeconds))));
@@ -1247,14 +1276,11 @@ public static class ThroatLampAuthoring
                 instance.GetComponentsInChildren<Camera>(true).Length == 0, "ok");
 
             Bounds bounds = MeasureBounds(renderers);
-            // Ceiling traps hang along local +Z: the mounting plate sits on the
-            // z = 0 plane and the emitter reaches z ~ 0.41.
-            Check("hangs_below_ceiling", bounds.min.z > -0.02f && bounds.max.z > 0.38f,
+            Check("hangs_below_ceiling", Mathf.Abs(bounds.min.z) < 0.005f && bounds.max.z >= NozzleDepth - 0.01f,
                 "minZ=" + bounds.min.z.ToString("F4") + " maxZ=" + bounds.max.z.ToString("F4"));
-            Check("width_plausible",
-                Mathf.Abs(bounds.size.x - 0.456f) < 0.03f, "width=" + bounds.size.x.ToString("F4"));
-            Check("drop_plausible",
-                Mathf.Abs(bounds.size.z - 0.428f) < 0.05f, "drop=" + bounds.size.z.ToString("F4"));
+            Check("mount_fits_two_metre_grid",
+                Mathf.Abs(bounds.size.x - 1.92f) < 0.005f && Mathf.Abs(bounds.size.y - 1.92f) < 0.005f
+                && Mathf.Abs(bounds.center.x) < 0.005f && Mathf.Abs(bounds.center.y) < 0.005f, bounds.ToString("F3"));
 
             Material ring = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath("TL_PlasmaRing"));
             Material core = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath("TL_PlasmaCore"));
@@ -1300,7 +1326,7 @@ public static class ThroatLampAuthoring
             Check("animation_bindings_resolve", missingBindings == 0 && clips.Length > 0,
                 "missing=" + missingBindings);
 
-            float yawSweep = CurveRange(clips, YawBindPath, "localEulerAnglesRaw.y");
+            float yawSweep = CurveRange(clips, YawBindPath, "localEulerAnglesRaw.z");
             float pitchSweep = CurveRange(clips, PitchBindPath, "localEulerAnglesRaw.x");
             Check("yaw_animated", yawSweep > 20f, "sweepDeg=" + yawSweep.ToString("F1"));
             Check("pitch_animated", pitchSweep > 4f, "sweepDeg=" + pitchSweep.ToString("F1"));
