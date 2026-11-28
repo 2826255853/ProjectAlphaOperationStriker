@@ -66680,13 +66680,31 @@
    "type": "cube",
    "parentId": "wing-left",
    "transform": {
-    "position": [-81.7, -0.25, -5],
-    "rotation": [0, 0, 0],
-    "scale": [24, 0.5, 18]
+    "position": [
+     -85.987516,
+     -0.749688,
+     -5
+    ],
+    "rotation": [
+     0,
+     0,
+     0.049958395721942765
+    ],
+    "scale": [
+     20.024984,
+     0.5,
+     18
+    ]
    },
    "color": "#687477",
-   "material": {"type": "standard", "roughness": 0.85, "metalness": 0.05},
-   "tags": ["exterior-approach"],
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [
+    "exterior-approach"
+   ],
    "layer": 0,
    "collision": true,
    "static": true,
@@ -68104,13 +68122,31 @@
    "type": "cube",
    "parentId": "wing-right",
    "transform": {
-    "position": [81.7, -0.25, -5],
-    "rotation": [0, 0, 0],
-    "scale": [24, 0.5, 18]
+    "position": [
+     85.987516,
+     -0.749688,
+     -5
+    ],
+    "rotation": [
+     0,
+     0,
+     -0.049958395721942765
+    ],
+    "scale": [
+     20.024984,
+     0.5,
+     18
+    ]
    },
    "color": "#687477",
-   "material": {"type": "standard", "roughness": 0.85, "metalness": 0.05},
-   "tags": ["exterior-approach"],
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [
+    "exterior-approach"
+   ],
    "layer": 0,
    "collision": true,
    "static": true,
@@ -70324,7 +70360,7 @@
   },
   {
    "id": "wing-pump-inlet",
-   "name": "Cooling Intake and Service Shutter",
+   "name": "Old intake service road",
    "type": "folder",
    "parentId": "wing-left",
    "transform": {
@@ -70370,7 +70406,7 @@
    "transform": {
     "position": [
      -68.4,
-     2.65,
+     0.41,
      2.4
     ],
     "rotation": [
@@ -70380,7 +70416,7 @@
     ],
     "scale": [
      15,
-     5.3,
+     0.82,
      0.35
     ]
    },
@@ -70488,12 +70524,28 @@
    "type": "cube",
    "parentId": "wing-pump-inlet",
    "transform": {
-    "position": [-75.6, 2.65, 2.7],
-    "rotation": [0, 0, 0],
-    "scale": [0.5, 5.3, 1]
+    "position": [
+     -75.6,
+     2.65,
+     2.7
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.5,
+     5.3,
+     1
+    ]
    },
    "color": "#788387",
-   "material": {"type": "standard", "roughness": 0.85, "metalness": 0.05},
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
    "tags": [],
    "layer": 0,
    "collision": true,
@@ -70514,8 +70566,8 @@
    "transform": {
     "position": [
      -68.6,
-     5.56,
-     -5
+     5.7,
+     -12.5
     ],
     "rotation": [
      0,
@@ -70525,7 +70577,7 @@
     "scale": [
      14.5,
      0.52,
-     16.6
+     2
     ]
    },
    "color": "#59666c",
@@ -70548,23 +70600,23 @@
   },
   {
    "id": "wing-pump-shutter",
-   "name": "Intake Roll-up Shutter",
+   "name": "Buckled shutter above breached gateway",
    "type": "folder",
    "parentId": "wing-pump-inlet",
    "transform": {
     "position": [
      -61.5,
-     5.2,
+     5.8,
      -5
     ],
     "rotation": [
-     0,
+     -0.045,
      0,
      0
     ],
     "scale": [
      1,
-     1,
+     0.08,
      1
     ]
    },
@@ -71395,7 +71447,7 @@
     "position": [
      -52.5,
      6.05,
-     13.5
+     4
     ],
     "rotation": [
      0,
@@ -71405,7 +71457,7 @@
     "scale": [
      17,
      0.3,
-     25
+     6
     ]
    },
    "color": "#59666c",
@@ -71434,7 +71486,7 @@
    "transform": {
     "position": [
      -60.8,
-     2.95,
+     1.18,
      13.5
     ],
     "rotation": [
@@ -71444,7 +71496,7 @@
     ],
     "scale": [
      0.4,
-     5.9,
+     2.36,
      25
     ]
    },
@@ -72635,7 +72687,7 @@
     "position": [
      -68,
      0.35,
-     7
+     43
     ],
     "rotation": [
      0,
@@ -72675,7 +72727,7 @@
     "position": [
      -68,
      1.1,
-     7
+     43
     ],
     "rotation": [
      0,
@@ -72715,7 +72767,7 @@
     "position": [
      -68,
      3.8,
-     7
+     43
     ],
     "rotation": [
      0,
@@ -72755,7 +72807,7 @@
     "position": [
      -68,
      6.35,
-     7
+     43
     ],
     "rotation": [
      0,
@@ -72795,7 +72847,7 @@
     "position": [
      -68,
      6.83,
-     7
+     43
     ],
     "rotation": [
      0,
@@ -72835,7 +72887,7 @@
     "position": [
      -68,
      1.7,
-     7
+     43
     ],
     "rotation": [
      0,
@@ -72875,7 +72927,7 @@
     "position": [
      -68,
      2.2199999999999998,
-     7
+     43
     ],
     "rotation": [
      0,
@@ -72915,7 +72967,7 @@
     "position": [
      -68,
      2.74,
-     7
+     43
     ],
     "rotation": [
      0,
@@ -72955,7 +73007,7 @@
     "position": [
      -68,
      3.26,
-     7
+     43
     ],
     "rotation": [
      0,
@@ -72995,7 +73047,7 @@
     "position": [
      -68,
      3.7800000000000002,
-     7
+     43
     ],
     "rotation": [
      0,
@@ -73035,7 +73087,7 @@
     "position": [
      -68,
      4.3,
-     7
+     43
     ],
     "rotation": [
      0,
@@ -73075,7 +73127,7 @@
     "position": [
      -68,
      4.82,
-     7
+     43
     ],
     "rotation": [
      0,
@@ -73115,7 +73167,7 @@
     "position": [
      -68,
      5.34,
-     7
+     43
     ],
     "rotation": [
      0,
@@ -73155,7 +73207,7 @@
     "position": [
      -68,
      0.35,
-     17
+     -25
     ],
     "rotation": [
      0,
@@ -73195,7 +73247,7 @@
     "position": [
      -68,
      1.1,
-     17
+     -25
     ],
     "rotation": [
      0,
@@ -73235,7 +73287,7 @@
     "position": [
      -68,
      3.8,
-     17
+     -25
     ],
     "rotation": [
      0,
@@ -73275,7 +73327,7 @@
     "position": [
      -68,
      6.35,
-     17
+     -25
     ],
     "rotation": [
      0,
@@ -73315,7 +73367,7 @@
     "position": [
      -68,
      6.83,
-     17
+     -25
     ],
     "rotation": [
      0,
@@ -73355,7 +73407,7 @@
     "position": [
      -68,
      1.7,
-     17
+     -25
     ],
     "rotation": [
      0,
@@ -73395,7 +73447,7 @@
     "position": [
      -68,
      2.2199999999999998,
-     17
+     -25
     ],
     "rotation": [
      0,
@@ -73435,7 +73487,7 @@
     "position": [
      -68,
      2.74,
-     17
+     -25
     ],
     "rotation": [
      0,
@@ -73475,7 +73527,7 @@
     "position": [
      -68,
      3.26,
-     17
+     -25
     ],
     "rotation": [
      0,
@@ -73515,7 +73567,7 @@
     "position": [
      -68,
      3.7800000000000002,
-     17
+     -25
     ],
     "rotation": [
      0,
@@ -73555,7 +73607,7 @@
     "position": [
      -68,
      4.3,
-     17
+     -25
     ],
     "rotation": [
      0,
@@ -73595,7 +73647,7 @@
     "position": [
      -68,
      4.82,
-     17
+     -25
     ],
     "rotation": [
      0,
@@ -73635,7 +73687,7 @@
     "position": [
      -68,
      5.34,
-     17
+     -25
     ],
     "rotation": [
      0,
@@ -73795,7 +73847,7 @@
     "position": [
      -43.65,
      6.98,
-     23.0
+     20.25
     ],
     "rotation": [
      0,
@@ -73805,7 +73857,7 @@
     "scale": [
      0.13,
      1.16,
-     7
+     1.5
     ]
    },
    "color": "#cc9d35",
@@ -74795,7 +74847,7 @@
     "position": [
      65.5,
      0.38,
-     12.2
+     4.199999999999999
     ],
     "rotation": [
      0,
@@ -74835,7 +74887,7 @@
     "position": [
      65.5,
      1.98,
-     12.2
+     4.199999999999999
     ],
     "rotation": [
      0,
@@ -74875,7 +74927,7 @@
     "position": [
      64.0,
      1.98,
-     12.2
+     4.199999999999999
     ],
     "rotation": [
      0,
@@ -74915,7 +74967,7 @@
     "position": [
      64.5,
      1.98,
-     12.2
+     4.199999999999999
     ],
     "rotation": [
      0,
@@ -74955,7 +75007,7 @@
     "position": [
      65.0,
      1.98,
-     12.2
+     4.199999999999999
     ],
     "rotation": [
      0,
@@ -74995,7 +75047,7 @@
     "position": [
      65.5,
      1.98,
-     12.2
+     4.199999999999999
     ],
     "rotation": [
      0,
@@ -75035,7 +75087,7 @@
     "position": [
      66.0,
      1.98,
-     12.2
+     4.199999999999999
     ],
     "rotation": [
      0,
@@ -75075,7 +75127,7 @@
     "position": [
      66.5,
      1.98,
-     12.2
+     4.199999999999999
     ],
     "rotation": [
      0,
@@ -75115,7 +75167,7 @@
     "position": [
      67.0,
      1.98,
-     12.2
+     4.199999999999999
     ],
     "rotation": [
      0,
@@ -75155,7 +75207,7 @@
     "position": [
      62.95,
      1.98,
-     12.2
+     4.199999999999999
     ],
     "rotation": [
      0,
@@ -78227,46 +78279,6 @@
    "category": "geometry"
   },
   {
-   "id": "wing-stair-upper-guard-0",
-   "name": "Stair Guard Panel",
-   "type": "cube",
-   "parentId": "wing-right-stair",
-   "transform": {
-    "position": [
-     49.519999999999996,
-     5.36,
-     28.6
-    ],
-    "rotation": [
-     -2.7233683240105644,
-     0,
-     0
-    ],
-    "scale": [
-     0.09,
-     1.05,
-     7.8790862414368865
-    ]
-   },
-   "color": "#cc9d35",
-   "material": {
-    "type": "standard",
-    "roughness": 0.85,
-    "metalness": 0.05
-   },
-   "tags": [],
-   "layer": 0,
-   "collision": true,
-   "static": true,
-   "visible": false,
-   "locked": false,
-   "collapsed": false,
-   "prefabType": "",
-   "parameters": {},
-   "parametersJson": "{}",
-   "category": "geometry"
-  },
-  {
    "id": "wing-stair-upper-post-0-0",
    "name": "Handrail Post",
    "type": "cube",
@@ -78539,46 +78551,6 @@
    "collision": true,
    "static": true,
    "visible": true,
-   "locked": false,
-   "collapsed": false,
-   "prefabType": "",
-   "parameters": {},
-   "parametersJson": "{}",
-   "category": "geometry"
-  },
-  {
-   "id": "wing-stair-upper-guard-1",
-   "name": "Stair Guard Panel",
-   "type": "cube",
-   "parentId": "wing-right-stair",
-   "transform": {
-    "position": [
-     52.08,
-     5.36,
-     28.6
-    ],
-    "rotation": [
-     -2.7233683240105644,
-     0,
-     0
-    ],
-    "scale": [
-     0.09,
-     1.05,
-     7.8790862414368865
-    ]
-   },
-   "color": "#cc9d35",
-   "material": {
-    "type": "standard",
-    "roughness": 0.85,
-    "metalness": 0.05
-   },
-   "tags": [],
-   "layer": 0,
-   "collision": true,
-   "static": true,
-   "visible": false,
    "locked": false,
    "collapsed": false,
    "prefabType": "",
@@ -78994,7 +78966,7 @@
    "transform": {
     "position": [
      43.849999999999994,
-     6.97,
+     7.5,
      21
     ],
     "rotation": [
@@ -79004,7 +78976,7 @@
     ],
     "scale": [
      16.9,
-     1.14,
+     0.09,
      0.12
     ]
    },
@@ -80239,9 +80211,9 @@
    "parentId": "spawnpoints",
    "transform": {
     "position": [
-     -82,
-     0.08,
-     -5
+     -134,
+     -0.92,
+     -19
     ],
     "rotation": [
      0,
@@ -80317,9 +80289,9 @@
    "parentId": "pathnodes",
    "transform": {
     "position": [
-     -82,
-     0,
-     -5
+     -134,
+     -1,
+     -19
     ],
     "scale": [
      0.6,
@@ -80357,7 +80329,7 @@
      "role": "node",
      "waitTime": 0,
      "links": [
-      "route-cargo-pump-shutter"
+      "route-cargo-pump-mouth"
      ]
     }
    }
@@ -80618,7 +80590,7 @@
    "transform": {
     "position": [
      46.225,
-     6.97,
+     7.5,
      25
     ],
     "rotation": [
@@ -80628,7 +80600,7 @@
     ],
     "scale": [
      6.45,
-     1.14,
+     0.09,
      0.12
     ]
    },
@@ -80692,7 +80664,7 @@
   },
   {
    "id": "wing-workshop-inlet",
-   "name": "Workshop Dispatch and Service Shutter",
+   "name": "Old freight siding",
    "type": "folder",
    "parentId": "wing-right",
    "transform": {
@@ -80738,7 +80710,7 @@
    "transform": {
     "position": [
      68.4,
-     2.65,
+     0.41,
      2.4
     ],
     "rotation": [
@@ -80748,7 +80720,7 @@
     ],
     "scale": [
      15,
-     5.3,
+     0.82,
      0.35
     ]
    },
@@ -80856,12 +80828,28 @@
    "type": "cube",
    "parentId": "wing-workshop-inlet",
    "transform": {
-    "position": [75.6, 2.65, 2.7],
-    "rotation": [0, 0, 0],
-    "scale": [0.5, 5.3, 1]
+    "position": [
+     75.6,
+     2.65,
+     2.7
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.5,
+     5.3,
+     1
+    ]
    },
    "color": "#788387",
-   "material": {"type": "standard", "roughness": 0.85, "metalness": 0.05},
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
    "tags": [],
    "layer": 0,
    "collision": true,
@@ -80882,8 +80870,8 @@
    "transform": {
     "position": [
      68.6,
-     5.56,
-     -5
+     5.7,
+     -12.5
     ],
     "rotation": [
      0,
@@ -80893,7 +80881,7 @@
     "scale": [
      14.5,
      0.52,
-     16.6
+     2
     ]
    },
    "color": "#59666c",
@@ -80916,23 +80904,23 @@
   },
   {
    "id": "wing-workshop-shutter",
-   "name": "Intake Roll-up Shutter",
+   "name": "Buckled shutter above breached gateway",
    "type": "folder",
    "parentId": "wing-workshop-inlet",
    "transform": {
     "position": [
      61.5,
-     5.2,
+     5.8,
      -5
     ],
     "rotation": [
-     0,
+     0.045,
      0,
      0
     ],
     "scale": [
      1,
-     1,
+     0.08,
      1
     ]
    },
@@ -81721,9 +81709,9 @@
    "parentId": "spawnpoints",
    "transform": {
     "position": [
-     82,
-     0.08,
-     -5
+     134,
+     -0.92,
+     -19
     ],
     "rotation": [
      0,
@@ -81799,9 +81787,9 @@
    "parentId": "pathnodes",
    "transform": {
     "position": [
-     82,
-     0,
-     -5
+     134,
+     -1,
+     -19
     ],
     "scale": [
      0.6,
@@ -81839,7 +81827,7 @@
      "role": "node",
      "waitTime": 0,
      "links": [
-      "route-cargo-workshop-shutter"
+      "route-cargo-workshop-mouth"
      ]
     }
    }
@@ -82115,6 +82103,8422 @@
     ]
    },
    "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-breach-header",
+   "name": "Bent door lintel",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -61.5,
+     6.02,
+     -5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.44,
+     0.45,
+     12.5
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-outer-guide",
+   "name": "Fractured perimeter post",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -76,
+     1.9,
+     -12.8
+    ],
+    "rotation": [
+     0,
+     0,
+     -0.14
+    ],
+    "scale": [
+     0.6,
+     3.8,
+     0.7
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-old-yard",
+   "name": "Old works turning yard",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -118,
+     -1.3,
+     -13
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     44,
+     0.6,
+     36
+    ]
+   },
+   "color": "#687477",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-line-bunker-roof",
+   "name": "Intake station canopy",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -129,
+     5.55,
+     -19
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     20,
+     0.42,
+     19
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-line-bunker-face",
+   "name": "Intake station screening wall",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -129,
+     2.32,
+     -10
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     20,
+     6.64,
+     0.5
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-portal-return",
+   "name": "Broken portal return",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -123,
+     2.32,
+     -12.2
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.5,
+     6.64,
+     4.8
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-line-bunker-far",
+   "name": "Old works outer wall",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -129,
+     2.32,
+     -28
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     20,
+     6.64,
+     0.5
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-line-bunker-end",
+   "name": "Old works rear lintel",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -139,
+     4.96,
+     -19
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.55,
+     0.75,
+     18
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-district-road",
+   "name": "Old works access court",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -155,
+     -1.3,
+     -10
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     30,
+     0.6,
+     42
+    ]
+   },
+   "color": "#687477",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-district-crossroad",
+   "name": "Road into the lost works",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -163,
+     -1.3,
+     27
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     14,
+     0.6,
+     34
+    ]
+   },
+   "color": "#687477",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-district-building",
+   "name": "Abandoned filter house",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -149,
+     3.45,
+     17
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     14,
+     8.9,
+     14
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-district-parapet",
+   "name": "Old works parapet",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -149,
+     8.04,
+     17
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     14.4,
+     0.4,
+     14.4
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-district-window-145",
+   "name": "High clerestory window",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -145,
+     5.85,
+     9.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.65,
+     1.7,
+     0.12
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-district-window-149",
+   "name": "High clerestory window",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -149,
+     5.85,
+     9.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.65,
+     1.7,
+     0.12
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-district-window-153",
+   "name": "High clerestory window",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -153,
+     5.85,
+     9.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.65,
+     1.7,
+     0.12
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-stack-base",
+   "name": "Old works stack plinth",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -147,
+     8.42,
+     18
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.4,
+     0.65,
+     2.4
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-stack",
+   "name": "Vent stack",
+   "type": "cylinder",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -147,
+     12.8,
+     18
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.2,
+     8.4,
+     1.2
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-pilaster-120",
+   "name": "Facade upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -120,
+     2.32,
+     -9.62
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.42,
+     6.64,
+     0.28
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-pilaster-125",
+   "name": "Facade upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -125,
+     2.32,
+     -9.62
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.42,
+     6.64,
+     0.28
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-pilaster-130",
+   "name": "Facade upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -130,
+     2.32,
+     -9.62
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.42,
+     6.64,
+     0.28
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-pilaster-135",
+   "name": "Facade upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -135,
+     2.32,
+     -9.62
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.42,
+     6.64,
+     0.28
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-pilaster-138",
+   "name": "Facade upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -138,
+     2.32,
+     -9.62
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.42,
+     6.64,
+     0.28
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-vent-0",
+   "name": "Facade vent",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -129,
+     3.1,
+     -9.58
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6,
+     0.14,
+     0.18
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-vent-1",
+   "name": "Facade vent",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -129,
+     3.44,
+     -9.58
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6,
+     0.14,
+     0.18
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-vent-2",
+   "name": "Facade vent",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -129,
+     3.78,
+     -9.58
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6,
+     0.14,
+     0.18
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-vent-3",
+   "name": "Facade vent",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -129,
+     4.12,
+     -9.58
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6,
+     0.14,
+     0.18
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-curb-0",
+   "name": "Broken yard kerb",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -101,
+     -0.78,
+     4.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     0.44,
+     0.48
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-curb-1",
+   "name": "Broken yard kerb",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -111,
+     -0.78,
+     4.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     0.44,
+     0.48
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-curb-2",
+   "name": "Broken yard kerb",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -119,
+     -0.78,
+     4.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     0.44,
+     0.48
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "route-cargo-pump-mouth",
+   "name": "Canal service road mouth",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -115,
+     -1,
+     -19
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [
+    "cargo-route"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": [
+      "route-cargo-pump-turn"
+     ]
+    }
+   }
+  },
+  {
+   "id": "route-cargo-pump-turn",
+   "name": "Canal service road turn",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -102,
+     -1,
+     -5
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [
+    "cargo-route"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": [
+      "route-cargo-pump-toe"
+     ]
+    }
+   }
+  },
+  {
+   "id": "route-cargo-pump-toe",
+   "name": "Canal service road toe",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -96,
+     -1,
+     -5
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [
+    "cargo-route"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": [
+      "route-cargo-pump-crest"
+     ]
+    }
+   }
+  },
+  {
+   "id": "route-cargo-pump-crest",
+   "name": "Canal service road crest",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     -76,
+     0,
+     -5
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [
+    "cargo-route"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": [
+      "route-cargo-pump-shutter"
+     ]
+    }
+   }
+  },
+  {
+   "id": "wing-pump-strip-base",
+   "name": "Cooling channel bed",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -108,
+     -1.55,
+     10.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     64,
+     0.6,
+     11
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-link",
+   "name": "Observation access bridge",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -49.85,
+     6.2,
+     23
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     12.299999999999997,
+     0.4,
+     4
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout",
+   "name": "Wing observation bay",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -59,
+     6.2,
+     23
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6,
+     0.4,
+     4
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-link-rail-21.08",
+   "name": "Observation bridge handrail",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -52.85,
+     7.47,
+     21.08
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     18.299999999999997,
+     0.1,
+     0.1
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-post-21.08-0",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -43.85,
+     6.93,
+     21.08
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-post-21.08-1",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -46.42143,
+     6.93,
+     21.08
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-post-21.08-2",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -48.99286,
+     6.93,
+     21.08
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-post-21.08-3",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -51.56429,
+     6.93,
+     21.08
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-post-21.08-4",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -54.13571,
+     6.93,
+     21.08
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-post-21.08-5",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -56.70714,
+     6.93,
+     21.08
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-post-21.08-6",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -59.27857,
+     6.93,
+     21.08
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-post-21.08-7",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -61.85,
+     6.93,
+     21.08
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-link-rail-24.92",
+   "name": "Observation bridge handrail",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -52.85,
+     7.47,
+     24.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     18.299999999999997,
+     0.1,
+     0.1
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-post-24.92-0",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -43.85,
+     6.93,
+     24.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-post-24.92-1",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -46.42143,
+     6.93,
+     24.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-post-24.92-2",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -48.99286,
+     6.93,
+     24.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-post-24.92-3",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -51.56429,
+     6.93,
+     24.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-post-24.92-4",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -54.13571,
+     6.93,
+     24.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-post-24.92-5",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -56.70714,
+     6.93,
+     24.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-post-24.92-6",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -59.27857,
+     6.93,
+     24.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-post-24.92-7",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -61.85,
+     6.93,
+     24.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-end-rail",
+   "name": "Observation end rail",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -61.92,
+     7.47,
+     23
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     0.1,
+     4
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-pier-21.35",
+   "name": "Observation bridge pier",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -58.8,
+     3.05,
+     21.35
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.35,
+     6.1,
+     0.35
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-lookout-pier-24.65",
+   "name": "Observation bridge pier",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -58.8,
+     3.05,
+     24.65
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.35,
+     6.1,
+     0.35
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-balcony-north-return",
+   "name": "Gallery guard return",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -43.65,
+     6.98,
+     25.75
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.13,
+     1.16,
+     1.5
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-water",
+   "name": "Cooling canal water",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -108,
+     -1.22,
+     10.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     63.6,
+     0.1,
+     9.8
+    ]
+   },
+   "color": "#377b82",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-culvert-head",
+   "name": "Cooling culvert headwall",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -76.35,
+     -0.05,
+     10.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.7,
+     2.4,
+     11
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-culvert-mouth",
+   "name": "Recessed intake mouth",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -76.73,
+     -0.36,
+     10.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.09,
+     1.5,
+     7
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-culvert-grate-0",
+   "name": "Intake trash rack",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -76.82,
+     -0.34,
+     7.55
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.43,
+     0.13
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-culvert-grate-1",
+   "name": "Intake trash rack",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -76.82,
+     -0.34,
+     8.39
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.43,
+     0.13
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-culvert-grate-2",
+   "name": "Intake trash rack",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -76.82,
+     -0.34,
+     9.23
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.43,
+     0.13
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-culvert-grate-3",
+   "name": "Intake trash rack",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -76.82,
+     -0.34,
+     10.07
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.43,
+     0.13
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-culvert-grate-4",
+   "name": "Intake trash rack",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -76.82,
+     -0.34,
+     10.91
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.43,
+     0.13
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-culvert-grate-5",
+   "name": "Intake trash rack",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -76.82,
+     -0.34,
+     11.75
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.43,
+     0.13
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-culvert-grate-6",
+   "name": "Intake trash rack",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -76.82,
+     -0.34,
+     12.59
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.43,
+     0.13
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-culvert-grate-7",
+   "name": "Intake trash rack",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -76.82,
+     -0.34,
+     13.43
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.43,
+     0.13
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-bank-5.15",
+   "name": "Concrete canal bank",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -108,
+     -0.48,
+     5.15
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     64,
+     2.25,
+     0.45
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-bank-15.85",
+   "name": "Concrete canal bank",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -108,
+     -0.48,
+     15.85
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     64,
+     2.25,
+     0.45
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-intake-grille-0",
+   "name": "Intake grille blade",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -135.0,
+     -0.62,
+     10.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.24,
+     1.2,
+     10
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-intake-grille-1",
+   "name": "Intake grille blade",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -135.55,
+     -0.62,
+     10.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.24,
+     1.2,
+     10
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-intake-grille-2",
+   "name": "Intake grille blade",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -136.1,
+     -0.62,
+     10.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.24,
+     1.2,
+     10
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-intake-grille-3",
+   "name": "Intake grille blade",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -136.65,
+     -0.62,
+     10.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.24,
+     1.2,
+     10
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-intake-grille-4",
+   "name": "Intake grille blade",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -137.2,
+     -0.62,
+     10.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.24,
+     1.2,
+     10
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-intake-grille-5",
+   "name": "Intake grille blade",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -137.75,
+     -0.62,
+     10.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.24,
+     1.2,
+     10
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-intake-head",
+   "name": "Strainer housing",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -136.4,
+     0.55,
+     10.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     0.55,
+     11
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-rail-post-82",
+   "name": "Canal guard upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -82,
+     1,
+     4.55
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.16,
+     1.35,
+     0.16
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-rail-post-88",
+   "name": "Canal guard upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -88,
+     1,
+     4.55
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.16,
+     1.35,
+     0.16
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-rail-post-98",
+   "name": "Canal guard upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -98,
+     1,
+     4.55
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.16,
+     1.35,
+     0.16
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-rail-post-105",
+   "name": "Canal guard upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -105,
+     1,
+     4.55
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.16,
+     1.35,
+     0.16
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-rail-post-112",
+   "name": "Canal guard upright",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -112,
+     1,
+     4.55
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.16,
+     1.35,
+     0.16
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-rail-0",
+   "name": "Bent inspection rail",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -85,
+     1.6,
+     4.55
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6.3,
+     0.16,
+     0.16
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-rail-1",
+   "name": "Bent inspection rail",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -93,
+     0.63,
+     4.55
+    ],
+    "rotation": [
+     0,
+     0,
+     0.27
+    ],
+    "scale": [
+     4,
+     0.16,
+     0.16
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-rail-2",
+   "name": "Bent inspection rail",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -101.5,
+     1.6,
+     4.55
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     7,
+     0.16,
+     0.16
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-rail-3",
+   "name": "Bent inspection rail",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -108.5,
+     1.6,
+     4.55
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     7,
+     0.16,
+     0.16
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-pump-yard-fence",
+   "name": "Old works boundary",
+   "type": "cube",
+   "parentId": "wing-pump-inlet",
+   "transform": {
+    "position": [
+     -117,
+     0.12,
+     -30.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     44,
+     2.24,
+     0.32
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-breach-header",
+   "name": "Bent door lintel",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     61.5,
+     6.02,
+     -5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.44,
+     0.45,
+     12.5
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-outer-guide",
+   "name": "Fractured perimeter post",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     76,
+     1.9,
+     -12.8
+    ],
+    "rotation": [
+     0,
+     0,
+     0.14
+    ],
+    "scale": [
+     0.6,
+     3.8,
+     0.7
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-old-yard",
+   "name": "Old works turning yard",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     118,
+     -1.3,
+     -13
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     44,
+     0.6,
+     36
+    ]
+   },
+   "color": "#687477",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-line-bunker-roof",
+   "name": "Marshalling shed canopy",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     129,
+     5.55,
+     -19
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     20,
+     0.42,
+     19
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-line-bunker-face",
+   "name": "Goods shed near wall",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     129,
+     2.32,
+     -10
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     20,
+     6.64,
+     0.5
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-portal-return",
+   "name": "Broken portal return",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     123,
+     2.32,
+     -12.2
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.5,
+     6.64,
+     4.8
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-line-bunker-far",
+   "name": "Old works outer wall",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     129,
+     2.32,
+     -28
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     20,
+     6.64,
+     0.5
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-line-bunker-end",
+   "name": "Old works rear lintel",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     139,
+     4.96,
+     -19
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.55,
+     0.75,
+     18
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-district-road",
+   "name": "Old works access court",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     155,
+     -1.3,
+     -10
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     30,
+     0.6,
+     42
+    ]
+   },
+   "color": "#687477",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-district-crossroad",
+   "name": "Road into the lost works",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     163,
+     -1.3,
+     27
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     14,
+     0.6,
+     34
+    ]
+   },
+   "color": "#687477",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-district-building",
+   "name": "Abandoned repair depot",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     149,
+     3.45,
+     17
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     14,
+     8.9,
+     14
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-district-parapet",
+   "name": "Old works parapet",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     149,
+     8.04,
+     17
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     14.4,
+     0.4,
+     14.4
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-district-window-145",
+   "name": "High clerestory window",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     145,
+     5.85,
+     9.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.65,
+     1.7,
+     0.12
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-district-window-149",
+   "name": "High clerestory window",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     149,
+     5.85,
+     9.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.65,
+     1.7,
+     0.12
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-district-window-153",
+   "name": "High clerestory window",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     153,
+     5.85,
+     9.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.65,
+     1.7,
+     0.12
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-stack-base",
+   "name": "Old works stack plinth",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     147,
+     8.42,
+     18
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.4,
+     0.65,
+     2.4
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-stack",
+   "name": "Vent stack",
+   "type": "cylinder",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     147,
+     12.8,
+     18
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     1.2,
+     8.4,
+     1.2
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-pilaster-120",
+   "name": "Facade upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     120,
+     2.32,
+     -9.62
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.42,
+     6.64,
+     0.28
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-pilaster-125",
+   "name": "Facade upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     125,
+     2.32,
+     -9.62
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.42,
+     6.64,
+     0.28
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-pilaster-130",
+   "name": "Facade upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     130,
+     2.32,
+     -9.62
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.42,
+     6.64,
+     0.28
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-pilaster-135",
+   "name": "Facade upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     135,
+     2.32,
+     -9.62
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.42,
+     6.64,
+     0.28
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-pilaster-138",
+   "name": "Facade upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     138,
+     2.32,
+     -9.62
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.42,
+     6.64,
+     0.28
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-vent-0",
+   "name": "Facade vent",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     129,
+     3.1,
+     -9.58
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6,
+     0.14,
+     0.18
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-vent-1",
+   "name": "Facade vent",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     129,
+     3.44,
+     -9.58
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6,
+     0.14,
+     0.18
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-vent-2",
+   "name": "Facade vent",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     129,
+     3.78,
+     -9.58
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6,
+     0.14,
+     0.18
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-vent-3",
+   "name": "Facade vent",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     129,
+     4.12,
+     -9.58
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6,
+     0.14,
+     0.18
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-curb-0",
+   "name": "Broken yard kerb",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     101,
+     -0.78,
+     4.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     0.44,
+     0.48
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-curb-1",
+   "name": "Broken yard kerb",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     111,
+     -0.78,
+     4.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     0.44,
+     0.48
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-curb-2",
+   "name": "Broken yard kerb",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     119,
+     -0.78,
+     4.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     5,
+     0.44,
+     0.48
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "route-cargo-workshop-mouth",
+   "name": "Freight siding mouth",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     115,
+     -1,
+     -19
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [
+    "cargo-route"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": [
+      "route-cargo-workshop-turn"
+     ]
+    }
+   }
+  },
+  {
+   "id": "route-cargo-workshop-turn",
+   "name": "Freight siding turn",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     102,
+     -1,
+     -5
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [
+    "cargo-route"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": [
+      "route-cargo-workshop-toe"
+     ]
+    }
+   }
+  },
+  {
+   "id": "route-cargo-workshop-toe",
+   "name": "Freight siding toe",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     96,
+     -1,
+     -5
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [
+    "cargo-route"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": [
+      "route-cargo-workshop-crest"
+     ]
+    }
+   }
+  },
+  {
+   "id": "route-cargo-workshop-crest",
+   "name": "Freight siding crest",
+   "type": "sphere",
+   "parentId": "pathnodes",
+   "transform": {
+    "position": [
+     76,
+     0,
+     -5
+    ],
+    "scale": [
+     0.6,
+     0.6,
+     0.6
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [
+    "cargo-route"
+   ],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry",
+   "unity": {
+    "pathNode": {
+     "enabled": true,
+     "role": "node",
+     "waitTime": 0,
+     "links": [
+      "route-cargo-workshop-shutter"
+     ]
+    }
+   }
+  },
+  {
+   "id": "wing-workshop-strip-base",
+   "name": "Ballasted track bed",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     108,
+     -1.55,
+     10.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     64,
+     0.6,
+     11
+    ]
+   },
+   "color": "#788387",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-lookout-link",
+   "name": "Observation access bridge",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     54.15,
+     6.2,
+     23
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     3.700000000000003,
+     0.4,
+     4
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-lookout",
+   "name": "Wing observation bay",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     59,
+     6.2,
+     23
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     6,
+     0.4,
+     4
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-lookout-link-rail-21.08",
+   "name": "Observation bridge handrail",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     57.15,
+     7.47,
+     21.08
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     9.700000000000003,
+     0.1,
+     0.1
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-lookout-post-21.08-0",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     52.45,
+     6.93,
+     21.08
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-lookout-post-21.08-1",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     54.8,
+     6.93,
+     21.08
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-lookout-post-21.08-2",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     57.15,
+     6.93,
+     21.08
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-lookout-post-21.08-3",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     59.5,
+     6.93,
+     21.08
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-lookout-post-21.08-4",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     61.85,
+     6.93,
+     21.08
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-lookout-link-rail-24.92",
+   "name": "Observation bridge handrail",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     57.15,
+     7.47,
+     24.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     9.700000000000003,
+     0.1,
+     0.1
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-lookout-post-24.92-0",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     52.45,
+     6.93,
+     24.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-lookout-post-24.92-1",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     54.8,
+     6.93,
+     24.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-lookout-post-24.92-2",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     57.15,
+     6.93,
+     24.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-lookout-post-24.92-3",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     59.5,
+     6.93,
+     24.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-lookout-post-24.92-4",
+   "name": "Observation rail upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     61.85,
+     6.93,
+     24.92
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     1.06,
+     0.1
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-lookout-end-rail",
+   "name": "Observation end rail",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     61.92,
+     7.47,
+     23
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.1,
+     0.1,
+     4
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-lookout-pier-21.35",
+   "name": "Observation bridge pier",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     58.8,
+     3.05,
+     21.35
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.35,
+     6.1,
+     0.35
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-lookout-pier-24.65",
+   "name": "Observation bridge pier",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     58.8,
+     3.05,
+     24.65
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.35,
+     6.1,
+     0.35
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wing-stair-bridge-guard-21-post-0",
+   "name": "Bridge guard upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     35.48,
+     6.96,
+     21
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.09,
+     1.12,
+     0.09
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wing-stair-bridge-guard-21-post-1",
+   "name": "Bridge guard upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     37.87143,
+     6.96,
+     21
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.09,
+     1.12,
+     0.09
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wing-stair-bridge-guard-21-post-2",
+   "name": "Bridge guard upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     40.26286,
+     6.96,
+     21
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.09,
+     1.12,
+     0.09
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wing-stair-bridge-guard-21-post-3",
+   "name": "Bridge guard upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     42.65429,
+     6.96,
+     21
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.09,
+     1.12,
+     0.09
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wing-stair-bridge-guard-21-post-4",
+   "name": "Bridge guard upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     45.04571,
+     6.96,
+     21
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.09,
+     1.12,
+     0.09
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wing-stair-bridge-guard-21-post-5",
+   "name": "Bridge guard upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     47.43714,
+     6.96,
+     21
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.09,
+     1.12,
+     0.09
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wing-stair-bridge-guard-21-post-6",
+   "name": "Bridge guard upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     49.82857,
+     6.96,
+     21
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.09,
+     1.12,
+     0.09
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wing-stair-bridge-guard-21-post-7",
+   "name": "Bridge guard upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     52.22,
+     6.96,
+     21
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.09,
+     1.12,
+     0.09
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wing-stair-bridge-guard-25-east-post-0",
+   "name": "Bridge guard upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     43.08,
+     6.96,
+     25
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.09,
+     1.12,
+     0.09
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wing-stair-bridge-guard-25-east-post-1",
+   "name": "Bridge guard upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     45.17667,
+     6.96,
+     25
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.09,
+     1.12,
+     0.09
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wing-stair-bridge-guard-25-east-post-2",
+   "name": "Bridge guard upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     47.27333,
+     6.96,
+     25
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.09,
+     1.12,
+     0.09
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wing-stair-bridge-guard-25-east-post-3",
+   "name": "Bridge guard upright",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     49.37,
+     6.96,
+     25
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.09,
+     1.12,
+     0.09
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-track-10.5",
+   "name": "Steel freight rail",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     100,
+     0.095,
+     10.5
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     80,
+     0.16,
+     0.14
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-track-12.3",
+   "name": "Steel freight rail",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     100,
+     0.095,
+     12.3
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     80,
+     0.16,
+     0.14
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-0",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     76,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-1",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     78,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-2",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     80,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-3",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     82,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-4",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     84,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-5",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     86,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-6",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     88,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-7",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     90,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-8",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     92,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-9",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     94,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-10",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     96,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-11",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     98,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-12",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     100,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-13",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     102,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-14",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     104,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-15",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     106,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-16",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     108,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-17",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     110,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-18",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     112,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-19",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     114,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-20",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     116,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-21",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     118,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-22",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     120,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-23",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     122,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-24",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     124,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-25",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     126,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-26",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     128,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-27",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     130,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-28",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     132,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-29",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     134,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-30",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     136,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-sleeper-31",
+   "name": "Rail sleeper",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     138,
+     -0.09,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.38,
+     0.22,
+     3.3
+    ]
+   },
+   "color": "#65544a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-track-fill",
+   "name": "Ballast shoulder",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     108,
+     -0.71,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     64,
+     1.04,
+     4.1
+    ]
+   },
+   "color": "#687477",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-track-stop",
+   "name": "Buffer stop under bridge crane",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     60.8,
+     0.47,
+     11.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.42,
+     1.05,
+     2.8
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wagon",
+   "name": "Derailed heavy flat wagon",
+   "type": "folder",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     81,
+     0.1,
+     8.7
+    ],
+    "rotation": [
+     0,
+     -0.21,
+     0
+    ],
+    "scale": [
+     1,
+     1,
+     1
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": false,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wagon-deck",
+   "name": "Flat wagon deck",
+   "type": "cube",
+   "parentId": "wing-workshop-wagon",
+   "transform": {
+    "position": [
+     0,
+     1.14,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     15,
+     0.42,
+     3.3
+    ]
+   },
+   "color": "#985b43",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wagon-bogie-5.3",
+   "name": "Wagon bogie",
+   "type": "cube",
+   "parentId": "wing-workshop-wagon",
+   "transform": {
+    "position": [
+     -5.3,
+     0.5,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.85,
+     0.6,
+     2.36
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wagon-wheel-6.1--1.24",
+   "name": "Flanged steel wheel",
+   "type": "cylinder",
+   "parentId": "wing-workshop-wagon",
+   "transform": {
+    "position": [
+     -6.1,
+     0.43,
+     -1.24
+    ],
+    "rotation": [
+     1.5707963267948966,
+     0,
+     0
+    ],
+    "scale": [
+     0.82,
+     0.22,
+     0.82
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wagon-wheel-6.1-1.24",
+   "name": "Flanged steel wheel",
+   "type": "cylinder",
+   "parentId": "wing-workshop-wagon",
+   "transform": {
+    "position": [
+     -6.1,
+     0.43,
+     1.24
+    ],
+    "rotation": [
+     1.5707963267948966,
+     0,
+     0
+    ],
+    "scale": [
+     0.82,
+     0.22,
+     0.82
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wagon-wheel-4.5--1.24",
+   "name": "Flanged steel wheel",
+   "type": "cylinder",
+   "parentId": "wing-workshop-wagon",
+   "transform": {
+    "position": [
+     -4.5,
+     0.43,
+     -1.24
+    ],
+    "rotation": [
+     1.5707963267948966,
+     0,
+     0
+    ],
+    "scale": [
+     0.82,
+     0.22,
+     0.82
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wagon-wheel-4.5-1.24",
+   "name": "Flanged steel wheel",
+   "type": "cylinder",
+   "parentId": "wing-workshop-wagon",
+   "transform": {
+    "position": [
+     -4.5,
+     0.43,
+     1.24
+    ],
+    "rotation": [
+     1.5707963267948966,
+     0,
+     0
+    ],
+    "scale": [
+     0.82,
+     0.22,
+     0.82
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wagon-bogie5.3",
+   "name": "Wagon bogie",
+   "type": "cube",
+   "parentId": "wing-workshop-wagon",
+   "transform": {
+    "position": [
+     5.3,
+     0.5,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     2.85,
+     0.6,
+     2.36
+    ]
+   },
+   "color": "#303b42",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wagon-wheel4.5--1.24",
+   "name": "Flanged steel wheel",
+   "type": "cylinder",
+   "parentId": "wing-workshop-wagon",
+   "transform": {
+    "position": [
+     4.5,
+     0.43,
+     -1.24
+    ],
+    "rotation": [
+     1.5707963267948966,
+     0,
+     0
+    ],
+    "scale": [
+     0.82,
+     0.22,
+     0.82
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wagon-wheel4.5-1.24",
+   "name": "Flanged steel wheel",
+   "type": "cylinder",
+   "parentId": "wing-workshop-wagon",
+   "transform": {
+    "position": [
+     4.5,
+     0.43,
+     1.24
+    ],
+    "rotation": [
+     1.5707963267948966,
+     0,
+     0
+    ],
+    "scale": [
+     0.82,
+     0.22,
+     0.82
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wagon-wheel6.1--1.24",
+   "name": "Flanged steel wheel",
+   "type": "cylinder",
+   "parentId": "wing-workshop-wagon",
+   "transform": {
+    "position": [
+     6.1,
+     0.43,
+     -1.24
+    ],
+    "rotation": [
+     1.5707963267948966,
+     0,
+     0
+    ],
+    "scale": [
+     0.82,
+     0.22,
+     0.82
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wagon-wheel6.1-1.24",
+   "name": "Flanged steel wheel",
+   "type": "cylinder",
+   "parentId": "wing-workshop-wagon",
+   "transform": {
+    "position": [
+     6.1,
+     0.43,
+     1.24
+    ],
+    "rotation": [
+     1.5707963267948966,
+     0,
+     0
+    ],
+    "scale": [
+     0.82,
+     0.22,
+     0.82
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wagon-crossbeam-4",
+   "name": "Load cradle",
+   "type": "cube",
+   "parentId": "wing-workshop-wagon",
+   "transform": {
+    "position": [
+     -4,
+     1.5,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.35,
+     3.2
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wagon-crossbeam0",
+   "name": "Load cradle",
+   "type": "cube",
+   "parentId": "wing-workshop-wagon",
+   "transform": {
+    "position": [
+     0,
+     1.5,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.35,
+     3.2
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-wagon-crossbeam4",
+   "name": "Load cradle",
+   "type": "cube",
+   "parentId": "wing-workshop-wagon",
+   "transform": {
+    "position": [
+     4,
+     1.5,
+     0
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.6,
+     0.35,
+     3.2
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-runway-8.55",
+   "name": "Freight crane runway extension",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     81,
+     5.9,
+     8.55
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     17,
+     0.36,
+     0.27
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-crane-leg-8.55",
+   "name": "Outer gantry leg",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     89.25,
+     2.5,
+     8.55
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.39,
+     6.45,
+     0.39
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-runway-15.55",
+   "name": "Freight crane runway extension",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     81,
+     5.9,
+     15.55
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     17,
+     0.36,
+     0.27
+    ]
+   },
+   "color": "#46535b",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-crane-leg-15.55",
+   "name": "Outer gantry leg",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     89.25,
+     2.5,
+     15.55
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.39,
+     6.45,
+     0.39
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-gantry-head",
+   "name": "Outer crane crossbeam",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     89.25,
+     5.65,
+     12.05
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     0.5,
+     0.48,
+     7.45
+    ]
+   },
+   "color": "#d5a44a",
+   "material": {
+    "type": "standard",
+    "roughness": 0.85,
+    "metalness": 0.05
+   },
+   "tags": [],
+   "layer": 0,
+   "collision": true,
+   "static": true,
+   "visible": true,
+   "locked": false,
+   "collapsed": false,
+   "prefabType": "",
+   "parameters": {},
+   "parametersJson": "{}",
+   "category": "geometry"
+  },
+  {
+   "id": "wing-workshop-yard-fence",
+   "name": "Old works boundary",
+   "type": "cube",
+   "parentId": "wing-workshop-inlet",
+   "transform": {
+    "position": [
+     117,
+     0.12,
+     -30.4
+    ],
+    "rotation": [
+     0,
+     0,
+     0
+    ],
+    "scale": [
+     44,
+     2.24,
+     0.32
+    ]
+   },
+   "color": "#46535b",
    "material": {
     "type": "standard",
     "roughness": 0.85,

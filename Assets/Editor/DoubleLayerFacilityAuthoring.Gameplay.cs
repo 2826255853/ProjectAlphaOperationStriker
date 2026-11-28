@@ -128,16 +128,14 @@ public static partial class DoubleLayerFacilityAuthoring
     {
         var entrance = instances[spawnId].GetComponent<EnemySpawnPoint>();
         var rear = instances[rearSpawnId].GetComponent<EnemySpawnPoint>();
-        var shutter = instances[gatePrefix + "shutter"].transform;
-        var panel = instances[gatePrefix + "shutter-panel"].GetComponentInChildren<Renderer>();
         var beacon = instances[gatePrefix + "beacon"].GetComponentInChildren<Renderer>();
-        var warning = beacon.transform.parent.gameObject.AddComponent<AudioSource>();
+        var warning = beacon.gameObject.AddComponent<AudioSource>();
         warning.playOnAwake = false;
         warning.spatialBlend = 1f;
         warning.minDistance = 12f;
         warning.maxDistance = 70f;
         warning.rolloffMode = AudioRolloffMode.Linear;
-        entrance.gameObject.AddComponent<FacilityPumpIntake>().Configure(entrance, rear, shutter, panel, beacon, warning);
+        entrance.gameObject.AddComponent<FacilityPumpIntake>().Configure(entrance, rear, beacon, warning, spawnId == WorkshopSpawnId);
     }
 
     private static void ValidateFacilityGameplay(GameObject world)
@@ -399,7 +397,7 @@ public static partial class DoubleLayerFacilityAuthoring
             instances["enemy-spawn-middle"].transform.position.x, instances["enemy-spawn-right"].transform.position.x };
         var rearApproaches = new[] { "left", "right" }.Select(side =>
             instances["route-cargo-upper-" + side + "-ramp-toe"].transform.position).ToArray();
-        Vector3[] Approach(string wing) => new[] { "start", "shutter", "apron", "door" }.Select(node =>
+        Vector3[] Approach(string wing) => new[] { "start", "mouth", "turn", "toe", "crest", "shutter", "apron", "door" }.Select(node =>
             instances["route-cargo-" + wing + "-" + node].transform.position).ToArray();
         var westApproach = Approach("pump");
         var eastApproach = Approach("workshop");
@@ -423,7 +421,9 @@ public static partial class DoubleLayerFacilityAuthoring
         for (int i = 1; i < approach.Length; i++)
         {
             Vector3 start = approach[i - 1];
+            start.y = point.y;
             Vector3 delta = approach[i] - start;
+            delta.y = 0f;
             float along = Mathf.Clamp01(Vector3.Dot(point - start, delta) / delta.sqrMagnitude);
             if ((point - (start + along * delta)).sqrMagnitude < halfWidth * halfWidth) return true;
         }

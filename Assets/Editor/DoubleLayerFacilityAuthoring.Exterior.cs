@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 
 public static partial class DoubleLayerFacilityAuthoring
@@ -58,6 +59,19 @@ public static partial class DoubleLayerFacilityAuthoring
                 throw new InvalidOperationException("Exterior AA platform must measure 12 x 10 m with a 2.4 m walk surface: " + id);
         }
 
+        foreach (string node in new[] { "start", "mouth", "turn", "toe", "crest", "shutter", "apron", "door" })
+        {
+            Vector3 west = objects["route-cargo-pump-" + node].transform.position;
+            Vector3 east = objects["route-cargo-workshop-" + node].transform.position;
+            if (Vector3.Distance(west, new Vector3(-east.x, east.y, east.z)) > .02f)
+                throw new InvalidOperationException("Factory wing approaches must mirror each other at " + node);
+        }
+
+        foreach (float side in new[] { -1f, 1f })
+        {
+            FindWingObservationPoint(objects, side);
+        }
+        Debug.Log("FACILITY_WING_APPROACH_PASS: mirrored route nodes, concealed sources and visible turns and crests from both upper posts.");
         ValidateExteriorPlayerMovement();
         Debug.Log("FACILITY_EXTERIOR_PASS: 96 x 64 m supported yard, eight 8 x 8 m ground pads, " +
             "two 12 x 10 m AA platforms, actual FPS capsule walked both ramps and crossed the entrance apron.");
@@ -136,13 +150,15 @@ public static partial class DoubleLayerFacilityAuthoring
             WalkWingRoute(controller, "west pump hall access", new Vector3(-31f, 0f, 12f),
                 new Vector3(-49f, 0f, 12f), new Vector3(-53f, 0f, 12f));
             WalkWingRoute(controller, "west valve gallery", new Vector3(-31f, UpperFloorHeight, 23f),
-                new Vector3(-41f, UpperFloorHeight, 23f));
+                new Vector3(-41f, UpperFloorHeight, 23f), new Vector3(-60f, UpperFloorHeight, 23f));
             WalkWingRoute(controller, "east workshop door", new Vector3(27f, 0f, 11.2f),
                 new Vector3(46f, 0f, 11.2f));
             WalkWingRoute(controller, "east external steel stair", new Vector3(54f, 0f, 23.5f),
                 new Vector3(54f, HalfStairHeight, 33.45f), new Vector3(50.8f, HalfStairHeight, 33.45f),
                 new Vector3(50.8f, UpperFloorHeight, 23.5f), new Vector3(39.2f, UpperFloorHeight, 23.5f),
                 new Vector3(39.2f, UpperFloorHeight, 28f));
+            WalkWingRoute(controller, "crane control cab to observation bay", new Vector3(39.2f, UpperFloorHeight, 28f),
+                new Vector3(39.2f, UpperFloorHeight, 23.5f), new Vector3(60f, UpperFloorHeight, 23.5f));
             WalkWingRoute(controller, "east bridge to upper corridor", new Vector3(49f, UpperFloorHeight, 23.5f),
                 new Vector3(31f, UpperFloorHeight, 23.5f), new Vector3(31f, UpperFloorHeight, 33f));
         }
@@ -179,14 +195,38 @@ public static partial class DoubleLayerFacilityAuthoring
         RenderShot(camera, target, new Vector3(13f, 8.3f, 63f), new Vector3(27f, 7.7f, 55f), "17-rear-loading-door.png");
     }
 
+    private static Vector3 FindWingObservationPoint(Dictionary<string, MapForgeObjectProperties> objects, float side)
+    {
+        string lane = side < 0f ? "pump" : "workshop";
+        Bounds deck = objects["wing-" + lane + "-lookout"].GetComponentInChildren<Renderer>().bounds;
+        Vector3 Chest(string node) => objects["route-cargo-" + lane + "-" + node].transform.position + Vector3.up * 1.4f;
+        Vector3 turn = Chest("turn"), crest = Chest("crest"), start = Chest("start");
+        bool Visible(Vector3 eye, Vector3 target) =>
+            !Physics.Linecast(eye, target, ~0, QueryTriggerInteraction.Ignore);
+        for (float inset = .8f; inset < deck.size.x - .6f; inset += .5f)
+        for (float z = deck.min.z + .7f; z < deck.max.z - .6f; z += .4f)
+        {
+            float x = side < 0f ? deck.min.x + inset : deck.max.x - inset;
+            Vector3 eye = new Vector3(x, deck.max.y + 1.7f, z);
+            if (Physics.CheckCapsule(eye - Vector3.up * 1.3f, eye, .28f, ~0, QueryTriggerInteraction.Ignore))
+                continue;
+            if (!Visible(eye, start) && Visible(eye, turn) && Visible(eye, crest)
+                && Visible(eye, turn + Vector3.forward * .4f) && Visible(eye, crest + Vector3.forward * .4f))
+                return eye;
+        }
+        throw new InvalidOperationException("No standing view of the exposed turn and crest on the " + lane + " observation deck.");
+    }
     private static void RenderWingPreviews(Camera camera, RenderTexture target)
     {
+        var objects = UnityEngine.Object.FindObjectsByType<MapForgeObjectProperties>(FindObjectsSortMode.None)
+            .ToDictionary(item => item.objectId);
         camera.farClipPlane = 420f;
         camera.fieldOfView = 57f;
-        RenderShot(camera, target, new Vector3(115f, 176f, -122f), new Vector3(0f, 0f, 9f), "18-wing-site-overview.png");
+        RenderShot(camera, target, new Vector3(0f, 196f, -121f), new Vector3(0f, 0f, 9f), "18-wing-site-overview.png");
         camera.fieldOfView = 64f;
-        RenderShot(camera, target, new Vector3(-82f, 30f, -38f), new Vector3(-48f, 2f, 7f), "19-cooling-wing.png");
-        RenderShot(camera, target, new Vector3(83f, 29f, -26f), new Vector3(47f, 3f, 20f), "20-heavy-workshop-wing.png");
-        RenderShot(camera, target, new Vector3(39.5f, 8.1f, 27.2f), new Vector3(30f, 7.5f, 73f), "21-crane-cab-view.png");
+        RenderShot(camera, target, new Vector3(-106f, 42f, -53f), new Vector3(-100f, 0f, -4f), "19-cooling-wing.png");
+        RenderShot(camera, target, new Vector3(106f, 42f, -53f), new Vector3(100f, 0f, -4f), "20-heavy-workshop-wing.png");
+        RenderShot(camera, target, FindWingObservationPoint(objects, 1f), new Vector3(98f, 0f, -5f), "21-crane-cab-view.png");
+        RenderShot(camera, target, FindWingObservationPoint(objects, -1f), new Vector3(-98f, 0f, -5f), "22-valve-gallery-view.png");
     }
 }

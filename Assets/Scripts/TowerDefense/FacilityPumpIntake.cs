@@ -2,62 +2,46 @@ using UnityEngine;
 
 public sealed class FacilityPumpIntake : MonoBehaviour
 {
-    private const float OpenSeconds = 4f;
     private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
     private static readonly int ColorProperty = Shader.PropertyToID("_Color");
 
     [SerializeField] private EnemySpawnPoint intake;
     [SerializeField] private EnemySpawnPoint rearApproach;
-    [SerializeField] private Transform shutter;
-    [SerializeField] private Renderer shutterPanel;
     [SerializeField] private Renderer beacon;
     [SerializeField] private AudioSource warning;
+    [SerializeField] private bool freightSide;
 
     private MaterialPropertyBlock beaconProperties;
-    private Vector3 closedScale;
-    private Collider shutterCollider;
-    private AudioClip spinDown;
+    private AudioClip impact;
     private bool warningPlayed;
 
-    public void Configure(EnemySpawnPoint pump, EnemySpawnPoint rear, Transform gate, Renderer panel,
-        Renderer indicator, AudioSource audioSource)
+    public void Configure(EnemySpawnPoint entrance, EnemySpawnPoint rear, Renderer indicator,
+        AudioSource audioSource, bool freight)
     {
-        intake = pump;
+        intake = entrance;
         rearApproach = rear;
-        shutter = gate;
-        shutterPanel = panel;
         beacon = indicator;
         warning = audioSource;
+        freightSide = freight;
     }
 
     private void Awake()
     {
-        closedScale = shutter.localScale;
         beaconProperties = new MaterialPropertyBlock();
-        shutterCollider = shutterPanel.GetComponent<BoxCollider>();
-        spinDown = CreateSpinDown();
-        Update();
+        impact = CreateImpact(freightSide);
     }
 
     private void Update()
     {
-        bool thirdWave = intake.CurrentWave >= 3;
-        float open = thirdWave ? Mathf.Clamp01(1f - intake.RemainingWaitTime / OpenSeconds) : 0f;
-        shutter.localScale = new Vector3(closedScale.x, closedScale.y * Mathf.Max(.02f, 1f - open), closedScale.z);
-        shutterCollider.enabled = open < .95f;
-
-        // Rear approaches advance to wave three immediately after spawning their wave-two enemy.
-        bool armed = rearApproach.CurrentWave >= 3 || thirdWave;
+        // Sound the alarm as soon as the rear group arrives, before the wing wave.
+        bool armed = (rearApproach.CurrentWave == 2 && rearApproach.SpawnedInCurrentWave > 0)
+            || rearApproach.CurrentWave >= 3 || intake.CurrentWave >= 3;
         if (armed && !warningPlayed)
-        {
-            warning.PlayOneShot(spinDown);
-        }
+            warning.PlayOneShot(impact);
         warningPlayed = armed;
 
-        Color color = !armed ? new Color(.22f, .09f, .035f)
-            : open >= 1f ? new Color(.13f, .88f, .47f)
-            : Color.Lerp(new Color(.44f, .16f, .02f), new Color(1f, .67f, .12f),
-                Mathf.PingPong(Time.time * 3f, 1f));
+        Color color = armed ? Color.Lerp(new Color(.46f, .12f, .02f), new Color(1f, .68f, .1f),
+            Mathf.PingPong(Time.time * 3f, 1f)) : new Color(.22f, .09f, .035f);
         beaconProperties.SetColor(BaseColor, color);
         beaconProperties.SetColor(ColorProperty, color);
         beacon.SetPropertyBlock(beaconProperties);
@@ -65,23 +49,28 @@ public sealed class FacilityPumpIntake : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (spinDown != null) Destroy(spinDown);
+        if (impact != null) Destroy(impact);
     }
 
-    private static AudioClip CreateSpinDown()
+    private static AudioClip CreateImpact(bool freight)
     {
-        const int sampleRate = 16000;
-        var samples = new float[sampleRate * 3 / 2];
-        float phase = 0f;
-        for (int i = 0; i < samples.Length; i++)
+        const int rate = 16000;
+        var samples = new float[rate * 2];
+        float[] strikes = freight ? new[] { 0f, .47f, .84f } : new[] { 0f, .16f, .29f, .58f };
+        float pitch = freight ? 73f : 263f;
+        foreach (float strike in strikes)
         {
-            float progress = i / (float)samples.Length;
-            float frequency = Mathf.Lerp(106f, 29f, progress);
-            phase += 2f * Mathf.PI * frequency / sampleRate;
-            float envelope = Mathf.Clamp01(progress * 12f) * (1f - progress) * (1f - progress);
-            samples[i] = (Mathf.Sin(phase) + .3f * Mathf.Sin(phase * 2f)) * envelope * .55f;
+            int start = Mathf.RoundToInt(strike * rate);
+            for (int i = start; i < samples.Length; i++)
+            {
+                float t = (i - start) / (float)rate;
+                float phase = 2f * Mathf.PI * pitch * t;
+                float ring = Mathf.Sin(phase) + .46f * Mathf.Sin(phase * 2.73f) + .24f * Mathf.Sin(phase * 5.19f);
+                samples[i] += .48f * (1f - strike * .65f) * ring * Mathf.Min(t * 800f, 1f)
+                    * Mathf.Exp(-t * (freight ? 6f : 13f));
+            }
         }
-        var clip = AudioClip.Create("Cooling pump spin-down", samples.Length, 1, sampleRate, false);
+        var clip = AudioClip.Create(freight ? "Flat wagon coupler impact" : "Falling canal guardrail", samples.Length, 1, rate, false);
         clip.SetData(samples, 0);
         return clip;
     }
