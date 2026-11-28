@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using TowerDefense;
 
@@ -235,6 +236,7 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
 
         if (originalPlayerCamera != null)
         {
+            MatchPlayerCameraRendering();
             playerCameraWasEnabled = originalPlayerCamera.enabled;
             originalPlayerCamera.enabled = false;
         }
@@ -278,6 +280,24 @@ public sealed class DroneControlSession : MonoBehaviour, IObserverModeDriver
         }
 
         Debug.Log("Entered Drone mode");
+    }
+
+    private void MatchPlayerCameraRendering()
+    {
+        if (droneCamera_cam == null) return;
+
+        droneCamera_cam.clearFlags = originalPlayerCamera.clearFlags;
+        droneCamera_cam.backgroundColor = originalPlayerCamera.backgroundColor;
+        droneCamera_cam.allowHDR = originalPlayerCamera.allowHDR;
+
+        var droneData = droneCamera_cam.GetUniversalAdditionalCameraData();
+        originalPlayerCamera.TryGetComponent<UniversalAdditionalCameraData>(out var playerData);
+        droneData.renderPostProcessing = playerData != null && playerData.renderPostProcessing;
+        droneData.volumeLayerMask = playerData != null ? playerData.volumeLayerMask : (LayerMask)1;
+        // Sample local volumes from the same position as the player camera.
+        droneData.volumeTrigger = playerData != null && playerData.volumeTrigger != null
+            ? playerData.volumeTrigger
+            : originalPlayerCamera.transform;
     }
 
     private void ExitDroneMode()

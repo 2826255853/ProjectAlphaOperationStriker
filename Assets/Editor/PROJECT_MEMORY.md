@@ -1,5 +1,16 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 无人机视角天空亮度（2026-11-28）
+
+- `DroneControlSession` 每次切入无人机时沿用当前玩家相机的天空清屏、背景色、HDR 和 URP 后处理设置。Volume 使用玩家相机配置的触发点，默认取玩家相机位置，使局部调色也与玩家视角一致。正式无人机预制体原先没有 URP 相机数据，默认绕过了玩家启用的后处理。
+- 雷鸣工厂使用正式玩家和无人机预制体在 Unity 编辑器中同位同向渲染天空，8 位亮度均值为玩家 205.48、修复前无人机 253.13、修复后无人机 205.49，修复后与玩家逐像素的单通道最大差为 2。切换与返回断言通过，临时探针源码和 meta 已清理。对比图和日志位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\QuadcopterDrone\sky-comparison-20261128-191035\`。
+
+## 雷鸣工厂全景天空盒（2026-11-28）
+
+- `Assets/Textures/Skyboxes/Factory_IndustrialSky_4K.jpg` 是工厂地图用的 4096×2048 2:1 全景天空图。2026-11-28 修订为均匀阴天照明，移除固定太阳盘和定向强光，并对左右两侧各 96 像素做环绕融合；编码后左右边缘平均 RGB 差为 0.53/255。`Assets/Materials/Skyboxes/Factory_IndustrialSky.mat` 使用 `Skybox/Panoramic`，纹理以 sRGB、重复环绕、mipmap 和高质量压缩导入。
+- `Assets/Scenes/DOUBLE_LAYER_FACILITY.unity` 已引用该天空盒，并以 Skybox 环境采样替代原三色环境光。`DoubleLayerFacilityAuthoring.ConfigurePresentation` 同步此设置，后续重建地图会继续使用该材质。
+- Unity 批处理确认场景保存并输出 `FACTORY_SKYBOX_PASS`；贴图更新后 `FactorySkyboxRefresh.Verify` 确认 4K 尺寸、Repeat 环绕、材质及场景引用，`DoubleLayerFacilityAuthoring.ValidateSavedScene` 通过，31 套陷阱网格校验完成。天空贴图旧版副本在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\FactorySkybox\backups\revision-2-20261128\`，场景副本在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\FactorySkybox\backups\20261128-183702\`，批处理记录位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\FactorySkybox\`。
+
 ## 雷鸣工厂旧厂区两翼入侵（2026-11-28）
 
 - 两侧出怪点在旧取水站和货运棚内，坐标为 x=±134、y=-0.92、z=-19。沿镜像的转角与 1:20 缓坡经过厂界破口，到厂界坡顶各 64.13 m，到现有核心各 304.02 m。西侧有冷却水渠、取水格栅和损坏护栏，东侧有轨道、脱轨平板车与延伸行车。保留原第三波混刷配置。

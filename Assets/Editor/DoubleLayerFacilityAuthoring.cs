@@ -12,6 +12,7 @@ public static partial class DoubleLayerFacilityAuthoring
 {
     public const string SourcePath = "Assets/Editor/MapSources/double-layer-facility.json";
     public const string ScenePath = "Assets/Scenes/DOUBLE_LAYER_FACILITY.unity";
+    private const string SkyboxMaterialPath = "Assets/Materials/Skyboxes/Factory_IndustrialSky.mat";
     private static readonly Vector3 SpawnCameraPosition = new Vector3(-12f, 1.7f, -35f);
     private const float UpperFloorHeight = 6.4f;
     private const float HalfStairHeight = UpperFloorHeight * .5f;
@@ -108,10 +109,12 @@ public static partial class DoubleLayerFacilityAuthoring
         camera.fieldOfView = 75f;
         // FirstPersonPlayerBootstrap uses this camera as the spawn marker, just like the main map.
         RenderSettings.fog = false;
-        RenderSettings.ambientMode = AmbientMode.Trilight;
-        RenderSettings.ambientSkyColor = new Color(.5f, .55f, .62f);
-        RenderSettings.ambientEquatorColor = new Color(.32f, .36f, .42f);
-        RenderSettings.ambientGroundColor = new Color(.18f, .20f, .24f);
+        Material skybox = AssetDatabase.LoadAssetAtPath<Material>(SkyboxMaterialPath);
+        if (skybox == null)
+            throw new InvalidOperationException("Factory skybox material is missing: " + SkyboxMaterialPath);
+        RenderSettings.skybox = skybox;
+        RenderSettings.ambientMode = AmbientMode.Skybox;
+        RenderSettings.ambientIntensity = 1f;
         var sun = UnityEngine.Object.FindAnyObjectByType<Light>();
         sun.transform.rotation = Quaternion.Euler(45f, -35f, 0f);
         sun.intensity = 1.2f;
