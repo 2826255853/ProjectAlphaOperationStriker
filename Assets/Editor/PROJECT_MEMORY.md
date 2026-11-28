@@ -1,5 +1,17 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 对局结算返回主菜单（2026-11-28）
+
+- `GameFlowManager` 首次判定胜负时启动 15 秒未缩放计时，`WaveStatusUI` 在结算提示下显示剩余秒数和 G 键提示。`GameStartMenu` 在已开局时处理超时和 G 键，沿用暂停菜单的入口场景重载流程。暂停期间倒计时继续运行。
+- Unity Play Mode 已验证胜利后按 G 返回、失败后暂停计满 15 秒自动返回，以及返回后可重新开局。验证直接触发胜负结算，临时探针及对应 meta 已清理。
+
+## 双联导弹发射器野战外观与部署（2026-11-28）
+
+- 正式 FBX 继续沿用 `MissileLauncherTurretAuthoring.LauncherModelPath`。18 个刚性网格共 42,498 个三角面，按 UV 读取 `Assets/Models/DualMissileLauncher/` 下三张 2K 底色、切线法线、金属度／光滑度图集。双舱的空腔、外筒和舱口属于俯仰架，两枚可见弹体分别挂在 `Missile_01` 和 `Missile_02` 下，独立随装填隐藏。四角支撑属于固定底座。
+- `MissileLauncherDeployment` 订阅 `TrapInstance.DeploymentStarted`。放置预览与购买首帧共用收起姿态，1 秒窗口内对角支脚先伸出、脚靴落地、托架抬升，再由炮塔接管俯仰。1 米网格使用 2 × 2 格，支脚展开实测 1.920 × 1.920 米，单边余量 4 厘米，待机仰角 14°。
+- 制作源、原件备份和预览在 `C:\Users\ASUS\Desktop\陷阱素材文件夹\MissileLauncher\field-mount\`。运行 `surface.py` 生成贴图，然后用 Blender 运行 `field_mount.py` 生成 FBX 和工作室渲染。更新正式资源后运行 `MissileLauncherTurretAuthoring.CreateLauncherPrefab`，再以图形模式运行 `TrapSelectionMenuAuthoring.RegenerateDualMissileLauncherIconBatch` 更新选卡图。
+- 隔离 Play Mode 经正式预览、购买和放置入口采样 337 帧，验证四脚接地、初始姿态连续、部署后瞄准、逐管发射与整轮装填。制作目录里的 `DML-02-deployment.gif` 是 Unity 实录，`DML-02-studio.png` 是外观图，`verified.txt` 保存实测尺寸。
+
 ## 当前 Unity 编辑器（2026-11-28 核实）
 
 - `ProjectSettings/ProjectVersion.txt` 记录 Unity `6000.6.11f1`（修订 `34837772f4f8`）。本机 `C:\Program Files\Unity 6000.6.11f1\Editor\Unity.exe` 的产品版本与项目配置一致。

@@ -5,14 +5,19 @@ using UnityEngine.SceneManagement;
 [DefaultExecutionOrder(-900)]
 public sealed class GameFlowManager : MonoBehaviour
 {
+    private const double ReturnDelaySeconds = 15;
+
     public enum Result { Playing, Victory, Defeat }
     public static GameFlowManager Instance { get; private set; }
     public Result CurrentResult { get; private set; }
+    public double ReturnSecondsRemaining => CurrentResult == Result.Playing
+        ? 0 : System.Math.Max(0, returnToMenuAt - Time.unscaledTimeAsDouble);
     public event System.Action<Result> ResultChanged;
 
     private EnemyCore core;
     private EnemySpawnPoint[] spawnPoints = System.Array.Empty<EnemySpawnPoint>();
     private float nextScan;
+    private double returnToMenuAt;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Initialize()
@@ -65,6 +70,7 @@ public sealed class GameFlowManager : MonoBehaviour
     {
         if (CurrentResult != Result.Playing) return;
         CurrentResult = result;
+        returnToMenuAt = Time.unscaledTimeAsDouble + ReturnDelaySeconds;
         if (result == Result.Victory || result == Result.Defeat)
             GameSaveSystem.RecordCompletedGame(result == Result.Victory);
         if (result == Result.Defeat)

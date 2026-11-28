@@ -50,7 +50,7 @@ public sealed class MissileLauncherWeapon : MonoBehaviour
     [SerializeField, Min(0.01f)] private float projectileSpeed = 100f;
     [SerializeField, Min(0f)] private float turnRateDegrees = 360f;
     [Tooltip("Flight range of one missile. It is independent of the mount's detection range by default.")]
-    [SerializeField, Min(0.01f)] private float maxFlightRange = 50f;
+    [SerializeField, Min(0.01f)] private float maxFlightRange = 60f;
     [Tooltip("True: the range detonation reuses the mount's detection range. False: the missile flies its own maxFlightRange, so it can still catch a target that left the detection sphere.")]
     [SerializeField] private bool flightRangeFollowsDetection;
 

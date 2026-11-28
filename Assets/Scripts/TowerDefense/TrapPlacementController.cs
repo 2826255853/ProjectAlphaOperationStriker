@@ -761,6 +761,8 @@ public sealed class TrapPlacementController : MonoBehaviour
         // The launcher mount would otherwise swivel the ghost toward enemies.
         MissileLauncherTurret launcher = preview.GetComponent<MissileLauncherTurret>();
         if (launcher != null) launcher.enabled = false;
+        if (preview.TryGetComponent(out MissileLauncherDeployment missileDeployment))
+            missileDeployment.HoldPlacementPose();
         // And the firing half would otherwise launch real missiles from a ghost.
         MissileLauncherWeapon launcherWeapon = preview.GetComponent<MissileLauncherWeapon>();
         if (launcherWeapon != null) launcherWeapon.enabled = false;
@@ -792,7 +794,8 @@ public sealed class TrapPlacementController : MonoBehaviour
         // Keep the stowed preview from covering the mechanism at its placement anchor.
         bool coversDeployingTrap = activeGrid.TryGetTrapAtCell(hoveredCell, out TrapInstance placed)
             && placed.OriginCell == hoveredCell && placed.Definition == selectedTrap
-            && (placed.TryGetComponent<XM777DeploymentAnimation>(out _) || placed.TryGetComponent<ThroatLampTrap>(out _));
+            && (placed.TryGetComponent<XM777DeploymentAnimation>(out _) || placed.TryGetComponent<ThroatLampTrap>(out _)
+                || placed.TryGetComponent<MissileLauncherDeployment>(out _));
         SetPreviewVisible(!coversDeployingTrap);
     }
 

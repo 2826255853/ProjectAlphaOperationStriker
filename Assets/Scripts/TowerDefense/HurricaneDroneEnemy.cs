@@ -27,7 +27,7 @@ public sealed class HurricaneDroneEnemy : MonoBehaviour
 {
     [Header("索敌")]
     [SerializeField, Min(0f), Tooltip("对地攻击的最大水平距离（米）。超出后只飞向核心。")]
-    private float attackRange = 45f;
+    private float attackRange = 40f;
 
     [SerializeField, Range(0f, 180f), Tooltip("目标必须落在机头正前方这个夹角内才会开火。")]
     private float aimConeDegrees = 40f;

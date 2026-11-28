@@ -24,11 +24,12 @@ public static class MissileLauncherTurretAuthoring
     /// <summary>URP flame materials generated here; the FBX only ships built-in Standard ones.</summary>
     public const string ExhaustMaterialFolder = "Assets/Models/DualMissileExhaust/Materials";
 
-    private const float LauncherFootprintMeters = 2f;
+    // Four shoes span the same distance on X/Z, leaving 4 cm on each grid edge.
+    private const float LauncherFootprintMeters = 1.92f;
     /// <summary>Uniform scale applied to the authored plume inside the launcher prefab.</summary>
-    private const float PlumeScale = 0.85f;
+    private const float PlumeScale = 0.267f;
     /// <summary>How far behind the missile tail the nozzle mouth sits, in pitch pivot local units.</summary>
-    private const float PlumeTailGap = 0.12f;
+    private const float PlumeTailGap = 0.038f;
     private const string PlumeRootName = "Exhaust Plume";
     private static readonly string[] RailSuffixes = { "_01", "_02" };
     private static readonly string[] Barrels = { "Missile_01", "Missile_02" };
@@ -89,10 +90,8 @@ public static class MissileLauncherTurretAuthoring
             Debug.LogWarning($"未能从模型自动识别机座，已保存静态预制体，运行时会在 {nameof(MissileLauncherTurret)} 里重试。");
 
         FitLauncherToFootprint(root, LauncherFootprintMeters);
-
-        // The FBX carries no usable material, so the body would render colourless in URP.
-        // Painted before the plumes are mounted so the flame layers are left alone.
         ApplyLauncherMaterials(root);
+        WireDeployment(root, turret);
 
         // The firing half lives next to the mount: it owns the lead solution, the
         // salvo cadence and the in-flight bookkeeping (see the air-attack plan).
@@ -172,7 +171,7 @@ public static class MissileLauncherTurretAuthoring
             StripOtherRail(instance, RailSuffixes[i]);
             ApplyExhaustMaterials(plumeRoot.transform, materials);
 
-            float nozzleOffset;
+            Vector3 nozzleOffset;
             Quaternion orientation;
             if (!AlignPlumeToAxis(plumeRoot.transform, tailDirection, out nozzleOffset, out orientation))
             {
@@ -187,7 +186,7 @@ public static class MissileLauncherTurretAuthoring
             // Rear face of the rocket plus a small stand-off so the collar is not
             // buried inside the tube mesh.
             Vector3 rear = barrelBounds.center + tailDirection * ProjectedHalfLength(barrelBounds.extents, tailDirection);
-            Vector3 nozzleLocal = orientation * (tailDirection * nozzleOffset);
+            Vector3 nozzleLocal = orientation * nozzleOffset;
             plumeRoot.transform.localPosition = rear + tailDirection * PlumeTailGap - nozzleLocal * PlumeScale;
 
             DisablePlumeShadows(plumeRoot);
@@ -269,6 +268,44 @@ public static class MissileLauncherTurretAuthoring
     /// the whole turret flat and colourless; these assets are what the prefab references.
     /// </summary>
     public const string LauncherMaterialFolder = "Assets/Models/DualMissileLauncher/Materials";
+    private const string FieldAtlas = "DML_FieldAtlas";
+
+    private static Texture2D LoadSurfaceMap(string suffix, TextureImporterType type, bool srgb)
+    {
+        string path = $"Assets/Models/DualMissileLauncher/DML_{suffix}.png";
+        var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+        if (importer == null) throw new FileNotFoundException("Missing launcher surface atlas", path);
+        if (importer.textureType != type || importer.sRGBTexture != srgb || importer.alphaIsTransparency)
+        {
+            importer.textureType = type;
+            importer.sRGBTexture = srgb;
+            importer.alphaIsTransparency = false;
+            importer.SaveAndReimport();
+        }
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+    }
+
+    private static Material EnsureFieldMaterial(Shader lit)
+    {
+        string path = $"{LauncherMaterialFolder}/{FieldAtlas}.mat";
+        Material material = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (material == null)
+        {
+            material = new Material(lit) { name = FieldAtlas };
+            AssetDatabase.CreateAsset(material, path);
+        }
+        material.SetColor("_BaseColor", Color.white);
+        material.SetTexture("_BaseMap", LoadSurfaceMap("FieldCoat", TextureImporterType.Default, true));
+        material.SetTexture("_BumpMap", LoadSurfaceMap("SurfaceNormal", TextureImporterType.NormalMap, false));
+        material.SetTexture("_MetallicGlossMap", LoadSurfaceMap("MetalSmooth", TextureImporterType.Default, false));
+        material.SetFloat("_BumpScale", 0.55f);
+        material.SetFloat("_Metallic", 1f);
+        material.SetFloat("_Smoothness", 1f);
+        material.EnableKeyword("_NORMALMAP");
+        material.EnableKeyword("_METALLICSPECGLOSSMAP");
+        EditorUtility.SetDirty(material);
+        return material;
+    }
 
     /// <summary>
     /// Colour scheme for the launcher body. The FBX material names already describe the
@@ -341,6 +378,7 @@ public static class MissileLauncherTurretAuthoring
 
         Directory.CreateDirectory(LauncherMaterialFolder);
         var materials = new Dictionary<string, Material>();
+        materials.Add(FieldAtlas, EnsureFieldMaterial(lit));
         for (int i = 0; i < LauncherPartStyles.Length; i++)
         {
             PartStyle style = LauncherPartStyles[i];
@@ -384,11 +422,10 @@ public static class MissileLauncherTurretAuthoring
     /// </summary>
     public static void ApplyLauncherMaterials(GameObject root)
     {
-        Dictionary<string, Material> materials = EnsureLauncherMaterials();
-        if (materials.Count == 0) return;
-
-        var counts = new Dictionary<string, int>();
         Renderer[] renderers = root.GetComponentsInChildren<Renderer>(true);
+        Dictionary<string, Material> materials = null;
+        Material fieldMaterial = EnsureFieldMaterial(Shader.Find("Universal Render Pipeline/Lit"));
+        var counts = new Dictionary<string, int>();
         int touched = 0;
         for (int i = 0; i < renderers.Length; i++)
         {
@@ -402,7 +439,12 @@ public static class MissileLauncherTurretAuthoring
             {
                 Material source = s < current.Length ? current[s] : null;
                 string style = ResolveLauncherStyle(renderer, source);
-                updated[s] = materials[style];
+                if (style == FieldAtlas) updated[s] = fieldMaterial;
+                else
+                {
+                    materials ??= EnsureLauncherMaterials();
+                    updated[s] = materials[style];
+                }
                 counts.TryGetValue(style, out int seen);
                 counts[style] = seen + 1;
             }
@@ -426,6 +468,7 @@ public static class MissileLauncherTurretAuthoring
     private static string ResolveLauncherStyle(Renderer renderer, Material source)
     {
         string sourceName = source != null ? source.name : null;
+        if (sourceName == FieldAtlas) return FieldAtlas;
         if (!IsGenericMaterialName(sourceName))
         {
             string fromMaterial = MatchStyleToken(sourceName);
@@ -546,11 +589,11 @@ public static class MissileLauncherTurretAuthoring
     /// <summary>
     /// Reads the plume axis out of the model (hot gas collar -&gt; outer flame) and
     /// returns the rotation that points it along <paramref name="axis"/> in the
-    /// parent space, plus the nozzle distance from the plume root origin.
+    /// parent space, plus the nozzle centre in the unrotated plume root.
     /// </summary>
-    private static bool AlignPlumeToAxis(Transform plumeRoot, Vector3 axis, out float nozzleOffset, out Quaternion orientation)
+    private static bool AlignPlumeToAxis(Transform plumeRoot, Vector3 axis, out Vector3 nozzleOffset, out Quaternion orientation)
     {
-        nozzleOffset = 0f;
+        nozzleOffset = Vector3.zero;
         orientation = Quaternion.identity;
 
         Renderer collar = FindRendererByName(plumeRoot, "HotGasCore");
@@ -563,7 +606,7 @@ public static class MissileLauncherTurretAuthoring
         if (plumeAxis.sqrMagnitude < 0.000001f) return false;
 
         orientation = Quaternion.FromToRotation(plumeAxis.normalized, axis.normalized);
-        nozzleOffset = Vector3.Dot(collarCenter, plumeAxis.normalized);
+        nozzleOffset = collarCenter;
         return true;
     }
 
@@ -671,6 +714,28 @@ public static class MissileLauncherTurretAuthoring
             if (nested != null) return nested;
         }
         return null;
+    }
+
+    private static void WireDeployment(GameObject root, MissileLauncherTurret turret)
+    {
+        var mount = new SerializedObject(turret);
+        mount.FindProperty("restPitchDegrees").floatValue = 14f;
+        mount.ApplyModifiedPropertiesWithoutUndo();
+
+        var motion = new SerializedObject(root.AddComponent<MissileLauncherDeployment>());
+        var legs = motion.FindProperty("outriggers");
+        var feet = motion.FindProperty("shoes");
+        string[] corners = { "FL", "RR", "FR", "RL" };
+        legs.arraySize = feet.arraySize = corners.Length;
+        for (int i = 0; i < corners.Length; i++)
+        {
+            var leg = FindDeepChild(root.transform, "Outrigger_" + corners[i]);
+            var foot = leg != null ? leg.Find("Shoe_" + corners[i]) : null;
+            if (foot == null) throw new System.InvalidOperationException("Missing launcher support " + corners[i]);
+            legs.GetArrayElementAtIndex(i).objectReferenceValue = leg;
+            feet.GetArrayElementAtIndex(i).objectReferenceValue = foot;
+        }
+        motion.ApplyModifiedPropertiesWithoutUndo();
     }
 
     private static void FitLauncherToFootprint(GameObject root, float targetMeters)

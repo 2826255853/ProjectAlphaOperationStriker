@@ -550,6 +550,14 @@ public static class TrapSelectionMenuAuthoring
                 var renderers = new List<Renderer>();
                 CopyMeshesOnly(sourceModel.transform, visualRoot.transform, renderers);
                 if (renderers.Count == 0) throw new InvalidOperationException("No renderable model meshes found at " + AssetDatabase.GetAssetPath(sourceModel) + " for " + group.Key);
+                bool missileLauncher = sourceModel.TryGetComponent(out MissileLauncherTurret launcher) && launcher.HasRig;
+                if (missileLauncher)
+                {
+                    string pitchPath = AnimationUtility.CalculateTransformPath(launcher.PitchPivot, sourceModel.transform);
+                    var iconPitch = visualRoot.transform.GetChild(0).Find(pitchPath);
+                    iconPitch.Rotate(Vector3.Cross(launcher.RestBarrelDirectionWorld, Vector3.up),
+                        launcher.RestPitchDegrees, Space.World);
+                }
                 visualRoot.transform.rotation = Quaternion.Euler(0, 32, 0);
                 bool ceilingLamp = group.Key == "throat-lamp";
                 if (ceilingLamp) visualRoot.transform.rotation *= Quaternion.LookRotation(Vector3.down, Vector3.forward);
@@ -560,7 +568,9 @@ public static class TrapSelectionMenuAuthoring
                 Vector3 center = bounds.center;
                 float radius = Mathf.Max(bounds.extents.magnitude, .25f);
                 float cameraHeight = ceilingLamp ? -1.8f : .92f;
-                camera.transform.position = center + new Vector3(1.25f, cameraHeight, -1.65f) * radius;
+                Vector3 view = missileLauncher ? new Vector3(-1.55f, 1.05f, -0.78f)
+                    : new Vector3(1.25f, cameraHeight, -1.65f);
+                camera.transform.position = center + view * radius;
                 camera.transform.LookAt(center);
                 camera.orthographicSize = bounds.extents.magnitude * .92f;
                 camera.farClipPlane = radius * 12f + 20f;
@@ -648,6 +658,7 @@ public static class TrapSelectionMenuAuthoring
 
     private static void CopyMeshesOnly(Transform source, Transform parent, List<Renderer> renderers)
     {
+        if (source.name.StartsWith("Exhaust Plume ", StringComparison.Ordinal)) return;
         var copy = new GameObject(source.name);
         copy.transform.SetParent(parent, false);
         copy.transform.localPosition = source.localPosition;

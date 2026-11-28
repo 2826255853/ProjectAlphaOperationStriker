@@ -38,6 +38,7 @@ public sealed class WaveStatusUI : MonoBehaviour
     private GUIStyle labelStyle;
     private GUIStyle accentStyle;
     private GUIStyle resultStyle;
+    private GUIStyle resultHintStyle;
     private GUIStyle intelStyle;
     private GUIStyle guideStyle;
 
@@ -245,6 +246,10 @@ public sealed class WaveStatusUI : MonoBehaviour
             EnsureStyles();
             string message = flow.CurrentResult == GameFlowManager.Result.Victory ? "游戏胜利" : "游戏失败";
             GUI.Label(new Rect(Screen.width * 0.5f - 180f, Screen.height * 0.5f - 40f, 360f, 80f), message, resultStyle);
+            double remaining = System.Math.Ceiling(flow.ReturnSecondsRemaining);
+            string hint = remaining > 0 ? $"{remaining} 秒后返回主菜单 · 按 G 立即返回" : "按 G 返回主菜单";
+            GUI.Label(new Rect(Screen.width * 0.5f - 180f, Screen.height * 0.5f + 30f, 360f, 28f),
+                hint, resultHintStyle);
         }
         bool showLeak = leakSummary != null && (Time.time - lastLeakTime < LeakHoldSeconds
             || (playing && forecastWave == 0 && !allCompleted && currentWave == leakWave));
@@ -350,6 +355,7 @@ public sealed class WaveStatusUI : MonoBehaviour
             fontStyle = FontStyle.Bold,
             normal = { textColor = Color.white }
         };
+        resultHintStyle = new GUIStyle(labelStyle) { alignment = TextAnchor.MiddleCenter };
     }
 
     private static Texture2D MakeTexture(int width, int height, Color color)

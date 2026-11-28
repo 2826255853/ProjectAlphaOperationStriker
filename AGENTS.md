@@ -45,6 +45,10 @@
 - 近期新增能力（2026-09）：**空中出怪口**（场景对象名 `Enemy Spawn Flying`，预制体 `Assets/Resources/FlyingMonster.prefab`，由 `Assets/Editor/FlyingSpawnPointAuthoring.cs` 生成/放置；飞行移动走 `MonsterPathFollower.InitializeFlying`，不走怪物路径网格）、**打开陷阱菜单时锁定玩家视角**（判据 `TrapSelectionMenu.CursorOwned`，`FirstPersonController` / `FPSPackagePlayerMotion` 两份 `UpdateCursor` 都尊重它）、**瞄准陷阱显示血条**（`Assets/Scripts/TowerDefense/TrapHealthBarUI.cs`）、**双联导弹发射器对空陷阱**（`Assets/Scripts/TowerDefense/MissileLauncher*.cs` + `MissileProjectile` / `MissileAimSolver`，瞄准拦截点、默认只打飞行怪）与 **MapForge「Send to Unity」实时同步**（`Assets/Editor/MapForgeLiveSync.cs` ↔ `C:\MapForge\MapForgeSync.cs`，走 `MapForgeSync/mail/pending.json`，只就地改写变过的对象，不会删掉手工加的空中出怪口）。细节见 `.agents/skills/alpha-striker-unity/SKILL.md`。
 - Blender 生成/导出脚本（`*.py`）与 Unity 运行时代码无关；按下面的文件放置规范，它们应放在桌面「陷阱素材文件夹」而不是仓库根目录。
 
+### 陷阱外形设计规范
+
+- 新建或调整陷阱外形时，按实际占用的格数和单格尺寸确定模型比例。以安装面为基准，底座或固定结构的轮廓须落在所占网格内，并在 Unity 的放置预览中核对尺寸与对齐。
+
 ### 文件放置规范：陷阱制作的中间态文件
 
 制作与迭代陷阱时产生的**一切中间态文件**，统一放到桌面素材文件夹，**不要**落在仓库里：

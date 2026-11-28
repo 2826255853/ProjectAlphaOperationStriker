@@ -74,7 +74,7 @@ public sealed class MissileLauncherTurret : MonoBehaviour
     [Tooltip("Optional core used for the distance tie-break. Falls back to the target's spawn point core, then the scene core.")]
     [SerializeField] private EnemyCore core;
     [Tooltip("Engagement sphere radius in metres, measured from the mount root to the monster pivot (3D).")]
-    [SerializeField, Min(0f)] private float detectionRange = 40f;
+    [SerializeField, Min(0f)] private float detectionRange = 50f;
 
     [Header("Rotation Speed")]
     [SerializeField, Min(0f)] private float yawSpeedDegrees = 120f;

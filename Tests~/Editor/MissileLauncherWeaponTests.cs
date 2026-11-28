@@ -337,7 +337,7 @@ public sealed class MissileLauncherWeaponTests
     }
 
     [Test]
-    public void AuthoredLauncherUsesFortyMetreDetectionAndFiftyMetreFlightRange()
+    public void AuthoredLauncherUsesFiftyMetreDetectionAndSixtyMetreFlightRange()
     {
         GameObject prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(
             MissileLauncherTurretAuthoring.LauncherPrefabPath);
@@ -348,8 +348,8 @@ public sealed class MissileLauncherWeaponTests
 
         MissileLauncherTurret turret = instance.GetComponent<MissileLauncherTurret>();
         MissileLauncherWeapon weapon = instance.GetComponent<MissileLauncherWeapon>();
-        Assert.That(turret.DetectionRange, Is.EqualTo(40f).Within(0.001f), "对空探测半径应为 40 米。");
-        Assert.That(weapon.MaxFlightRange, Is.EqualTo(50f).Within(0.001f), "弹体射程应为 50 米。");
+        Assert.That(turret.DetectionRange, Is.EqualTo(50f).Within(0.001f), "对空探测半径应为 50 米。");
+        Assert.That(weapon.MaxFlightRange, Is.EqualTo(60f).Within(0.001f), "弹体射程应为 60 米。");
         Assert.That(weapon.ProjectileSpeed, Is.EqualTo(100f).Within(0.001f), "弹速应为 100 m/s。");
         Assert.That(weapon.TurnRateDegrees, Is.EqualTo(360f).Within(0.001f), "转向速率应为 360°/秒。");
         Assert.That(weapon.ReloadTime, Is.EqualTo(4f).Within(0.001f), "装填时间应为 4 秒。");
@@ -357,7 +357,7 @@ public sealed class MissileLauncherWeaponTests
     }
 
     [Test]
-    public void LaunchedMissileKeepsFiftyMetreFlightRangeWhenDetectionIsForty()
+    public void LaunchedMissileKeepsSixtyMetreFlightRangeWhenDetectionIsFifty()
     {
         GameObject prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(
             MissileLauncherTurretAuthoring.LauncherPrefabPath);
@@ -373,13 +373,13 @@ public sealed class MissileLauncherWeaponTests
         InvokeLifecycle(weapon, "Awake");
         InvokeLifecycle(weapon, "OnEnable");
 
-        // Well inside the 40 m detection sphere, so the mount acquires and fires.
-        CreateFlyingEnemy(new Vector3(0f, 1f, 20f), new Vector3(0f, 1f, 20f), 0f);
+        // Inside the new 50 m detection sphere and outside the former 40 m sphere.
+        CreateFlyingEnemy(new Vector3(0f, 1f, 45f), new Vector3(0f, 1f, 45f), 0f);
 
         List<MissileProjectile> launched = AdvanceUntilMissiles(weapon, 1, 600);
-        Assert.That(launched.Count, Is.EqualTo(1), "20 米内的飞行怪应触发一次发射。");
-        Assert.That(launched[0].MaxFlightRange, Is.EqualTo(50f).Within(0.001f),
-            "弹体射程必须固定为 50 米，不能被 40 米探测半径覆盖。");
+        Assert.That(launched.Count, Is.EqualTo(1), "45 米处的飞行怪应触发一次发射。");
+        Assert.That(launched[0].MaxFlightRange, Is.EqualTo(60f).Within(0.001f),
+            "发射后的弹体应使用独立的 60 米飞行距离上限。");
     }
 
     // ------------------------------------------------------------- R7 ----

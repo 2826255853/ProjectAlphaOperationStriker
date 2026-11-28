@@ -16,6 +16,7 @@ public sealed class GameStartMenu : MonoBehaviour
     private PlayerWeaponCategorySwitcher weaponSwitcher;
     private bool started;
     private bool loading;
+    private bool attemptedAutomaticReturn;
     private bool restoreInputPending;
     private bool previousCursorVisible;
     private CursorLockMode previousCursorLock;
@@ -62,7 +63,22 @@ public sealed class GameStartMenu : MonoBehaviour
     private void Update()
     {
         RestoreInputAfterClick();
-        if (loading || Keyboard.current == null || !Keyboard.current.escapeKey.wasPressedThisFrame) return;
+        if (loading) return;
+
+        Keyboard keyboard = Keyboard.current;
+        GameFlowManager flow = GameFlowManager.Instance;
+        if (started && flow != null && flow.CurrentResult != GameFlowManager.Result.Playing)
+        {
+            bool timerExpired = flow.ReturnSecondsRemaining <= 0;
+            if ((timerExpired && !attemptedAutomaticReturn) || keyboard?.gKey.wasPressedThisFrame == true)
+            {
+                attemptedAutomaticReturn = timerExpired;
+                ReturnToMainMenu();
+                return;
+            }
+        }
+
+        if (keyboard == null || !keyboard.escapeKey.wasPressedThisFrame) return;
         if (open)
         {
             if (settings) ShowSettings(false);

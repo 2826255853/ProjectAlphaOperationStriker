@@ -208,7 +208,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e24155ef1d62d3a429abb179f6fe9999, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HurricaneDroneEnemy
-  attackRange: 45
+  attackRange: 40
   aimConeDegrees: 40
   targetRefreshInterval: 0.4
   prioritizeAirDefense: 1
