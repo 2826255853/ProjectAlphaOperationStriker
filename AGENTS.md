@@ -37,7 +37,7 @@
 
 ### 本项目已知信息（避免重复探索）
 
-- Unity 编辑器已于 2026-11-20 升级至 `6000.6.10f1`，本机直接安装路径为 `C:\Program Files\Unity 6000.6.10f1\Editor\Unity.exe`。实际执行仍读取 `ProjectSettings/ProjectVersion.txt` 并核实对应安装，历史测试记录保留当时版本。
+- 截至 2026-11-28，项目使用 Unity `6000.6.11f1`（修订 `34837772f4f8`），已核实本机安装于 `C:\Program Files\Unity 6000.6.11f1\Editor\Unity.exe`。每次运行前以 `ProjectSettings/ProjectVersion.txt` 为准，并核实对应安装。
 - 版本号会随升级不定期变化，任何文档、脚本、`.csproj` 都不要写死版本号：一律以 `ProjectSettings/ProjectVersion.txt` 记录的 `m_EditorVersion` + `C:\Program Files\Unity *` 下的实际目录为准。`.agents/skills/alpha-striker-unity/scripts/run-unity-method.ps1` 与 `C:\MapForge\.validation-build\UnityCompile.csproj` 已改成自动探测，升级后无需手改。
 - 未纳入仓库的第三方包：`Assets/KINEMATION`、`Assets/TextMesh Pro`。缺少它们时 C# 编译会报缺失类型，这属于预期情况，不要为此反复排查。
 - 主要场景：`Assets/Scenes/THREE_ROUTE_MERGE_MAP.unity`。
