@@ -42,8 +42,8 @@ public static partial class DoubleLayerFacilityAuthoring
         foreach (var pad in pads)
         {
             Bounds bounds = pad.GetComponentInChildren<Renderer>().bounds;
-            if (Mathf.Abs(bounds.size.x - 6f) > .02f || Mathf.Abs(bounds.size.z - 8f) > .02f)
-                throw new InvalidOperationException("Exterior ground defense pad must measure 6 x 8 m: " + pad.objectId);
+            if (Mathf.Abs(bounds.size.x - 8f) > .02f || Mathf.Abs(bounds.size.z - 8f) > .02f)
+                throw new InvalidOperationException("Exterior ground defense pad must measure 8 x 8 m: " + pad.objectId);
         }
 
         foreach (string side in new[] { "left", "right" })
@@ -59,7 +59,7 @@ public static partial class DoubleLayerFacilityAuthoring
         }
 
         ValidateExteriorPlayerMovement();
-        Debug.Log("FACILITY_EXTERIOR_PASS: 96 x 64 m supported yard, eight 6 x 8 m ground pads, " +
+        Debug.Log("FACILITY_EXTERIOR_PASS: 96 x 64 m supported yard, eight 8 x 8 m ground pads, " +
             "two 12 x 10 m AA platforms, actual FPS capsule walked both ramps and crossed the entrance apron.");
         Debug.Log("FACILITY_REAR_WALK_PASS: actual FPS capsule walked both side roads, both freight ramps in both directions and the upper crosswalk.");
         Debug.Log("FACILITY_WING_WALK_PASS: actual FPS capsule crossed the pump hall and west balcony, and walked the east steel stair to the control cab and upper corridor in both directions.");
