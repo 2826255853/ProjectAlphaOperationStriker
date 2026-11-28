@@ -33,6 +33,7 @@ public sealed class SentryFireFeedback : MonoBehaviour
     private Vector3 restLocalPosition;
     private Quaternion restLocalRotation;
     private Vector3 flashRestScale = Vector3.one;
+    private Vector3 shotFlashScale;
     private Transform flashTransform;
     private AutoSentryTurret turret;
     private bool initialized;
@@ -129,6 +130,10 @@ public sealed class SentryFireFeedback : MonoBehaviour
         if (flashTime > 0f)
         {
             flashTime -= deltaTime;
+            float remaining = Mathf.Clamp01(flashTime / muzzleFlashDuration);
+            flashTransform.localScale = Vector3.Scale(shotFlashScale,
+                new Vector3(Mathf.Lerp(0.35f, 1f, remaining), Mathf.Lerp(0.35f, 1f, remaining),
+                    Mathf.Lerp(0.55f, 1f, remaining)));
             if (flashTime <= 0f)
             {
                 flashTime = 0f;
@@ -144,13 +149,14 @@ public sealed class SentryFireFeedback : MonoBehaviour
         shotTime = singleShotDuration;
         Apply(EvaluateRecoil01(0.0001f));
 
-        if (muzzleFlash == null) return;
+        if (muzzleFlash == null || muzzleFlashDuration <= 0f) return;
         flashTime = muzzleFlashDuration;
         muzzleFlash.SetActive(true);
         if (flashTransform == null) flashTransform = muzzleFlash.transform;
         flashTransform.localRotation = Quaternion.Euler(0f, 0f, NextFloat(0f, 360f));
         float jitter = 1f + NextFloat(-muzzleFlashScaleJitter, muzzleFlashScaleJitter);
-        flashTransform.localScale = flashRestScale * Mathf.Max(0.05f, jitter);
+        shotFlashScale = flashRestScale * Mathf.Max(0.05f, jitter);
+        flashTransform.localScale = shotFlashScale;
     }
 
     /// <summary>Returns the recoil node to its authored pose with zero offset.</summary>

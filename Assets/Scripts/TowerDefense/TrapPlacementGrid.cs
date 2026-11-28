@@ -241,6 +241,27 @@ public sealed class TrapPlacementGrid : MonoBehaviour
 
     public bool IsOpenForTrap(Vector2Int cell, TrapDefinition definition) => IsOpen(cell) && AllowsOpenCell(definition);
 
+    internal bool IsFootprintOpen(Vector2Int origin, Vector2Int footprint)
+    {
+        for (int y = 0; y < footprint.y; y++)
+        for (int x = 0; x < footprint.x; x++)
+            if (!IsOpen(origin + new Vector2Int(x, y))) return false;
+        return true;
+    }
+
+    internal bool TryGetPreviewOrigin(Vector3 hit, Vector2Int footprint, out Vector2Int origin)
+    {
+        origin = NearestFootprintOrigin(hit, footprint);
+        // The origin and the crosshair can both be outside a sparse grid.
+        // Only inspect the part of the footprint inside its authored rectangle.
+        int endX = Mathf.Min(columns, origin.x + footprint.x);
+        int endY = Mathf.Min(rows, origin.y + footprint.y);
+        for (int y = Mathf.Max(0, origin.y); y < endY; y++)
+        for (int x = Mathf.Max(0, origin.x); x < endX; x++)
+            if (IsOpen(new Vector2Int(x, y))) return true;
+        return false;
+    }
+
     internal bool AllowsOpenCell(TrapDefinition definition) => SupportsDefinition(definition)
         && (SurfaceType == TrapMountType.Wall || Surface != SurfaceKind.Platform || definition.AllowsPlatformPlacement);
 
@@ -297,11 +318,15 @@ public sealed class TrapPlacementGrid : MonoBehaviour
             failure = "Trap dimensions do not fit this grid.";
             return false;
         }
+        if (!IsFootprintOpen(origin, footprint))
+        {
+            failure = "Trap footprint is outside the available floor.";
+            return false;
+        }
         for (int y = 0; y < footprint.y; y++)
         for (int x = 0; x < footprint.x; x++)
         {
             Vector2Int cell = origin + new Vector2Int(x, y);
-            if (!IsOpenForTrap(cell, definition)) { failure = "Trap footprint is outside the available floor."; return false; }
             if (IsOccupied(cell)) { failure = "Trap footprint is occupied."; return false; }
         }
         if (definition.WalkableFloorTrap && !HasFloorSupport(origin, footprint, definition))
@@ -735,10 +760,16 @@ public sealed class TrapPlacementGrid : MonoBehaviour
 
     public bool TryWorldToCell(Vector3 worldPosition, out Vector2Int cell)
     {
-        Vector3 local = transform.InverseTransformPoint(worldPosition);
-        float second = IsMountedSurface ? local.y : local.z;
-        cell = new Vector2Int(Mathf.FloorToInt(local.x / cellSize), Mathf.FloorToInt(second / cellSize));
+        cell = NearestFootprintOrigin(worldPosition, Vector2Int.one);
         return IsInside(cell);
+    }
+
+    private Vector2Int NearestFootprintOrigin(Vector3 worldPosition, Vector2Int footprint)
+    {
+        Vector3 delta = transform.InverseTransformPoint(worldPosition) - FootprintCenterLocal(Vector2Int.zero, footprint);
+        float second = IsMountedSurface ? delta.y : delta.z;
+        return new Vector2Int(Mathf.FloorToInt(delta.x / cellSize + 0.5f),
+            Mathf.FloorToInt(second / cellSize + 0.5f));
     }
 
     public bool TryPlaceTrap(Vector2Int origin, TrapDefinition definition, out TrapInstance instance, out string failure)
@@ -990,6 +1021,8 @@ public sealed class TrapPlacementGrid : MonoBehaviour
         // visuals in Awake, replacing the otherwise bare gray cube.
         if (definition.TrapId == "auto_sentry_turret")
         {
+            root.transform.localScale = Vector3.one;
+            root.AddComponent<TrapInstance>();
             root.AddComponent<AutoSentryTurret>();
             // The cube is only the generic fallback footprint; hide it once
             // the turret component has generated its visible machine gun.
@@ -1001,23 +1034,12 @@ public sealed class TrapPlacementGrid : MonoBehaviour
     }
 
     private Vector3 TrapWorldPosition(Vector2Int origin, Vector2Int footprint)
+        => transform.TransformPoint(FootprintCenterLocal(origin, footprint));
+
+    private Vector3 FootprintCenterLocal(Vector2Int origin, Vector2Int footprint)
     {
-        if (IsMountedSurface)
-        {
-            // Wall cells are addressed from the authored rectangle's lower-left
-            // corner on the local X/Y plane. A multi-cell trap hangs at the center
-            // of its covered area, pushed outward along +Z by surfaceOffset.
-            Vector3 wallLocal = new Vector3((origin.x + footprint.x * 0.5f) * cellSize,
-                (origin.y + footprint.y * 0.5f) * cellSize, SurfaceOffset);
-            return transform.TransformPoint(wallLocal);
-        }
-        Vector3 intersection = CellToWorld(origin);
-        // The imported turret mesh has its visual/pickup origin half a cell
-        // toward the left/rear of its prefab root. Compensate that authored
-        // pivot offset so the model and colliders sit on the intended crossing.
-        Vector3 localOffset = new Vector3((footprint.x * 0.5f - 0.5f) * cellSize, 0f,
-            (footprint.y * 0.5f - 0.5f) * cellSize);
-        return intersection + transform.TransformVector(localOffset);
+        Vector2Int opposite = origin + footprint - Vector2Int.one;
+        return (CellToLocal(origin) + CellToLocal(opposite)) * 0.5f;
     }
 
 #if UNITY_EDITOR

@@ -26,6 +26,7 @@ public sealed class SentryLaserSight : MonoBehaviour
 
     private LineRenderer line;
     private AutoSentryTurret turret;
+    private TrapInstance trap;
     private float currentLength;
     private float targetingPulseElapsed = -1f;
 
@@ -44,6 +45,8 @@ public sealed class SentryLaserSight : MonoBehaviour
         // EnsureBeam / UpdateBeam explicitly instead.
         if (Application.isPlaying) EnsureBeam();
         turret = GetComponentInParent<AutoSentryTurret>();
+        trap = GetComponentInParent<TrapInstance>();
+        if (trap != null) trap.DeploymentStarted += UpdateBeam;
         Subscribe();
         if (Application.isPlaying) UpdateBeam();
     }
@@ -57,6 +60,7 @@ public sealed class SentryLaserSight : MonoBehaviour
 
     private void OnDisable()
     {
+        if (trap != null) trap.DeploymentStarted -= UpdateBeam;
         Unsubscribe();
         if (line != null) line.enabled = false;
     }
@@ -117,7 +121,8 @@ public sealed class SentryLaserSight : MonoBehaviour
         // without running OnEnable.
         if (turret == null) turret = GetComponentInParent<AutoSentryTurret>();
 
-        if (!enabled || laserEmitter == null || turret == null || !turret.isActiveAndEnabled)
+        if (!enabled || laserEmitter == null || turret == null || !turret.isActiveAndEnabled
+            || (trap != null && !trap.IsOperational))
         {
             line.enabled = false;
             currentLength = 0f;

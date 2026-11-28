@@ -1,5 +1,12 @@
 # ProjectAlphaOperationStriker 项目记忆
 
+## 哨戒机枪外观与部署（2026-11-28）
+
+- `AutoSentryTurret` 装配 `Resources/SentryMachineGun`。定稿模型与贴图位于 `Assets/Models/SentryMachineGun/`。本体含火光共 17,704 个三角面，弹壳含 1,548 个三角面。装甲与黄铜按 UV 读取同一套 2K 底色、切线法线和金属度／光滑度图集，枪口火光单独读取 512 像素透明贴图。
+- `SentryMachineGunAuthoring.CreateAssetsBatch` 重建机枪和弹壳预制体。四支脚的枢轴取自 FBX 的 `Marker_Foot_*`。脚垫归各自的支腿，升降座带动托架和瞄准枢轴，托架仅跟随水平旋转。运行 `TrapSelectionMenuAuthoring.RegenerateSentryIconBatch` 时启用图形设备，可更新选卡缩略图。
+- `SentryDeployment` 使用 `TrapInstance.DeploymentStarted` 和既有 1 秒部署进度。预览和购买首帧共用收拢姿态，对角支腿伸出、脚垫接地，再抬升 9.5 厘米并转平枪身。隔离 Play Mode 通过正式悬停、购买、射击入口采样 87 帧。1 米格上占 2 × 2 格，支脚由 1.4392 米展开至 1.9200 米见方，脚底与网格高度一致。
+- 制作源、旧模型备份、特写和部署实录位于 `C:\Users\ASUS\Desktop\陷阱素材文件夹\SentryMachineGun\field-station\`。运行 `surface.py` 生成图集，再用 Blender 运行 `assembly.py` 导出模型。预制体探针通过 38 项检查，阶段五编辑器验收通过 119 项断言。
+
 ## 对局结算返回主菜单（2026-11-28）
 
 - `GameFlowManager` 首次判定胜负时启动 15 秒未缩放计时，`WaveStatusUI` 在结算提示下显示剩余秒数和 G 键提示。`GameStartMenu` 在已开局时处理超时和 G 键，沿用暂停菜单的入口场景重载流程。暂停期间倒计时继续运行。

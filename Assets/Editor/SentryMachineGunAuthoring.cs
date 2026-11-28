@@ -78,6 +78,9 @@ public static class SentryMachineGunAuthoring
         RequireModel(CasingModelPath);
 
         EnsureFolder(MaterialDirectory);
+        ConfigureTexture("Station_Normal", TextureImporterType.NormalMap, false);
+        ConfigureTexture("Station_MetalSmooth", TextureImporterType.Default, false);
+        ConfigureTexture("Flash_Plume", TextureImporterType.Default, true, TextureWrapMode.Clamp);
         Dictionary<string, Material> materials = CreateAllMaterials();
         AssetDatabase.SaveAssets();
 
@@ -114,6 +117,23 @@ public static class SentryMachineGunAuthoring
 
     // ------------------------------------------------------------------ materials
 
+    private static void ConfigureTexture(string name, TextureImporterType type, bool srgb,
+        TextureWrapMode wrap = TextureWrapMode.Repeat)
+    {
+        string path = ModelDirectory + "/" + name + ".png";
+        var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+        if (importer == null) throw new InvalidOperationException("Missing texture: " + path);
+        if (importer.textureType == type && importer.sRGBTexture == srgb && importer.wrapMode == wrap) return;
+        importer.textureType = type;
+        importer.sRGBTexture = srgb;
+        importer.wrapMode = wrap;
+        importer.SaveAndReimport();
+    }
+
+    private static Texture2D Texture(string name) =>
+        AssetDatabase.LoadAssetAtPath<Texture2D>(ModelDirectory + "/" + name + ".png")
+        ?? throw new InvalidOperationException("Missing sentry texture: " + name);
+
     private static Dictionary<string, Material> CreateAllMaterials()
     {
         var created = new Dictionary<string, Material>(StringComparer.Ordinal);
@@ -134,6 +154,24 @@ public static class SentryMachineGunAuthoring
     public static Material CreateMaterial(string assetName)
     {
         if (assetName == LaserBeamMaterialName) return CreateLaserBeamMaterial(assetName);
+        if (assetName == "M_Sentry_MuzzleFlash")
+        {
+            Material flash = CreateAdditiveMaterial(assetName, new Color(2.2f, 1.8f, 1.4f, 1f));
+            flash.SetTexture("_BaseMap", Texture("Flash_Plume"));
+            return flash;
+        }
+
+        if (assetName == "M_Sentry_Armor" || assetName == "M_Sentry_Brass")
+        {
+            Material coat = NewOpaqueMaterial(assetName, "#FFFFFF");
+            coat.SetTexture("_BaseMap", Texture("Station_Color"));
+            coat.SetTexture("_BumpMap", Texture("Station_Normal"));
+            coat.SetTexture("_MetallicGlossMap", Texture("Station_MetalSmooth"));
+            coat.SetFloat("_Smoothness", 1f);
+            coat.EnableKeyword("_NORMALMAP");
+            coat.EnableKeyword("_METALLICSPECGLOSSMAP");
+            return coat;
+        }
 
         string baseHex, emissionHex = null;
         float metallic, smoothness, emission = 0f;
@@ -141,8 +179,6 @@ public static class SentryMachineGunAuthoring
         {
             case "M_Sentry_DarkMetal":
                 baseHex = "#2A2E31"; metallic = 0.80f; smoothness = 0.66f; break;
-            case "M_Sentry_Armor":
-                baseHex = "#4A5259"; metallic = 0.70f; smoothness = 0.60f; break;
             case "M_Sentry_Accent":
                 baseHex = "#D97226"; metallic = 0.35f; smoothness = 0.58f; break;
             case "M_Sentry_Rubber":
@@ -150,11 +186,6 @@ public static class SentryMachineGunAuthoring
             case "M_Sentry_LaserLens":
                 baseHex = "#C41A10"; metallic = 0.15f; smoothness = 0.82f;
                 emissionHex = "#FF1A0A"; emission = 4.5f; break;
-            case "M_Sentry_Brass":
-                baseHex = "#C79A33"; metallic = 0.90f; smoothness = 0.68f; break;
-            case "M_Sentry_MuzzleFlash":
-                baseHex = "#FFC24D"; metallic = 0.00f; smoothness = 0.20f;
-                emissionHex = "#FFB03A"; emission = 9.0f; break;
             default:
                 throw new InvalidOperationException("Unknown sentry machine gun material: " + assetName);
         }
@@ -173,10 +204,12 @@ public static class SentryMachineGunAuthoring
     }
 
     /// <summary>URP Unlit additive blend, used by the runtime laser sight LineRenderer.</summary>
-    private static Material CreateLaserBeamMaterial(string assetName)
+    private static Material CreateLaserBeamMaterial(string assetName) =>
+        CreateAdditiveMaterial(assetName, ParseHex("#FF3A22"));
+
+    private static Material CreateAdditiveMaterial(string assetName, Color color)
     {
         Shader shader = RequireShader(UrpUnlit);
-        Color color = ParseHex("#FF3A22");
         var material = new Material(shader) { name = assetName };
         material.SetColor("_BaseColor", color);
         material.SetColor("_Color", color);
@@ -184,10 +217,15 @@ public static class SentryMachineGunAuthoring
         material.SetFloat("_Blend", 2f);   // additive
         material.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
         material.SetFloat("_DstBlend", (float)BlendMode.One);
+        material.SetFloat("_DstBlendAlpha", (float)BlendMode.One);
         material.SetFloat("_ZWrite", 0f);
         material.SetFloat("_Cull", (float)CullMode.Off);
         material.SetFloat("_AlphaClip", 0f);
         material.SetOverrideTag("RenderType", "Transparent");
+        material.doubleSidedGI = true;
+        material.SetShaderPassEnabled("DepthOnly", false);
+        material.SetShaderPassEnabled("ShadowCaster", false);
+        material.SetShaderPassEnabled("MotionVectors", false);
         material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
         material.renderQueue = (int)RenderQueue.Transparent;
         return material;
@@ -982,10 +1020,17 @@ public static class SentryMachineGunAuthoring
             root = new GameObject("SentryMachineGun");
             Transform baseNode = NewNode(BaseNodeName, root.transform, Vector3.zero, Quaternion.identity);
             var legs = new Dictionary<string, Transform>(StringComparer.Ordinal);
-            foreach (string side in new[] { "FL", "FR", "RL", "RR" })
-                legs[side] = NewNode("Leg_" + side, baseNode, Vector3.zero, Quaternion.identity);
-
-            Transform aimPivot = NewNode(AimPivotNodeName, root.transform, pivotLocal, Quaternion.identity);
+            var shoes = new Dictionary<string, Transform>(StringComparer.Ordinal);
+            string[] sides = { "FL", "RR", "FR", "RL" };
+            foreach (string side in sides)
+            {
+                Vector3 foot = MarkerLocal(sourceRoot, "Marker_Foot_" + side);
+                legs[side] = NewNode("Leg_" + side, baseNode, foot, Quaternion.identity);
+                shoes[side] = NewNode("Shoe_" + side, legs[side], Vector3.zero, Quaternion.identity);
+            }
+            Transform mast = NewNode("Mast", root.transform, Vector3.zero, Quaternion.identity);
+            Transform carriage = NewNode("Carriage", mast, Vector3.zero, Quaternion.identity);
+            Transform aimPivot = NewNode(AimPivotNodeName, mast, pivotLocal, Quaternion.identity);
             Transform gunRecoil = NewNode(GunRecoilNodeName, aimPivot, Vector3.zero, Quaternion.identity);
             Transform art = NewNode(ArtNodeName, gunRecoil, Vector3.zero, yaw);
 
@@ -1010,6 +1055,12 @@ public static class SentryMachineGunAuthoring
                 if (meshName.StartsWith("FX_Muzzle_Flash", StringComparison.Ordinal))
                 {
                     Reparent(mesh, flash, Yawed(position) - Yawed(muzzleBaked), yaw * rotation, scale);
+                    renderer.shadowCastingMode = ShadowCastingMode.Off;
+                    renderer.receiveShadows = false;
+                }
+                else if (meshName.StartsWith("Carriage_", StringComparison.Ordinal))
+                {
+                    Reparent(mesh, carriage, Yawed(position), yaw * rotation, scale);
                 }
                 else if (meshName.StartsWith("Base_", StringComparison.Ordinal))
                 {
@@ -1017,10 +1068,10 @@ public static class SentryMachineGunAuthoring
                     foreach (KeyValuePair<string, Transform> leg in legs)
                     {
                         if (!meshName.EndsWith("_" + leg.Key, StringComparison.Ordinal)) continue;
-                        parent = leg.Value;
+                        parent = meshName.StartsWith("Base_Shoe_", StringComparison.Ordinal) ? shoes[leg.Key] : leg.Value;
                         break;
                     }
-                    Reparent(mesh, parent, position, rotation, scale);
+                    Reparent(mesh, parent, parent.InverseTransformPoint(position), rotation, scale);
                 }
                 else
                 {
@@ -1031,6 +1082,18 @@ public static class SentryMachineGunAuthoring
             Object.DestroyImmediate(container.gameObject);
 
             var feedback = root.AddComponent<SentryFireFeedback>();
+            var deployment = new SerializedObject(root.AddComponent<SentryDeployment>());
+            deployment.FindProperty("mast").objectReferenceValue = mast;
+            deployment.FindProperty("carriage").objectReferenceValue = carriage;
+            deployment.FindProperty("aim").objectReferenceValue = aimPivot;
+            foreach (var field in new[] { ("legs", legs), ("shoes", shoes) })
+            {
+                SerializedProperty parts = deployment.FindProperty(field.Item1);
+                parts.arraySize = sides.Length;
+                for (int i = 0; i < sides.Length; i++)
+                    parts.GetArrayElementAtIndex(i).objectReferenceValue = field.Item2[sides[i]];
+            }
+            deployment.ApplyModifiedPropertiesWithoutUndo();
             var ejector = root.AddComponent<SentryShellEjector>();
             var laserSight = root.AddComponent<SentryLaserSight>();
             root.AddComponent<SentryTargetingFeedback>();

@@ -58,6 +58,8 @@ public static class TrapSelectionMenuAuthoring
 
     public static void RegenerateXM777IconBatch() => GenerateIcons(false, "xm777");
 
+    public static void RegenerateSentryIconBatch() => GenerateIcons(true, "auto_sentry_turret");
+
     public static void RegenerateThroatLampIconBatch() => GenerateIcons(true, "throat-lamp");
 
     /// <summary>Batch entry for the anti-air launcher: its icon is rendered from the prefab,
@@ -570,6 +572,8 @@ public static class TrapSelectionMenuAuthoring
                 float cameraHeight = ceilingLamp ? -1.8f : .92f;
                 Vector3 view = missileLauncher ? new Vector3(-1.55f, 1.05f, -0.78f)
                     : new Vector3(1.25f, cameraHeight, -1.65f);
+                if (group.Key == "auto_sentry_turret")
+                    view = visualRoot.transform.TransformDirection(new Vector3(1.4f, .96f, 1.7f));
                 camera.transform.position = center + view * radius;
                 camera.transform.LookAt(center);
                 camera.orthographicSize = bounds.extents.magnitude * .92f;
@@ -642,7 +646,7 @@ public static class TrapSelectionMenuAuthoring
     {
         string path = trapId switch
         {
-            "auto_sentry_turret" => "Assets/Models/SentryMachineGun/SentryMachineGun.fbx",
+            "auto_sentry_turret" => SentryMachineGunAuthoring.SentryPrefabPath,
             "ground-spike" => "Assets/Models/GroundSpike/GroundSpike.fbx",
             "dual_missile_launcher_loaded" => "Assets/Prefabs/DualMissileLauncher.prefab",
             "flamethrower" => "Assets/Models/Flamethrower/Flamethrower.fbx",
@@ -658,7 +662,8 @@ public static class TrapSelectionMenuAuthoring
 
     private static void CopyMeshesOnly(Transform source, Transform parent, List<Renderer> renderers)
     {
-        if (source.name.StartsWith("Exhaust Plume ", StringComparison.Ordinal)) return;
+        if (source.name.StartsWith("Exhaust Plume ", StringComparison.Ordinal)
+            || source.name == SentryMachineGunAuthoring.MuzzleFlashNodeName) return;
         var copy = new GameObject(source.name);
         copy.transform.SetParent(parent, false);
         copy.transform.localPosition = source.localPosition;

@@ -192,10 +192,7 @@ public static class SentryMachineGunStage5Validation
         Advance(turret, 0.3f);
         Check(shotCount == afterLoss, "no rounds are fired without a target");
 
-        // The shipped definition references a legacy prefab by GUID. That prefab imports
-        // as BrokenPrefabAsset (pre-existing, committed and untouched by this stage), and
-        // TrapPlacementGrid.CreateFallbackTrap is the runtime path for exactly that case:
-        // it creates a placeholder root and lets AutoSentryTurret build the art in Awake.
+        // Exercise the shipped gameplay prefab and its separate Resources art.
         TrapDefinition definition = Resources.Load<TrapDefinition>("AutoSentryTurret");
         Check(definition != null, "shipped TrapDefinition loads from Resources");
         Check(definition != null && definition.TrapId == "auto_sentry_turret",
@@ -221,6 +218,9 @@ public static class SentryMachineGunStage5Validation
 
             if (shippedTurret != null)
             {
+                // Edit mode does not run TrapInstance.Awake. The combat gate needs the
+                // same initialized durability that a placed instance has in Play Mode.
+                Invoke(shipped.GetComponent<TrapInstance>(), "Awake");
                 Invoke(shippedTurret, "Awake");
                 int artCopies = 0;
                 foreach (Transform child in shipped.GetComponentsInChildren<Transform>(true))

@@ -311,79 +311,34 @@ public sealed class TrapPlacementController : MonoBehaviour
     }
 
     /// <summary>
-    /// Picks the grid the aim ray points at. A cell the player can actually use
-    /// wins over a nearer surface that has nothing to offer, so hovering the
-    /// road still targets the ground grid even though the platform plane is
-    /// crossed first.
+    /// Selects the nearest visible installation surface touching any cell of the footprint.
+    /// Occupancy and price affect purchase feedback after the surface is selected.
     /// </summary>
     private TrapPlacementGrid ResolveGridForRay(Ray ray, out Vector2Int cell)
     {
-        // Wall grids are finite, front-facing surfaces. Resolve the nearest
-        // visible wall first and never skip it merely because its hovered cell
-        // is blocked: the player must see the actual failure on that wall.
-        if (selectedTrap != null && selectedTrap.MountType != TrapMountType.Ground)
+        TrapPlacementGrid nearest = null;
+        float nearestDistance = float.PositiveInfinity;
+        cell = default;
+        foreach (TrapPlacementGrid candidate in grids)
         {
-            TrapPlacementGrid nearestWall = null;
-            Vector2Int nearestWallCell = default;
-            float nearestWallDistance = float.PositiveInfinity;
-            for (int i = 0; i < grids.Count; i++)
-            {
-                TrapPlacementGrid candidate = grids[i];
-                if (candidate == null || !candidate.IsMountedSurface || !candidate.SupportsDefinition(selectedTrap)) continue;
-                Vector3 normal = candidate.SurfaceNormal;
-                if (Vector3.Dot(ray.direction, normal) >= -0.001f) continue;
-                if (!candidate.TryRaycastPlane(ray, out Vector3 point, out float distance)) continue;
-                if (distance > Mathf.Max(0.1f, wallPlacementDistance)) continue;
-                if (!candidate.TryWorldToCell(point, out Vector2Int candidateCell)) continue;
-                if (distance >= nearestWallDistance) continue;
-                if (IsWallRayOccluded(candidate, ray, distance)) continue;
-                nearestWall = candidate;
-                nearestWallCell = candidateCell;
-                nearestWallDistance = distance;
-            }
-            cell = nearestWallCell;
-            return nearestWall;
+            if (candidate == null || !candidate.isActiveAndEnabled || !candidate.AllowsOpenCell(selectedTrap)) continue;
+            Vector3 normal = candidate.IsMountedSurface ? candidate.SurfaceNormal : candidate.transform.up;
+            if (Vector3.Dot(ray.direction, normal) >= 0f) continue;
+            if (!candidate.TryRaycastPlane(ray, out Vector3 point, out float distance) || distance >= nearestDistance) continue;
+            if (candidate.IsMountedSurface && distance > Mathf.Max(0.1f, wallPlacementDistance)) continue;
+            if (!candidate.TryGetFootprint(selectedTrap, out Vector2Int size)
+                || !candidate.TryGetPreviewOrigin(point, size, out Vector2Int origin)) continue;
+            if (IsSurfaceRayOccluded(candidate, ray, distance)) continue;
+            nearest = candidate;
+            nearestDistance = distance;
+            cell = origin;
         }
-
-        TrapPlacementGrid bestUsable = null, bestOccupied = null, bestAny = null;
-        float usableDistance = float.PositiveInfinity, occupiedDistance = float.PositiveInfinity, anyDistance = float.PositiveInfinity;
-        Vector2Int usableCell = default, occupiedCell = default, anyCell = default;
-        for (int i = 0; i < grids.Count; i++)
-        {
-            TrapPlacementGrid candidate = grids[i];
-            if (candidate == null || candidate.IsMountedSurface) continue;
-            if (!candidate.TryRaycastPlane(ray, out Vector3 point, out float distance)) continue;
-            if (!candidate.TryWorldToCell(point, out Vector2Int candidateCell)) continue;
-            if (distance < anyDistance) { anyDistance = distance; bestAny = candidate; anyCell = candidateCell; }
-            bool occupied = candidate.IsOccupied(candidateCell);
-            if (occupied && distance < occupiedDistance)
-            {
-                occupiedDistance = distance;
-                bestOccupied = candidate;
-                occupiedCell = candidateCell;
-            }
-            else if (!occupied && distance < usableDistance && candidate.IsOpen(candidateCell) && CanPlace(candidate, candidateCell))
-            {
-                usableDistance = distance;
-                bestUsable = candidate;
-                usableCell = candidateCell;
-            }
-        }
-
-        if (bestUsable != null) { cell = usableCell; return bestUsable; }
-        if (bestOccupied != null) { cell = occupiedCell; return bestOccupied; }
-        cell = anyCell;
-        return bestAny;
+        return nearest;
     }
 
-    /// <summary>
-    /// Returns true when a physical object blocks the selected wall. The
-    /// support collider itself is allowed to sit just behind the grid plane;
-    /// triggers, preview ghosts and overlay markers never count as blockers.
-    /// </summary>
-    private bool IsWallRayOccluded(TrapPlacementGrid candidate, Ray ray, float wallDistance)
+    private bool IsSurfaceRayOccluded(TrapPlacementGrid candidate, Ray ray, float surfaceDistance)
     {
-        int hitCount = RaycastAim(ray, Mathf.Max(0.1f, wallDistance + 0.25f));
+        int hitCount = RaycastAim(ray, Mathf.Max(0.1f, surfaceDistance + 0.25f));
         float supportTolerance = Mathf.Max(0.05f, candidate.SurfaceOffset + 0.1f);
         for (int i = 0; i < hitCount; i++)
         {
@@ -394,8 +349,8 @@ public sealed class TrapPlacementController : MonoBehaviour
             // remain selectable as occupied cells instead of hiding the grid.
             if (collider.GetComponentInParent<TrapInstance>() != null) continue;
             if (candidate.SupportCollider != null && collider == candidate.SupportCollider &&
-                Mathf.Abs(aimHits[i].distance - wallDistance) <= supportTolerance) continue;
-            if (aimHits[i].distance < wallDistance - 0.02f) return true;
+                Mathf.Abs(aimHits[i].distance - surfaceDistance) <= supportTolerance) continue;
+            if (aimHits[i].distance < surfaceDistance - 0.02f) return true;
         }
         return false;
     }
@@ -460,8 +415,7 @@ public sealed class TrapPlacementController : MonoBehaviour
 
     private void UpdateHover()
     {
-        Vector2 mousePosition = Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
-        Ray ray = placementCamera.ScreenPointToRay(mousePosition);
+        Ray ray = AimRay();
         TrapPlacementGrid previousGrid = activeGrid;
         TrapPlacementGrid resolved = ResolveGridForRay(ray, out Vector2Int resolvedCell);
         hasHoveredCell = resolved != null;
@@ -510,8 +464,7 @@ public sealed class TrapPlacementController : MonoBehaviour
     }
 
     /// <summary>
-    /// The crosshair ray. Placement mode aims with the mouse pointer, while
-    /// freeroam aims with the locked cursor, which sits at the viewport centre.
+    /// Both placement and dismantling aim through the active camera's crosshair.
     /// </summary>
     private Ray AimRay() => placementCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
 
@@ -756,8 +709,16 @@ public sealed class TrapPlacementController : MonoBehaviour
         // backing geometry; the marker keeps validation and support probes honest.
         if (preview.GetComponent<TrapPlacementPreview>() == null) preview.AddComponent<TrapPlacementPreview>();
         previewBaseScale = preview.transform.localScale;
+        // Showing a ghost again would let the branch adapter re-enable its weapon.
+        if (preview.TryGetComponent(out SentryPhalanxBranchAdapter sentryBranch))
+        {
+            sentryBranch.enabled = false;
+            if (sentryBranch.Cannon != null) sentryBranch.Cannon.enabled = false;
+        }
         AutoSentryTurret turret = preview.GetComponent<AutoSentryTurret>();
         if (turret != null) turret.enabled = false;
+        var sentryDeployment = preview.GetComponentInChildren<SentryDeployment>(true);
+        if (sentryDeployment != null) sentryDeployment.HoldPlacementPose();
         // The launcher mount would otherwise swivel the ghost toward enemies.
         MissileLauncherTurret launcher = preview.GetComponent<MissileLauncherTurret>();
         if (launcher != null) launcher.enabled = false;
@@ -795,7 +756,7 @@ public sealed class TrapPlacementController : MonoBehaviour
         bool coversDeployingTrap = activeGrid.TryGetTrapAtCell(hoveredCell, out TrapInstance placed)
             && placed.OriginCell == hoveredCell && placed.Definition == selectedTrap
             && (placed.TryGetComponent<XM777DeploymentAnimation>(out _) || placed.TryGetComponent<ThroatLampTrap>(out _)
-                || placed.TryGetComponent<MissileLauncherDeployment>(out _));
+                || placed.TryGetComponent<MissileLauncherDeployment>(out _) || placed.TryGetComponent<AutoSentryTurret>(out _));
         SetPreviewVisible(!coversDeployingTrap);
     }
 

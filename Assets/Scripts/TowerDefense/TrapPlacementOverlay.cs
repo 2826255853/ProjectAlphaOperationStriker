@@ -63,7 +63,9 @@ internal sealed class TrapPlacementOverlay
         for (int x = Mathf.Max(0, highlight.xMin); x < Mathf.Min(grid.Columns, highlight.xMax); x++)
         {
             var cell = new Vector2Int(x, y);
-            AddCell(cell, !valid ? Tint.Invalid : cell == highlight.position ? Tint.Hover : Tint.Footprint);
+            Vector2 offset = (Vector2)cell + Vector2.one * 0.5f - highlight.center;
+            bool central = Mathf.Abs(offset.x) <= 0.5f && Mathf.Abs(offset.y) <= 0.5f;
+            AddCell(cell, !valid ? Tint.Invalid : central ? Tint.Hover : Tint.Footprint);
         }
 
         mesh.Clear();
